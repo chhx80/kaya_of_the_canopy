@@ -44,6 +44,31 @@ The preset ships `arm64-v8a` and `x86_64` only — armeabi-v7a is off because a
 
 ### iOS — full walkthrough
 
+**0. Xcode 26.1 or newer is mandatory.**
+Godot 4.7.2's iOS **device** library is built against the **iOS 26.1 SDK** and
+references symbols that do not exist in older ones. On Xcode 16 (iOS 18 SDK) a
+device build dies at link time with:
+
+```
+Undefined symbol: _CADynamicRangeAutomatic
+Undefined symbol: _CADynamicRangeConstrainedHigh
+Undefined symbol: _CADynamicRangeHigh
+Undefined symbol: _CADynamicRangeStandard
+Undefined symbol: _MTLTensorDomain
+```
+
+Check yours with `xcodebuild -showsdks`. `tools/export_ios.sh` now refuses to
+run below 26.1 rather than letting you discover it at the end of a build.
+
+**Beware:** a *simulator* build succeeds on older Xcode, because the simulator
+slice does not reference those symbols. Simulator success is not evidence that a
+device build will link.
+
+If you cannot update Xcode, the alternatives are to drop back to a Godot version
+whose iOS template targets your SDK (which means re-testing the whole project on
+that version), or to build the iOS export template from source with your own
+Xcode. Updating Xcode is far cheaper.
+
 **1. Sign Xcode into your developer account.**
 Xcode ▸ Settings ▸ Accounts ▸ **+** ▸ Apple ID. After it syncs, select the team
 and click *Manage Certificates…* ▸ **+** ▸ *Apple Development* so a signing

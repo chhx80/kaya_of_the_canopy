@@ -23,6 +23,30 @@ if ! grep -q 'app_store_team_id="[^"]\+"' export_presets.cfg; then
   exit 1
 fi
 
+# --- Xcode SDK check -------------------------------------------------------
+# Godot 4.7.2's iOS *device* library is built against the iOS 26.1 SDK and
+# references symbols that do not exist in older ones (_CADynamicRange*,
+# _MTLTensorDomain). Linking against an older SDK fails with a wall of
+# "Undefined symbol" errors at the very end of an Xcode build.
+#
+# The *simulator* slice does not reference those symbols, so a simulator build
+# succeeds on an older Xcode and tells you nothing. Check explicitly.
+REQUIRED_SDK="26.1"
+HAVE_SDK="$(xcodebuild -showsdks 2>/dev/null | sed -n 's/.*-sdk iphoneos\([0-9.]*\).*/\1/p' | sort -V | tail -1)"
+if [ -z "$HAVE_SDK" ]; then
+  echo "error: no iOS SDK found. Install Xcode from the App Store." >&2
+  exit 1
+fi
+if [ "$(printf '%s\n%s\n' "$REQUIRED_SDK" "$HAVE_SDK" | sort -V | head -1)" != "$REQUIRED_SDK" ]; then
+  echo "error: your iOS SDK is $HAVE_SDK, but Godot 4.7.2's device template needs $REQUIRED_SDK or newer." >&2
+  echo "       Building for a device will fail at link time with:" >&2
+  echo "         Undefined symbol: _CADynamicRangeAutomatic  (and friends)" >&2
+  echo "         Undefined symbol: _MTLTensorDomain" >&2
+  echo "       Update Xcode, then re-run. See docs/shipping.md." >&2
+  echo "       (A simulator build would still succeed — that slice does not use those symbols.)" >&2
+  exit 1
+fi
+
 IDENTITIES="$(security find-identity -v -p codesigning 2>/dev/null | grep -c 'valid identities found' || true)"
 if security find-identity -v -p codesigning 2>/dev/null | grep -q '0 valid identities'; then
   echo "note: no code signing identities in your keychain yet."
