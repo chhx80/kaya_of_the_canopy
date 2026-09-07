@@ -223,19 +223,55 @@ cross-origin-isolation headers and works on any plain static host.
 with HTTP 200. Nobody has yet loaded it in a browser. Do that before sending a
 link to anyone.
 
-### TestFlight
-Needs the **paid** Apple Developer Program — a free account cannot use it.
+### TestFlight — private testing before any public release
+Needs the **paid** Apple Developer Program (a free account cannot use TestFlight)
+and an App Store Connect app record. It does **not** need the app submitted,
+approved, or listed anywhere — nobody outside your testers can find it.
+
+Both routes start the same way:
 
 1. App Store Connect ▸ Apps ▸ **+** ▸ New App, bundle id
    `com.cateira.kayaofthecanopy` (matching `export_presets.cfg`).
 2. Xcode ▸ Product ▸ Archive ▸ Distribute App ▸ **TestFlight & App Store**.
-3. **Internal testing** — add people under Users and Access, then to a tester
-   group. No Beta App Review; builds land in minutes. Up to 100 people.
-4. **External testing** — up to 10,000 by email or public link, but the first
-   build of each version goes through Beta App Review (typically a day or two).
-   You must supply test notes and a contact email.
+3. Wait for processing (usually minutes), then add testers.
 
-Builds expire **90 days** after upload.
+Then pick a route. **The trade is account access vs. a review wait:**
+
+| | Internal | External |
+|---|---|---|
+| Testers | up to **100** | up to **10,000** |
+| How they're added | an Apple ID given a role in **Users and Access** | just an email address, or a public link |
+| Do they see your account? | **Yes** — they hold a role on your team | No |
+| Apple review | **None** | **Beta App Review**, first build of each version |
+| Time to first install | minutes | typically a day or two |
+| Devices per tester | 30 | 30 |
+
+**For a handful of people, choose by who they are:**
+- **Close collaborators** you don't mind holding an App Store Connect role →
+  **Internal**. Zero review, builds live in minutes. Use the *Developer* or
+  *Marketing* role rather than *Admin*.
+- **Friends and playtesters** you'd rather not add to your team account →
+  **External**. Invite by email or hand out a public link; accept the one-off
+  Beta App Review per version. Later builds of the same version usually clear
+  automatically.
+
+Testers install the free **TestFlight** app from the App Store and redeem the
+invite there. **Builds expire 90 days after upload**, in both routes.
+
+### Ad Hoc — no App Store Connect involvement at all
+If you want to avoid App Store Connect entirely: register each tester's device
+**UDID** in your developer account, include them in a provisioning profile, and
+export a signed `.ipa` they install directly.
+
+Up to 100 devices per device type per membership year, no review, no waiting.
+The catch is that adding one tester means collecting a UDID and producing a new
+build, so it does not scale past a few devices you can physically reach. Use
+TestFlight unless you have a specific reason not to.
+
+### Straight from Xcode
+For a device you are holding: plug it in, pick it as the run destination, ⌘R.
+The build lasts a year on a paid account. This is the right way to test your own
+phone and needs none of the above.
 
 ## Full App Store release
 
