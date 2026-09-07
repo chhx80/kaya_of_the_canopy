@@ -237,6 +237,67 @@ Needs the **paid** Apple Developer Program — a free account cannot use it.
 
 Builds expire **90 days** after upload.
 
+## Full App Store release
+
+TestFlight and the App Store share the same build; the store adds paperwork.
+
+### 1. Account
+The **paid** Apple Developer Program is required. One decision to make first:
+
+- **Individual** — apps publish under *your legal name*. Enrolment is quick.
+- **Organisation** — apps publish under a company name (e.g. "Cateira"), needs
+  a **D-U-N-S number** and can take days to weeks to verify.
+
+The bundle id is already `com.cateira.kayaofthecanopy`, but the bundle id has no
+bearing on the displayed seller name — only the account type does. Decide before
+enrolling; switching later means a new account and a new app record.
+
+### 2. App Store Connect record
+Apps ▸ **+** ▸ New App:
+- Platform iOS, bundle id `com.cateira.kayaofthecanopy`, an SKU of your choosing
+- **Name** must be unique across the entire App Store (30 chars max)
+- Primary category **Games**, subcategories Action / Adventure
+
+### 3. Assets — generated, not manual
+`tools/genstoreshots.sh` writes `export/store/`:
+
+| Folder | Size | Why |
+|---|---|---|
+| `iphone-6.9/` | 2868×1320 | required for iPhone |
+| `ipad-13/` | 2752×2064 | required *while we ship universal* |
+
+Five landscape shots each, composed at whole-number scale on the same near-black
+the game letterboxes with — so the store shows the framing a player actually
+gets. Captured with the touch overlay on via `tools/seq/store_shots.json`.
+
+The 1024px icon is `export/icons/icon_1024.png`.
+
+> **Halve this work:** iPad screenshots are only required because
+> `application/targeted_device_family=2` (iPhone **and** iPad). Setting it to `0`
+> makes it iPhone-only and drops the iPad set entirely. The game has never been
+> tested on an iPad, so shipping iPhone-only first is arguably more honest.
+
+### 4. The paperwork
+- **Privacy** — "Data Not Collected" throughout. Matches
+  `export/PrivacyInfo.xcprivacy`; the game makes no network calls.
+- **Privacy policy URL** — required even collecting nothing. A one-page
+  statement on any host will do.
+- **Age rating** — infrequent/mild cartoon violence puts it around 9+.
+- **Export compliance** — already answered. `ITSAppUsesNonExemptEncryption=false`
+  is baked into the Info.plist via the preset, so App Store Connect stops asking
+  on every upload.
+- **Support URL**, description, keywords, promotional text.
+
+### 5. Submit
+Archive in Xcode ▸ Distribute ▸ TestFlight & App Store ▸ attach the build to the
+version ▸ Submit for Review. First review is typically 24–48 h.
+
+Realistic rejection risks for this app are low, but the two that apply:
+- **2.1 App Completeness** — crashes or placeholder content. Levels 2–5 have not
+  been played through by a human, so this is the live risk. Fix it by playing it.
+- **4.3 Spam** — cloned-looking games. Everything here is original, and the
+  generators in `tools/` are the evidence.
+
 ### What to tell testers
 Levels 2–5 have never been played end to end by anyone. Ask specifically about:
 - whether any jump or gap is impossible (level design is unproven)

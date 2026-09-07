@@ -1,0 +1,36 @@
+[
+  {"touch": true},
+  {"scenario": "title", "settle": 40},
+  {"shot": "shots/store_01_title.png"},
+
+  {"scenario": "level:jungle_1", "settle": 150},
+  {"hold": "move_right", "frames": 92},
+  {"press": "jump", "frames": 14},
+  {"wait": 10},
+  {"shot": "shots/store_02_platforming.png"},
+  {"release": "move_right"},
+
+  {"scenario": "level:jungle_5", "settle": 150},
+  {"teleport": [31, 24], "settle": 30},
+  {"press": "attack", "frames": 4},
+  {"wait": 18},
+  {"shot": "shots/store_03_boss.png"},
+
+  {"scenario": "level:jungle_3", "settle": 150},
+  {"teleport": [3, 24], "settle": 20},
+  {"hold": "move_right", "frames": 46},
+  {"hold": "move_down", "frames": 60},
+  {"release": "move_down"},
+  {"hold": "move_right", "frames": 60},
+  {"release": "move_right"},
+  {"wait": 6},
+  {"shot": "shots/store_04_fish.png"},
+
+  {"scenario": "hub", "settle": 30},
+  {"hold": "move_right", "frames": 20},
+  {"release": "move_right"},
+  {"hold": "move_up", "frames": 26},
+  {"release": "move_up"},
+  {"wait": 14},
+  {"shot": "shots/store_05_hub.png"}
+]
