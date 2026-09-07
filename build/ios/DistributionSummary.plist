@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>KayaOfTheCanopy.ipa</key>
+	<array>
+		<dict>
+			<key>architectures</key>
+			<array>
+				<string>arm64</string>
+			</array>
+			<key>buildNumber</key>
+			<string>1</string>
+			<key>certificate</key>
+			<dict>
+				<key>SHA1</key>
+				<string>1A838DE31BDE907766331B797381E411CED4153C</string>
+				<key>dateExpires</key>
+				<string>07.09.2027</string>
+				<key>type</key>
+				<string>Cloud Managed Apple Distribution</string>
+			</dict>
+			<key>entitlements</key>
+			<dict>
+				<key>application-identifier</key>
+				<string>8XG8GS2HT3.com.cateira.kayaofthecanopy</string>
+				<key>beta-reports-active</key>
+				<true/>
+				<key>com.apple.developer.team-identifier</key>
+				<string>8XG8GS2HT3</string>
+				<key>get-task-allow</key>
+				<false/>
+			</dict>
+			<key>name</key>
+			<string>KayaOfTheCanopy.app</string>
+			<key>profile</key>
+			<dict>
+				<key>UUID</key>
+				<string>1af8a4cb-5d2a-4a5b-a65a-de68edd0d4d8</string>
+				<key>dateExpires</key>
+				<string>07.09.2027</string>
+				<key>name</key>
+				<string>iOS Team Store Provisioning Profile: com.cateira.kayaofthecanopy</string>
+			</dict>
+			<key>symbols</key>
+			<true/>
+			<key>team</key>
+			<dict>
+				<key>id</key>
+				<string>8XG8GS2HT3</string>
+				<key>name</key>
+				<string></string>
+			</dict>
+			<key>versionNumber</key>
+			<string>0.1.0</string>
+		</dict>
+	</array>
+</dict>
+</plist>

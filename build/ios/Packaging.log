@@ -1,0 +1,439 @@
+2026-09-07 10:58:37 +0000 [MT] Initial pipeline context: <IDEDistributionProcessingPipelineContext: 0x7b42d9e00; archive(resolved)="<IDEArchive: 0x7b21f8150>", distributionTask(resolved)="2", distributionDestination(resolved)="1", distributionMethod(resolved)="<IDEDistributionMethodiOSAppStoreDistribution: 0x7b2917c10>", team(resolved)="<IDEProvisioningBasicTeam: 0x7b43ad3a0; teamID='8XG8GS2HT3', teamName='(null)'>">
+	Chain (15, self inclusive):
+	<IDEDistributionProcessingPipelineContext: 0x7b42d9e00; archive = "<IDEArchive: 0x7b21f8150>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x7b2917c10>", team="<IDEProvisioningBasicTeam: 0x7b43ad3a0; teamID='8XG8GS2HT3', teamName='(null)'>">
+	<IDEDistributionProcessingPipelineContext: 0x7b42da100; archive = "<IDEArchive: 0x7b21f8150>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x7b2917c10>", team="<IDEProvisioningBasicTeam: 0x7b43ad3a0; teamID='8XG8GS2HT3', teamName='(null)'>">
+	<IDEDistributionContext: 0x7b2226f80; archive = "<IDEArchive: 0x7b21f8150>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x7b2917c10>", team="<IDEProvisioningBasicTeam: 0x7b43ad3a0; teamID='8XG8GS2HT3', teamName='(null)'>">
+	<IDEDistributionContext: 0x7b2226a80; archive = "<IDEArchive: 0x7b21f8150>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x7b2917c10>", team="<IDEProvisioningBasicTeam: 0x7b43ad3a0; teamID='8XG8GS2HT3', teamName='(null)'>">
+	<IDEDistributionContext: 0x7b2226800; archive = "<IDEArchive: 0x7b21f8150>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x7b2917c10>", team="<IDEProvisioningBasicTeam: 0x7b43ad3a0; teamID='8XG8GS2HT3', teamName='(null)'>">
+	<IDEDistributionContext: 0x7b2226580; archive = "<IDEArchive: 0x7b21f8150>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x7b2917c10>", team="<IDEProvisioningBasicTeam: 0x7b43ad3a0; teamID='8XG8GS2HT3', teamName='(null)'>">
+	<IDEDistributionContext: 0x7b2226300; archive = "<IDEArchive: 0x7b21f8150>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x7b2917c10>", team="<IDEProvisioningBasicTeam: 0x7b43ad3a0; teamID='8XG8GS2HT3', teamName='(null)'>">
+	<IDEDistributionContext: 0x7b2226080; archive = "<IDEArchive: 0x7b21f8150>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x7b2917c10>", team="<IDEProvisioningBasicTeam: 0x7b43ad3a0; teamID='8XG8GS2HT3', teamName='(null)'>">
+	<IDEDistributionContext: 0x7b2225e00; archive = "<IDEArchive: 0x7b21f8150>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x7b2917c10>", team="<IDEProvisioningBasicTeam: 0x7b43ad3a0; teamID='8XG8GS2HT3', teamName='(null)'>">
+	<IDEDistributionContext: 0x7b2224a00; archive = "<IDEArchive: 0x7b21f8150>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x7b2917c10>", team="<IDEProvisioningBasicTeam: 0x7b43ad3a0; teamID='8XG8GS2HT3', teamName='(null)'>">
+	<IDEDistributionContext: 0x7b2224780; archive = "<IDEArchive: 0x7b21f8150>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x7b2917c10>", team="<IDEProvisioningBasicTeam: 0x7b43ad3a0; teamID='8XG8GS2HT3', teamName='(null)'>">
+	<IDEDistributionContext: 0x7b2224500; archive = "<IDEArchive: 0x7b21f8150>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x7b2917c10>", team="<IDEProvisioningBasicTeam: 0x7b43ad3a0; teamID='8XG8GS2HT3', teamName='(null)'>">
+	<IDEDistributionContext: 0x7b2224280; archive = "<IDEArchive: 0x7b21f8150>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x7b2917c10>", team="(null)">
+	<IDEDistributionContext: 0x7b2224000; archive = "<IDEArchive: 0x7b21f8150>", distributionMethod="<IDEDistributionMethodiOSAppStoreDistribution: 0x7b2917c10>", team="(null)">
+	<IDEDistributionContext: 0x104e2ddf0; archive = "<IDEArchive: 0x7b21f8150>", distributionMethod="(null)", team="(null)">
+</IDEDistributionProcessingPipelineContext: 0x7b42d9e00>
+2026-09-07 10:58:37 +0000 [MT] Processing step: IDEDistributionCreateDestRootStep
+2026-09-07 10:58:37 +0000 [MT] Processing step: IDEDistributionCopyItemStep
+2026-09-07 10:58:37 +0000 [MT] Running /usr/bin/ditto '-V' '/Users/christianheuer/git/kaya_of_the_canopy/build/ios/KayaOfTheCanopy.xcarchive/Products/Applications/KayaOfTheCanopy.app' '/var/folders/_f/d1k1hw3d4152f4yzcj_q1hk40000gn/T/XcodeDistPipeline.~~~zSXocm/Root/Payload/KayaOfTheCanopy.app'
+2026-09-07 10:58:37 +0000  >>> Copying /Users/christianheuer/git/kaya_of_the_canopy/build/ios/KayaOfTheCanopy.xcarchive/Products/Applications/KayaOfTheCanopy.app 
+2026-09-07 10:58:37 +0000  copying file ./_CodeSignature/CodeResources ... 
+2026-09-07 10:58:37 +0000  4430 bytes for ./_CodeSignature/CodeResources
+2026-09-07 10:58:37 +0000  copying file ./en.lproj/InfoPlist.strings ... 
+2026-09-07 10:58:37 +0000  42 bytes for ./en.lproj/InfoPlist.strings
+2026-09-07 10:58:37 +0000  copying file ./AppIcon60x60@2x.png ... 
+2026-09-07 10:58:37 +0000  8818 bytes for ./AppIcon60x60@2x.png
+2026-09-07 10:58:37 +0000  copying file ./KayaOfTheCanopy.pck ... 
+2026-09-07 10:58:37 +0000  995244 bytes for ./KayaOfTheCanopy.pck
+2026-09-07 10:58:37 +0000  copying file ./Launch Screen.storyboardc/01J-lp-oVM-view-Ze5-6b-2t3.nib ... 
+2026-09-07 10:58:37 +0000  2104 bytes for ./Launch Screen.storyboardc/01J-lp-oVM-view-Ze5-6b-2t3.nib
+2026-09-07 10:58:37 +0000  copying file ./Launch Screen.storyboardc/UIViewController-01J-lp-oVM.nib ... 
+2026-09-07 10:58:37 +0000  924 bytes for ./Launch Screen.storyboardc/UIViewController-01J-lp-oVM.nib
+2026-09-07 10:58:37 +0000  copying file ./Launch Screen.storyboardc/Info.plist ... 
+2026-09-07 10:58:37 +0000  258 bytes for ./Launch Screen.storyboardc/Info.plist
+2026-09-07 10:58:37 +0000  copying file ./KayaOfTheCanopy ... 
+2026-09-07 10:58:37 +0000  62763344 bytes for ./KayaOfTheCanopy
+2026-09-07 10:58:37 +0000  copying file ./Assets.car ... 
+2026-09-07 10:58:37 +0000  405640 bytes for ./Assets.car
+2026-09-07 10:58:37 +0000  copying file ./AppIcon76x76@2x~ipad.png ... 
+2026-09-07 10:58:37 +0000  10479 bytes for ./AppIcon76x76@2x~ipad.png
+2026-09-07 10:58:37 +0000  copying file ./PrivacyInfo.xcprivacy ... 
+2026-09-07 10:58:37 +0000  990 bytes for ./PrivacyInfo.xcprivacy
+2026-09-07 10:58:37 +0000  copying file ./embedded.mobileprovision ... 
+2026-09-07 10:58:37 +0000  16320 bytes for ./embedded.mobileprovision
+2026-09-07 10:58:37 +0000  copying file ./Info.plist ... 
+2026-09-07 10:58:37 +0000  1828 bytes for ./Info.plist
+2026-09-07 10:58:37 +0000  copying file ./PkgInfo ... 
+2026-09-07 10:58:37 +0000  8 bytes for ./PkgInfo
+2026-09-07 10:58:37 +0000 [MT] /usr/bin/ditto exited with 0
+2026-09-07 10:58:37 +0000 [MT] Processing step: IDEDistributionEmbedProfileStep
+2026-09-07 10:58:37 +0000 [MT] Processing step: IDEDistributionInfoPlistStep
+2026-09-07 10:58:37 +0000 [MT] Skipping setting DTXcodeBuildDistribution because toolsBuildVersionName was nil.
+2026-09-07 10:58:37 +0000 [MT] Processing step: IDEDistributionItemRemovalStep
+2026-09-07 10:58:37 +0000 [MT] Processing step: IDEDistributionAppThinningPlistStep
+2026-09-07 10:58:37 +0000 [MT] Skipping step: IDEDistributionAppThinningPlistStep because it said so
+2026-09-07 10:58:37 +0000 [MT] Processing step: IDEDistributionSymbolsStep
+2026-09-07 10:58:38 +0000 [MT] Writing /var/folders/_f/d1k1hw3d4152f4yzcj_q1hk40000gn/T/XcodeDistPipeline.~~~zSXocm/Symbols/9B48D235-E929-37C9-AE54-CE760F6D43E4.symbols
+2026-09-07 10:58:38 +0000 [MT] Processing step: IDEDistributionCopyAppleProvidedContentStep
+2026-09-07 10:58:38 +0000 [MT] Running /usr/bin/ditto '-V' '/Users/christianheuer/git/kaya_of_the_canopy/build/ios/KayaOfTheCanopy.xcarchive/Signatures' '/var/folders/_f/d1k1hw3d4152f4yzcj_q1hk40000gn/T/XcodeDistPipeline.~~~zSXocm/Root/Signatures'
+2026-09-07 10:58:38 +0000  >>> Copying /Users/christianheuer/git/kaya_of_the_canopy/build/ios/KayaOfTheCanopy.xcarchive/Signatures 
+2026-09-07 10:58:38 +0000  copying file ./KayaOfTheCanopy.xcframework-ios.signature ... 
+2026-09-07 10:58:38 +0000  391 bytes for ./KayaOfTheCanopy.xcframework-ios.signature
+2026-09-07 10:58:38 +0000  copying file ./MoltenVK.xcframework-ios.signature ... 
+2026-09-07 10:58:38 +0000  394 bytes for ./MoltenVK.xcframework-ios.signature
+2026-09-07 10:58:38 +0000 [MT] /usr/bin/ditto exited with 0
+2026-09-07 10:58:38 +0000 [MT] Processing step: IDEDistributionAppThinningStep
+2026-09-07 10:58:38 +0000 [MT] Skipping step: IDEDistributionAppThinningStep because it said so
+2026-09-07 10:58:38 +0000 [MT] Processing step: IDEDistributionArchThinningStep
+2026-09-07 10:58:38 +0000 [MT] Archs to thin for item /Users/christianheuer/git/kaya_of_the_canopy/build/ios/KayaOfTheCanopy.xcarchive/Products/Applications/KayaOfTheCanopy.app are []
+2026-09-07 10:58:38 +0000 [MT] Processing step: IDEDistributionODRStep
+2026-09-07 10:58:38 +0000 [MT] Processing step: IDEDistributionStripXattrsStep
+2026-09-07 10:58:38 +0000 [MT] Skipping stripping extended attributes because the codesign step will strip them.
+2026-09-07 10:58:38 +0000 [MT] Processing step: IDEDistributionCodesignStep
+2026-09-07 10:58:38 +0000 [MT] Entitlements for <IDEDistributionItem: 0x7b4367840; bundleID='com.cateira.kayaofthecanopy', path='<DVTFilePath:0x7b21f81c0:'/Users/christianheuer/git/kaya_of_the_canopy/build/ios/KayaOfTheCanopy.xcarchive/Products/Applications/KayaOfTheCanopy.app'>', codeSigningInfo='<_DVTCodeSigningInformation_Path: 0x7b4367720; isSigned='1', isAdHocSigned='0', signingCertificate='<DVTSigningCertificate: 0x7b409b780; name='Apple Development: Christian Heuer (8VR86W98CH)', hash='A51B3BE0A6458DDEE219991F85A7FAF6C3E5CBEF', serialNumber='466220F3871DCC2B1B02E1B9825852C0', certificateKinds='(
+    "1.2.840.113635.100.6.1.12",
+    "1.2.840.113635.100.6.1.2"
+), issueDate='2026-09-07 10:45:38 +0000''>', entitlements='{
+    "application-identifier" = "8XG8GS2HT3.com.cateira.kayaofthecanopy";
+    "com.apple.developer.team-identifier" = 8XG8GS2HT3;
+    "get-task-allow" = 1;
+}', teamID='8XG8GS2HT3', identifier='com.cateira.kayaofthecanopy', executablePath='<DVTFilePath:0x7b4367180:'/Users/christianheuer/git/kaya_of_the_canopy/build/ios/KayaOfTheCanopy.xcarchive/Products/Applications/KayaOfTheCanopy.app/KayaOfTheCanopy'>', hardenedRuntime='0'>'>: {
+    "application-identifier" = "8XG8GS2HT3.com.cateira.kayaofthecanopy";
+    "beta-reports-active" = 1;
+    "com.apple.developer.team-identifier" = 8XG8GS2HT3;
+    "get-task-allow" = 0;
+}
+2026-09-07 10:58:38 +0000 [MT] Associated App Clip Identifiers Filter: Skipping because "com.apple.developer.associated-appclip-app-identifiers" is not present
+2026-09-07 10:58:38 +0000 [MT] Entitlements for <IDEDistributionItem: 0x7b4367840; bundleID='com.cateira.kayaofthecanopy', path='<DVTFilePath:0x7b21f81c0:'/Users/christianheuer/git/kaya_of_the_canopy/build/ios/KayaOfTheCanopy.xcarchive/Products/Applications/KayaOfTheCanopy.app'>', codeSigningInfo='<_DVTCodeSigningInformation_Path: 0x7b4367720; isSigned='1', isAdHocSigned='0', signingCertificate='<DVTSigningCertificate: 0x7b409b3c0; name='Apple Development: Christian Heuer (8VR86W98CH)', hash='A51B3BE0A6458DDEE219991F85A7FAF6C3E5CBEF', serialNumber='466220F3871DCC2B1B02E1B9825852C0', certificateKinds='(
+    "1.2.840.113635.100.6.1.12",
+    "1.2.840.113635.100.6.1.2"
+), issueDate='2026-09-07 10:45:38 +0000''>', entitlements='{
+    "application-identifier" = "8XG8GS2HT3.com.cateira.kayaofthecanopy";
+    "com.apple.developer.team-identifier" = 8XG8GS2HT3;
+    "get-task-allow" = 1;
+}', teamID='8XG8GS2HT3', identifier='com.cateira.kayaofthecanopy', executablePath='<DVTFilePath:0x7b4367180:'/Users/christianheuer/git/kaya_of_the_canopy/build/ios/KayaOfTheCanopy.xcarchive/Products/Applications/KayaOfTheCanopy.app/KayaOfTheCanopy'>', hardenedRuntime='0'>'> are: {
+    "application-identifier" = "8XG8GS2HT3.com.cateira.kayaofthecanopy";
+    "beta-reports-active" = 1;
+    "com.apple.developer.team-identifier" = 8XG8GS2HT3;
+    "get-task-allow" = 0;
+}
+2026-09-07 10:58:38 +0000 [MT] Writing entitlements for <IDEDistributionItem: 0x7b4367840; bundleID='com.cateira.kayaofthecanopy', path='<DVTFilePath:0x7b21f81c0:'/Users/christianheuer/git/kaya_of_the_canopy/build/ios/KayaOfTheCanopy.xcarchive/Products/Applications/KayaOfTheCanopy.app'>', codeSigningInfo='<_DVTCodeSigningInformation_Path: 0x7b4367720; isSigned='1', isAdHocSigned='0', signingCertificate='<DVTSigningCertificate: 0x7b409b3c0; name='Apple Development: Christian Heuer (8VR86W98CH)', hash='A51B3BE0A6458DDEE219991F85A7FAF6C3E5CBEF', serialNumber='466220F3871DCC2B1B02E1B9825852C0', certificateKinds='(
+    "1.2.840.113635.100.6.1.12",
+    "1.2.840.113635.100.6.1.2"
+), issueDate='2026-09-07 10:45:38 +0000''>', entitlements='{
+    "application-identifier" = "8XG8GS2HT3.com.cateira.kayaofthecanopy";
+    "com.apple.developer.team-identifier" = 8XG8GS2HT3;
+    "get-task-allow" = 1;
+}', teamID='8XG8GS2HT3', identifier='com.cateira.kayaofthecanopy', executablePath='<DVTFilePath:0x7b4367180:'/Users/christianheuer/git/kaya_of_the_canopy/build/ios/KayaOfTheCanopy.xcarchive/Products/Applications/KayaOfTheCanopy.app/KayaOfTheCanopy'>', hardenedRuntime='0'>'> to: /var/folders/_f/d1k1hw3d4152f4yzcj_q1hk40000gn/T/XcodeDistPipeline.~~~zSXocm/entitlements~~~P0GnSV
+2026-09-07 10:58:38 +0000 [MT] invoking codesign: <NSConcreteTask: 0x7b24cc910; launchPath='/usr/bin/codesign', arguments='(
+    "-f",
+    "-s",
+    "-",
+    "--signature-size",
+    16000,
+    "--entitlements",
+    "/var/folders/_f/d1k1hw3d4152f4yzcj_q1hk40000gn/T/XcodeDistPipeline.~~~zSXocm/entitlements~~~P0GnSV",
+    "--requirements",
+    "=designated => anchor apple generic and identifier \"com.cateira.kayaofthecanopy\" and certificate leaf[subject.CN] = \"Apple Distribution: Christian Heuer (8XG8GS2HT3)\" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */",
+    "--preserve-metadata=identifier,flags,runtime,launch-constraints,library-constraints",
+    "--omit-adhoc-flag",
+    "--team-identifier",
+    8XG8GS2HT3,
+    "--generate-entitlement-der",
+    "--strip-disallowed-xattrs",
+    "-vvv",
+    "/var/folders/_f/d1k1hw3d4152f4yzcj_q1hk40000gn/T/XcodeDistPipeline.~~~zSXocm/Root/Payload/KayaOfTheCanopy.app"
+)'>
+2026-09-07 10:58:38 +0000 [MT] codesign output: /var/folders/_f/d1k1hw3d4152f4yzcj_q1hk40000gn/T/XcodeDistPipeline.~~~zSXocm/Root/Payload/KayaOfTheCanopy.app: replacing existing signature
+/var/folders/_f/d1k1hw3d4152f4yzcj_q1hk40000gn/T/XcodeDistPipeline.~~~zSXocm/Root/Payload/KayaOfTheCanopy.app: signed app bundle with Mach-O thin (arm64) [com.cateira.kayaofthecanopy]
+2026-09-07 10:58:38 +0000 [MT] Remote code signing '/var/folders/_f/d1k1hw3d4152f4yzcj_q1hk40000gn/T/XcodeDistPipeline.~~~zSXocm/Root/Payload/KayaOfTheCanopy.app' with signature slices '[<DVTCodeSignatureSlice: 0x7b497b630; architecture='arm64', cmsDigest='<DVTCodeSignatureHash: 0x7b4b79ca0; digestAlgorithmDescription='sha256', cdHashHexEncoded='9baea78b6f6f17cd9ed8ed4e4a0d3891519255155e3506cdbf4731bf18fa1316'>', codeSignatureHashes='{(
+    <DVTCodeSignatureHash: 0x7b4b79d00; digestAlgorithmDescription='sha256', cdHashHexEncoded='9baea78b6f6f17cd9ed8ed4e4a0d3891519255155e3506cdbf4731bf18fa1316'>
+)}', cmsHexEncoded=''>]' and configuration 'RemoteSigningToolConfiguration(path: <DVTFilePath:0x7b2bf8690:'/var/folders/_f/d1k1hw3d4152f4yzcj_q1hk40000gn/T/XcodeDistPipeline.~~~zSXocm/Root/Payload/KayaOfTheCanopy.app'>, signingCertificate: <DVTSigningCertificate: 0x7b409bd80; name='Apple Distribution: Christian Heuer (8XG8GS2HT3)', hash='1A838DE31BDE907766331B797381E411CED4153C', serialNumber='7846B346D00056653C0AC70084856245', certificateKinds='(
+    "1.2.840.113635.100.6.1.7",
+    "1.2.840.113635.100.6.1.4"
+), issueDate='2026-09-07 10:47:26 +0000''>, session: <DVTServicesAccountBasedSession: 0x7b33103c0; account='<DVTAppleIDBasedDeveloperAccount: 0x7b2320240; username='chh@cateira.com'>'>, team: <DVTPortalTeam: 0x7b2e1ca80; name='Christian Heuer', teamID='8XG8GS2HT3', type='Individual', memberships='(
+    "<DVTPortalMembership: 0x7b497b660; programs='{(\n    <DVTPortalProgram: 0x7b24bc280; <DVTPortalProgram: 0x7b24bc280; identifier='Xcode.Portal.Program.iOS'>>\n)}'>",
+    "<DVTPortalMembership: 0x7b497ba20; programs='{(\n    <DVTPortalProgram: 0x7b24bc230; <DVTPortalProgram: 0x7b24bc230; identifier='Xcode.Portal.Program.Mac'>>\n)}'>"
+)'>, codeResourcesDictionary: [AnyHashable("rules2"): {
+    ".*\\.dSYM($|/)" =     {
+        weight = 11;
+    };
+    "^(.*/)?\\.DS_Store$" =     {
+        omit = 1;
+        weight = 2000;
+    };
+    "^.*" = 1;
+    "^.*\\.lproj/" =     {
+        optional = 1;
+        weight = 1000;
+    };
+    "^.*\\.lproj/locversion.plist$" =     {
+        omit = 1;
+        weight = 1100;
+    };
+    "^Base\\.lproj/" =     {
+        weight = 1010;
+    };
+    "^Info\\.plist$" =     {
+        omit = 1;
+        weight = 20;
+    };
+    "^PkgInfo$" =     {
+        omit = 1;
+        weight = 20;
+    };
+    "^embedded\\.provisionprofile$" =     {
+        weight = 20;
+    };
+    "^version\\.plist$" =     {
+        weight = 20;
+    };
+}, AnyHashable("rules"): {
+    "^.*" = 1;
+    "^.*\\.lproj/" =     {
+        optional = 1;
+        weight = 1000;
+    };
+    "^.*\\.lproj/locversion.plist$" =     {
+        omit = 1;
+        weight = 1100;
+    };
+    "^Base\\.lproj/" =     {
+        weight = 1010;
+    };
+    "^version.plist$" = 1;
+}, AnyHashable("files"): {
+    "AppIcon60x60@2x.png" = {length = 20, bytes = 0x193855b74735f969e53c4e63b685a7a86311059c};
+    "AppIcon76x76@2x~ipad.png" = {length = 20, bytes = 0xcb0342b02784c024768aa304663469ee350ca80e};
+    "Assets.car" = {length = 20, bytes = 0x016a43bbb0ba1b8e00099939463f3742cae84f60};
+    "Info.plist" = {length = 20, bytes = 0x1578909d6730c2f0a81acc894389191777a94fe1};
+    "KayaOfTheCanopy.pck" = {length = 20, bytes = 0x4f6a9e5da48912b79e02830b73eb69e2334a1370};
+    "Launch Screen.storyboardc/01J-lp-oVM-view-Ze5-6b-2t3.nib" = {length = 20, bytes = 0x471fe66b92ab2529816c079276d3e54b1e6b7a66};
+    "Launch Screen.storyboardc/Info.plist" = {length = 20, bytes = 0x9f6b7c82c0e97c4e979211b7d69ec84094714f15};
+    "Launch Screen.storyboardc/UIViewController-01J-lp-oVM.nib" = {length = 20, bytes = 0x65580cd7e2b065c667c2181a23417b06dd5b6b67};
+    PkgInfo = {length = 20, bytes = 0x9f9eea0cfe2d65f2c3d6b092e375b40782d08f31};
+    "PrivacyInfo.xcprivacy" = {length = 20, bytes = 0x1ae9cff596ad32df06cfc3b02ba16af5a6a475bd};
+    "embedded.mobileprovision" = {length = 20, bytes = 0xeb5aa5e0aebb4f81216c5076075e8ae2c2f6e304};
+    "en.lproj/InfoPlist.strings" =     {
+        hash = {length = 20, bytes = 0xce657a52a052a3aaf534ecfbf7cbdde4ee334c10};
+        optional = 1;
+    };
+}, AnyHashable("files2"): {
+    "AppIcon60x60@2x.png" =     {
+        hash2 = {length = 32, bytes = 0xaeb21dd8 baef1be1 3b63d6eb e43bccf4 ... b8a74589 9d137854 };
+    };
+    "AppIcon76x76@2x~ipad.png" =     {
+        hash2 = {length = 32, bytes = 0x70c1d200 083144c8 deeefa0f 9aea2697 ... c83769ba 421838eb };
+    };
+    "Assets.car" =     {
+        hash2 = {length = 32, bytes = 0x79520374 051c11bf e1b66c70 d9aac47e ... 573df752 592e7280 };
+    };
+    "KayaOfTheCanopy.pck" =     {
+        hash2 = {length = 32, bytes = 0x2b463973 21b7492a af8b40ba 17a37d50 ... a353ead7 affbdf4f };
+    };
+    "Launch Screen.storyboardc/01J-lp-oVM-view-Ze5-6b-2t3.nib" =     {
+        hash2 = {length = 32, bytes = 0x8805b891 88bacb87 31029498 53c58cc2 ... cb106a45 52180451 };
+    };
+    "Launch Screen.storyboardc/Info.plist" =     {
+        hash2 = {length = 32, bytes = 0x1f255d5c c53b531e 3f29a940 6a8df49a ... bd8374f7 07f7d5c8 };
+    };
+    "Launch Screen.storyboardc/UIViewController-01J-lp-oVM.nib" =     {
+        hash2 = {length = 32, bytes = 0x54f3637f 671feba5 f19e82ec 4f4a7fb4 ... 89aa571f c8f053e2 };
+    };
+    "PrivacyInfo.xcprivacy" =     {
+        hash2 = {length = 32, bytes = 0x4b619787 94a0d604 2d6fb575 1bf9474c ... 04667a1f 0260ab2e };
+    };
+    "embedded.mobileprovision" =     {
+        hash2 = {length = 32, bytes = 0xb9061645 c7a8adcd 335f4978 c79f56aa ... ef36778c adffb98e };
+    };
+    "en.lproj/InfoPlist.strings" =     {
+        hash2 = {length = 32, bytes = 0x9261ecce da608ef1 74256e5f dc774c1e ... 393d490d 01c713f1 };
+        optional = 1;
+    };
+}], enableSignatureValidation: true, logAspect: <DVTLogAspect:0x7b3310060:IDEDistributionPipeline:level=verbose(3):effective-level=verbose(3)>)'
+2026-09-07 10:58:38 +0000 [MT] Sending request 3455DD92-9240-49A9-A586-2C9B4B5023C9 to <https://developerservices2.apple.com/services/v1/certificates> for session <DVTServicesAccountBasedSession: 0x7b33103c0; account='<DVTAppleIDBasedDeveloperAccount: 0x7b2320240; username='chh@cateira.com'>'>.
+Method: POST
+
+Headers:
+{
+    Accept = "application/vnd.api+json";
+    "Accept-Encoding" = "gzip, deflate";
+    "Content-Length" = 113;
+    "Content-Type" = "application/vnd.api+json";
+    DSESSIONID = sp82efpk7vrh7imtg2ldodfaom5mb64lm38aa45nd799oa0j1i6;
+    "User-Agent" = Xcode;
+    "X-Apple-App-Info" = "com.apple.gs.xcode.auth";
+    "X-Apple-GS-Token" = "AAAABLwIAAAAAGqelCURDWdzLnhjb2RlLmF1dGi9AMssx0q8RF6Mr8wzLwU23JCfveNL/LIDKW3P7kbWh5jdLYnio/K1jZBMIsbUyXwCcMJZ6+IAe0Qa2xUi/XlFO6BOZlqWRMBKrKLJxR1PHAdfk+PLhiLhI7qK4Q+eEvLGyHuwSfMf5vORvxD1ZYRZUgjdl3NE";
+    "X-Apple-I-Identity-Id" = "001600-05-21b6c5ad-d500-4e8b-82ac-7908e3308298";
+    "X-HTTP-Method-Override" = GET;
+    "X-MMe-Client-Info" = "<Mac16,12> <macOS;26.6.2;25G83> <com.apple.AuthKit/1 (com.apple.dt.xcodebuild/24902)>";
+    "X-Mme-Device-Id" = "BC4A617C-A133-5CD5-AD86-97F42C740322";
+    "X-Xcode-Version" = "26.6 (17F113)";
+}
+
+Payload:
+{"urlEncodedQueryParams":"teamId=8XG8GS2HT3&filter%5BserialNumber%5D=7846B346D00056653C0AC70084856245&limit=200"}
+2026-09-07 10:58:38 +0000 [MT] Received response for 3455DD92-9240-49A9-A586-2C9B4B5023C9 @ <https://developerservices2.apple.com/services/v1/certificates>. Code = 0
+2026-09-07 10:58:38 +0000 [MT] Response payload: {
+  "data" : [ {
+    "type" : "certificates",
+    "id" : "P44F26HYZX",
+    "attributes" : {
+      "requesterEmail" : "chh@cateira.com",
+      "serialNumber" : "7846B346D00056653C0AC70084856245",
+      "certificateContent" : "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",
+      "displayName" : "Christian Heuer",
+      "requesterLastName" : "Heuer",
+      "csrContent" : null,
+      "machineName" : null,
+      "platform" : null,
+      "requesterFirstName" : "Christian",
+      "machineId" : null,
+      "name" : "Apple Distribution: Christian Heuer",
+      "responseId" : "05ffb701-ca6d-46b0-a1c3-3958bbb200c8",
+      "expirationDate" : "2027-09-07T10:47:25.000+00:00",
+      "certificateType" : "DISTRIBUTION_MANAGED"
+    },
+    "links" : {
+      "self" : "https://developerservices2.apple.com:443/services/v1/certificates/P44F26HYZX"
+    }
+  } ],
+  "links" : {
+    "self" : "https://developerservices2.apple.com:443/services/v1/certificates?filter%5BserialNumber%5D=7846B346D00056653C0AC70084856245&limit=200"
+  },
+  "meta" : {
+    "paging" : {
+      "total" : 1,
+      "limit" : 200
+    }
+  }
+}
+
+2026-09-07 10:58:38 +0000 [MT] Sending request 29B4E4EA-1B5B-4D4E-8656-5B6CD850B43A to <https://developerservices3.apple.com/services/v1/batch> for session <DVTServicesAccountBasedSession: 0x7b33103c0; account='<DVTAppleIDBasedDeveloperAccount: 0x7b2320240; username='chh@cateira.com'>'>.
+Method: POST
+
+Headers:
+{
+    Accept = "application/vnd.api+json";
+    "Accept-Encoding" = "gzip, deflate";
+    "Content-Length" = 488;
+    "Content-Type" = "application/vnd.api+json";
+    DSESSIONID = sp82efpk7vrh7imtg2ldodfaom5mb64lm38aa45nd799oa0j1i6;
+    "User-Agent" = Xcode;
+    "X-Apple-App-Info" = "com.apple.gs.xcode.auth";
+    "X-Apple-GS-Token" = "AAAABLwIAAAAAGqelCURDWdzLnhjb2RlLmF1dGi9AMssx0q8RF6Mr8wzLwU23JCfveNL/LIDKW3P7kbWh5jdLYnio/K1jZBMIsbUyXwCcMJZ6+IAe0Qa2xUi/XlFO6BOZlqWRMBKrKLJxR1PHAdfk+PLhiLhI7qK4Q+eEvLGyHuwSfMf5vORvxD1ZYRZUgjdl3NE";
+    "X-Apple-I-Identity-Id" = "001600-05-21b6c5ad-d500-4e8b-82ac-7908e3308298";
+    "X-MMe-Client-Info" = "<Mac16,12> <macOS;26.6.2;25G83> <com.apple.AuthKit/1 (com.apple.dt.xcodebuild/24902)>";
+    "X-Mme-Device-Id" = "BC4A617C-A133-5CD5-AD86-97F42C740322";
+    "X-Xcode-Version" = "26.6 (17F113)";
+}
+
+Payload:
+{"data":{"attributes":{"resourceVersion":"1","resourceList":[{"data":{"type":"codeSignatures","relationships":{"certificate":{"data":{"id":"P44F26HYZX","type":"certificates"}},"bundleId":{"data":{"type":"bundleIds","id":"B4T3RAXTMC"}}},"attributes":{"digestHash":"9BAEA78B6F6F17CD9ED8ED4E4A0D3891519255155E3506CDBF4731BF18FA1316","teamId":"8XG8GS2HT3","cdHashSha256":"9BAEA78B6F6F17CD9ED8ED4E4A0D3891519255155E3506CDBF4731BF18FA1316","name":"0"}}}],"teamId":"8XG8GS2HT3"},"type":"batch"}}
+2026-09-07 10:58:39 +0000 [MT] Received response for 29B4E4EA-1B5B-4D4E-8656-5B6CD850B43A @ <https://developerservices3.apple.com/services/v1/batch>. Code = 0
+2026-09-07 10:58:39 +0000 [MT] Response payload: {
+  "data" : {
+    "type" : "batch",
+    "id" : "c2fbe87f-0f8a-47cd-a47e-1fda499aaf03",
+    "attributes" : {
+      "responseId" : "c2fbe87f-0f8a-47cd-a47e-1fda499aaf03",
+      "resourceList" : [ {
+        "type" : "codeSignatures",
+        "id" : "7c43a28d-f0cf-4da7-a669-878162cb8ba1",
+        "attributes" : {
+          "digestHash" : "9BAEA78B6F6F17CD9ED8ED4E4A0D3891519255155E3506CDBF4731BF18FA1316",
+          "cdHashSha256" : "9BAEA78B6F6F17CD9ED8ED4E4A0D3891519255155E3506CDBF4731BF18FA1316",
+          "signature" : "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",
+          "name" : "0",
+          "responseId" : "c2fbe87f-0f8a-47cd-a47e-1fda499aaf03",
+          "cmsSignature" : "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",
+          "timestamp" : false
+        },
+        "relationships" : {
+          "bundleId" : {
+            "data" : {
+              "type" : "bundleIds",
+              "id" : "B4T3RAXTMC"
+            },
+            "links" : {
+              "self" : {
+                "href" : "https://developerservices3.apple.com:443/services/v1/codeSignatures/7c43a28d-f0cf-4da7-a669-878162cb8ba1/relationships/bundleId"
+              },
+              "related" : {
+                "href" : "https://developerservices3.apple.com:443/services/v1/codeSignatures/7c43a28d-f0cf-4da7-a669-878162cb8ba1/bundleId"
+              }
+            }
+          },
+          "certificate" : {
+            "data" : {
+              "type" : "certificates",
+              "id" : "P44F26HYZX"
+            },
+            "links" : {
+              "self" : {
+                "href" : "https://developerservices3.apple.com:443/services/v1/codeSignatures/7c43a28d-f0cf-4da7-a669-878162cb8ba1/relationships/certificate"
+              },
+              "related" : {
+                "href" : "https://developerservices3.apple.com:443/services/v1/codeSignatures/7c43a28d-f0cf-4da7-a669-878162cb8ba1/certificate"
+              }
+            }
+          }
+        },
+        "links" : {
+          "self" : {
+            "href" : "https://developerservices3.apple.com:443/services/v1/codeSignatures/7c43a28d-f0cf-4da7-a669-878162cb8ba1"
+          }
+        }
+      } ],
+      "resourceVersion" : "1"
+    },
+    "links" : {
+      "self" : "https://developerservices3.apple.com:443/services/v1/batch/c2fbe87f-0f8a-47cd-a47e-1fda499aaf03"
+    }
+  },
+  "links" : {
+    "self" : "https://developerservices3.apple.com:443/services/v1/batch"
+  }
+}
+
+2026-09-07 10:58:39 +0000 [MT] Remote signature for /var/folders/_f/d1k1hw3d4152f4yzcj_q1hk40000gn/T/XcodeDistPipeline.~~~zSXocm/Root/Payload/KayaOfTheCanopy.app (arch: arm64) is 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
+2026-09-07 10:58:39 +0000 [MT] invoking codesign: <NSConcreteTask: 0x7b1d07340; launchPath='/usr/bin/codesign', arguments='(
+    "-e",
+    "--edit-cms",
+    "/var/folders/_f/d1k1hw3d4152f4yzcj_q1hk40000gn/T/cms~~~1XT8L9",
+    "/var/folders/_f/d1k1hw3d4152f4yzcj_q1hk40000gn/T/XcodeDistPipeline.~~~zSXocm/Root/Payload/KayaOfTheCanopy.app"
+)'>
+2026-09-07 10:58:39 +0000 [MT] codesign output: 
+2026-09-07 10:58:39 +0000 [MT] Processing step: IDEDistributionZipODRItemStep
+2026-09-07 10:58:39 +0000 [MT] Skipping step: IDEDistributionZipODRItemStep because it said so
+2026-09-07 10:58:39 +0000 [MT] Processing step: IDEDistributionCreateIPAStep
+2026-09-07 10:58:39 +0000 [MT] Running /usr/bin/rsync '-8aPhhE' '/var/folders/_f/d1k1hw3d4152f4yzcj_q1hk40000gn/T/XcodeDistPipeline.~~~zSXocm/Symbols' '--link-dest' '/var/folders/_f/d1k1hw3d4152f4yzcj_q1hk40000gn/T/XcodeDistPipeline.~~~zSXocm' '/var/folders/_f/d1k1hw3d4152f4yzcj_q1hk40000gn/T/XcodeDistPipeline.~~~zSXocm/Root'
+2026-09-07 10:58:39 +0000  Symbols/
+Symbols/9B48D235-E929-37C9-AE54-CE760F6D43E4.symbols
+2026-09-07 10:58:39 +0000 [MT] /usr/bin/rsync exited with 0
+2026-09-07 10:58:39 +0000 [MT] Running /usr/bin/ditto '-V' '-c' '-k' '--norsrc' '/var/folders/_f/d1k1hw3d4152f4yzcj_q1hk40000gn/T/XcodeDistPipeline.~~~zSXocm/Root' '/var/folders/_f/d1k1hw3d4152f4yzcj_q1hk40000gn/T/XcodeDistPipeline.~~~zSXocm/Packages/KayaOfTheCanopy.ipa'
+2026-09-07 10:58:39 +0000  >>> Copying /var/folders/_f/d1k1hw3d4152f4yzcj_q1hk40000gn/T/XcodeDistPipeline.~~~zSXocm/Root 
+2026-09-07 10:58:39 +0000  copying file ./Signatures/KayaOfTheCanopy.xcframework-ios.signature ... 
+2026-09-07 10:58:39 +0000  391 bytes for ./Signatures/KayaOfTheCanopy.xcframework-ios.signature
+2026-09-07 10:58:39 +0000  copying file ./Signatures/MoltenVK.xcframework-ios.signature ... 
+2026-09-07 10:58:39 +0000  394 bytes for ./Signatures/MoltenVK.xcframework-ios.signature
+2026-09-07 10:58:39 +0000  copying file ./Payload/KayaOfTheCanopy.app/_CodeSignature/CodeResources ... 
+2026-09-07 10:58:39 +0000  4430 bytes for ./Payload/KayaOfTheCanopy.app/_CodeSignature/CodeResources
+2026-09-07 10:58:39 +0000  copying file ./Payload/KayaOfTheCanopy.app/en.lproj/InfoPlist.strings ... 
+2026-09-07 10:58:39 +0000  42 bytes for ./Payload/KayaOfTheCanopy.app/en.lproj/InfoPlist.strings
+2026-09-07 10:58:39 +0000  copying file ./Payload/KayaOfTheCanopy.app/AppIcon60x60@2x.png ... 
+2026-09-07 10:58:39 +0000  8818 bytes for ./Payload/KayaOfTheCanopy.app/AppIcon60x60@2x.png
+2026-09-07 10:58:39 +0000  copying file ./Payload/KayaOfTheCanopy.app/KayaOfTheCanopy.pck ... 
+2026-09-07 10:58:39 +0000  995244 bytes for ./Payload/KayaOfTheCanopy.app/KayaOfTheCanopy.pck
+2026-09-07 10:58:39 +0000  copying file ./Payload/KayaOfTheCanopy.app/Launch Screen.storyboardc/01J-lp-oVM-view-Ze5-6b-2t3.nib ... 
+2026-09-07 10:58:39 +0000  2104 bytes for ./Payload/KayaOfTheCanopy.app/Launch Screen.storyboardc/01J-lp-oVM-view-Ze5-6b-2t3.nib
+2026-09-07 10:58:39 +0000  copying file ./Payload/KayaOfTheCanopy.app/Launch Screen.storyboardc/UIViewController-01J-lp-oVM.nib ... 
+2026-09-07 10:58:39 +0000  924 bytes for ./Payload/KayaOfTheCanopy.app/Launch Screen.storyboardc/UIViewController-01J-lp-oVM.nib
+2026-09-07 10:58:39 +0000  copying file ./Payload/KayaOfTheCanopy.app/Launch Screen.storyboardc/Info.plist ... 
+2026-09-07 10:58:39 +0000  258 bytes for ./Payload/KayaOfTheCanopy.app/Launch Screen.storyboardc/Info.plist
+2026-09-07 10:58:39 +0000  copying file ./Payload/KayaOfTheCanopy.app/KayaOfTheCanopy ... 
+2026-09-07 10:58:40 +0000  62761408 bytes for ./Payload/KayaOfTheCanopy.app/KayaOfTheCanopy
+2026-09-07 10:58:40 +0000  copying file ./Payload/KayaOfTheCanopy.app/Assets.car ... 
+2026-09-07 10:58:40 +0000  405640 bytes for ./Payload/KayaOfTheCanopy.app/Assets.car
+2026-09-07 10:58:40 +0000  copying file ./Payload/KayaOfTheCanopy.app/AppIcon76x76@2x~ipad.png ... 
+2026-09-07 10:58:40 +0000  10479 bytes for ./Payload/KayaOfTheCanopy.app/AppIcon76x76@2x~ipad.png
+2026-09-07 10:58:40 +0000  copying file ./Payload/KayaOfTheCanopy.app/PrivacyInfo.xcprivacy ... 
+2026-09-07 10:58:40 +0000  990 bytes for ./Payload/KayaOfTheCanopy.app/PrivacyInfo.xcprivacy
+2026-09-07 10:58:40 +0000  copying file ./Payload/KayaOfTheCanopy.app/embedded.mobileprovision ... 
+2026-09-07 10:58:40 +0000  16337 bytes for ./Payload/KayaOfTheCanopy.app/embedded.mobileprovision
+2026-09-07 10:58:40 +0000  copying file ./Payload/KayaOfTheCanopy.app/Info.plist ... 
+2026-09-07 10:58:40 +0000  1828 bytes for ./Payload/KayaOfTheCanopy.app/Info.plist
+2026-09-07 10:58:40 +0000  copying file ./Payload/KayaOfTheCanopy.app/PkgInfo ... 
+2026-09-07 10:58:40 +0000  8 bytes for ./Payload/KayaOfTheCanopy.app/PkgInfo
+2026-09-07 10:58:40 +0000  copying file ./Symbols/9B48D235-E929-37C9-AE54-CE760F6D43E4.symbols ... 
+2026-09-07 10:58:41 +0000  26864772 bytes for ./Symbols/9B48D235-E929-37C9-AE54-CE760F6D43E4.symbols
+2026-09-07 10:58:41 +0000 [MT] /usr/bin/ditto exited with 0
+2026-09-07 10:58:41 +0000 [MT] Processing step: IDEDistributionAppStoreInformationStep
+2026-09-07 10:58:41 +0000 [MT] Skipping step: IDEDistributionAppStoreInformationStep because it said so
+2026-09-07 10:58:41 +0000 [MT] Processing step: IDEDistributionGenerateProcessedDistributionItems
+2026-09-07 10:58:41 +0000 [MT] IDEDistributionItem init <DVTFilePath:0x7b2bf8690:'/var/folders/_f/d1k1hw3d4152f4yzcj_q1hk40000gn/T/XcodeDistPipeline.~~~zSXocm/Root/Payload/KayaOfTheCanopy.app'>
+2026-09-07 10:58:41 +0000 [MT] Processing step: IDEDistributionCreateManifestStep
+2026-09-07 10:58:41 +0000 [MT] Skipping step: IDEDistributionCreateManifestStep because it said so
