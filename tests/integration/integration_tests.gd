@@ -297,6 +297,12 @@ func t_locked_door_stays_shut_without_the_key() -> void:
 
 func t_the_matching_key_opens_the_door_and_is_consumed() -> void:
 	await enter(HOLLOW)
+	# The doorway is what is under test — a patrolling beetle knocking the
+	# player airborne mid-walk would make this flaky for an unrelated reason.
+	for n in enemies():
+		var e := n as Enemy
+		e.contact_damage = 0
+		e.speed = 0.0
 	var w: TileWorld = level().world
 	Game.add_key("yellow")
 	check_eq(int(Game.keys["yellow"]), 1, "key picked up")
@@ -309,6 +315,20 @@ func t_the_matching_key_opens_the_door_and_is_consumed() -> void:
 	check_eq(int(Game.keys["yellow"]), 0, "and the key is spent")
 	var doors := find_in_group(&"doors")
 	check(doors.size() > 0 and (doors[0] as Door).open, "the door reports itself open")
+
+	# The bug that shipped: the door "opened" but the gap was one tile and the
+	# player is 22 px tall, so the doorway was a wall you could see through.
+	# Opening it is not the assertion — getting to the other side is.
+	var p := player()
+	for i in 120:
+		p.vel.x = 140.0
+		await get_tree().physics_frame
+		if p.pos.x > float((YELLOW_DOOR_TILE.x + 1) * TS):
+			break
+	check(p.pos.x > float((YELLOW_DOOR_TILE.x + 1) * TS),
+		"the player walks through the opened door (reached x=%d, needed past %d)"
+			% [int(p.pos.x), (YELLOW_DOOR_TILE.x + 1) * TS])
+	check(p.on_floor, "and is standing on the far side, not wedged in the frame")
 
 func t_switch_blocks_swap_which_half_is_solid() -> void:
 	await enter(HOLLOW)

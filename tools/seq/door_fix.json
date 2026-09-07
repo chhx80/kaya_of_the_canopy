@@ -1,0 +1,15 @@
+[
+  {"scenario": "level:jungle_2", "settle": 150},
+  {"teleport": [12, 24], "settle": 24},
+  {"shot": "shots/36_door_closed.png"},
+  {"hold": "move_right", "frames": 40},
+  {"release": "move_right"},
+  {"wait": 20},
+  {"shot": "shots/37_door_blocked.png"},
+  {"call": "debug_give_yellow_key"},
+  {"hold": "move_right", "frames": 50},
+  {"release": "move_right"},
+  {"wait": 10},
+  {"log": "after opening"},
+  {"shot": "shots/38_door_open_walked_through.png"}
+]

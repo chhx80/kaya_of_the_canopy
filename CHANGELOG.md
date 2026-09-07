@@ -146,3 +146,32 @@
   level, that a boss level pairs its boss with a `boss_exit`, that every
   transform pad names a form that exists, and that every hub gateway points at a
   level that exists (including its prerequisite). 57 tests / 529 assertions.
+
+## Fix — ROOT HOLLOW was unfinishable
+
+Reported from play: the yellow door opened and the character still could not
+get through.
+
+**Cause.** A door occupied one tile. One tile is 16 px; the human hitbox is
+22 px. The doorway looked open on the grid and was a solid wall in play. The red
+door had it too, so the level was unfinishable past the first door.
+
+**Fix.** `Door` now spans `HEIGHT_TILES = 2` — it makes every tile it covers
+solid while locked and clears all of them when unlocked, and draws its sprite
+stacked. Both doorways in ROOT HOLLOW are carved two tiles tall so the level
+states its intent rather than relying on the door to punch through rock.
+
+**Guarded by three new tests**, each verified to fail on the original code:
+- `test_a_door_is_at_least_as_tall_as_the_player` — compares `Door.HEIGHT_TILES`
+  against the human hitbox, so this cannot be reintroduced by tuning either one.
+- `test_everything_the_player_must_reach_has_headroom` — every key, door, exit,
+  pad and switch in every level needs the player's height of clearance.
+- `test_no_standable_pockets_are_too_short_to_stand_in` — sweeps all geometry for
+  standable tiles with too little headroom that you could walk up to.
+
+The sweep found one more: the boss arena's left wall stopped a tile short of the
+floor, leaving a nook nobody could enter. Sealed.
+
+The integration suite now asserts the player **walks through** the opened door
+and lands on the far side, rather than just asserting the door reports itself
+open — which is what let this ship.

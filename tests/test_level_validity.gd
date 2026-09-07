@@ -125,6 +125,92 @@ func test_every_level_a_hub_gateway_points_at_actually_exists() -> void:
 			ok(FileAccess.file_exists(LevelLoader.level_path(req)),
 				"hub gateway '%s' requires missing level '%s'" % [target, req])
 
+## Anything the player has to physically stand in front of needs room for the
+## player to be there. A one-tile gap looks like a doorway on the grid and is a
+## solid wall in play — ROOT HOLLOW shipped with exactly that.
+const MUST_REACH := [
+	"key_yellow", "key_red", "key_cyan",
+	"door_yellow", "door_red", "door_cyan",
+	"exit", "boss_exit",
+	"pad_frog", "pad_fish", "pad_bird", "pad_human",
+	"switch_a", "switch_b",
+	"heart", "gem",
+]
+
+func _player_tiles_tall() -> int:
+	var f := FormBase.load_form("human")
+	var hb: Dictionary = f.hitbox()
+	return ceili(float(hb["h"]) / float(TS))
+
+## Contiguous non-solid tiles going up from (tx, ty). Tiles a door will open
+## count as passable, since that is the state the player meets them in.
+func _clearance(world: TileWorld, tx: int, ty: int, opened: Dictionary) -> int:
+	var n := 0
+	var y := ty
+	while y >= 0:
+		if not opened.has(Vector2i(tx, y)) and world.is_solid(tx, y):
+			break
+		n += 1
+		y -= 1
+	return n
+
+func test_a_door_is_at_least_as_tall_as_the_player() -> void:
+	var need := _player_tiles_tall()
+	ok(Door.HEIGHT_TILES >= need,
+		"doors are %d tiles but the player needs %d" % [Door.HEIGHT_TILES, need])
+
+func test_everything_the_player_must_reach_has_headroom() -> void:
+	var need := _player_tiles_tall()
+	for id in ids:
+		var def := LevelLoader.load_level(id)
+		if not def.ok() or def.topdown:
+			continue
+		# Doors punch their own hole, so treat those tiles as open.
+		var opened := {}
+		for e: Dictionary in def.entities:
+			if not String(e.get("type", "")).begins_with("door_"):
+				continue
+			var dx := int(float(e["px"]) / TS)
+			var dy := int(float(e["py"]) / TS)
+			for i in Door.HEIGHT_TILES:
+				opened[Vector2i(dx, dy - i)] = true
+		for e: Dictionary in def.entities:
+			var type := String(e.get("type", ""))
+			if not MUST_REACH.has(type):
+				continue
+			var tx := int(float(e["px"]) / TS)
+			var ty := int(float(e["py"]) / TS)
+			var head := _clearance(def.world, tx, ty, opened)
+			ok(head >= need,
+				"%s: '%s' at tile (%d,%d) has %d tile(s) of headroom, needs %d"
+					% [id, type, tx, ty, head, need])
+
+## A standable tile with only one tile of headroom is a hole in the geometry:
+## the player is two tiles tall, so it reads as a passage and behaves as a wall.
+## Only flags pockets you could actually walk up to, so decorative gaps sealed
+## inside solid rock do not trip it.
+func test_no_standable_pockets_are_too_short_to_stand_in() -> void:
+	var need := _player_tiles_tall()
+	for id in ids:
+		var def := LevelLoader.load_level(id)
+		if not def.ok() or def.topdown:
+			continue
+		var w := def.world
+		for y in w.height:
+			for x in w.width:
+				if w.is_solid(x, y) or not w.is_solid(x, y + 1):
+					continue     # not a standable floor tile
+				if _clearance(w, x, y, {}) >= need:
+					continue     # roomy enough
+				var approachable := false
+				for dx in [-1, 1]:
+					if not w.is_solid(x + dx, y) and _clearance(w, x + dx, y, {}) >= need:
+						approachable = true
+				ok(not approachable,
+					"%s: tile (%d,%d) is standable with only %d tile(s) of headroom, "
+					% [id, x, y, _clearance(w, x, y, {})]
+					+ "reachable from beside it — the player cannot fit")
+
 func test_unknown_legend_characters_are_reported() -> void:
 	var def := LevelLoader.from_dict({
 		"id": "synthetic",

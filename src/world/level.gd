@@ -198,6 +198,11 @@ func _on_player_died() -> void:
 	await get_tree().create_timer(0.9).timeout
 	Game.lose_life()
 
+## Used only by tools/seq capture scripts, so a screenshot can show the state
+## after a key is collected without simulating the whole route to it.
+func debug_give_yellow_key() -> void:
+	Game.add_key("yellow")
+
 func complete() -> void:
 	if _restarting:
 		return

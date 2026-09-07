@@ -137,7 +137,8 @@ def jungle_2():
     g.platform(11, 19, 4)
     g.crates(4, 25, 3, vertical=True)
     g.rect(14, 16, 1, 12, "s")                      # wall with a door in it
-    g.rect(14, 25, 1, 1, ".")                       # the doorway itself
+    g.rect(14, 24, 1, 2, ".")                       # doorway: two tiles, so a
+                                                    # 22px character actually fits
 
     # ---- screen C right half: past the yellow door
     g.ground(15, 26, 9, depth=2)
@@ -168,7 +169,7 @@ def jungle_2():
     g.rect(29, 26, 3, 3, ".")
     g.platform(33, 22, 4)
     g.rect(38, 18, 1, 10, "s")
-    g.rect(38, 25, 1, 1, ".")                       # the red doorway
+    g.rect(38, 24, 1, 2, ".")                       # the red doorway, two tiles
     g.ground(39, 26, 9, depth=2)
     g.crates(41, 25, 2)
 
@@ -344,7 +345,8 @@ def jungle_5():
     g.ground(39, 6, 9, depth=2)
 
     # ---- screen D: the arena. Sealed on both sides, flat floor.
-    g.rect(25, 15, 1, 12, "s")
+    g.rect(25, 15, 1, 13, "s")      # down to the floor: a 12-tall wall left a
+                                    # one-tile nook nobody can stand in
     g.ground(26, 27, 22)
     g.rect(48, 15, 1, 13, "s")
     g.platform(30, 21, 3)
