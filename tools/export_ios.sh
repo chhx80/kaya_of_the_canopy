@@ -82,3 +82,14 @@ echo
 echo "  open build/ios/KayaOfTheCanopy.xcodeproj"
 echo "  target > Signing & Capabilities > Automatically manage signing > pick your team"
 echo "  Cmd-R to run on a connected iPhone, then Product > Archive to ship"
+
+# Godot 4.7.2 ships an x86_64-only simulator library while advertising arm64,
+# so the Simulator cannot link on Apple Silicon. Say so before someone tries.
+SIM_LIB="build/ios/KayaOfTheCanopy.xcframework/ios-arm64_x86_64-simulator/libgodot.a"
+if [ -f "$SIM_LIB" ] && ! lipo -archs "$SIM_LIB" 2>/dev/null | grep -q arm64; then
+  echo
+  echo "note: use a physical device, not the Simulator."
+  echo "      Godot's simulator library is x86_64-only ($(lipo -archs "$SIM_LIB" 2>/dev/null))"
+  echo "      although its Info.plist claims arm64, so a Simulator build fails with"
+  echo "      \"Undefined symbols for architecture arm64: _main\". See docs/shipping.md."
+fi

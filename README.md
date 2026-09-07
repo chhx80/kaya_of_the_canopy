@@ -98,11 +98,10 @@ crash from an autoload the export filter was stripping.
 
 Web and macOS builds are produced and verified.
 
-**iOS requires Xcode 26.1 or newer** — Godot 4.7.2's device library is built
-against the iOS 26.1 SDK and will not link against older ones.
-`tools/export_ios.sh` checks this up front. Note that a *simulator* build
-succeeds on older Xcode regardless, so it is not evidence the device build will
-link.
+**iOS requires Xcode 26.1 or newer** and **a physical device**. Godot 4.7.2's
+device library is built against the iOS 26.1 SDK and will not link against older
+ones (`tools/export_ios.sh` checks this up front), and its simulator library is
+x86_64-only, so the iOS Simulator does not work on Apple Silicon at all.
 
 **Android** needs a JDK and the Android SDK.
 

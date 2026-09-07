@@ -144,16 +144,35 @@ the build appears under TestFlight within ~15 minutes of processing.
 Metal requirement, even though this game runs on the compatibility renderer.
 `targeted_device_family=2` means iPhone **and** iPad.
 
-#### Verified on the simulator
-`tools/export_ios.sh` was run end to end, the Xcode project compiled clean
-(`BUILD SUCCEEDED`), and the game was installed and launched on an iPhone 16 Pro
-simulator — landscape, touch overlay auto-enabled, correct bundle id, version
-and icons. Screenshot: `shots/35_ios_simulator.png`.
+#### The iOS Simulator does not work — use a device
 
-Note for Apple Silicon Macs: Godot's iOS template ships a simulator slice
-containing **x86_64 only**, so a simulator build needs `ARCHS=x86_64` (Rosetta)
-or you go straight to a physical device. The device slice is genuine arm64 and
-is unaffected.
+Godot 4.7.2's official iOS template ships
+`libgodot.ios.{debug,release}.xcframework/ios-arm64_x86_64-simulator/libgodot.a`
+containing **x86_64 only**, while the xcframework `Info.plist` advertises
+`["arm64", "x86_64"]`. (The bundled MoltenVK *is* universal, so this is specific
+to libgodot.) Verify any time with:
+
+```
+lipo -archs build/ios/KayaOfTheCanopy.xcframework/ios-arm64_x86_64-simulator/libgodot.a
+```
+
+Xcode trusts the plist, selects the slice, and then fails:
+
+```
+Undefined symbols for architecture arm64: "_main"
+```
+
+There is no good workaround — Rosetta simulators are a dead end. **Test on a
+physical iPhone**, which is the supported path and uses the genuine arm64 device
+slice. If the simulator ever becomes necessary, the fix is upstream: build the
+iOS export template from source, or wait for Godot to ship a universal
+simulator library.
+
+The game *was* run once in an iPhone 16 Pro simulator during development
+(screenshot: `shots/35_ios_simulator.png`) — but that was on an Intel Mac, whose
+simulator is x86_64 natively. It is not reproducible on Apple Silicon, and it
+proved nothing about the device build anyway: the simulator slice does not
+reference the device-only symbols described above.
 
 #### Two things to watch on a real device
 - **Orientation** is `sensor landscape`, so the phone can be held either way up.
