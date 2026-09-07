@@ -106,6 +106,12 @@ func _draw() -> void:
 		Color(0.65, 0.72, 0.62), 1, 0)
 	PixelFont.draw(self, Vector2(4, Game.SCREEN_H - 10), "V0.1.0",
 		Color(0.5, 0.55, 0.5), 1, 0)
+	# The hint has to match whatever the player is actually holding — a keyboard
+	# hint on a phone is just noise.
 	var hint := "SPACE-SELECT   ARROWS-MOVE"
+	if not Input.get_connected_joypads().is_empty():
+		hint = "A-SELECT   DPAD-MOVE"
+	elif DisplayServer.is_touchscreen_available():
+		hint = "TAP A TO SELECT"
 	PixelFont.draw(self, Vector2(W - 4 - PixelFont.width(hint, 1, 0),
 		Game.SCREEN_H - 10), hint, Color(0.5, 0.55, 0.5), 1, 0)
