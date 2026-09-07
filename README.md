@@ -18,10 +18,20 @@ No third-party art, audio or level data.
 | ![Hub](shots/x2/13_hub_door_prompt.png) | ![Fish form](shots/x2/19_swimming.png) |
 | The overworld hub, gateways gated on save flags | The fish form crossing THE WATERWAY |
 
-## Playing it
+## Setting up
 
 ```bash
-cp tools/env.sh.example tools/env.sh   # then point it at your Godot + Python venv
+git clone git@github.com:chhx80/kaya_of_the_canopy.git
+cd kaya_of_the_canopy
+tools/bootstrap.sh
+```
+
+That fetches Godot 4.7.2 and the export templates into `.tooling/`, builds a
+Python venv for the asset generators, writes `tools/env.sh`, and finishes by
+running the test suite. It is idempotent — re-run it any time. Nothing is
+installed system-wide except the Godot export templates.
+
+```bash
 tools/export_web.sh
 python3 -m http.server -d build/web 8080
 ```
@@ -86,9 +96,17 @@ crash from an autoload the export filter was stripping.
 
 ## Shipping
 
-Web and macOS builds are produced and verified. Android and iOS presets and
-scripts exist but are blocked on local prerequisites (JDK + Android SDK; an
-Apple team id). See **[docs/shipping.md](docs/shipping.md)**.
+Web and macOS builds are produced and verified.
+
+**iOS requires Xcode 26.1 or newer** — Godot 4.7.2's device library is built
+against the iOS 26.1 SDK and will not link against older ones.
+`tools/export_ios.sh` checks this up front. Note that a *simulator* build
+succeeds on older Xcode regardless, so it is not evidence the device build will
+link.
+
+**Android** needs a JDK and the Android SDK.
+
+Full walkthroughs for both: **[docs/shipping.md](docs/shipping.md)**.
 
 ## Status
 

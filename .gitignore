@@ -5,6 +5,9 @@
 # Build output
 build/
 
+# Locally installed toolchain (Godot, venv) — see tools/bootstrap.sh
+.tooling/
+
 # macOS
 .DS_Store
 

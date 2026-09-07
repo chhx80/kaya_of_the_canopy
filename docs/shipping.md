@@ -15,10 +15,29 @@ reproducible from a clean checkout) and the scripts in `tools/`.
 
 ## Prerequisites
 
-### Local toolchain
-Every script sources `tools/env.sh`, which is gitignored because it holds
-absolute paths. Copy `tools/env.sh.example` to `tools/env.sh` and point it at
-your Godot binary and a Python 3 venv with Pillow installed.
+### Local toolchain — one command
+```
+tools/bootstrap.sh
+```
+Fetches Godot 4.7.2 and the export templates, builds the Python venv the asset
+generators need, writes `tools/env.sh` (gitignored — it holds absolute paths),
+and runs the test suite to prove the setup works. Idempotent; re-run freely.
+
+Everything lands in `.tooling/` inside the repo except the export templates,
+which Godot insists live in `~/Library/Application Support/Godot/`.
+
+If you prefer to wire it up by hand, copy `tools/env.sh.example` instead.
+
+### Moving to another machine
+Only two things are machine-specific and therefore *not* in the repo:
+1. **The toolchain** — `tools/bootstrap.sh` handles it.
+2. **Your signing certificates.** Sign Xcode into your Apple ID on the new
+   machine (Xcode ▸ Settings ▸ Accounts) and add an *Apple Development*
+   certificate. The Team ID itself (`8XG8GS2HT3`) is already committed in
+   `export_presets.cfg`, as is the signing-identity fix.
+
+Everything else — presets, icons, the privacy manifest, all source and assets —
+travels with the clone.
 
 ### Export templates
 Both the editor and the headless exporter need the 4.7.2 templates in
