@@ -200,6 +200,49 @@ reference the device-only symbols described above.
   required-reason declarations for the engine's file/disk APIs; ours documents
   the game's position and is copied into the Xcode project by the export script.
 
+## Distributing for playtesting
+
+| Route | Reach | Needs | Ready now? |
+|---|---|---|---|
+| **Web (itch.io / Netlify)** | anyone with a link | nothing | ✅ `tools/package_web.sh` → 11 MB zip |
+| **TestFlight internal** | 100 testers on your App Store Connect team | paid Program, an app record, an upload | after the iOS build works |
+| **TestFlight external** | 10,000 via email or public link | the above + Beta App Review (~1–2 days) | after internal |
+| **Ad Hoc** | 100 devices you collect UDIDs for | paid Program, re-sign per device | worse than TestFlight; skip |
+| **macOS zip** | anyone | notarization, or testers right-click ▸ Open | unsigned today |
+
+### Web — the fast path
+`tools/package_web.sh` writes `build/kaya-web.zip` with `index.html` at the root.
+On itch.io: new project ▸ Kind **HTML** ▸ upload ▸ tick *"This file will be
+played in the browser"* ▸ viewport 1280×768 ▸ enable the fullscreen button ▸ set
+visibility to **Restricted** for a private playtest.
+
+The build is `thread_support=false`, so it does **not** need
+cross-origin-isolation headers and works on any plain static host.
+
+**Unverified:** the web build has been checked as far as serving correct files
+with HTTP 200. Nobody has yet loaded it in a browser. Do that before sending a
+link to anyone.
+
+### TestFlight
+Needs the **paid** Apple Developer Program — a free account cannot use it.
+
+1. App Store Connect ▸ Apps ▸ **+** ▸ New App, bundle id
+   `com.cateira.kayaofthecanopy` (matching `export_presets.cfg`).
+2. Xcode ▸ Product ▸ Archive ▸ Distribute App ▸ **TestFlight & App Store**.
+3. **Internal testing** — add people under Users and Access, then to a tester
+   group. No Beta App Review; builds land in minutes. Up to 100 people.
+4. **External testing** — up to 10,000 by email or public link, but the first
+   build of each version goes through Beta App Review (typically a day or two).
+   You must supply test notes and a contact email.
+
+Builds expire **90 days** after upload.
+
+### What to tell testers
+Levels 2–5 have never been played end to end by anyone. Ask specifically about:
+- whether any jump or gap is impossible (level design is unproven)
+- whether the on-screen buttons sit where their thumbs actually rest
+- whether the screen-flip camera feels fair or cheap when it freezes mid-fall
+
 ## Release checklist
 
 ```
