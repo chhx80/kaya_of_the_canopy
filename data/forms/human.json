@@ -1,0 +1,43 @@
+{
+  "id": "human",
+  "display_name": "KAYA",
+  "sprite": "res://assets/sprites/kaya_human.png",
+  "frame_w": 16,
+  "frame_h": 24,
+  "hitbox": { "w": 10, "h": 22, "ox": 3, "oy": 2 },
+
+  "move_mode": "ground",
+  "can_attack": true,
+  "can_climb": true,
+
+  "gravity": 760.0,
+  "max_fall": 330.0,
+  "max_run": 108.0,
+  "accel": 900.0,
+  "friction": 1100.0,
+  "air_accel": 520.0,
+  "air_friction": 220.0,
+
+  "jump_vel": -260.0,
+  "jump_cut": 0.42,
+  "coyote_time": 0.09,
+  "jump_buffer": 0.12,
+
+  "climb_speed": 60.0,
+  "climb_snap": true,
+
+  "water_gravity_scale": 0.3,
+  "water_max_fall": 74.0,
+  "water_move_scale": 0.62,
+  "water_jump_scale": 0.78,
+  "drowns": false,
+
+  "anim": {
+    "idle":  { "frames": [0], "fps": 1 },
+    "run":   { "frames": [1, 2, 3, 2], "fps": 12 },
+    "jump":  { "frames": [4], "fps": 1 },
+    "fall":  { "frames": [4], "fps": 1 },
+    "climb": { "frames": [5, 6], "fps": 8 },
+    "hurt":  { "frames": [7], "fps": 1 }
+  }
+}

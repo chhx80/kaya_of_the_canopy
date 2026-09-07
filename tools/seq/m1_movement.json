@@ -1,0 +1,24 @@
+[
+  {"scenario": "level:jungle_1", "settle": 24},
+  {"shot": "shots/02_level_start.png"},
+  {"wait": 120},
+  {"hold": "move_right", "frames": 92},
+  {"press": "jump", "frames": 14},
+  {"wait": 10},
+  {"shot": "shots/03_jump_the_spike_pit.png"},
+  {"release": "move_right"},
+  {"wait": 40},
+
+  {"teleport": [21, 22], "settle": 6},
+  {"hold": "move_up", "frames": 60},
+  {"shot": "shots/04_vine_climb.png"},
+  {"release": "move_up"},
+  {"wait": 10},
+
+  {"teleport": [23, 4], "settle": 34},
+  {"shot": "shots/05a_screen_flip_before.png"},
+  {"hold": "move_right", "frames": 30},
+  {"wait": 22},
+  {"shot": "shots/05b_screen_flip_after.png"},
+  {"release": "move_right"}
+]

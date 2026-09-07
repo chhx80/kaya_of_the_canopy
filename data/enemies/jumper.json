@@ -1,0 +1,48 @@
+{
+  "id": "jumper",
+  "display_name": "SPINE HOPPER",
+  "sprite": "res://assets/sprites/enemy_jumper.png",
+  "frame_w": 16,
+  "frame_h": 16,
+  "hitbox": {
+    "w": 12,
+    "h": 11,
+    "ox": 2,
+    "oy": 3
+  },
+  "health": 2,
+  "contact_damage": 1,
+  "score": 150,
+  "gravity": 780.0,
+  "speed": 0.0,
+  "jump_vel": -230.0,
+  "jump_hspeed": 62.0,
+  "wind_up": 0.42,
+  "cooldown": 0.85,
+  "trigger_range": 132.0,
+  "drops": {
+    "gem": 0.5,
+    "heart": 0.08
+  },
+  "anim": {
+    "idle": {
+      "frames": [
+        0
+      ],
+      "fps": 1
+    },
+    "windup": {
+      "frames": [
+        0,
+        1
+      ],
+      "fps": 12
+    },
+    "air": {
+      "frames": [
+        1
+      ],
+      "fps": 1
+    }
+  }
+}

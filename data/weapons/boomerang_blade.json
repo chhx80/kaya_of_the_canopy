@@ -1,0 +1,27 @@
+{
+  "id": "boomerang_blade",
+  "display_name": "BLADE",
+  "sprite": "res://assets/sprites/blade.png",
+  "frame_w": 16,
+  "frame_h": 16,
+  "frames": [
+    0,
+    1
+  ],
+  "spin_fps": 18,
+  "hitbox": {
+    "w": 12,
+    "h": 12,
+    "ox": 2,
+    "oy": 2
+  },
+  "speed": 205.0,
+  "max_range": 118.0,
+  "return_accel": 1000.0,
+  "return_max": 300.0,
+  "damage": 1,
+  "cooldown": 0.26,
+  "max_in_flight": 1,
+  "breaks_crates": true,
+  "rise": -8.0
+}

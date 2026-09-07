@@ -1,0 +1,31 @@
+[gd_scene load_steps=4 format=3 uid="uid://bkayahub00001"]
+
+[ext_resource type="Script" path="res://src/hub/overworld.gd" id="1_hub"]
+[ext_resource type="Script" path="res://src/world/tile_renderer.gd" id="2_tiles"]
+[ext_resource type="Script" path="res://src/world/camera_controller.gd" id="3_cam"]
+
+[node name="Overworld" type="Node2D"]
+script = ExtResource("1_hub")
+
+[node name="TilesBg" type="Node2D" parent="."]
+script = ExtResource("2_tiles")
+
+[node name="TilesFg" type="Node2D" parent="."]
+script = ExtResource("2_tiles")
+
+[node name="Entities" type="Node2D" parent="."]
+
+[node name="Camera" type="Camera2D" parent="."]
+anchor_mode = 0
+script = ExtResource("3_cam")
+
+[node name="Ui" type="CanvasLayer" parent="."]
+layer = 2
+
+[node name="Overlay" type="Control" parent="Ui"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 400.0
+offset_bottom = 240.0
+mouse_filter = 2

@@ -1,0 +1,19 @@
+[
+  {"scenario": "hub", "settle": 40},
+  {"hold": "move_right", "frames": 20},
+  {"release": "move_right"},
+  {"hold": "move_up", "frames": 24},
+  {"release": "move_up"},
+  {"wait": 14},
+  {"shot": "shots/32_hub_arches.png"},
+  {"scenario": "level:jungle_4", "settle": 150},
+  {"teleport": [19, 5], "settle": 20},
+  {"hold": "move_right", "frames": 22},
+  {"release": "move_right"},
+  {"wait": 10},
+  {"hold": "move_right", "frames": 30},
+  {"press": "jump", "frames": 30},
+  {"release": "move_right"},
+  {"wait": 3},
+  {"shot": "shots/33_bird_v2.png"}
+]

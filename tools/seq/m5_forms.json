@@ -1,0 +1,32 @@
+[
+  {"scenario": "level:jungle_3", "settle": 150},
+  {"teleport": [3, 24], "settle": 20},
+  {"hold": "move_right", "frames": 46},
+  {"wait": 10},
+  {"shot": "shots/18_fish_transform.png"},
+  {"hold": "move_down", "frames": 60},
+  {"release": "move_down"},
+  {"hold": "move_right", "frames": 70},
+  {"release": "move_right"},
+  {"wait": 6},
+  {"shot": "shots/19_swimming.png"},
+
+  {"scenario": "level:jungle_4", "settle": 150},
+  {"teleport": [6, 24], "settle": 20},
+  {"hold": "move_right", "frames": 34},
+  {"release": "move_right"},
+  {"wait": 8},
+  {"press": "jump", "frames": 24},
+  {"wait": 12},
+  {"shot": "shots/20_frog_leap.png"},
+
+  {"teleport": [19, 5], "settle": 20},
+  {"hold": "move_right", "frames": 20},
+  {"release": "move_right"},
+  {"wait": 10},
+  {"hold": "move_right", "frames": 34},
+  {"press": "jump", "frames": 34},
+  {"release": "move_right"},
+  {"wait": 4},
+  {"shot": "shots/21_bird_flight.png"}
+]

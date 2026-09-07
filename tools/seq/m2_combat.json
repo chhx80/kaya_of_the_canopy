@@ -1,0 +1,23 @@
+[
+  {"scenario": "level:test_arena", "settle": 150},
+  {"teleport": [13, 10], "settle": 22},
+  {"hold": "move_left", "frames": 3},
+  {"release": "move_left"},
+  {"wait": 4},
+  {"press": "attack", "frames": 4},
+  {"wait": 11},
+  {"shot": "shots/08_blade_thrown.png"},
+  {"wait": 14},
+  {"shot": "shots/09_blade_hits_enemy.png"},
+
+  {"scenario": "level:jungle_1", "settle": 150},
+  {"hold": "move_right", "frames": 40},
+  {"release": "move_right"},
+  {"wait": 6},
+  {"press": "attack", "frames": 4},
+  {"wait": 13},
+  {"shot": "shots/10_combat_jungle.png"},
+  {"wait": 120},
+  {"teleport": [41, 24], "settle": 40},
+  {"shot": "shots/11_exit_and_hopper.png"}
+]

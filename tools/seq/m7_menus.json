@@ -1,0 +1,18 @@
+[
+  {"scenario": "level:jungle_1", "settle": 150},
+  {"press": "pause", "frames": 3},
+  {"wait": 20},
+  {"shot": "shots/29_pause.png"},
+  {"press": "move_down", "frames": 3},
+  {"wait": 4},
+  {"press": "move_down", "frames": 3},
+  {"wait": 6},
+  {"press": "jump", "frames": 3},
+  {"wait": 30},
+  {"shot": "shots/30_options.png"},
+  {"press": "move_down", "frames": 3},
+  {"wait": 4},
+  {"press": "move_right", "frames": 3},
+  {"wait": 20},
+  {"shot": "shots/31_options_adjust.png"}
+]

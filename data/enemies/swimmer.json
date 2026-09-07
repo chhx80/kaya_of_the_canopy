@@ -1,0 +1,24 @@
+{
+  "id": "swimmer",
+  "display_name": "RIVER PIRANHA",
+  "sprite": "res://assets/sprites/enemy_swimmer.png",
+  "frame_w": 16,
+  "frame_h": 16,
+  "hitbox": { "w": 14, "h": 9, "ox": 1, "oy": 3 },
+
+  "health": 1,
+  "contact_damage": 1,
+  "score": 150,
+  "gravity": 0.0,
+  "speed": 44.0,
+  "aquatic": true,
+
+  "wave_amplitude": 26.0,
+  "wave_period": 2.1,
+  "chase_range": 96.0,
+  "chase_speed": 72.0,
+  "beached_gravity": 640.0,
+
+  "drops": { "gem": 0.45, "heart": 0.05 },
+  "anim": { "swim": { "frames": [0, 1], "fps": 8 } }
+}

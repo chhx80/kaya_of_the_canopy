@@ -1,0 +1,20 @@
+[
+  {"scenario": "hub", "settle": 30},
+  {"hold": "move_right", "frames": 20},
+  {"release": "move_right"},
+  {"hold": "move_up", "frames": 26},
+  {"release": "move_up"},
+  {"wait": 14},
+  {"shot": "shots/13_hub_door_prompt.png"},
+  {"hold": "move_down", "frames": 20},
+  {"release": "move_down"},
+  {"hold": "move_right", "frames": 108},
+  {"release": "move_right"},
+  {"hold": "move_up", "frames": 40},
+  {"release": "move_up"},
+  {"wait": 14},
+  {"shot": "shots/13b_hub_locked_door.png"},
+  {"press": "jump", "frames": 3},
+  {"wait": 40},
+  {"shot": "shots/13c_hub_locked_refused.png"}
+]

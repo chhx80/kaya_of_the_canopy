@@ -1,0 +1,16 @@
+# Godot
+.godot/
+*.translation
+
+# Build output
+build/
+
+# macOS
+.DS_Store
+
+# Local toolchain paths (machine-specific)
+tools/env.sh
+
+# Review-only upscales
+shots/_review*.png
+shots/*_x3.png

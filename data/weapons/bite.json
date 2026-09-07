@@ -1,0 +1,13 @@
+{
+  "id": "bite",
+  "display_name": "BITE",
+  "sprite": "res://assets/sprites/projectiles.png",
+  "frame_w": 8,
+  "frame_h": 8,
+  "frames": [1],
+  "hitbox": { "w": 14, "h": 12, "ox": 0, "oy": 0 },
+  "reach": 10.0,
+  "damage": 1,
+  "cooldown": 0.38,
+  "life": 0.14
+}

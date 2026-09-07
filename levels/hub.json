@@ -1,0 +1,97 @@
+{
+ "id": "hub",
+ "name": "THE CANOPY",
+ "music": "hub",
+ "next_level": "",
+ "topdown": true,
+ "screens": [
+  2,
+  1
+ ],
+ "fg": [
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@..............................................@@",
+  "@@.....@@.........@@..........@@.......@@@......@@",
+  "@@.....@@.........@@..........@@.......@@@......@@",
+  "@@................@@............................@@",
+  "@@..............................................@@",
+  "@@..............................................@@",
+  "@@..............................................@@",
+  "@@.........................WWWWW....@@@.........@@",
+  "@@.........@@@............WWWWWWW...@@@.....@@..@@",
+  "@@.........@@@......@@@@..WWWWWWW...........@@..@@",
+  "@@........................WWWWWWW...............@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+ ],
+ "bg": [
+  "gggggggggggggggggggggggggggggggggggggggggggggggggg",
+  "gggggggggggggggggggggggggggggggggggggggggggggggggg",
+  "gggggggggggggggggggggggggggggggggggggggggggggggggg",
+  "gggggggggggggggggggggggggggggggggggggggggggggggggg",
+  "ggggggggggggggppgggggggggggggggggppggggggggggggggg",
+  "ggggggggggggggppgggggggggggggggggppggggggggggggggg",
+  "gggggppgggggggppgggggggggggggggggppggggggggggggggg",
+  "gggppppppppppppppppppppppppppppppppppppppppppppggg",
+  "gggppppppppppppppppppppppppppppppppppppppppppppggg",
+  "gggggggggggggggggggggggppggggggggggggggggggppggggg",
+  "gggggggggggggggggggggggppggggggggggggggggggppggggg",
+  "gggggggggggggggggggggggggggggggggggggggggggggggggg",
+  "gggggggggggggggggggggggggggggggggggggggggggggggggg",
+  "gggggggggggggggggggggggggggggggggggggggggggggggggg",
+  "gggggggggggggggggggggggggggggggggggggggggggggggggg"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 3,
+   "y": 7
+  },
+  {
+   "type": "hub_door",
+   "x": 5,
+   "y": 6,
+   "level": "jungle_1",
+   "label": "CANOPY TRAIL",
+   "requires": "",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 14,
+   "y": 4,
+   "level": "jungle_2",
+   "label": "ROOT HOLLOW",
+   "requires": "jungle_1",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 23,
+   "y": 9,
+   "level": "jungle_3",
+   "label": "THE WATERWAY",
+   "requires": "jungle_2",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 33,
+   "y": 4,
+   "level": "jungle_4",
+   "label": "SKY BRANCH",
+   "requires": "jungle_3",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 43,
+   "y": 7,
+   "level": "jungle_5",
+   "label": "HEART OF THE GROVE",
+   "requires": "jungle_4",
+   "requires_all": true
+  }
+ ]
+}

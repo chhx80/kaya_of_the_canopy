@@ -1,0 +1,16 @@
+[
+  {"scenario": "level:jungle_5", "settle": 150},
+  {"teleport": [5, 24], "settle": 60},
+  {"shot": "shots/22_shooter_and_pool.png"},
+  {"teleport": [13, 25], "settle": 40},
+  {"shot": "shots/23_swimmers.png"},
+  {"teleport": [31, 24], "settle": 30},
+  {"shot": "shots/24_boss_arena.png"},
+  {"press": "attack", "frames": 4},
+  {"wait": 20},
+  {"shot": "shots/25_boss_fight.png"},
+  {"wait": 100},
+  {"shot": "shots/26_boss_slam.png"},
+  {"wait": 60},
+  {"shot": "shots/27_boss_shockwave.png"}
+]

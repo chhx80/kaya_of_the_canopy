@@ -1,0 +1,207 @@
+{
+ "id": "jungle_2",
+ "name": "ROOT HOLLOW",
+ "music": "world1",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "ssssssssssssssssssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssssssssssssssssssss",
+  "ss..............................................ss",
+  "ss.......c....................bbbb..............ss",
+  "ss.......c......................................ss",
+  "ss########...........................######.....ss",
+  "ssdddddddd...........................dddddd.....ss",
+  "ss...............................BBBB...........ss",
+  "ss..............#####....########..........====.ss",
+  "ss..........aaaaddddd....dddddddd...............ss",
+  "ss..............................................ss",
+  "ss...................====.......................ss",
+  "ss......AAAA....................................ss",
+  "ss######........................................ss",
+  "ssdddddd..............|.........................ss",
+  "ss............s.......|.........................ss",
+  "ss............s.......|.........................ss",
+  "ss............s.......|...............s.........ss",
+  "ss.........===s.......|...............s.........ss",
+  "ss............s.......|...............s.........ss",
+  "ss............s.......|...............s.........ss",
+  "ss....====....s..===..|..........====.s.........ss",
+  "ss..c.........s.......|...............s.........ss",
+  "sss.c.........s.......|...............s.........ss",
+  "sss.c.................|..................cc.....ss",
+  "ss############s####...|#.####...######s#########ss",
+  "ssddddddddddddsdddd...dd.dddd...ddddddsdddddddddss",
+  "sssssssssssssssssss...sssssss...ssssssssssssssssss",
+  "sssssssssssssssssss^^^sssssss^^^ssssssssssssssssss"
+ ],
+ "bg": [
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 3,
+   "y": 25
+  },
+  {
+   "type": "key_yellow",
+   "x": 12,
+   "y": 18
+  },
+  {
+   "type": "door_yellow",
+   "x": 14,
+   "y": 25
+  },
+  {
+   "type": "switch_a",
+   "x": 18,
+   "y": 8
+  },
+  {
+   "type": "switch_b",
+   "x": 40,
+   "y": 5
+  },
+  {
+   "type": "key_red",
+   "x": 44,
+   "y": 8
+  },
+  {
+   "type": "door_red",
+   "x": 38,
+   "y": 25
+  },
+  {
+   "type": "exit",
+   "x": 46,
+   "y": 25
+  },
+  {
+   "type": "enemy_walker",
+   "x": 8,
+   "y": 25
+  },
+  {
+   "type": "enemy_walker",
+   "x": 17,
+   "y": 25
+  },
+  {
+   "type": "enemy_jumper",
+   "x": 26,
+   "y": 25
+  },
+  {
+   "type": "enemy_walker",
+   "x": 27,
+   "y": 8
+  },
+  {
+   "type": "enemy_jumper",
+   "x": 4,
+   "y": 13
+  },
+  {
+   "type": "enemy_walker",
+   "x": 42,
+   "y": 25
+  },
+  {
+   "type": "gem",
+   "x": 7,
+   "y": 21
+  },
+  {
+   "type": "gem",
+   "x": 8,
+   "y": 21
+  },
+  {
+   "type": "gem",
+   "x": 12,
+   "y": 18
+  },
+  {
+   "type": "gem",
+   "x": 18,
+   "y": 8
+  },
+  {
+   "type": "gem",
+   "x": 26,
+   "y": 8
+  },
+  {
+   "type": "gem",
+   "x": 34,
+   "y": 5
+  },
+  {
+   "type": "gem",
+   "x": 34,
+   "y": 21
+  },
+  {
+   "type": "gem",
+   "x": 35,
+   "y": 21
+  },
+  {
+   "type": "gem",
+   "x": 43,
+   "y": 25
+  },
+  {
+   "type": "gem",
+   "x": 5,
+   "y": 5
+  },
+  {
+   "type": "gem",
+   "x": 6,
+   "y": 5
+  },
+  {
+   "type": "heart",
+   "x": 22,
+   "y": 21
+  }
+ ]
+}

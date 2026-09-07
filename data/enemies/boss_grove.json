@@ -1,0 +1,64 @@
+{
+  "id": "boss_grove",
+  "display_name": "THE GROVE WARDEN",
+  "sprite": "res://assets/sprites/boss_grove.png",
+  "frame_w": 32,
+  "frame_h": 32,
+  "hitbox": { "w": 26, "h": 26, "ox": 3, "oy": 5 },
+
+  "health": 18,
+  "contact_damage": 1,
+  "score": 3000,
+  "gravity": 800.0,
+  "speed": 0.0,
+  "boss": true,
+
+  "phases": [
+    {
+      "name": "STOMP",
+      "until_health": 12,
+      "walk_speed": 46.0,
+      "slam_interval": 2.4,
+      "slam_jump": -250.0,
+      "shockwave_speed": 132.0,
+      "spawn_adds": 0
+    },
+    {
+      "name": "LEAP",
+      "until_health": 6,
+      "walk_speed": 62.0,
+      "slam_interval": 1.7,
+      "slam_jump": -320.0,
+      "shockwave_speed": 150.0,
+      "spawn_adds": 2
+    },
+    {
+      "name": "FURY",
+      "until_health": 0,
+      "walk_speed": 78.0,
+      "slam_interval": 1.2,
+      "slam_jump": -300.0,
+      "shockwave_speed": 168.0,
+      "spawn_adds": 1,
+      "spray": 5,
+      "spray_interval": 2.0
+    }
+  ],
+
+  "projectile": {
+    "speed": 104.0,
+    "damage": 1,
+    "frame": 0,
+    "life": 2.6,
+    "gravity": 120.0
+  },
+
+  "drops": {},
+  "anim": {
+    "idle":   { "frames": [0], "fps": 1 },
+    "walk":   { "frames": [0], "fps": 1 },
+    "windup": { "frames": [1], "fps": 1 },
+    "air":    { "frames": [1], "fps": 1 },
+    "hurt":   { "frames": [2], "fps": 1 }
+  }
+}

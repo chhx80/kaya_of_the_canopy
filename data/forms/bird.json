@@ -1,0 +1,48 @@
+{
+  "id": "bird",
+  "display_name": "BIRD",
+  "sprite": "res://assets/sprites/kaya_bird.png",
+  "frame_w": 16,
+  "frame_h": 16,
+  "hitbox": { "w": 12, "h": 9, "ox": 2, "oy": 2 },
+
+  "move_mode": "fly",
+  "can_attack": false,
+  "can_climb": false,
+
+  "gravity": 420.0,
+  "glide_gravity": 105.0,
+  "max_fall": 190.0,
+  "max_run": 104.0,
+  "accel": 620.0,
+  "friction": 460.0,
+  "air_accel": 560.0,
+  "air_friction": 180.0,
+
+  "jump_vel": -180.0,
+  "jump_cut": 0.6,
+  "coyote_time": 0.08,
+  "jump_buffer": 0.1,
+
+  "flap_vel": -172.0,
+  "flap_interval": 0.24,
+  "flap_cost": 12.0,
+  "max_stamina": 100.0,
+  "stamina_regen": 46.0,
+  "perch_regen_bonus": 34.0,
+
+  "water_gravity_scale": 0.4,
+  "water_max_fall": 80.0,
+  "water_move_scale": 0.5,
+  "water_jump_scale": 0.7,
+
+  "anim": {
+    "idle": { "frames": [0], "fps": 1 },
+    "run":  { "frames": [0, 1], "fps": 8 },
+    "jump": { "frames": [1], "fps": 1 },
+    "fall": { "frames": [0], "fps": 1 },
+    "fly":  { "frames": [0, 1], "fps": 12 },
+    "glide": { "frames": [0], "fps": 1 },
+    "hurt": { "frames": [0], "fps": 1 }
+  }
+}

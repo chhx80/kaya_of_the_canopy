@@ -1,0 +1,12 @@
+[
+  {"scenario": "level:jungle_1", "settle": 20},
+  {"teleport": [23, 4], "settle": 30},
+  {"log": "landed on canopy platform"},
+  {"shot": "shots/06a_before_flip.png"},
+  {"hold": "move_right", "frames": 26},
+  {"log": "walking east"},
+  {"wait": 30},
+  {"log": "after flip"},
+  {"shot": "shots/06b_after_flip.png"},
+  {"release": "move_right"}
+]

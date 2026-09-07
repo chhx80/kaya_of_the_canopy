@@ -1,0 +1,12 @@
+[
+  {"scenario": "level:jungle_1", "settle": 150},
+  {"touch": true},
+  {"wait": 6},
+  {"touch_press": [70, 190], "index": 0},
+  {"touch_drag": [96, 178], "index": 0},
+  {"touch_press": [356, 200], "index": 1},
+  {"wait": 6},
+  {"shot": "shots/28_touch_controls.png"},
+  {"touch": false},
+  {"wait": 4}
+]

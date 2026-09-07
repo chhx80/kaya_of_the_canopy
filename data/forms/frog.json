@@ -1,0 +1,44 @@
+{
+  "id": "frog",
+  "display_name": "FROG",
+  "sprite": "res://assets/sprites/kaya_frog.png",
+  "frame_w": 16,
+  "frame_h": 16,
+  "hitbox": { "w": 12, "h": 11, "ox": 2, "oy": 3 },
+
+  "move_mode": "ground",
+  "can_attack": false,
+  "can_climb": false,
+
+  "gravity": 700.0,
+  "max_fall": 340.0,
+  "max_run": 62.0,
+  "accel": 460.0,
+  "friction": 620.0,
+  "air_accel": 300.0,
+  "air_friction": 120.0,
+
+  "jump_vel": -340.0,
+  "jump_cut": 0.5,
+  "coyote_time": 0.1,
+  "jump_buffer": 0.14,
+
+  "wall_slide_speed": 34.0,
+  "wall_stick_time": 0.55,
+  "wall_jump_vel": -305.0,
+  "wall_jump_push": 120.0,
+
+  "water_gravity_scale": 0.25,
+  "water_max_fall": 60.0,
+  "water_move_scale": 0.8,
+  "water_jump_scale": 0.85,
+
+  "anim": {
+    "idle": { "frames": [0], "fps": 1 },
+    "run":  { "frames": [0], "fps": 1 },
+    "jump": { "frames": [1], "fps": 1 },
+    "fall": { "frames": [1], "fps": 1 },
+    "cling": { "frames": [1], "fps": 1 },
+    "hurt": { "frames": [0], "fps": 1 }
+  }
+}
