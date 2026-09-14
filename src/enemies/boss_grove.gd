@@ -47,6 +47,15 @@ func _set_phase(i: int) -> void:
 func phase_name() -> String:
 	return String(phase_cfg.get("name", ""))
 
+## STOMP, LEAP and FURY are three different animals, not three tints, so each
+## pose exists once per phase in data/enemies/boss_grove.json as
+## `<pose>_p1/_p2/_p3`. Anything without a per-phase variant falls back to the
+## plain name, so the state machine below never has to know about this.
+func set_anim(pose: String) -> void:
+	var key := "%s_p%d" % [pose, phase + 1]
+	var anims: Dictionary = cfg.get("anim", {})
+	super.set_anim(key if anims.has(key) else pose)
+
 func hurt(amount: int, from: Vector2 = Vector2.ZERO) -> void:
 	super.hurt(amount, from)
 	# Phase boundaries are health thresholds, so a burst of damage can skip one.
@@ -102,7 +111,7 @@ func think(delta: float) -> void:
 				t = 0.5
 		St.LAND:
 			vel.x = move_toward(vel.x, 0.0, 700.0 * delta)
-			set_anim("idle")
+			set_anim("land")
 			if t <= 0.0:
 				st = St.WALK
 				t = float(phase_cfg.get("slam_interval", 2.4))

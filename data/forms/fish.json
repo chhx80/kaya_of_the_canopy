@@ -4,18 +4,20 @@
   "sprite": "res://assets/sprites/kaya_fish.png",
   "frame_w": 16,
   "frame_h": 16,
-  "hitbox": { "w": 14, "h": 9, "ox": 1, "oy": 3 },
-
+  "hitbox": {
+    "w": 14,
+    "h": 9,
+    "ox": 1,
+    "oy": 3
+  },
   "move_mode": "swim",
   "can_attack": true,
   "weapon": "bite",
   "can_climb": false,
-
   "swim_speed": 92.0,
   "swim_accel": 620.0,
   "swim_drag": 420.0,
   "surface_hop": -150.0,
-
   "gravity": 900.0,
   "max_fall": 300.0,
   "max_run": 40.0,
@@ -27,17 +29,55 @@
   "jump_cut": 0.5,
   "coyote_time": 0.05,
   "jump_buffer": 0.1,
-
   "drowns": true,
   "air_seconds": 2.6,
-
   "anim": {
-    "idle":  { "frames": [0], "fps": 1 },
-    "swim":  { "frames": [0, 1], "fps": 9 },
-    "run":   { "frames": [0, 1], "fps": 6 },
-    "jump":  { "frames": [1], "fps": 1 },
-    "fall":  { "frames": [1], "fps": 1 },
-    "flop":  { "frames": [0, 1], "fps": 12 },
-    "hurt":  { "frames": [0], "fps": 1 }
+    "idle": {
+      "frames": [
+        0
+      ],
+      "fps": 1
+    },
+    "swim": {
+      "frames": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "fps": 10
+    },
+    "run": {
+      "frames": [
+        0,
+        2
+      ],
+      "fps": 6
+    },
+    "jump": {
+      "frames": [
+        1
+      ],
+      "fps": 1
+    },
+    "fall": {
+      "frames": [
+        3
+      ],
+      "fps": 1
+    },
+    "flop": {
+      "frames": [
+        5,
+        4
+      ],
+      "fps": 8
+    },
+    "hurt": {
+      "frames": [
+        4
+      ],
+      "fps": 1
+    }
   }
 }

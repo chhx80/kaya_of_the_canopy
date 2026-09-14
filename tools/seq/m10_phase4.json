@@ -1,0 +1,267 @@
+[
+  {
+    "scenario": "level:jungle_1",
+    "settle": 60
+  },
+  {
+    "teleport": [
+      3,
+      22
+    ],
+    "settle": 20
+  },
+  {
+    "shot": "shots/50_kaya_idle.png"
+  },
+  {
+    "hold": "move_right",
+    "frames": 26
+  },
+  {
+    "shot": "shots/51_kaya_run_a.png"
+  },
+  {
+    "wait": 3
+  },
+  {
+    "shot": "shots/52_kaya_run_b.png"
+  },
+  {
+    "wait": 3
+  },
+  {
+    "shot": "shots/53_kaya_run_c.png"
+  },
+  {
+    "release": "move_right"
+  },
+  {
+    "wait": 30
+  },
+  {
+    "teleport": [
+      3,
+      22
+    ],
+    "settle": 20
+  },
+  {
+    "press": "jump",
+    "frames": 2
+  },
+  {
+    "shot": "shots/54_kaya_anticipate.png"
+  },
+  {
+    "wait": 6
+  },
+  {
+    "shot": "shots/55_kaya_rise.png"
+  },
+  {
+    "wait": 22
+  },
+  {
+    "shot": "shots/56_kaya_fall.png"
+  },
+  {
+    "wait": 9
+  },
+  {
+    "shot": "shots/57_kaya_land.png"
+  },
+  {
+    "teleport": [
+      21,
+      22
+    ],
+    "settle": 8
+  },
+  {
+    "hold": "move_up",
+    "frames": 40
+  },
+  {
+    "shot": "shots/58_kaya_climb.png"
+  },
+  {
+    "release": "move_up"
+  },
+  {
+    "scenario": "level:jungle_1",
+    "settle": 90
+  },
+  {
+    "teleport": [
+      16,
+      26
+    ],
+    "settle": 30
+  },
+  {
+    "shot": "shots/59a_walker_and_hopper.png"
+  },
+  {
+    "wait": 12
+  },
+  {
+    "shot": "shots/59b_hopper_windup.png"
+  },
+  {
+    "wait": 8
+  },
+  {
+    "shot": "shots/59c_hopper_air.png"
+  },
+  {
+    "scenario": "level:jungle_5",
+    "settle": 150
+  },
+  {
+    "teleport": [
+      10,
+      25
+    ],
+    "settle": 24
+  },
+  {
+    "shot": "shots/59d_bloom_and_piranha.png"
+  },
+  {
+    "wait": 14
+  },
+  {
+    "shot": "shots/59e_bloom_telegraph.png"
+  },
+  {
+    "wait": 5
+  },
+  {
+    "shot": "shots/59f_bloom_fire.png"
+  },
+  {
+    "teleport": [
+      9,
+      10
+    ],
+    "settle": 24
+  },
+  {
+    "scenario": "level:jungle_5",
+    "settle": 150
+  },
+  {
+    "teleport": [
+      31,
+      24
+    ],
+    "settle": 40
+  },
+  {
+    "shot": "shots/60_boss_stomp.png"
+  },
+  {
+    "wait": 70
+  },
+  {
+    "shot": "shots/61_boss_stomp_slam.png"
+  },
+  {
+    "call": "debug_advance_boss_phase"
+  },
+  {
+    "wait": 40
+  },
+  {
+    "shot": "shots/62_boss_leap.png"
+  },
+  {
+    "wait": 60
+  },
+  {
+    "shot": "shots/63_boss_leap_air.png"
+  },
+  {
+    "call": "debug_advance_boss_phase"
+  },
+  {
+    "wait": 40
+  },
+  {
+    "shot": "shots/64_boss_fury.png"
+  },
+  {
+    "wait": 70
+  },
+  {
+    "shot": "shots/65_boss_fury_slam.png"
+  },
+  {
+    "scenario": "level:jungle_4",
+    "settle": 120
+  },
+  {
+    "teleport": [
+      8,
+      25
+    ],
+    "settle": 30
+  },
+  {
+    "shot": "shots/66_frog_form.png"
+  },
+  {
+    "press": "jump",
+    "frames": 3
+  },
+  {
+    "wait": 6
+  },
+  {
+    "shot": "shots/67_frog_leap.png"
+  },
+  {
+    "teleport": [
+      20,
+      6
+    ],
+    "settle": 40
+  },
+  {
+    "hold": "jump",
+    "frames": 30
+  },
+  {
+    "shot": "shots/68_bird_form.png"
+  },
+  {
+    "release": "jump"
+  },
+  {
+    "wait": 8
+  },
+  {
+    "shot": "shots/69_bird_glide.png"
+  },
+  {
+    "scenario": "level:jungle_3",
+    "settle": 120
+  },
+  {
+    "teleport": [
+      7,
+      25
+    ],
+    "settle": 30
+  },
+  {
+    "hold": "move_right",
+    "frames": 40
+  },
+  {
+    "shot": "shots/70_fish_form.png"
+  },
+  {
+    "release": "move_right"
+  }
+]

@@ -139,7 +139,14 @@ func _update_anim(delta: float) -> void:
 		_anim_t += delta
 		while _anim_t >= 1.0 / fps:
 			_anim_t -= 1.0 / fps
-			_anim_i = (_anim_i + 1) % frames.size()
+			_anim_i += 1
+		# "loop": false plays the list once and holds the last frame. That is
+		# what makes a jump read as anticipate -> launch -> rise -> hold, rather
+		# than cycling back through the crouch in mid-air.
+		if bool(a.get("loop", true)):
+			_anim_i %= frames.size()
+		else:
+			_anim_i = mini(_anim_i, frames.size() - 1)
 	else:
 		_anim_i = 0
 	var frame := int(frames[_anim_i % frames.size()])

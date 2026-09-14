@@ -2,12 +2,26 @@ extends FormBase
 ## Kaya on foot: run, jump (coyote + buffered + variable height), climb vines,
 ## wade and drop through one-way platforms.
 
+## How long the landing squash pose is held, and the impact speed worth
+## squashing for. Below it you are stepping off a kerb, not landing.
+const LAND_TIME := 0.11
+const LAND_MIN_FALL := 130.0
+
 var _drop_timer := 0.0
+var _land_t := 0.0
+var _air_vy := 0.0
 
 func update(p: Actor, input: InputState, delta: float) -> void:
 	var wet := p.submerged()
 	var ladder := can_climb and p.on_ladder()
 	tick_timers(p, input, delta)
+
+	# The touchdown happened in last tick's step_motion, which already zeroed
+	# vel.y — so the impact speed has to come from the last airborne tick.
+	_land_t = maxf(0.0, _land_t - delta)
+	if p.on_floor and not p.was_on_floor and _air_vy >= LAND_MIN_FALL:
+		_land_t = LAND_TIME
+	_air_vy = 0.0 if p.on_floor else p.vel.y
 
 	# ---- ladders take over completely while you hold up/down on one
 	if ladder and (input.up or input.down or climbing):
@@ -63,6 +77,8 @@ func anim_for(p: Actor) -> String:
 		return "climb"
 	if not p.on_floor:
 		return "jump" if p.vel.y < 0.0 else "fall"
+	if _land_t > 0.0:
+		return "land"
 	if absf(p.vel.x) > 6.0:
 		return "run"
 	return "idle"

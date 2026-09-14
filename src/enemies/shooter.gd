@@ -2,7 +2,12 @@ extends Enemy
 ## Rooted bloom. Waits until the player is roughly level with it and within
 ## range, telegraphs, then spits.
 
-enum St { IDLE, WINDUP }
+enum St { IDLE, WINDUP, FIRE }
+
+## How long the open-jaw pose is held after the spit leaves. The `fire`
+## animation existed in the data before phase 4 but nothing could ever see it —
+## WINDUP shot and dropped straight back to IDLE in the same tick.
+const FIRE_TIME := 0.2
 
 var st: St = St.IDLE
 var t := 0.0
@@ -43,6 +48,11 @@ func think(delta: float) -> void:
 			set_anim("windup")
 			if t <= 0.0:
 				_shoot()
+				st = St.FIRE
+				t = FIRE_TIME
+		St.FIRE:
+			set_anim("fire")
+			if t <= 0.0:
 				st = St.IDLE
 				t = float(cfg.get("fire_interval", 1.7))
 

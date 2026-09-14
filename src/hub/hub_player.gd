@@ -50,11 +50,12 @@ func _physics_process(delta: float) -> void:
 
 func _animate(delta: float) -> void:
 	var moving := vel.length() > 8.0
-	var frames := [1, 2, 3, 2] if moving else [0]
+	# Frames 2-9 of kaya_human.png are the eight-frame run cycle; 0 is the idle.
+	var frames := [2, 3, 4, 5, 6, 7, 8, 9] if moving else [0]
 	if moving:
 		_anim_t += delta
-		while _anim_t >= 1.0 / 10.0:
-			_anim_t -= 1.0 / 10.0
+		while _anim_t >= 1.0 / 12.0:
+			_anim_t -= 1.0 / 12.0
 			_anim_i += 1
 	else:
 		_anim_i = 0

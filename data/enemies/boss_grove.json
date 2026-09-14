@@ -2,10 +2,14 @@
   "id": "boss_grove",
   "display_name": "THE GROVE WARDEN",
   "sprite": "res://assets/sprites/boss_grove.png",
-  "frame_w": 32,
-  "frame_h": 32,
-  "hitbox": { "w": 26, "h": 26, "ox": 3, "oy": 5 },
-
+  "frame_w": 48,
+  "frame_h": 48,
+  "hitbox": {
+    "w": 26,
+    "h": 26,
+    "ox": 11,
+    "oy": 20
+  },
   "health": 18,
   "contact_damage": 1,
   "score": 3000,
@@ -13,7 +17,6 @@
   "speed": 0.0,
   "boss": true,
   "hitstop": "boss_kill",
-
   "phases": [
     {
       "name": "STOMP",
@@ -45,7 +48,6 @@
       "spray_interval": 2.0
     }
   ],
-
   "projectile": {
     "speed": 104.0,
     "damage": 1,
@@ -53,13 +55,155 @@
     "life": 2.6,
     "gravity": 120.0
   },
-
   "drops": {},
   "anim": {
-    "idle":   { "frames": [0], "fps": 1 },
-    "walk":   { "frames": [0], "fps": 1 },
-    "windup": { "frames": [1], "fps": 1 },
-    "air":    { "frames": [1], "fps": 1 },
-    "hurt":   { "frames": [2], "fps": 1 }
+    "idle_p1": {
+      "frames": [
+        0
+      ],
+      "fps": 1
+    },
+    "walk_p1": {
+      "frames": [
+        1,
+        2
+      ],
+      "fps": 5
+    },
+    "windup_p1": {
+      "frames": [
+        3
+      ],
+      "fps": 1
+    },
+    "air_p1": {
+      "frames": [
+        4
+      ],
+      "fps": 1
+    },
+    "land_p1": {
+      "frames": [
+        5
+      ],
+      "fps": 1
+    },
+    "hurt_p1": {
+      "frames": [
+        5
+      ],
+      "fps": 1
+    },
+    "idle_p2": {
+      "frames": [
+        6
+      ],
+      "fps": 1
+    },
+    "walk_p2": {
+      "frames": [
+        7,
+        8
+      ],
+      "fps": 5
+    },
+    "windup_p2": {
+      "frames": [
+        9
+      ],
+      "fps": 1
+    },
+    "air_p2": {
+      "frames": [
+        10
+      ],
+      "fps": 1
+    },
+    "land_p2": {
+      "frames": [
+        11
+      ],
+      "fps": 1
+    },
+    "hurt_p2": {
+      "frames": [
+        11
+      ],
+      "fps": 1
+    },
+    "idle_p3": {
+      "frames": [
+        12
+      ],
+      "fps": 1
+    },
+    "walk_p3": {
+      "frames": [
+        13,
+        14
+      ],
+      "fps": 5
+    },
+    "windup_p3": {
+      "frames": [
+        15
+      ],
+      "fps": 1
+    },
+    "air_p3": {
+      "frames": [
+        16
+      ],
+      "fps": 1
+    },
+    "land_p3": {
+      "frames": [
+        17
+      ],
+      "fps": 1
+    },
+    "hurt_p3": {
+      "frames": [
+        17
+      ],
+      "fps": 1
+    },
+    "idle": {
+      "frames": [
+        0
+      ],
+      "fps": 1
+    },
+    "walk": {
+      "frames": [
+        1,
+        2
+      ],
+      "fps": 5
+    },
+    "windup": {
+      "frames": [
+        3
+      ],
+      "fps": 1
+    },
+    "air": {
+      "frames": [
+        4
+      ],
+      "fps": 1
+    },
+    "land": {
+      "frames": [
+        5
+      ],
+      "fps": 1
+    },
+    "hurt": {
+      "frames": [
+        5
+      ],
+      "fps": 1
+    }
   }
 }

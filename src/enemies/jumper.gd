@@ -42,6 +42,6 @@ func think(delta: float) -> void:
 				t = float(cfg.get("cooldown", 0.85))
 		St.COOLDOWN:
 			vel.x = move_toward(vel.x, 0.0, 500.0 * delta)
-			set_anim("idle")
+			set_anim("land")
 			if t <= 0.0:
 				st = St.IDLE
