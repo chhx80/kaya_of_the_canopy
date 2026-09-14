@@ -1,0 +1,33 @@
+[
+  {"scenario": "level:test_arena", "settle": 60},
+  {"teleport": [3, 3], "settle": 0},
+  {"wait": 36},
+  {"shot": "shots/39_landing_dust.png"},
+
+  {"wait": 30},
+  {"teleport": [3, 10], "settle": 10},
+  {"hold": "move_left", "frames": 3},
+  {"release": "move_left"},
+  {"wait": 2},
+  {"press": "attack", "frames": 4},
+  {"wait": 6},
+  {"shot": "shots/40_blade_sparks.png"},
+
+  {"scenario": "level:test_arena", "settle": 60},
+  {"teleport": [13, 10], "settle": 16},
+  {"call": "debug_kill_nearest_enemy"},
+  {"wait": 18},
+  {"shot": "shots/41_enemy_scatter.png"},
+
+  {"scenario": "level:jungle_3", "settle": 120},
+  {"teleport": [5, 25], "settle": 20},
+  {"shot": "shots/42_water_surface_a.png"},
+  {"wait": 10},
+  {"shot": "shots/42_water_surface_b.png"},
+
+  {"scenario": "level:jungle_1", "settle": 120},
+  {"teleport": [18, 6], "settle": 20},
+  {"shot": "shots/43_foliage_sway_a.png"},
+  {"wait": 45},
+  {"shot": "shots/43_foliage_sway_b.png"}
+]

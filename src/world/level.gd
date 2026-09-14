@@ -15,6 +15,7 @@ var player: Player = null
 @onready var tiles_bg: TileRenderer = $TilesBg
 @onready var tiles_fg: TileRenderer = $TilesFg
 @onready var entities: Node2D = $Entities
+@onready var particles: ParticleField = $Particles
 @onready var cam: CameraController = $Camera
 
 var hud: Node = null
@@ -43,6 +44,9 @@ func load_level(id: String) -> void:
 		return
 
 	cam.setup(world, player)
+	# Juice is wired up once the camera and the particle layer both exist. If
+	# either half of it fails to load the level plays on without it.
+	Fx.attach(particles, cam)
 	cam.screen_changed.connect(_on_screen_changed)
 	_on_screen_changed(cam.screen)
 
@@ -57,6 +61,7 @@ func load_level(id: String) -> void:
 	level_ready.emit()
 
 func _exit_tree() -> void:
+	Fx.detach(particles)
 	if hud != null and is_instance_valid(hud):
 		hud.queue_free()
 
@@ -183,9 +188,14 @@ func _on_screen_changed(s: Vector2i) -> void:
 	bg_far.set_view(r)
 	bg_near.set_view(r)
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if cam == null or world == null:
 		return
+	# One clock for both tile layers, so the two never drift out of phase. It
+	# stops with the simulation, which is what makes hitstop freeze the water
+	# as well as the fight.
+	if not Game.sim_paused:
+		TileAnim.shared().advance(delta)
 	# In smooth-scroll mode the view changes every frame; in flip mode the
 	# screen_changed signal already covers it.
 	if not cam.flip_mode:
@@ -202,6 +212,31 @@ func _on_player_died() -> void:
 ## after a key is collected without simulating the whole route to it.
 func debug_give_yellow_key() -> void:
 	Game.add_key("yellow")
+
+## Likewise: puts the nearest enemy down on the spot, so a capture can show the
+## death scatter and the hitstop without first staging a two-throw fight.
+func debug_kill_nearest_enemy() -> void:
+	if player == null:
+		return
+	var nearest: Enemy = null
+	var best := INF
+	for n in get_tree().get_nodes_in_group(&"enemies"):
+		var e := n as Enemy
+		if e == null or e.level != self:
+			continue
+		var d := e.center().distance_to(player.center())
+		if d < best:
+			best = d
+			nearest = e
+	if nearest != null:
+		nearest.hurt(nearest.health, nearest.center())
+
+## And again: fires the slam shake on demand. The Warden's own slam is on a
+## timer the capture harness cannot see, and one frame either side of it the
+## offset rounds to nothing — so a screenshot of the shake asks for it directly.
+## This is the same call the boss makes in boss_grove.gd.
+func debug_shake_boss_slam() -> void:
+	Fx.shake("boss_slam")
 
 func complete() -> void:
 	if _restarting:

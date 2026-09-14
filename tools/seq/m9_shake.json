@@ -1,0 +1,11 @@
+[
+  {"scenario": "level:jungle_5", "settle": 150},
+  {"teleport": [31, 24], "settle": 30},
+  {"log": "boss arena, camera at rest on its screen origin"},
+  {"shot": "shots/44_shake_steady.png"},
+
+  {"call": "debug_shake_boss_slam"},
+  {"wait": 1},
+  {"log": "shaking: the view is offset, the screen index is not"},
+  {"shot": "shots/45_shake_boss_slam.png"}
+]

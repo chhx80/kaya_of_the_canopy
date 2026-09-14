@@ -15,6 +15,7 @@ var _frame_size := Vector2i(16, 16)
 var _spin := 0.0
 var _hit_this_throw: Array[int] = []
 var _tripped_this_throw: Array[int] = []
+var _spark_cd := 0.0
 
 func setup(config: Dictionary, p: Player) -> void:
 	cfg = config
@@ -58,8 +59,10 @@ func _physics_process(delta: float) -> void:
 
 	# Solid tiles bounce the blade home; crates break instead.
 	var before := pos
+	_spark_cd = maxf(0.0, _spark_cd - delta)
 	step_motion(delta)
 	if against_wall != 0 or on_ceiling or on_floor:
+		_sparks()
 		_hit_tiles()
 		if st == St.OUT:
 			_turn_back()
@@ -87,6 +90,23 @@ func _physics_process(delta: float) -> void:
 func _turn_back() -> void:
 	st = St.BACK
 	vel = (owner_player.center() - center()).normalized() * float(cfg.get("speed", 205.0)) * 0.6
+
+## Struck geometry. Rate-limited because a blade sliding along a wall touches it
+## on every one of sixty ticks, and sixty bursts would empty the pool.
+func _sparks() -> void:
+	if _spark_cd > 0.0:
+		return
+	_spark_cd = Fx.timing("blade_spark_interval", 0.09)
+	# Off the surface it struck, not along the blade's heading: the collision
+	# has already zeroed the velocity component that ran into the wall.
+	var away := Vector2(-float(against_wall), 0.0)
+	if on_floor:
+		away.y = -1.0
+	elif on_ceiling:
+		away.y = 1.0
+	if away == Vector2.ZERO:
+		away = Vector2(-float(facing), 0.0)
+	Fx.burst("spark", center(), away.normalized())
 
 func _hit_tiles() -> void:
 	if not bool(cfg.get("breaks_crates", true)) or world == null:

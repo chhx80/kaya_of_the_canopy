@@ -137,6 +137,8 @@ func _spray() -> void:
 
 func _land() -> void:
 	AudioManager.play("boss_land")
+	Fx.shake("boss_slam")
+	Fx.burst("dust", Vector2(center().x, pos.y + box.y))
 	# A shockwave along the floor in both directions.
 	var pj: Dictionary = (cfg.get("projectile", {}) as Dictionary).duplicate()
 	pj["speed"] = float(phase_cfg.get("shockwave_speed", 132.0))

@@ -84,6 +84,7 @@ func _transition_in(duration: float = 0.22) -> void:
 func _exit_tree() -> void:
 	PixelFont.release()
 	TileData4.release()
+	TileAnim.release()
 
 func current_scene() -> Node:
 	return _current

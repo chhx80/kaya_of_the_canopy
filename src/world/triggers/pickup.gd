@@ -13,6 +13,7 @@ var world: TileWorld = null
 var level: Node = null
 var tossed := false
 var _t := 0.0
+var _shimmer_t := 0.0
 var _taken := false
 var sprite: Sprite2D = null
 
@@ -51,10 +52,20 @@ func _physics_process(delta: float) -> void:
 			tossed = false
 	var bob := 0.0 if tossed else sin(_t * 3.4) * 1.5
 	position = (pos + Vector2(0, bob)).round()
+	_shimmer(delta)
 
 	var p: Player = level.player if level != null and level.get("player") != null else null
 	if p != null and not p.dead and aabb().intersects(p.aabb()):
 		_collect(p)
+
+## A twinkle off the facets every so often, so a pickup catches the eye in a
+## screen full of foliage. Culled by Fx when it is off-screen.
+func _shimmer(delta: float) -> void:
+	_shimmer_t -= delta
+	if _shimmer_t > 0.0:
+		return
+	_shimmer_t = Fx.timing("gem_shimmer_interval", 0.85)
+	Fx.burst("shimmer", pos + SIZE * 0.5)
 
 func _collect(p: Player) -> void:
 	_taken = true

@@ -17,6 +17,7 @@ boot_splash/show_image=false
 Game="*res://src/core/game.gd"
 SaveManager="*res://src/core/save_manager.gd"
 AudioManager="*res://src/core/audio_manager.gd"
+Fx="*res://src/fx/fx_manager.gd"
 
 [display]
 

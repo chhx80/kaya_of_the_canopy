@@ -1,0 +1,36 @@
+{
+  "_comment": "Phase 5 animated tiles. Tile id -> how that tile moves. Levels never mention this: the renderer looks every drawn tile up here, so adding an entry animates every existing level at once. Ids match data/tiles.json and are never changed by animation - collision reads the id, not the frame.",
+  "atlas": "res://assets/sprites/fx/tile_anim.png",
+  "atlas_columns": 4,
+  "cell": 16,
+  "_effects": {
+    "frames": "indices into the fx atlas above, cycled at 'fps'",
+    "sway": "draw offset in px along 'axis'; 'row_phase' staggers successive tile rows so foliage ripples instead of sliding as one sheet",
+    "tint": "brightness multiplier swinging +/- 'amount' at 'hz' - a light source that breathes"
+  },
+  "animations": {
+    "6": {
+      "name": "vine",
+      "sway": { "axis": "x", "px": 1.0, "hz": 0.35, "row_phase": 0.6 }
+    },
+    "7": {
+      "name": "water_top",
+      "frames": [0, 1, 2, 3],
+      "fps": 6.0
+    },
+    "8": {
+      "name": "water",
+      "tint": { "hz": 0.5, "amount": 0.07 }
+    },
+    "13": {
+      "name": "bg_leaves",
+      "sway": { "axis": "x", "px": 1.0, "hz": 0.22, "row_phase": 0.45 }
+    },
+    "24": {
+      "name": "lava",
+      "frames": [4, 5, 6, 7],
+      "fps": 7.0,
+      "tint": { "hz": 3.1, "amount": 0.16 }
+    }
+  }
+}
