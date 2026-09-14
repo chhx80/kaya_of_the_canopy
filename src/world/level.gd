@@ -231,6 +231,22 @@ func debug_kill_nearest_enemy() -> void:
 	if nearest != null:
 		nearest.hurt(nearest.health, nearest.center())
 
+## And again. Phase 4 of the art overhaul gave the Warden three distinct bodies
+## rather than three tints, and a screenshot has to be able to show all three.
+## Its phases are health thresholds, so this drops it onto the next one instead
+## of asking the capture harness to stage six minutes of fight.
+func debug_advance_boss_phase() -> void:
+	for n in get_tree().get_nodes_in_group(&"bosses"):
+		var b := n as Enemy
+		if b == null or b.level != self:
+			continue
+		var phases: Array = b.cfg.get("phases", [])
+		var cur := int(b.get("phase"))
+		if cur + 1 >= phases.size():
+			continue
+		var target := int((phases[cur] as Dictionary).get("until_health", 0))
+		b.hurt(maxi(1, b.health - target), b.center() + Vector2(48.0, 0.0))
+
 ## And again: fires the slam shake on demand. The Warden's own slam is on a
 ## timer the capture harness cannot see, and one frame either side of it the
 ## offset rounds to nothing — so a screenshot of the shake asks for it directly.

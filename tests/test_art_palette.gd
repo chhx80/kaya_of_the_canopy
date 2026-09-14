@@ -148,6 +148,53 @@ func test_each_solid_terrain_tile_is_shaded() -> void:
 		var distinct := _colours(img, x0, y0, TILE_SIZE, TILE_SIZE).size()
 		gt(float(distinct), 4.0, "tile %d needs more than a flat fill" % id)
 
+# ------------------------------------------------------------------ frames
+## Phase 4 turned two-frame animations into six- and eight-frame ones, every
+## one of them addressed by index into a single-row sheet. An index past the end
+## of the sheet draws nothing at all, and only on the one pose that uses it — a
+## hurt frame, a boss phase — so it survives a playthrough and ships. Nothing
+## else in either test tier looks at the sheet and the data together.
+func test_every_animation_frame_is_inside_its_sheet() -> void:
+	for dir in ["res://data/enemies", "res://data/forms"]:
+		for path in _json_files(dir):
+			var d := _json(path)
+			if d.is_empty():
+				continue
+			var img := _image(String(d.get("sprite", "")))
+			ok(img != null, "%s sprite loads" % path)
+			if img == null:
+				continue
+			var fw := maxi(1, int(d.get("frame_w", 16)))
+			var count := int(img.get_width() / fw)
+			eq(img.get_height(), int(d.get("frame_h", 16)),
+				"%s frame_h does not match the sheet" % path)
+			var anims: Dictionary = d.get("anim", {})
+			for name: String in anims.keys():
+				var a: Dictionary = anims[name]
+				for f: Variant in (a.get("frames", []) as Array):
+					var i := int(f)
+					ok(i >= 0 and i < count,
+						"%s anim '%s' wants frame %d of %d" % [path, name, i, count])
+
+func _json(path: String) -> Dictionary:
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	return parsed if parsed is Dictionary else {}
+
+func _json_files(dir: String) -> PackedStringArray:
+	var out := PackedStringArray()
+	var d := DirAccess.open(dir)
+	if d == null:
+		return out
+	d.list_dir_begin()
+	var f := d.get_next()
+	while f != "":
+		if f.ends_with(".json"):
+			out.append(dir + "/" + f)
+		f = d.get_next()
+	d.list_dir_end()
+	out.sort()
+	return out
+
 # ------------------------------------------------------------------ ids
 func test_every_declared_tile_id_is_painted() -> void:
 	## The atlas is indexed by position, so a missing tile is a hole in every

@@ -92,7 +92,7 @@ set, or holes appear only in level geometry nobody walks past.
 **Risk:** the only phase that can cost frame rate. Prototype it on the iPhone
 before committing.
 
-## Phase 4 — Sprites and animation
+## Phase 4 — Sprites and animation — **DONE**
 - Kaya: 6–8 frame run with weight, jump anticipation, landing squash, a proper
   hurt pose.
 - Enemies: 4+ frames each; the walker currently has two.
@@ -104,6 +104,10 @@ system already reads them, so no code change).
 buy detail room, but changes the hitbox and therefore every level's clearances.
 The headroom tests would catch the fallout, but it is real churn. Recommend
 **not** doing this unless the sprite detail proves cramped.
+
+Shipped on `art/phase4-sprites`. What was actually built, and the four places
+the paragraph above was wrong, is in "Phase 4 as built" at the end of this
+document. Kaya was **not** enlarged — the recommendation held.
 
 ## Phase 5 — Motion and juice
 Cheap, and disproportionately effective:
@@ -209,3 +213,87 @@ generated manifest (`assets/palette.json`), the ramp discipline is *testable* �
 a step on a ramp. Nothing else would catch one hand-picked literal slipping into
 a generator, and that check is what stops the palette eroding across phases 2-6
 as four more people's worth of art gets added to it.
+
+---
+
+## Phase 4 as built
+
+Delivered as planned: an eight-frame run, jump anticipation and a landing
+squash, a real hurt pose, four to six frames on every enemy, and a 48×48 boss
+whose three phases are three different animals. Counted the same way the
+diagnosis was:
+
+```
+kaya frames:          8  ->  20
+enemy frames:     2 each  ->  4-5 each
+boss frames:          3  ->  18  (6 poses x 3 phases)
+boss frame size:  32x32  ->  48x48
+```
+
+Four places the plan above was wrong. Two of them are the same mistake seen
+from different angles, and it is the one worth carrying into phase 6.
+
+**1. "Frame lists only — no code change" is false, and it could not have been
+true.** The anim system reads frame lists from `data/`, so *adding frames* to an
+existing animation needs no code. But three of the four things the phase asks
+for are not more frames of an existing pose — they are poses that nothing ever
+asks for:
+
+- *Jump anticipation and landing squash are states, not frames.* The player's
+  animation player loops its frame list forever, so a `jump` list beginning with
+  a crouch cycles back through the crouch in mid-air. Anticipation needs the
+  list to play once and hold, which is a `"loop": false` flag and four lines in
+  `player.gd` and `enemy_base.gd`. The landing squash additionally needs
+  somebody to notice the landing: `form_human.gd` now holds a `land` pose for
+  110 ms after a touchdown above 130 px/s. The impact speed has to be sampled
+  on the last airborne tick, because `step_motion()` has already zeroed `vel.y`
+  by the time the form sees the landing.
+- *"Visually distinct phases" cannot be expressed in frame lists at all.* The
+  Warden's state machine asks for `idle`/`walk`/`windup`/`air`; nothing in that
+  vocabulary knows which phase it is in, so all three phases resolve to the same
+  frames no matter how many you draw. `boss_grove.gd` now overrides `set_anim()`
+  to prefer `<pose>_p1/_p2/_p3` and fall back to the plain name. That is six
+  lines, and without them the other seventeen boss frames are unreachable.
+- *One animation was already unreachable.* `shooter.json` has declared a `fire`
+  animation since M2, and nothing could ever display it: `WINDUP` shot and
+  dropped back to `IDLE` in the same tick. It now holds a `FIRE` state for
+  200 ms. Worth noting because the data looked complete and was not — which is
+  what the new frame-coverage test in `test_art_palette.gd` now guards against
+  from the other direction.
+
+**2. Enlarging the boss moves its render anchor, and `ox`/`oy` live inside the
+`hitbox` block.** The collision box is `w`/`h` and did not change — 26×26, so
+every clearance and every headroom assertion is untouched. But `ox`/`oy` in the
+same block are not collision at all; `enemy_base.gd` uses them only to place the
+sprite, at `(-ox, -oy)` from the box and mirrored when flipped. Leaving them at
+`(3, 5)` while the frame went 32→48 would have drawn a 48-pixel boss down and to
+the right of a 26-pixel hurtbox. They are now `(11, 20)`: the box centred
+horizontally, its bottom on the boss's feet. `test_combat_data.gd` asserts that
+relationship, because the failure is silent — the boss still fights correctly,
+it just fights next to itself. **The lesson for phase 6: `hitbox` in this
+project is two unrelated things wearing one name.**
+
+**3. The fish and the piranha were drawn facing the wrong way, and animating
+them is what made it visible.** Both were authored head-left. `flip_h` is keyed
+off `facing`, so `facing == 1` drew them unflipped — swimming backwards. With
+two near-identical frames nobody could tell; with a four-beat tail sweep it is
+obvious. Both are still authored head-left, because that is the easier read, and
+`sprites.mirror()` flips them on the way out.
+
+**4. Ink-coloured limbs disappear.** The beetle's legs were pure outline, which
+is period-correct and works on a light backdrop. Against phase 3's dark terrain
+they were invisible, so a four-frame leg cycle animated nothing. They now carry
+a chitin segment (`purple` step 3.2) above an ink foot. The same problem would
+have sunk Kaya's eight-frame run for a different reason: with one skin tone the
+far leg reads as the near leg flickering, so `S`/`n`/`N` were added as a
+two-step-darker copy of `s`/`m`/`M`. **Any limb that crosses the body needs its
+own value, not just its own outline.**
+
+**One thing the plan under-sold.** Composing frames instead of drawing each one
+whole — `_kaya()` stacks a head, one of five torsos and one of twelve leg
+blocks, and `_swap()` derives the opposite half of the run cycle by exchanging
+the near and far materials — is what makes twenty frames affordable. It also
+makes them *consistent*: the second half of the run is the same length of stride
+as the first by construction rather than by care. The assertions inside
+`_kaya()` and `cell()` caught about a dozen mistyped rows that would otherwise
+have shipped as a silhouette one pixel out.

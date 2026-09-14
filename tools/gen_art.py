@@ -28,7 +28,9 @@ grid = palette.grid
 blit = palette.blit
 sheet = palette.sheet
 K_IDLE = sprites.K_IDLE
-E_WALKER1 = sprites.E_WALKER1
+# The beetle's frames are composed now, so there is no single grid to re-export
+# — tools/proto_shade.py wants frame 0.
+E_WALKER1 = sprites.walker(0)
 
 
 def main():

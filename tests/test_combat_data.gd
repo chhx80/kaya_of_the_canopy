@@ -79,6 +79,21 @@ func test_enemy_hitboxes_sit_inside_their_sprite_frame() -> void:
 		lt(float(hb.get("oy", 0)) + float(hb.get("h", 0)), fh + 0.01,
 			"%s hitbox overflows the frame vertically" % id)
 
+func test_the_bosss_art_is_anchored_on_its_collision_box() -> void:
+	## The Warden grew from 32x32 to 48x48 in phase 4 while its 26x26 collision
+	## box stayed exactly as it was. `ox`/`oy` are the render anchor, not the
+	## box — src/enemies/enemy_base.gd draws the frame at (-ox, -oy) from the
+	## box and mirrors that when flipped. Get them wrong and the boss draws
+	## beside its own hurtbox, and slides sideways every time it turns.
+	var c := Enemy.load_config("boss_grove")
+	var hb: Dictionary = c.get("hitbox", {})
+	var slack := float(c.get("frame_w", 16)) - float(hb.get("w", 0))
+	lt(absf(float(hb.get("ox", 0)) - slack * 0.5), 1.01,
+		"boss art sits off-centre from its hitbox")
+	lt(absf(float(hb.get("oy", 0)) + float(hb.get("h", 0))
+		- float(c.get("frame_h", 16))), 2.01,
+		"boss art does not stand on the bottom of its hitbox")
+
 func test_walker_is_slower_than_the_player() -> void:
 	var walker := Enemy.load_config("walker")
 	var human := FormBase.load_form("human")

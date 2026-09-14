@@ -42,7 +42,7 @@ func test_hitbox_fits_inside_a_one_tile_corridor() -> void:
 
 func test_every_animation_referenced_by_the_controller_exists() -> void:
 	var f := FormBase.load_form("human")
-	for name in ["idle", "run", "jump", "fall", "climb", "hurt"]:
+	for name in ["idle", "run", "jump", "fall", "land", "climb", "hurt"]:
 		var a: Dictionary = f.anim(name)
 		ok(a.has("frames"), "anim '%s' needs frames" % name)
 		gt(float((a["frames"] as Array).size()), 0.0, "anim '%s' is empty" % name)

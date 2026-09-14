@@ -191,7 +191,13 @@ func _update_anim(delta: float) -> void:
 		_anim_t += delta
 		while _anim_t >= 1.0 / fps:
 			_anim_t -= 1.0 / fps
-			_anim_i = (_anim_i + 1) % frames.size()
+			_anim_i += 1
+		# "loop": false plays once and holds the last frame, which is how a
+		# telegraph escalates instead of throbbing.
+		if bool(a.get("loop", true)):
+			_anim_i %= frames.size()
+		else:
+			_anim_i = mini(_anim_i, frames.size() - 1)
 	var frame := int(frames[_anim_i % frames.size()])
 	sprite.region_rect = Rect2(frame * _frame_size.x, 0, _frame_size.x, _frame_size.y)
 	sprite.flip_h = facing < 0

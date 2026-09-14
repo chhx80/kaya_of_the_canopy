@@ -33,11 +33,12 @@
   "drowns": false,
 
   "anim": {
-    "idle":  { "frames": [0], "fps": 1 },
-    "run":   { "frames": [1, 2, 3, 2], "fps": 12 },
-    "jump":  { "frames": [4], "fps": 1 },
-    "fall":  { "frames": [4], "fps": 1 },
-    "climb": { "frames": [5, 6], "fps": 8 },
-    "hurt":  { "frames": [7], "fps": 1 }
+    "idle":  { "frames": [0, 1], "fps": 2 },
+    "run":   { "frames": [2, 3, 4, 5, 6, 7, 8, 9], "fps": 14 },
+    "jump":  { "frames": [10, 11, 12, 13], "fps": 18, "loop": false },
+    "fall":  { "frames": [14], "fps": 1 },
+    "land":  { "frames": [15], "fps": 1 },
+    "climb": { "frames": [16, 17, 18, 17], "fps": 8 },
+    "hurt":  { "frames": [19], "fps": 1 }
   }
 }
