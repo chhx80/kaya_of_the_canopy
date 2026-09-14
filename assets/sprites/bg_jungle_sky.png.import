@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://deu5g1qfl6qs1"
-path="res://.godot/imported/bg_far.png-9f1283e908e35fd08a029acb2f2e9d34.ctex"
+uid="uid://d3ug2ru2k7mqa"
+path="res://.godot/imported/bg_jungle_sky.png-81fb57363ac1c8702cfce8a58d7255da.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/bg_far.png"
-dest_files=["res://.godot/imported/bg_far.png-9f1283e908e35fd08a029acb2f2e9d34.ctex"]
+source_file="res://assets/sprites/bg_jungle_sky.png"
+dest_files=["res://.godot/imported/bg_jungle_sky.png-81fb57363ac1c8702cfce8a58d7255da.ctex"]
 
 [params]
 

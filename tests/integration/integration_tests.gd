@@ -143,6 +143,8 @@ func run_all() -> void:
 		"t_options_write_straight_through_to_the_save_file",
 		"t_touch_stick_drives_the_same_actions_as_a_keyboard",
 		"t_touch_overlay_hides_itself_when_a_gamepad_is_present",
+		"t_the_ambience_layers_sit_between_the_right_neighbours",
+		"t_light_pools_follow_the_screen_and_only_exist_where_a_level_asked",
 	]
 	for t in tests:
 		_current = t
@@ -1046,3 +1048,46 @@ func _report() -> void:
 			print("  FAIL %s" % f)
 		print("integration: %d passed, %d FAILED" % [passes, failures.size()])
 		get_tree().quit(1)
+
+
+# ---------------------------------------------------------------- ambience
+## Phase 3. The ambience layers are three instances of one script at three fixed
+## depths, and every one of them is wrong if it lands in the wrong place: haze in
+## front of the tiles washes the level out, light behind them never shows, and a
+## vignette after the entities dims the player. Nothing outside a running scene
+## tree can see the order, so it is checked here.
+func t_the_ambience_layers_sit_between_the_right_neighbours() -> void:
+	var l := level()
+	var names: Array[String] = []
+	for c in l.get_children():
+		names.append(String(c.name))
+	check(names.find("BgSky") == 0, "the furthest plane is drawn first")
+	check(names.find("Air") > names.find("BgNear"), "haze is in front of the parallax")
+	check(names.find("Air") < names.find("TilesBg"), "and behind the tiles")
+	check(names.find("Shade") > names.find("TilesFg"), "the vignette is over the tiles")
+	check(names.find("Lights") > names.find("Shade"), "light punches through it")
+	check(names.find("Lights") < names.find("Entities"),
+		"and nothing ambient is ever drawn over the player")
+	# The roles have to match the depths, which is a separate mistake to make:
+	# three layers all quietly doing the same job looks like a lighting bug.
+	check_eq(l.air.role, AmbienceLayer.Role.AIR, "Air layer role")
+	check_eq(l.shade.role, AmbienceLayer.Role.SHADE, "Shade layer role")
+	check_eq(l.lights.role, AmbienceLayer.Role.LIGHT, "Lights layer role")
+
+func t_light_pools_follow_the_screen_and_only_exist_where_a_level_asked() -> void:
+	# The arena is deliberately unlit (data/ambience.json), so it is also the
+	# proof that an unlit level pays nothing for the feature.
+	var arena_pools: int = level().lights.visible_pools()
+	check_eq(arena_pools, 0, "the arena has no light pools")
+	await enter("jungle_2")
+	var l := level()
+	var authored: int = l.amb.pools.size()
+	gt_check(authored, 0, "ROOT HOLLOW authors light pools")
+	var lit := 0
+	for sx in 2:
+		for sy in 2:
+			l._on_screen_changed(Vector2i(sx, sy))
+			var n: int = l.lights.visible_pools()
+			check(n <= AmbienceLayer.MAX_POOLS, "pools per screen stay capped")
+			lit += n
+	gt_check(lit, 0, "and they are found on the screens they sit on")

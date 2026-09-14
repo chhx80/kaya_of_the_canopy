@@ -18,6 +18,8 @@ extends Node
 ##   {"call": "toggle_debug"}            call a method on the current scene
 ##   {"teleport": [21, 24]}              move the player to a tile coordinate
 ##   {"log": "note"}                     print player tile + camera screen
+##   {"perf": "label", "frames": 240}    measure frame cost and print it
+##   {"lighting": false}                 phase 3 ambience off, for an A/B perf run
 
 const HOLDABLE := ["move_left", "move_right", "move_up", "move_down", "jump", "attack", "pause"]
 
@@ -26,6 +28,7 @@ var _step_i := 0
 var _wait := 0
 var _held: Array[String] = []
 var _active := false
+var _busy := false            ## an async step (a perf run) owns the sequencer
 var _out := "shots/shot.png"
 var _quit_when_done := true
 
@@ -86,7 +89,7 @@ func _load_seq(path: String) -> Array:
 	return parsed if typeof(parsed) == TYPE_ARRAY else []
 
 func _physics_process(_delta: float) -> void:
-	if not _active:
+	if not _active or _busy:
 		return
 	if _wait > 0:
 		_wait -= 1
@@ -168,6 +171,12 @@ func _run_step(step: Dictionary) -> bool:
 		if scene and scene.has_method(String(step["call"])):
 			scene.call(String(step["call"]))
 		return false
+	if step.has("lighting"):
+		Ambience.lighting = bool(step["lighting"])
+		return false
+	if step.has("perf"):
+		_measure(String(step["perf"]), int(step.get("frames", 240)))
+		return true   # async; _measure clears _busy and the sequencer resumes
 	if step.has("wait"):
 		_wait = int(step["wait"])
 		return false
@@ -225,6 +234,58 @@ func _capture(path: String) -> void:
 	# have to land on a specific moment are timed off these numbers.
 	print("[capture] %s (%dx%d) err=%d frame=%d" % [
 		path, img.get_width(), img.get_height(), err, Engine.get_physics_frames()])
+	if _step_i >= _steps.size():
+		_finish()
+
+## Frame cost, for the phase 3 lighting decision (docs/art-direction.md).
+##
+## Three numbers, because they answer different questions. `frame` is wall clock
+## between two finished frames with vsync off and the fps cap lifted — the only
+## figure that says whether a change costs frame rate. `cpu` and `gpu` are the
+## renderer's own timings for the viewport, which is what separates "we are
+## submitting too much" from "we are filling too many pixels"; lighting shows up
+## in `gpu`. Draw calls are printed because that is the number a phone minds
+## most.
+##
+## Physics stays at 60Hz throughout, so uncapping the frame rate changes what is
+## measured but not what is simulated.
+func _measure(label: String, frames: int) -> void:
+	_busy = true
+	var vp := get_viewport()
+	var rid := vp.get_viewport_rid()
+	RenderingServer.viewport_set_measure_render_time(rid, true)
+	var old_vsync := DisplayServer.window_get_vsync_mode()
+	var old_max := Engine.max_fps
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	Engine.max_fps = 0
+	for _i in 45:                       # warm up: shaders, atlas uploads, tween settle
+		await RenderingServer.frame_post_draw
+	var samples: Array[float] = []
+	var cpu := 0.0
+	var gpu := 0.0
+	var calls := 0.0
+	var last := Time.get_ticks_usec()
+	for _i in frames:
+		await RenderingServer.frame_post_draw
+		var now := Time.get_ticks_usec()
+		samples.append(float(now - last) / 1000.0)
+		last = now
+		cpu += RenderingServer.viewport_get_measured_render_time_cpu(rid)
+		gpu += RenderingServer.viewport_get_measured_render_time_gpu(rid)
+		calls += Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
+	samples.sort()
+	var n := samples.size()
+	var sum := 0.0
+	for v in samples:
+		sum += v
+	var vram := Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0
+	print("[perf] %s frames=%d frame_ms avg=%.3f p50=%.3f p95=%.3f max=%.3f | render_cpu=%.3f render_gpu=%.3f | draw_calls=%.0f vram=%.1fMB" % [
+		label, n, sum / maxf(1.0, float(n)), samples[n / 2], samples[int(n * 0.95)],
+		samples[n - 1], cpu / float(n), gpu / float(n), calls / float(n), vram])
+	DisplayServer.window_set_vsync_mode(old_vsync)
+	Engine.max_fps = old_max
+	RenderingServer.viewport_set_measure_render_time(rid, false)
+	_busy = false
 	if _step_i >= _steps.size():
 		_finish()
 

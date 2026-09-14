@@ -83,7 +83,12 @@ below was wrong, is in "Phase 2 as built" at the end of this document.
 **Risk:** moderate. Needs a new test that every material has a complete variant
 set, or holes appear only in level geometry nobody walks past.
 
-## Phase 3 — Depth and light
+## Phase 3 — Depth and light — **DONE**
+
+Shipped on `art/phase3-depth`. Lighting is additive pools, decided on measured
+numbers; what was built and where the plan below was wrong is in "Phase 3 as
+built" at the end of this document.
+
 - Per-world background tilesets drawn with **desaturated, darker ramp steps** —
   atmospheric perspective, the trick that gives Duke II its depth.
 - Replace the procedural parallax silhouettes with real layered art.
@@ -304,3 +309,175 @@ mitigation. It is also the only way to work on this at all: a variant set is
 fourteen hundred images nobody will ever look at one at a time, and the
 difference between "all 47 cases present" and "46 of them" is invisible until a
 player stands in the one piece of geometry that makes the missing shape.
+---
+
+## Phase 3 as built
+
+Delivered: three parallax planes per world instead of two flat strips, painted
+through an explicit depth model; a per-level ambience file; and lighting, which
+after measurement is **additive light pools, not `Light2D`**.
+
+Measured, the same way everything else here is:
+
+```
+parallax planes per level:        2  ->  3   (sky / far / near)
+backdrop worlds:                  1  ->  2   (jungle, sky)
+colours off the ramps, backdrops: 0  ->  0   (they are ramp output now, and tested)
+draw calls, a lit level:         13  ->  17
+frame cost of all of phase 3:          +0.05 .. +0.19 ms   (see below)
+```
+
+### The lighting decision, with the numbers
+
+The plan says to decide on device. The device is not in this loop, so it was
+decided on the two things that *are* measurable here and do carry to a phone:
+the ratio between the two implementations on the same renderer, and what each
+one does to readability.
+
+`tools/dev_capture.gd` grew a `{"perf": …}` step: it drops vsync, lifts the fps
+cap and reports wall-clock frame time, the renderer's own CPU time, draw calls
+and video memory. `tools/seq/perf.json` measures every level **twice in the same
+process**, lighting on and off, because measuring two separate launches of the
+game mostly measures how warm the machine was. GPU timestamps read 0.000 — the
+GL Compatibility backend does not report them on macOS — so wall-clock frame
+time is the gate, and the fill-rate argument is made by arithmetic below.
+
+All of phase 3, lit vs unlit, same process, 240 frames each:
+
+```
+                lit      unlit     delta     draw calls
+jungle_1       0.728 ms  0.666 ms  +0.06 ms   17 / 14
+jungle_2       0.920     0.726     +0.19      18 / 15
+jungle_3       0.844     0.780     +0.06      20 / 17
+jungle_4       0.709     0.636     +0.07      17 / 14
+jungle_5       0.805     0.756     +0.05      19 / 16
+```
+
+One representative run; repeating it moves the third decimal but not the band.
+Against the 16.6 ms frame that is 0.3–1.1% of the budget, for three extra draw
+calls: one haze quad, one vignette, one batch of pools.
+
+Then the same scene with `Light2D` + `CanvasModulate` instead — same pool
+texture, same positions, same count, built as a throwaway branch purely to get
+the number:
+
+```
+ROOT HOLLOW, 7 lights      pools 0.852 / 0.872 ms     Light2D 1.327 ms   +55%
+HEART OF THE GROVE, 4      pools 0.679               Light2D 0.708      + 4%
+```
+
+The cost scales with the number of lights overlapping the screen, which is what
+you would expect: in the compatibility renderer each light is another pass over
+every canvas item it touches, and a tile layer is one canvas item holding a few
+hundred draw commands. Seven lights over ROOT HOLLOW's tile layers is seven
+extra traversals of those commands. Fewer draw calls, more work — the draw-call
+monitor actually reads *lower* for the `Light2D` version (16 vs 18), which is a
+good reminder that draw calls are a proxy and frame time is not.
+
+So the cheap variant wins on cost. It also wins on the thing that was supposed
+to be `Light2D`'s advantage, which is the part worth writing down:
+
+**`CanvasModulate` dims the player.** It applies to everything in its canvas
+layer, so Kaya, the enemies, the gems and the hearts all go down with the room.
+`shots/56_phase3_light2d_rejected.png` is the capture the decision was made on:
+the rejected `Light2D` build on the left, the shipped pools on the right, same
+level, same lights. The brief's hard constraint is
+that a player must instantly be able to tell what is solid; a lighting model
+whose ambient term lands on the player works against that at exactly the moment
+the level is darkest. The pools are ordered into the scene *behind the
+entities*, so a dark level now has **more** contrast between Kaya and the floor
+than a bright one, not less. That ordering is the reason the layers are three
+nodes and not one, and it is checked in the integration suite, because it is
+invisible until it is wrong.
+
+On fill rate, since that was the stated risk: a lit screen blends roughly
+800,000 pixels per frame — three parallax planes, two tile layers, a haze quad,
+a vignette and a handful of pools over 400x240. At 60 Hz that is under 50
+Mpix/s. Any phone that can run the game at all clears that by more than an order
+of magnitude; the pools are capped at 16 per frame so a screen of water surface
+cannot turn into a hundred quads. **Still to do on device:** confirm on the
+iPhone that the added texture memory (+1.0 MB, 27.3 total) and the extra
+per-frame alpha blending behave, and re-check with the touch overlay drawn.
+
+### The depth model
+
+The old strips were painted at the dark end of `foliage` — every one of them. So
+the furthest thing on screen was also the highest-contrast thing on screen: a
+black wall behind a lit jungle. The plan's own sentence ("distance reads as
+lower contrast, not just smaller") was the fix, and it is now structural rather
+than a matter of care.
+
+`tools/art/backdrops.Plane` owns a slice of one ramp — its *window* — and every
+brush paints in **material value**, 0 for the shadowed side of a thing and 1 for
+the lit side. The plane maps that onto its window when it renders. The width of
+the window is therefore the plane's entire contrast budget, and a far plane with
+1.2 steps cannot out-contrast a near plane with 2.2 however it is drawn. The
+numbers are printed by `tools/genart.sh` and the planes' own docstrings say
+which is which.
+
+Two things fall out of that and neither was obvious before building it:
+
+- **Distance can be brighter.** Haze lightens what is behind it. The jungle sky
+  plane is a pale blue-grey, well above the tiles in front of it, and it reads
+  as further away than the old near-black did — because what fell off is the
+  contrast, not the brightness.
+- **A material's window is not the plane's window.** SKY BRANCH's far plane
+  holds both a cloud sea and the canopy far below it. One window for both put a
+  dark saturated green slab directly behind the play field: the busiest edge on
+  screen, in the worst place. Materials get per-ramp window overrides, used
+  sparingly — the canopy is painted pale, which is also what a forest seen
+  through that much air actually looks like.
+
+### Six places the plan was wrong
+
+**1. Two of the five levels cannot show a backdrop at all.** ROOT HOLLOW and THE
+WATERWAY author a solid wall of `bg_rock` behind every tile of every screen —
+measured, 0% of either level has the parallax visible, against 54–69% for the
+other three. "Per-world background tilesets" would have meant drawing a cave set
+and a water set that no one would ever see. So two worlds were built, `jungle`
+and `sky`, and the two walled levels get their depth entirely from ambient tint,
+vignette and light pools. That is also why the ambience file separates "which
+backdrop" from "what the air is doing": for half the game only the second half
+of that applies.
+
+**2. "Desaturated, darker ramp steps" is half right and the wrong half is
+load-bearing.** Desaturated, yes. Darker, no — see the depth model above. Had
+the phase been built to the plan's wording it would have produced a slightly
+nicer version of the problem it was meant to fix.
+
+**3. A per-level ambient tint is three numbers, not a colour.** It started as one
+RGB per layer and the grove came out magenta: a violet tint at full strength cuts
+a quarter of the green out of every brown tile in the level. It needs the hue
+(a ramp step), how much of that hue to take, and how far to knock the layer back,
+as three separate fields. Only then can a level be pushed violet without being
+pushed *purple*.
+
+**4. The mood had to live outside `levels/*.json`.** The level files are shared
+with `tools/build_levels.py`, the validators and every test that parses them,
+and the brief froze them. `data/ambience.json` keys off the level id instead,
+which turned out better than an inline field would have been: an artist can
+re-light the whole game without touching a single tile, and the lighting can be
+switched off wholesale for a measurement.
+
+**5. The real cost of `Light2D` here is not fill rate.** The plan's parenthetical
+is "better, costs fill rate". At 400x240 fill rate is not what hurts; the extra
+pass over every canvas item per light is. Worth knowing, because it means the
+cost scales with *lights overlapping the screen*, not with how big they are —
+the opposite of the intuition the plan was working from.
+
+**6. "Prototype it on the iPhone before committing" could not be honoured, and
+the fallback is not as good.** What is in hand is a same-process A/B on one
+desktop GL driver plus an arithmetic argument about overdraw. It is enough to
+choose between two implementations that differ by 55%; it is not enough to
+certify a frame budget on a tile-based mobile GPU. The device check is listed
+above as outstanding, and phase 6 is where it belongs.
+
+**One thing the plan under-sold.** Because the planes are ramp output now rather
+than blends, the backdrop exemption in `tests/test_art_palette.gd` could be
+closed: `tests/test_art_depth.gd` asserts every plane and both lighting textures
+are pure ramp, that each plane is exactly one screen (which is what makes the
+vertical lock seam-free), that the sky plane has no holes in it, that no plane
+out-contrasts the tileset, and — the one that will actually catch someone — that
+no level's ambience may dim the solid layer below two thirds or below its own
+background layer. The readability constraint was the one thing in this phase a
+data file could break silently, and now it cannot.

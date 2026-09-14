@@ -337,3 +337,60 @@ it as well. 106 tests / 8154 assertions.
 Captures: `shots/phase2/gridding_before_after.png` (hub and CANOPY TRAIL,
 before left, after right) and `shots/phase2/levels_after.png`;
 `tools/seq/m4_hub.json` re-run into `shots/13*_hub*.png`.
+## Art phase 3 — depth and light
+
+Three parallax planes instead of two flat strips, a per-level ambience file, and
+lighting. Nothing in `levels/*.json` changed: every level is the same geometry,
+re-lit. Full write-up, including the measurements the lighting decision was made
+on, in `docs/art-direction.md` ("Phase 3 as built").
+
+**Atmospheric perspective, structurally.** `tools/art/backdrops.py` gained a
+`Plane`: a depth plane owns a slice of one ramp (its *window*) and every brush
+paints in material value, 0 for a thing's shadowed side and 1 for its lit side.
+The window's width is the plane's whole contrast budget, so a far plane cannot
+out-contrast a near one however it is drawn. The old strips had this backwards —
+all three painted at the dark end of `foliage`, which made the furthest thing on
+screen the highest-contrast thing on screen.
+
+**Real layered backdrops.** Two worlds, three planes each (`bg_<world>_sky`,
+`_far`, `_near`), all still generated: a jungle of receding trees under pale
+blue air, and a high sky of cloud banks over a hazed canopy with a branch across
+the top. Only two worlds, because ROOT HOLLOW and THE WATERWAY wall every screen
+with `bg_rock` and show 0% of the parallax — those two are lit instead.
+
+**Ambience.** `data/ambience.json` keys off the level id: backdrop world, a haze
+quad over the parallax, a tint per tile layer, vignette strength, light pools and
+emissive tile ids. Every colour in it is a ramp step out of `assets/palette.json`,
+never an RGB literal. ROOT HOLLOW is a cold cave picked out by warm flickering
+pools; SKY BRANCH is pale and airy; HEART OF THE GROVE is CANOPY TRAIL pushed
+violet.
+
+**Lighting is additive pools, not `Light2D`.** Measured in one process with a
+new `{"perf": …}` step in `tools/dev_capture.gd`: the whole phase costs
++0.05–0.19 ms a frame and three draw calls, where `Light2D` + `CanvasModulate`
+cost 55% more frame time on the same scene *and* dimmed Kaya along with the room.
+The pools are drawn behind the entities, so a dark level now has more contrast
+between the player and the floor, not less.
+
+**`ParallaxBg` draws the copies it needs.** It used to add a spare row and column
+every frame; with three planes that was a third of the backdrop's draw calls
+spent off-screen. The vertical screen-lock is unchanged and now documented — it
+only works because a plane is exactly one screen tall.
+
+**Tests.** `tests/test_art_depth.gd` (9 tests) closes the backdrop exemption
+phase 1 left in the palette check: every plane and both lighting textures are
+pure ramp output, every plane is exactly 400x240 (the seam contract), the sky
+plane has no holes, no plane out-contrasts the tileset, and no level's ambience
+may dim the solid layer below two thirds or below its own background layer —
+the readability rule, which was the one thing here a data file could break
+silently. 99 tests / 1311 assertions. Two integration tests cover the part made
+of nodes: the three ambience layers sit at the right depths with the right roles,
+and light pools are found per screen and stay capped. 268 checks.
+
+Captures: `tools/seq/art_phase3.json` → `shots/47_phase3_canopy_trail.png` …
+`shots/51_phase3_heart_of_the_grove.png`, contact sheet in
+`shots/52_phase3_contact_sheet.png`, the four-screen seam proof in
+`shots/53_phase3_screen_lock.png`, before/after in
+`shots/54_phase3_before_after.png`, the planes themselves in
+`shots/55_phase3_planes.png`, and the rejected `Light2D` build beside the
+shipped one in `shots/56_phase3_light2d_rejected.png`.
