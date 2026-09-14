@@ -1,0 +1,72 @@
+{
+  "_comment": "Phase 5 juice tunables: particles, screen shake and hitstop. Every number the effects use lives here; src/fx/ only holds the mechanism. Deleting this file (or the art it names) disables the effects and leaves the game fully playable.",
+  "enabled": true,
+  "particles": {
+    "atlas": "res://assets/sprites/fx/particles.png",
+    "cell": 8,
+    "atlas_columns": 4,
+    "pool": 96,
+    "_fields": {
+      "row": "row in the particle atlas",
+      "frames": "columns in that row, played at 'fps' over the particle's life",
+      "count": "[min, max] particles per burst",
+      "life": "[min, max] seconds",
+      "speed": "[min, max] px/s",
+      "angle_deg": "[min, max] launch angle; 0 is +x, negative is up",
+      "aim": "rotate angle_deg to face the direction passed to the burst",
+      "gravity": "px/s^2 downward",
+      "drag": "velocity damping per second",
+      "spread_px": "radius the burst is scattered over",
+      "fade": "fade alpha out over the particle's life"
+    },
+    "emitters": {
+      "dust": {
+        "row": 0, "frames": [0, 1, 2, 3], "fps": 11.0,
+        "count": [4, 6], "life": [0.22, 0.36], "speed": [14, 40],
+        "angle_deg": [-165, -15], "aim": false,
+        "gravity": 90.0, "drag": 3.0, "spread_px": 4.0, "fade": true
+      },
+      "spark": {
+        "row": 1, "frames": [0, 1, 2, 3], "fps": 16.0,
+        "count": [3, 5], "life": [0.14, 0.24], "speed": [50, 120],
+        "angle_deg": [-55, 55], "aim": true,
+        "gravity": 260.0, "drag": 4.5, "spread_px": 2.0, "fade": true
+      },
+      "shimmer": {
+        "row": 2, "frames": [0, 1, 2, 3], "fps": 9.0,
+        "count": [1, 2], "life": [0.34, 0.46], "speed": [3, 10],
+        "angle_deg": [-180, 0], "aim": false,
+        "gravity": -12.0, "drag": 1.2, "spread_px": 5.0, "fade": true
+      },
+      "scatter": {
+        "row": 3, "frames": [0, 1, 2, 3], "fps": 10.0,
+        "count": [5, 8], "life": [0.34, 0.58], "speed": [40, 105],
+        "angle_deg": [-150, -30], "aim": false,
+        "gravity": 380.0, "drag": 1.1, "spread_px": 3.0, "fade": true
+      }
+    }
+  },
+  "shake": {
+    "enabled": true,
+    "_comment": "Amplitude is capped again in camera_controller.gd: shake is an offset inside the tile cull margin, never a change of screen.",
+    "max_px": 5.0,
+    "presets": {
+      "boss_slam": { "amplitude_px": 3.5, "seconds": 0.30, "hz": 21.0, "vertical": 1.0 },
+      "hurt":      { "amplitude_px": 2.0, "seconds": 0.18, "hz": 26.0, "vertical": 0.6 }
+    }
+  },
+  "hitstop": {
+    "enabled": true,
+    "_comment": "Hard ceiling as well as per-preset values: a freeze that outlived its welcome would read as a soft-lock.",
+    "max_seconds": 0.25,
+    "presets": {
+      "kill": 0.06,
+      "boss_kill": 0.18
+    }
+  },
+  "timings": {
+    "land_dust_min_fall": 170.0,
+    "gem_shimmer_interval": 0.85,
+    "blade_spark_interval": 0.09
+  }
+}

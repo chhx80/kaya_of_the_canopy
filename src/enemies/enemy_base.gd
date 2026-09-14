@@ -142,6 +142,7 @@ func hurt(amount: int, from: Vector2 = Vector2.ZERO) -> void:
 		die(from)
 	else:
 		AudioManager.play("enemy_hit")
+		Fx.burst("spark", center(), center() - from)
 		vel.x += signf(center().x - from.x) * 40.0
 
 func die(_from: Vector2 = Vector2.ZERO) -> void:
@@ -149,6 +150,10 @@ func die(_from: Vector2 = Vector2.ZERO) -> void:
 		return
 	_dying = DEATH_TIME
 	AudioManager.play("enemy_die")
+	# Both are named per enemy in data/enemies/*.json, so a boss can land harder
+	# than a beetle without a line of code.
+	Fx.burst(String(cfg.get("death_fx", "scatter")), center())
+	Fx.hitstop(String(cfg.get("hitstop", "kill")))
 	Game.add_score(score_value)
 	remove_from_group(&"enemies")
 	_drop_loot()

@@ -19,6 +19,8 @@ is gitignored — copy `tools/env.sh.example` and edit it after a fresh clone.
 - Validate scenes/levels: `tools/validate.sh`
 - Re-import assets after regenerating art: `tools/import.sh`
 - Regenerate art: `tools/genart.sh`
+- Regenerate the FX art (particles, animated tile frames): `tools/genfx.sh`
+  (derives its tile frames from the tileset, so run it *after* `genart.sh`)
 - Regenerate audio: `tools/genaudio.sh`
 - Screenshot the running game: `tools/shot.sh --scenario=title --out=shots/x.png`
   or `tools/shot.sh --seq=tools/seq/<name>.json` for scripted play
@@ -35,7 +37,8 @@ is gitignored — copy `tools/env.sh.example` and edit it after a fresh clone.
   `src/world/tile_collision.gd` (static, pure) against a `TileWorld`.
 - Positions are floats; only rendering rounds to whole pixels.
 - Speeds are px/s, accelerations px/s². Never a magic number in a script —
-  tunables live in `data/` (`forms/*.json`, `enemies/*.json`, `weapons/*.json`).
+  tunables live in `data/` (`forms/*.json`, `enemies/*.json`, `weapons/*.json`,
+  `fx.json`, `tile_anim.json`).
 - Game code never reads `Input` directly; it reads an `InputState`.
 - Scenes are text `.tscn`, kept small and mostly built from code, because the
   editor is not part of the loop. Node names PascalCase, files snake_case.

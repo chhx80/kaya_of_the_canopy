@@ -76,7 +76,10 @@ func _physics_process(delta: float) -> void:
 		vel.y = minf(vel.y + form.gravity * delta, form.max_fall)
 		vel.x = move_toward(vel.x, 0.0, 260.0 * delta)
 
+	var fall_speed := vel.y
 	step_motion(delta)
+	if on_floor and not was_on_floor and fall_speed >= Fx.timing("land_dust_min_fall", 170.0):
+		Fx.burst("dust", feet())
 
 	if touching_hazard():
 		take_damage(1, Vector2(-facing, 0))
@@ -92,6 +95,7 @@ func take_damage(amount: int, from_dir: Vector2 = Vector2.ZERO) -> void:
 		return
 	Game.damage(amount)
 	AudioManager.play("hurt")
+	Fx.shake("hurt")
 	invuln = INVULN_TIME
 	hurt_t = HURT_TIME
 	var dir := -1.0 if from_dir.x > 0.0 else 1.0

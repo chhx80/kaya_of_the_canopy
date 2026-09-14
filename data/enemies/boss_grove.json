@@ -12,6 +12,7 @@
   "gravity": 800.0,
   "speed": 0.0,
   "boss": true,
+  "hitstop": "boss_kill",
 
   "phases": [
     {

@@ -147,9 +147,9 @@ func _run_step(step: Dictionary) -> bool:
 		if lvl0 and lvl0.get("player") != null:
 			var pl0: Actor = lvl0.player
 			var t0 := (pl0.center() / TileData4.TILE_SIZE).floor()
-			print("[log] %s player_tile=%v pos=%v vel=%v on_floor=%s screen=%v" % [
+			print("[log] %s player_tile=%v pos=%v vel=%v on_floor=%s screen=%v frozen=%s" % [
 				String(step["log"]), t0, pl0.pos.round(), pl0.vel.round(),
-				str(pl0.on_floor), lvl0.cam.screen])
+				str(pl0.on_floor), lvl0.cam.screen, str(Game.sim_paused)])
 		return false
 	if step.has("teleport"):
 		var t: Array = step["teleport"]
@@ -220,7 +220,11 @@ func _capture(path: String) -> void:
 	if dir != "" and not DirAccess.dir_exists_absolute(dir):
 		DirAccess.make_dir_recursive_absolute(dir)
 	var err := img.save_png(path)
-	print("[capture] %s (%dx%d) err=%d" % [path, img.get_width(), img.get_height(), err])
+	# The physics frame is printed because a capture is not free: it costs a few
+	# ticks, so "wait 40 then shoot" twice is not 80 ticks apart. Sequences that
+	# have to land on a specific moment are timed off these numbers.
+	print("[capture] %s (%dx%d) err=%d frame=%d" % [
+		path, img.get_width(), img.get_height(), err, Engine.get_physics_frames()])
 	if _step_i >= _steps.size():
 		_finish()
 

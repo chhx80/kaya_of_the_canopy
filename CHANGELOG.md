@@ -218,3 +218,64 @@ a flat fill, and every id declared in `data/tiles.json` is painted (with tile 0
 still fully transparent).
 
 Before/after: `shots/art_phase1_before_after.png`.
+## Art phase 5 — motion and juice
+
+`docs/art-direction.md` phase 5: cheap effects, layered on top of the existing
+art rather than replacing any of it. Nothing here is load-bearing — every effect
+checks that it is available and otherwise does nothing, so a missing atlas or a
+deleted `data/fx.json` costs a warning and leaves the game fully playable.
+
+**Animated tiles.** `data/tile_anim.json` maps a tile id to how it moves:
+`frames` (cycled out of a small fx atlas), `sway` (a whole-pixel draw offset,
+phase-shifted per tile row so foliage ripples instead of sliding as a sheet) and
+`tint` (a brightness cycle — a light source that breathes). Water surface, water
+body, lava, vines and canopy leaves are animated; levels needed no changes,
+because `TileRenderer` resolves all of it at draw time and the tile *id* — and
+therefore collision — is untouched. `TileAnim` is pure data and pure maths, so
+the whole table is exercised headlessly. The renderer repaints only when
+something on the current screen has actually changed, and a screen with no
+animated tiles costs nothing per frame.
+
+**Particles.** `ParticleField`: one fixed pool, one texture, one draw pass, no
+allocation after setup. Landing dust, blade impact sparks, a twinkle off
+pickups, and a scatter when an enemy dies. Emitters are described entirely by
+`data/fx.json`. Bursts outside the visible screen are dropped, and a burst that
+would overrun the pool is quietly smaller rather than a frame-rate cliff.
+
+**Screen shake.** Added to `CameraController` as a render offset only:
+`base_pos` is the camera the screen-flip logic reasons about, `position` is
+`base_pos + shake_offset`. The slide tween now drives `base_pos`, so the flip
+and the shake cannot fight over one property, and the screen index is still
+derived from the player and never from the camera. Capped at 8 px in code —
+inside the tile cull's one-tile margin — as well as by `data/fx.json`. Fires on
+the boss slam and on taking damage.
+
+**Hitstop.** A few frames of freeze on a kill, reusing the `Game.sim_paused`
+flag the camera already freezes the simulation with. It refuses to stack: if
+something else owns the freeze the request is dropped, and if a screen flip
+starts mid-freeze the slide keeps ownership. It is released on every state
+change and whenever a level goes away.
+
+**New tools.** `tools/gen_fx.py` / `tools/genfx.sh` generate the two fx atlases.
+The animated tile frames are *derived from `assets/tiles/tileset.png`* rather
+than drawn from scratch, so a repaint of the tileset carries into the animation
+on the next `tools/genfx.sh`. `tools/dev_capture.gd` now prints the physics
+frame with each capture — a capture is not free, and sequences that have to land
+on a specific moment are timed off those numbers.
+
+**Tests.** `tests/test_fx_data.gd` (18 tests) covers the data: every emitter
+frame lands inside its atlas, every animated id exists in `data/tiles.json`,
+sway is whole-pixel and clamped, a malformed entry is dropped rather than
+half-applied, a missing table leaves every tile still, and — the two that matter
+— no shake preset can out-reach the camera's cap and no hitstop preset can
+out-last its ceiling. 83 tests / 940 assertions.
+
+Nine integration tests cover the parts made of nodes, including the two
+soft-lock guards the effects could plausibly introduce: hitstop always releases
+`sim_paused` (including across a level change, and when nothing is attached),
+and a shake always decays to exactly zero with the camera back on its exact
+screen origin and its screen index never touched. 252 checks.
+
+Captures: `tools/seq/m9_juice.json` and `tools/seq/m9_shake.json` →
+`shots/39_landing_dust.png` … `shots/45_shake_boss_slam.png`, contact sheet in
+`shots/46_phase5_contact_sheet.png`.

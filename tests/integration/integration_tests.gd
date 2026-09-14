@@ -33,6 +33,12 @@ func near(a: float, b: float, tol: float, msg: String) -> void:
 func check_eq(a: Variant, b: Variant, msg: String) -> void:
 	check(a == b, "%s (got %s, want %s)" % [msg, str(a), str(b)])
 
+func gt_check(a: int, b: int, msg: String) -> void:
+	check(a > b, "%s (got %d, want > %d)" % [msg, a, b])
+
+func gt_check_f(a: float, b: float, msg: String) -> void:
+	check(a > b, "%s (got %f, want > %f)" % [msg, a, b])
+
 func level() -> Node:
 	return Game.current_level
 
@@ -124,6 +130,15 @@ func run_all() -> void:
 		"t_boss_spawns_locked_to_its_arena",
 		"t_boss_changes_phase_as_its_health_falls",
 		"t_boss_death_opens_the_way_out_and_unlocks_the_camera",
+		"t_landing_dust_puffs_and_then_clears_itself_up",
+		"t_the_particle_pool_cannot_be_overrun",
+		"t_killing_an_enemy_freezes_the_sim_and_always_lets_go",
+		"t_hitstop_refuses_to_stack_on_a_freeze_it_does_not_own",
+		"t_hitstop_never_outlives_the_level_that_started_it",
+		"t_shake_moves_the_camera_and_puts_it_back_exactly",
+		"t_a_shake_cannot_throw_the_screen_flip_off_target",
+		"t_effects_are_inert_when_nothing_is_attached",
+		"t_animated_tiles_repaint_without_changing_the_level",
 		"t_pause_freezes_the_level_and_resumes_it",
 		"t_options_write_straight_through_to_the_save_file",
 		"t_touch_stick_drives_the_same_actions_as_a_keyboard",
@@ -794,6 +809,149 @@ func t_boss_death_opens_the_way_out_and_unlocks_the_camera() -> void:
 		if n is LevelExit:
 			exits_after += 1
 	check_eq(exits_after, 1, "the gate opens")
+
+# ---------------------------------------------------------------- juice
+## Phase 5. Two of these are soft-lock guards rather than feature tests: a
+## hitstop that never releases `Game.sim_paused`, or a shake that leaves the
+## camera off its screen, would both look like the game had hung.
+func field() -> ParticleField:
+	return Fx.particles()
+
+func t_landing_dust_puffs_and_then_clears_itself_up() -> void:
+	var f := field()
+	check(f != null, "the level has a particle field")
+	if f == null:
+		return
+	f.clear()
+	await place(3, 3, 0)
+	var seen := 0
+	for i in 90:
+		await get_tree().physics_frame
+		seen = maxi(seen, f.live_count())
+		if player() != null and player().on_floor and i > 4:
+			break
+	gt_check(seen, 0, "landing from a height raises dust")
+	await frames(60)
+	check_eq(f.live_count(), 0, "and every particle is handed back to the pool")
+
+func t_the_particle_pool_cannot_be_overrun() -> void:
+	var f := field()
+	check(f != null, "the level has a particle field")
+	if f == null:
+		return
+	await place(4, 10)
+	f.clear()
+	# Far more bursts than the pool could ever hold, in a single frame.
+	for i in 200:
+		Fx.burst("scatter", player().center())
+	check(f.live_count() <= f.pool_size(),
+		"live particles (%d) must never exceed the pool (%d)" % [f.live_count(), f.pool_size()])
+	gt_check(f.live_count(), 0, "though the burst did spawn something")
+	await frames(60)
+	check_eq(f.live_count(), 0, "and the flood drains completely")
+
+func t_killing_an_enemy_freezes_the_sim_and_always_lets_go() -> void:
+	await place(3, 10)
+	var live := enemies()
+	check(not live.is_empty(), "the arena has an enemy to kill")
+	if live.is_empty():
+		return
+	var e: Enemy = live[0]
+	var clock := TileAnim.shared().time
+	e.hurt(99, e.center())
+	check(Game.sim_paused, "the kill freezes the simulation")
+	check(Fx.hitstop_active(), "and Fx is the one holding the flag")
+	await frames(2)
+	near(TileAnim.shared().time, clock, 0.001, "animated tiles hold their frame too")
+	await frames(40)   # two thirds of a second — far past any hitstop preset
+	check(not Game.sim_paused, "the freeze always lets go")
+	check(not Fx.hitstop_active(), "and Fx no longer claims it")
+
+func t_hitstop_refuses_to_stack_on_a_freeze_it_does_not_own() -> void:
+	await place(3, 10)
+	# Stand in for a screen flip mid-slide, which owns sim_paused for 0.12s.
+	Game.sim_paused = true
+	Fx.hitstop("kill")
+	check(not Fx.hitstop_active(), "hitstop stands aside when something else is frozen")
+	Game.sim_paused = false
+	await frames(20)
+	check(not Game.sim_paused, "and never clears a flag it did not set")
+
+func t_hitstop_never_outlives_the_level_that_started_it() -> void:
+	await place(3, 10)
+	Fx.hitstop("kill")
+	check(Game.sim_paused, "hitstop froze the simulation")
+	# Leaving mid-freeze is exactly what dying or taking an exit does.
+	await enter_arena()
+	check(not Game.sim_paused, "the new level starts unfrozen")
+	check(not Fx.hitstop_active(), "no freeze survives a scene swap")
+	await frames(10)
+	check(not Game.sim_paused, "and it stays that way")
+
+func t_shake_moves_the_camera_and_puts_it_back_exactly() -> void:
+	await place(4, 10)
+	var cam: CameraController = level().cam
+	var home: Vector2 = cam.screen_origin(cam.screen)
+	var screen0: Vector2i = cam.screen
+	check_eq(cam.position, home, "the camera starts on its screen origin")
+	Fx.shake("boss_slam")
+	var moved := false
+	for i in 14:
+		await get_tree().physics_frame
+		if cam.position != home:
+			moved = true
+		check_eq(cam.screen, screen0, "a shake never changes the screen index")
+		check_eq(cam.base_pos, home, "and never moves the camera itself, only the offset")
+		check(cam.shake_offset.length() <= CameraController.MAX_SHAKE_PX + 0.001,
+			"the offset stays inside the tile cull margin")
+	check(moved, "the screen actually shook")
+	await frames(40)
+	check_eq(cam.shake_offset, Vector2.ZERO, "the offset decays to exactly zero")
+	check_eq(cam.position, home, "so the camera lands back on the exact screen origin")
+
+func t_a_shake_cannot_throw_the_screen_flip_off_target() -> void:
+	await enter("jungle_1")
+	var cam: CameraController = level().cam
+	check(cam.flip_mode, "this test needs the flip camera")
+	if not cam.flip_mode:
+		return
+	Fx.shake("boss_slam")
+	var p := player()
+	# A ledge one screen to the east, crossed while the camera is still shaking.
+	p.pos = Vector2(37.0 * TS, 9.0 * TS)
+	p.vel = Vector2.ZERO
+	await frames(60)
+	check_eq(cam.screen, Vector2i(1, 0), "the camera followed onto the next screen")
+	check_eq(cam.position, cam.screen_origin(cam.screen), "and landed dead on it")
+	check_eq(cam.base_pos, cam.screen_origin(cam.screen), "with the slide finished")
+	check(not Game.sim_paused, "the slide released the simulation")
+
+func t_effects_are_inert_when_nothing_is_attached() -> void:
+	await place(4, 10)
+	Fx.detach()
+	check_eq(Fx.burst("dust", Vector2(64, 64)), 0, "a burst with no field spawns nothing")
+	Fx.shake("boss_slam")        # no camera to shake: must be a no-op, not a crash
+	await frames(4)
+	# Hitstop deliberately still works without art or a camera — it is simulation,
+	# not decoration — but it must still let go on its own.
+	Fx.hitstop("kill")
+	await frames(30)
+	check(not Game.sim_paused, "a freeze with nothing attached still releases")
+	check(not Fx.hitstop_active(), "and hands the flag back")
+
+func t_animated_tiles_repaint_without_changing_the_level() -> void:
+	await place(4, 10)
+	var anim := TileAnim.shared()
+	check(anim.has_any(), "the animation table loaded")
+	var fg: TileRenderer = level().tiles_fg
+	check(fg.live_animated_ids().has(6), "the arena's vines are seen as animated")
+	var before := anim.time
+	await frames(20)
+	gt_check_f(anim.time, before, "the shared tile clock advances with the level")
+	# The point of the whole design: the tile id, and therefore collision, is
+	# exactly what it was before Phase 5.
+	check_eq(level().world.get_fg(17, 6), 6, "the vine tile id is untouched")
+	check(level().world.is_ladder(17, 6), "and it is still a ladder while it sways")
 
 # ---------------------------------------------------------------- ui
 func t_pause_freezes_the_level_and_resumes_it() -> void:
