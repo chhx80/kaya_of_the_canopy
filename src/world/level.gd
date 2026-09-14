@@ -3,8 +3,13 @@ extends Node2D
 
 signal level_ready()
 
-const PARALLAX_FAR := 0.25
-const PARALLAX_NEAR := 0.55
+## Three planes, three speeds. The gaps between them are what the eye reads as
+## distance; the art in each plane is painted to a contrast budget that matches
+## its speed (tools/art/backdrops.py). Vertical parallax is deliberately zero on
+## all three — see ParallaxBg.
+const PARALLAX_SKY := 0.10
+const PARALLAX_FAR := 0.28
+const PARALLAX_NEAR := 0.58
 
 var def: LevelLoader.LevelDef = null
 var world: TileWorld = null
@@ -12,6 +17,14 @@ var player: Player = null
 
 @onready var bg_far: ParallaxBg = $BgFar
 @onready var bg_near: ParallaxBg = $BgNear
+## Built in code rather than in level.tscn: the scene predates phase 3 and the
+## three ambience layers have to be inserted at exact depths between nodes that
+## are already there.
+var bg_sky: ParallaxBg = null
+var air: AmbienceLayer = null
+var shade: AmbienceLayer = null
+var lights: AmbienceLayer = null
+var amb: Ambience = null
 @onready var tiles_bg: TileRenderer = $TilesBg
 @onready var tiles_fg: TileRenderer = $TilesFg
 @onready var entities: Node2D = $Entities
@@ -23,9 +36,41 @@ var boss: Enemy = null
 var _restarting := false
 
 func _ready() -> void:
-	bg_far.setup("res://assets/sprites/bg_far.png", PARALLAX_FAR, 0.0)
-	bg_near.setup("res://assets/sprites/bg_near.png", PARALLAX_NEAR, 0.0)
-	bg_near.tint = Color(1, 1, 1, 0.9)
+	bg_sky = ParallaxBg.new()
+	bg_sky.name = "BgSky"
+	add_child(bg_sky)
+	move_child(bg_sky, 0)
+	air = _make_layer("Air", AmbienceLayer.Role.AIR, bg_near.get_index() + 1)
+	shade = _make_layer("Shade", AmbienceLayer.Role.SHADE, tiles_fg.get_index() + 1)
+	lights = _make_layer("Lights", AmbienceLayer.Role.LIGHT, shade.get_index() + 1)
+
+func _make_layer(n: String, role: AmbienceLayer.Role, at: int) -> AmbienceLayer:
+	var l := AmbienceLayer.new()
+	l.name = n
+	l.role = role
+	add_child(l)
+	move_child(l, at)
+	return l
+
+## Backdrop planes and tile tints, from data/ambience.json. Missing art leaves
+## the plane empty rather than erroring: a level still plays with no backdrop.
+func _apply_ambience() -> void:
+	amb = Ambience.for_level(def.id)
+	var planes := {
+		bg_sky: ["sky", PARALLAX_SKY], bg_far: ["far", PARALLAX_FAR],
+		bg_near: ["near", PARALLAX_NEAR],
+	}
+	for node: ParallaxBg in planes.keys():
+		var spec: Array = planes[node]
+		var path := "res://assets/sprites/bg_%s_%s.png" % [amb.world, String(spec[0])]
+		if ResourceLoader.exists(path):
+			node.setup(path, float(spec[1]), 0.0)
+		else:
+			push_warning("Level: no backdrop plane at '%s'" % path)
+	tiles_bg.modulate_color = amb.bg_tint
+	tiles_fg.modulate_color = amb.fg_tint
+	for l: AmbienceLayer in [air, shade, lights]:
+		l.setup(l.role, amb, world)
 
 func load_level(id: String) -> void:
 	def = LevelLoader.load_level(id)
@@ -36,7 +81,7 @@ func load_level(id: String) -> void:
 	world = def.world
 	tiles_bg.setup(world, "bg")
 	tiles_fg.setup(world, "fg")
-	tiles_bg.modulate_color = Color(0.62, 0.66, 0.72)
+	_apply_ambience()
 
 	_spawn_entities()
 	if player == null:
@@ -185,8 +230,12 @@ func _on_screen_changed(s: Vector2i) -> void:
 	var r := cam.view_rect()
 	tiles_bg.set_view(r)
 	tiles_fg.set_view(r)
+	bg_sky.set_view(r)
 	bg_far.set_view(r)
 	bg_near.set_view(r)
+	air.set_view(r)
+	shade.set_view(r)
+	lights.set_view(r)
 
 func _process(delta: float) -> void:
 	if cam == null or world == null:

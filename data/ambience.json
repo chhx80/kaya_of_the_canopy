@@ -1,0 +1,117 @@
+{
+  "_comment": "Phase 3 depth and light. Level id -> which backdrop world it uses, how much air is in front of that backdrop, how far each tile layer is knocked back, and where the lights are. levels/*.json is geometry only and did not change for this phase; this is the mood, kept apart from it so an artist can re-light the game without touching a single tile.",
+  "_fields": {
+    "world": "which parallax set (assets/sprites/bg_<world>_{sky,far,near}.png)",
+    "air": "haze quad drawn over the parallax and behind the tiles: ramp step + alpha",
+    "bg_tint": "multiplier on the background tile layer: ramp step for the hue, mix for how much of that hue, scale for how far back it sits",
+    "fg_tint": "the same for the solid layer. Keep it near 1.0 - this is what the player reads as ground",
+    "vignette": "0..1 strength of the screen-edge darkening, drawn over the tiles and under the entities",
+    "lights": "additive pools at tile coordinates. radius in px, intensity 0..1, flicker 0..1",
+    "emissive": "tile id -> a pool on every one of those tiles, merged along a row"
+  },
+  "_colours": "Every ramp/step pair indexes assets/palette.json, which tools/art/palette.py generates. No RGB literals: an ambient tint multiplies the whole screen, so it has to come off the same ramps as the art.",
+
+  "default": {
+    "world": "jungle",
+    "air": { "ramp": "water", "step": 4, "alpha": 0.0 },
+    "bg_tint": { "ramp": "metal", "step": 5, "scale": 0.68 },
+    "fg_tint": { "ramp": "metal", "step": 6, "scale": 1.0 },
+    "vignette": 0.0,
+    "lights": [],
+    "emissive": {}
+  },
+
+  "levels": {
+    "jungle_1": {
+      "_note": "CANOPY TRAIL. Daylight. The backdrop does the work; the air is only thick enough to keep the far trees behind the tiles.",
+      "world": "jungle",
+      "air": { "ramp": "water", "step": 4, "alpha": 0.10 },
+      "bg_tint": { "ramp": "metal", "step": 5, "scale": 0.70 },
+      "fg_tint": { "ramp": "metal", "step": 6, "scale": 1.0 },
+      "vignette": 0.14,
+      "lights": [
+        { "x": 6, "y": 3, "radius": 76, "ramp": "gold", "step": 5, "intensity": 0.30 },
+        { "x": 30, "y": 2, "radius": 84, "ramp": "gold", "step": 5, "intensity": 0.26 },
+        { "x": 21, "y": 16, "radius": 62, "ramp": "gold", "step": 4, "intensity": 0.22 },
+        { "x": 44, "y": 19, "radius": 66, "ramp": "gold", "step": 5, "intensity": 0.24 }
+      ]
+    },
+
+    "jungle_2": {
+      "_note": "ROOT HOLLOW. The dark one. Its bg layer is a solid wall of bg_rock on every screen, so the parallax is never visible here - all of the depth is tint, vignette and the lights that pick out the route.",
+      "world": "jungle",
+      "air": { "ramp": "water", "step": 1, "alpha": 0.55 },
+      "bg_tint": { "ramp": "water", "step": 3, "mix": 0.85, "scale": 0.50 },
+      "fg_tint": { "ramp": "water", "step": 5, "mix": 0.50, "scale": 0.86 },
+      "vignette": 0.46,
+      "lights": [
+        { "x": 8, "y": 4, "radius": 58, "ramp": "gold", "step": 4, "intensity": 0.58, "flicker": 0.22 },
+        { "x": 20, "y": 3, "radius": 70, "ramp": "gold", "step": 5, "intensity": 0.42 },
+        { "x": 35, "y": 7, "radius": 56, "ramp": "gold", "step": 4, "intensity": 0.52, "flicker": 0.18 },
+        { "x": 6, "y": 13, "radius": 58, "ramp": "gold", "step": 4, "intensity": 0.54, "flicker": 0.24 },
+        { "x": 22, "y": 19, "radius": 62, "ramp": "grass", "step": 4, "intensity": 0.34, "flicker": 0.30 },
+        { "x": 41, "y": 21, "radius": 60, "ramp": "gold", "step": 4, "intensity": 0.50, "flicker": 0.20 },
+        { "x": 12, "y": 24, "radius": 54, "ramp": "gold", "step": 4, "intensity": 0.46, "flicker": 0.26 }
+      ]
+    },
+
+    "jungle_3": {
+      "_note": "THE WATERWAY. Also walled in bg_rock, so again no parallax. The water surface lights itself: every run of water_top gets one pool.",
+      "world": "jungle",
+      "air": { "ramp": "water", "step": 2, "alpha": 0.40 },
+      "bg_tint": { "ramp": "water", "step": 4, "mix": 0.85, "scale": 0.62 },
+      "fg_tint": { "ramp": "water", "step": 6, "mix": 0.45, "scale": 0.90 },
+      "vignette": 0.30,
+      "lights": [
+        { "x": 10, "y": 2, "radius": 88, "ramp": "water", "step": 6, "intensity": 0.30 },
+        { "x": 45, "y": 10, "radius": 60, "ramp": "water", "step": 6, "intensity": 0.26 },
+        { "x": 4, "y": 22, "radius": 56, "ramp": "gold", "step": 4, "intensity": 0.34, "flicker": 0.22 }
+      ],
+      "emissive": {
+        "7": { "ramp": "water", "step": 6, "intensity": 0.26, "radius": 30, "lift": 6 }
+      }
+    },
+
+    "jungle_4": {
+      "_note": "SKY BRANCH. The bright one. The haze is pale rather than dark, which is the whole trick: it lifts the backdrop towards the sky instead of pushing it towards black.",
+      "world": "sky",
+      "air": { "ramp": "metal", "step": 6, "alpha": 0.12 },
+      "bg_tint": { "ramp": "metal", "step": 6, "scale": 0.88 },
+      "fg_tint": { "ramp": "metal", "step": 6, "scale": 1.0 },
+      "vignette": 0.06,
+      "lights": [
+        { "x": 40, "y": 2, "radius": 104, "ramp": "gold", "step": 6, "intensity": 0.30 },
+        { "x": 8, "y": 5, "radius": 72, "ramp": "gold", "step": 5, "intensity": 0.20 },
+        { "x": 33, "y": 20, "radius": 70, "ramp": "gold", "step": 6, "intensity": 0.18 }
+      ]
+    },
+
+    "jungle_5": {
+      "_note": "HEART OF THE GROVE. The boss arena: same jungle backdrop as CANOPY TRAIL, pushed violet so the last level does not look like the first one.",
+      "world": "jungle",
+      "air": { "ramp": "purple", "step": 2, "alpha": 0.34 },
+      "bg_tint": { "ramp": "purple", "step": 4, "mix": 0.85, "scale": 0.58 },
+      "fg_tint": { "ramp": "purple", "step": 6, "mix": 0.40, "scale": 0.94 },
+      "vignette": 0.28,
+      "lights": [
+        { "x": 20, "y": 3, "radius": 80, "ramp": "grass", "step": 4, "intensity": 0.30, "flicker": 0.18 },
+        { "x": 38, "y": 9, "radius": 64, "ramp": "grass", "step": 5, "intensity": 0.26, "flicker": 0.22 },
+        { "x": 4, "y": 20, "radius": 58, "ramp": "gold", "step": 4, "intensity": 0.34, "flicker": 0.20 },
+        { "x": 34, "y": 22, "radius": 76, "ramp": "purple", "step": 5, "intensity": 0.30, "flicker": 0.26 }
+      ],
+      "emissive": {
+        "7": { "ramp": "water", "step": 6, "intensity": 0.22, "radius": 28, "lift": 6 }
+      }
+    },
+
+    "test_arena": {
+      "_note": "Left neutral on purpose. tools/itest.sh plays here, and a test that has to be re-baselined every time someone re-lights a level is a test nobody trusts.",
+      "world": "jungle",
+      "air": { "ramp": "water", "step": 4, "alpha": 0.08 },
+      "bg_tint": { "ramp": "metal", "step": 5, "scale": 0.68 },
+      "fg_tint": { "ramp": "metal", "step": 6, "scale": 1.0 },
+      "vignette": 0.0,
+      "lights": []
+    }
+  }
+}

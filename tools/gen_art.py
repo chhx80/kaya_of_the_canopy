@@ -12,7 +12,7 @@ This file is only the running order. The generators themselves live in
     art.palette    ramps, dither(), blob(), crack(), auto_shade()
     art.tiles      the tileset
     art.sprites    player forms, enemies, boss, pickups, props, projectiles
-    art.backdrops  title bg, parallax layers, logo, font, icons
+    art.backdrops  title bg, parallax planes, lighting art, logo, font, icons
 """
 import os
 import sys
@@ -39,7 +39,8 @@ def main():
     backdrops.build_font()
     backdrops.build_logo()
     backdrops.build_title_bg()
-    backdrops.build_parallax()
+    backdrops.build_backdrops()
+    backdrops.build_light_art()
     backdrops.build_icon()
     backdrops.build_store_icons()
     print("done")

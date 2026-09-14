@@ -1,0 +1,22 @@
+[
+  {"_": "Phase 3 depth and light. Re-run with: tools/shot.sh --seq=tools/seq/art_phase3.json"},
+  {"scenario": "level:jungle_1", "settle": 50},
+  {"shot": "shots/47_phase3_canopy_trail.png"},
+  {"scenario": "level:jungle_2", "settle": 50},
+  {"teleport": [20, 6], "settle": 20},
+  {"shot": "shots/48_phase3_root_hollow.png"},
+  {"scenario": "level:jungle_3", "settle": 50},
+  {"teleport": [10, 20], "settle": 20},
+  {"shot": "shots/49_phase3_waterway.png"},
+  {"scenario": "level:jungle_4", "settle": 50},
+  {"teleport": [30, 3], "settle": 20},
+  {"shot": "shots/50_phase3_sky_branch.png"},
+  {"scenario": "level:jungle_5", "settle": 50},
+  {"shot": "shots/51_phase3_heart_of_the_grove.png"},
+  {"_": "Screen lock: the same backdrop on all four screens of a two-by-two level, no seam at the join."},
+  {"scenario": "level:jungle_4", "settle": 40},
+  {"teleport": [4, 3], "settle": 10}, {"shot": "shots/53_phase3_lock_00.png"},
+  {"teleport": [30, 3], "settle": 10}, {"shot": "shots/53_phase3_lock_10.png"},
+  {"teleport": [4, 24], "settle": 10}, {"shot": "shots/53_phase3_lock_01.png"},
+  {"teleport": [30, 24], "settle": 10}, {"shot": "shots/53_phase3_lock_11.png"}
+]
