@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """Proof of concept for the art overhaul: ramp palette + directional shading.
 
-Not wired into the game — this exists to show the difference before committing
-to the rework.
+SUPERSEDED. Phase 1 promoted this into `tools/art/palette.py`, which is what the
+game is generated from now; see docs/art-direction.md. Kept as the record of the
+experiment and of `docs/art-proto.png`. Note that its "current" row now reads the
+*shipped* art, so the two rows no longer differ much — and that its `auto_shade`
+is the original version, which treats the ink outline as background and blows out
+thin limbs. The shipped one does not; see "Phase 1 as built".
 """
 import math, os, random, sys
 sys.path.insert(0, "tools")

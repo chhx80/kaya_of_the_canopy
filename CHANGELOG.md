@@ -175,3 +175,46 @@ floor, leaving a nook nobody could enter. Sealed.
 The integration suite now asserts the player **walks through** the opened door
 and lands on the far side, rather than just asserting the door reports itself
 open — which is what let this ship.
+
+## Art phase 1 — palette and shading engine
+
+The first phase of `docs/art-direction.md`. A pure repaint: tile ids, the level
+legend, collision and every level file are untouched.
+
+**`tools/gen_art.py` split into a package.** The 1624-line generator is now
+`tools/art/{palette,tiles,sprites,backdrops}.py`, with `gen_art.py` left as the
+running order so `tools/genart.sh` is unchanged. The split was landed first and
+verified byte-identical against the old output before any repainting started, so
+the two changes can be read apart.
+
+**The ramps.** `tools/art/palette.py` replaces the 18 flat colours with 12
+material ramps of 7 steps each — dirt, stone, wood, grass, foliage, cloth, skin,
+water, metal, gold, ember, purple — plus one ink for outlines. Nothing in
+`tools/art/` picks a colour any more: it picks a ramp and a level, and `dither()`
+resolves fractional levels with a 4×4 Bayer matrix. The legacy `PAL` character
+map is now *derived* from the ramps, so even art that was not relit shares the
+vocabulary. The whole set is written to `assets/palette.json`.
+
+**The engine.** `dither()`, `blob()`, `crack()`, `speckle()`, `bayer_on()` and
+`auto_shade()`, all lit from a single direction (upper left) that every tile,
+sprite and prop now agrees on.
+
+**Tiles authored, then shaded.** Structure first — pebbles and clods in dirt,
+mortar courses in stone, planks and nails in the crate and the platform, ribs in
+bark, crust plates in lava, rivets in the metal plate. Fill tiles that tile in a
+mass carry no per-tile bevel, because one would band them into bricks.
+
+**Sprites relit.** Every ASCII grid goes through `auto_shade()`, which measures
+distance to the silhouette edge for volume and the light direction for facing.
+Silhouettes and frame counts are unchanged.
+
+**Measured result:** tileset 18 → 67 colours, Kaya 9 → 26, and every pixel of
+every sheet is a step on a ramp.
+
+**New tests** (`tests/test_art_palette.gd`): the palette is 12×7, every ramp
+climbs in luminance, no sheet contains an off-ramp colour, the tileset and Kaya
+carry the shade depth the overhaul was for, each solid terrain tile is more than
+a flat fill, and every id declared in `data/tiles.json` is painted (with tile 0
+still fully transparent).
+
+Before/after: `shots/art_phase1_before_after.png`.
