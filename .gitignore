@@ -14,6 +14,11 @@ build/
 # Local toolchain paths (machine-specific)
 tools/env.sh
 
-# Review-only upscales
+# Python bytecode from the generators
+__pycache__/
+*.pyc
+
+# Review-only scratch images
 shots/_review*.png
+shots/_art_proto.png
 shots/*_x3.png
