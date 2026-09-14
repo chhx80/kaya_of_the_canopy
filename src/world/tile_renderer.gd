@@ -7,6 +7,10 @@ extends Node2D
 ## Animated tiles (data/tile_anim.json) are resolved here at draw time: a tile
 ## can swap to a frame from the fx atlas, be nudged a pixel, or be brightened.
 ## The tile *id* never changes, so collision cannot tell the difference.
+##
+## Tile *variants* (assets/tiles/variants.json) are resolved once at setup, for
+## the same reason and with the same guarantee: the id stays authored, only the
+## atlas cell moves. See src/world/tile_variants.gd.
 
 const TS := TileData4.TILE_SIZE
 
@@ -18,6 +22,8 @@ var view := Rect2(0, 0, 400, 240)
 
 var anim: TileAnim = null
 var fx_atlas: Texture2D = null
+## Atlas cell per tile of this layer, resolved from neighbours and position.
+var _cells: PackedInt32Array = PackedInt32Array()
 ## Animated ids actually inside the cull, so a level with no water pays nothing.
 var _live: PackedInt32Array = PackedInt32Array()
 var _live_bounds := Rect2i()
@@ -28,6 +34,8 @@ func setup(w: TileWorld, which: String) -> void:
 	world = w
 	layer = which
 	atlas = load("res://assets/tiles/tileset.png")
+	var resolved := TileVariants.for_world(w)
+	_cells = resolved.bg if which == "bg" else resolved.fg
 	_setup_anim()
 	_refresh_live()
 	queue_redraw()
@@ -97,12 +105,18 @@ func _draw() -> void:
 			var id := world.get_bg(tx, ty) if layer == "bg" else world.get_fg(tx, ty)
 			if id <= 0:
 				continue
+			# Which cell of the atlas this tile is painted from. Switch blocks
+			# carry no variants, so ghosting still works off the id itself.
+			var art := id
+			var vi := ty * world.width + tx
+			if vi < _cells.size():
+				art = _cells[vi]
 			if layer == "fg" and world.flags_at(tx, ty) & TileData4.Flag.SWITCHED:
 				# Ghost the inactive half of a switch pair instead of hiding it.
 				if not world.is_solid(tx, ty):
-					id = _ghost_of(id)
+					art = _ghost_of(id)
 			var tex := atlas
-			var src := Rect2(float((id % cols) * TS), float((id / cols) * TS), TS, TS)
+			var src := Rect2(float((art % cols) * TS), float((art / cols) * TS), TS, TS)
 			var dst := Vector2(tx * TS, ty * TS)
 			var col := modulate_color
 			if animating and anim.animated(id):

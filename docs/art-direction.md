@@ -62,8 +62,11 @@ below was wrong, is in "Phase 1 as built" at the end of this document.
 every test are untouched — this is a pure repaint.
 **Risk:** none to gameplay. **Effort:** the prototype is most of it.
 
-## Phase 2 — Tile variety and autotiling
+## Phase 2 — Tile variety and autotiling — **DONE**
 **The biggest structural change, and the biggest jump after phase 1.**
+
+Shipped on `art/phase2-tiles`. What was actually built, and where the plan
+below was wrong, is in "Phase 2 as built" at the end of this document.
 
 - **Autotiling.** Generate the 47-tile blob set per terrain material, and pick
   the variant at load time from the eight neighbours. Terrain stops being
@@ -209,3 +212,95 @@ generated manifest (`assets/palette.json`), the ramp discipline is *testable* �
 a step on a ramp. Nothing else would catch one hand-picked literal slipping into
 a generator, and that check is what stops the palette eroding across phases 2-6
 as four more people's worth of art gets added to it.
+
+
+## Phase 2 as built
+
+Delivered as planned: the 47-case blob set per terrain material resolved from
+the eight neighbours at load, four interchangeable paintings of every fill
+picked by a position hash, and roots, vines, cracks and moss scattered over the
+background layer. `levels/*.json`, `tools/build_levels.py`, `data/tiles.json`
+and `data/level_legend.json` are byte-identical, because variants are derived
+rather than authored.
+
+Measured the same way as the diagnosis:
+
+```
+tileset cells:                       28  ->  1482  (256x1488, 1.5 MB of VRAM)
+
+distinct atlas cells drawn, per level, as cells / tiles placed:
+    THE CANOPY   hub grass     1/640  ->  40/640
+                 hub path      1/110  ->  32/110
+                 hub tree      1/284  ->   8/284
+    CANOPY TRAIL dirt           1/99  ->  18/99
+                 grass top      1/57  ->   9/57
+                 bg leaves     1/182  ->   8/182
+    ROOT HOLLOW  masonry       1/358  ->  42/358
+                 bg rock      1/1500  ->  12/1500
+```
+
+Five places the plan above was wrong or incomplete.
+
+**1. The plan puts the variant lookup in `tile_renderer.gd` and the neighbour
+resolution in `level_loader.gd`. Split that way it is computed twice** — the
+level has two `TileRenderer`s and neither of them can see the `LevelDef`. What
+actually works is a third, pure module (`src/world/tile_variants.gd`) that owns
+both, with a one-level cache keyed on the `TileWorld`: the loader asks for the
+map while it still has the grid in hand, and both renderers ask again during
+`setup()` and get the same object back. The sweep happens once. It also puts the
+whole resolver in tier one of ADR 003 — it is node-free, so `tools/test.sh` can
+check all 47 cases of all seven materials without a scene tree.
+
+**2. The two mechanisms are not independent, and treating them as independent
+is the mistake that nearly shipped.** The plan lists autotiling and random
+variants as separate bullets, which invites building them that way: the 47 blob
+cases give an edge its shape, and the random variants go on the interior case,
+where all the gridding is. That is what the first pass did — four paintings of
+the interior, one of each edge case — on the reasoning that edge cases are rare.
+
+They are not rare. The commonest tile on a platform screen is the *top of a
+ledge*, and that is one single blob case: 57 grass tops in CANOPY TRAIL drew
+from 3 cells, and a long ledge gridded exactly the way an undifferentiated fill
+does. How often a case comes up is a property of the level, not of the mask, so
+every case carries the full set. That is the whole reason the atlas is 1482
+cells rather than 400, and it is worth it — the counts above are what it buys.
+It also means the completeness test has to check the variant count per *case*,
+not per tile.
+
+**3. Each case must not be generated from scratch.** Generating 47 full fills
+per material makes `tools/genart.sh` slow enough to stop being something you run
+casually. Painting the edges *over a copy* of an already-rendered interior is
+both faster and better: the interior a case is dressed from is chosen by the
+mask, so neighbouring edge tiles do not share one painting either. The whole
+generator still runs in about a second.
+
+**4. Autotiling every id that could take it is wrong.** The plan says "per
+terrain material", which reads as "everything that is terrain". But tiles 16 and
+17 are *authored* cliff faces — autotiling them would fight the level designer,
+and one-off objects (crate, spike plate, switch block, rope bridge) want to
+repeat, because a repeat is what makes them read as the same object. Seven ids
+autotile; ten more take random variants only; the rest are left alone. The
+neighbour groups still have to include the authored edges, though, or a platform
+grows a second cliff face against its own corner tile.
+
+**5. A rim band is a ruled line unless it is deliberately broken.** This is the
+same failure `t_water()` already warns about for foam. The first pass painted a
+clean two-pixel lit band along every exposed face and the hub read as a meadow
+with a green pinstripe drawn round it. Rims need both a ragged depth and a
+chance of being skipped entirely per column. Related: varying only the *texture*
+of the hub tree left the trunk in the same four pixels of every tile, so a stand
+of them kept a perfect column rhythm — the fix was to move the trunk per variant
+and leave a third of them as canopy with no trunk at all.
+
+**6. The atlas is now 1.5 MB of VRAM where it was 32 KB.** Nothing on the
+desktop notices and the generator still runs in about a second, but the plan
+never costs the variant sets and phase 6 explicitly owns "verify texture memory
+and draw calls on device". This is the number that pass is for. If it has to
+come down, the lever is the per-case variant count on the materials a level
+places in the hundreds, not the case count.
+
+**One thing the plan under-sold.** It calls the completeness test a risk
+mitigation. It is also the only way to work on this at all: a variant set is
+fourteen hundred images nobody will ever look at one at a time, and the
+difference between "all 47 cases present" and "46 of them" is invisible until a
+player stands in the one piece of geometry that makes the missing shape.

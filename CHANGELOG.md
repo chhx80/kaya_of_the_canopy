@@ -279,3 +279,61 @@ screen origin and its screen index never touched. 252 checks.
 Captures: `tools/seq/m9_juice.json` and `tools/seq/m9_shake.json` →
 `shots/39_landing_dust.png` … `shots/45_shake_boss_slam.png`, contact sheet in
 `shots/46_phase5_contact_sheet.png`.
+
+## Art phase 2 — tile variety and autotiling
+
+Phase 1 repainted every tile with authored structure and left a corollary it
+could not act on: a fill tile has exactly one variant, so structure strong
+enough to *read* is strong enough to *tile visibly*. The hub grass was the
+proof — a meadow of identical 16×16 squares reading as a lattice. This phase is
+what finishes phase 1's fills, not a polish layer on top of them.
+
+**Random variants.** Four interchangeable paintings of every fill — dirt, grass
+top, stone, mossy stone, bark, the authored grass edges, water, hub grass, hub
+path, hub water, plank platform, metal plate — and six or eight of the ones a
+level lays down in the hundreds with nothing to break them up: background
+leaves, background rock, background dark, the hub tree canopy. The one drawn is picked by a
+hash of the tile's position, so it is stable across frames, reloads and screen
+flips, and a wall never repeats visibly.
+
+**Autotiling.** The 47-case blob set for the seven materials that form masses
+(dirt, grass top, stone, mossy stone, background rock, hub grass, hub path),
+resolved at load from the eight neighbours. Every case carries the full set of
+paintings, not just the interior one — the top of a ledge is a single blob case
+and the commonest tile on a platform screen, so one painting of it grids just as
+badly as an undifferentiated fill did. Terrain grows a sunlit crest, an
+occluded underside, lit and shadowed cheeks, ambient occlusion in inside
+corners, and per-material edge dressing: pebbles and crumbling soil on earth,
+sod wrapping over an exposed shoulder, chipped faces on cut stone, blades
+leaning out over the end of the meadow, a gravel kerb along the path.
+
+**Decorative overlays** on the background layer only: roots, hanging vines,
+cracks, moss and splintered bone, at 12-17% of background cells. Each one is
+gated on the foreground around the cell, so a vine hangs from a ledge and a
+root sits on something.
+
+**Nothing gameplay-facing moved.** `levels/*.json`, `tools/build_levels.py`,
+`data/tiles.json` and `data/level_legend.json` are byte-identical. Variants are
+*derived*, never authored: `TileWorld` still stores the id the level wrote and
+collision still reads that array. Variant art lives in the atlas above the 28
+gameplay ids, and `src/world/tile_variants.gd` maps (id, neighbours, position)
+to an atlas cell — the same trick phase 5 used for animated tiles, applied to
+the still art.
+
+**New files.** `assets/tiles/variants.json` (generated beside the atlas by
+`tools/art/tiles.py`), `src/world/tile_variants.gd`. The atlas grew from 28 to
+1482 cells — 256x1488, about 1.5 MB of VRAM against 32 KB before. Nothing on
+the desktop notices; it is the number phase 6's on-device pass is for.
+
+**Tests.** `tests/test_tile_variants.gd` (16 tests) is the one the plan asked
+for: every autotiled material has all 47 blob cases, every case offers at least
+one variant, every variant cell is inside the sheet and has paint on it, no
+variant is allocated on top of a gameplay id, a mass of dirt really does draw
+from several cells, two independent resolutions agree, a neighbour going away
+changes the tile drawn, and — the hard constraint — resolving leaves the id
+grid and every solidity answer untouched. Every real level is resolved through
+it as well. 106 tests / 8154 assertions.
+
+Captures: `shots/phase2/gridding_before_after.png` (hub and CANOPY TRAIL,
+before left, after right) and `shots/phase2/levels_after.png`;
+`tools/seq/m4_hub.json` re-run into `shots/13*_hub*.png`.

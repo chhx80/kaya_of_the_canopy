@@ -14,6 +14,10 @@ class LevelDef extends RefCounted:
 	var display_name := ""
 	var music := ""
 	var world: TileWorld = null
+	## Atlas cells for both layers, derived from the eight neighbours and the
+	## tile position (docs/art-direction.md phase 2). Purely cosmetic: `world`
+	## still holds the ids the level authored, and collision reads those.
+	var variants: TileVariants.Resolved = null
 	var entities: Array = []
 	var spawn := Vector2(16, 16)
 	var next_level := ""
@@ -115,6 +119,9 @@ static func from_dict(d: Dictionary, def: LevelDef = null) -> LevelDef:
 	for ch: String in unknown.keys():
 		def.errors.append("level '%s' uses '%s', which is not in data/level_legend.json" % [def.id, ch])
 	def.world = world
+	# Resolve the tile variants once, here, while the whole grid is in hand.
+	# The renderers ask for the same map when they set up and get this one back.
+	def.variants = TileVariants.for_world(world)
 
 	for raw: Variant in d.get("entities", []):
 		if typeof(raw) != TYPE_DICTIONARY:
