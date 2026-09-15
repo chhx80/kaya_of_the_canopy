@@ -16,8 +16,16 @@ func update(p: Actor, input: InputState, delta: float) -> void:
 	else:
 		air_left -= delta
 		_flop(p, input, delta)
-		if drowns and air_left <= 0.0 and p is Player:
-			(p as Player).kill()
+		if air_left <= 0.0 and p is Player:
+			# Running out of air turns Kaya back rather than killing her. Dying
+			# to a mechanic you have not been taught reads as a bug, and it made
+			# a beached fish a dead end. The air meter still creates the
+			# pressure; a transform pad is just the faster way back.
+			if String(cfg.get("out_of_water", "revert")) == "die":
+				(p as Player).kill()
+			else:
+				AudioManager.play("transform")
+				(p as Player).set_form("human")
 
 func _swim(p: Actor, input: InputState, delta: float) -> void:
 	var want := Vector2(input.axis_x(), input.axis_y())

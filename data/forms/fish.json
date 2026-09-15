@@ -17,7 +17,7 @@
   "swim_speed": 92.0,
   "swim_accel": 620.0,
   "swim_drag": 420.0,
-  "surface_hop": -150.0,
+  "surface_hop": -210.0,
   "gravity": 900.0,
   "max_fall": 300.0,
   "max_run": 40.0,
@@ -79,5 +79,6 @@
       ],
       "fps": 1
     }
-  }
+  },
+  "out_of_water": "revert"
 }

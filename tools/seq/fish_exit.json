@@ -1,0 +1,17 @@
+[
+  {"scenario": "level:jungle_3", "settle": 60},
+  {"teleport": [42, 22], "settle": 10},
+  {"call": "debug_make_fish"},
+  {"wait": 10},
+  {"hold": "move_up", "frames": 50},
+  {"hold": "move_right", "frames": 10},
+  {"press": "jump", "frames": 4},
+  {"wait": 30},
+  {"log": "beached on the bank"},
+  {"hold": "move_right", "frames": 40},
+  {"release": "move_right"},
+  {"release": "move_up"},
+  {"wait": 20},
+  {"log": "reached the pad"},
+  {"shot": "shots/fish_revert.png"}
+]

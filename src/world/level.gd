@@ -259,6 +259,10 @@ func _on_player_died() -> void:
 
 ## Used only by tools/seq capture scripts, so a screenshot can show the state
 ## after a key is collected without simulating the whole route to it.
+func debug_make_fish() -> void:
+	if player != null:
+		player.set_form("fish")
+
 func debug_give_yellow_key() -> void:
 	Game.add_key("yellow")
 

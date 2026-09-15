@@ -119,7 +119,8 @@ func run_all() -> void:
 		"t_frog_jumps_far_higher_than_the_human_and_carries_no_blade",
 		"t_frog_clings_to_a_wall_instead_of_dropping",
 		"t_fish_swims_freely_in_water",
-		"t_fish_drowns_when_it_leaves_the_water",
+		"t_fish_can_beach_itself_onto_the_bank",
+		"t_fish_out_of_air_turns_back_into_kaya",
 		"t_fish_bite_damages_an_adjacent_enemy",
 		"t_bird_flapping_spends_stamina_and_perching_refills_it",
 		"t_bird_cannot_climb_forever",
@@ -588,7 +589,50 @@ func t_fish_swims_freely_in_water() -> void:
 	Input.action_release("move_right")
 	check(p.pos.x > x0 + 12.0, "and sideways")
 
-func t_fish_drowns_when_it_leaves_the_water() -> void:
+## The east bank is one tile above the water. The surface hop used to reach
+## 12.5 px against a 16 px step, so a fish could never leave the water and the
+## level was a dead end for anyone who used the fish pad.
+func t_fish_can_beach_itself_onto_the_bank() -> void:
+	await enter(WATERWAY)
+	var p := player()
+	p.set_form("fish")
+	var hop: float = absf(float(p.form.cfg["surface_hop"]))
+	var g: float = float(p.form.cfg["gravity"])
+	check(hop * hop / (2.0 * g) > float(TS),
+		"the surface hop must clear a one-tile bank (reaches %.1f px, needs %d)"
+			% [hop * hop / (2.0 * g), TS])
+
+	p.pos = Vector2(42 * TS, 22 * TS)
+	p.vel = Vector2.ZERO
+	level().cam.snap_to_target()
+	await frames(6)
+	check(p.in_water(), "starting in the channel")
+	# Swim up until the head breaks the surface — that is when the hop is
+	# allowed — rather than guessing a frame count.
+	Input.action_press("move_up")
+	Input.action_press("move_right")
+	var surfaced := false
+	for i in 120:
+		await get_tree().physics_frame
+		if not p.submerged():
+			surfaced = true
+			break
+	check(surfaced, "the fish reaches the surface")
+	Input.action_press("jump")
+	await frames(3)
+	Input.action_release("jump")
+	var beached := false
+	for i in 90:
+		await get_tree().physics_frame
+		if p.on_floor and not p.in_water():
+			beached = true
+			break
+	Input.action_release("move_up")
+	Input.action_release("move_right")
+	check(beached, "the fish beaches itself on the bank (ended at tile %v)"
+		% (p.center() / TS).floor())
+
+func t_fish_out_of_air_turns_back_into_kaya() -> void:
 	await enter(WATERWAY)
 	var p := player()
 	p.set_form("fish")
@@ -598,8 +642,11 @@ func t_fish_drowns_when_it_leaves_the_water() -> void:
 	await frames(6)
 	check(not p.in_water(), "we are on dry land")
 	check(p.form.air_fraction() > 0.9, "the air meter starts full")
-	await frames(int(float(p.form.cfg["air_seconds"]) * 60.0) + 20)
-	check(p.dead, "a fish out of water dies")
+	await frames(int(float(p.form.cfg["air_seconds"]) * 60.0) + 30)
+	# Reverting rather than dying: a beached fish must never be a dead end, and
+	# dying to a mechanic nobody explained reads as a bug.
+	check_eq(p.form_id, "human", "running out of air turns her back")
+	check(not p.dead, "and does not kill her")
 
 func t_fish_bite_damages_an_adjacent_enemy() -> void:
 	await enter(WATERWAY)
