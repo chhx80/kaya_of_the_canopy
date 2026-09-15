@@ -277,8 +277,16 @@ authentication headers** — `DSESSIONID`, `X-Apple-GS-Token`,
 `X-Apple-I-Identity-Id`. One was pushed to GitHub on 2026-09-07 and caught by
 secret scanning.
 
-**Xcode Cloud is wired up as follows.** Point the workflow at
-**`ios/KayaOfTheCanopy.xcodeproj`** (not `build/`).
+**Xcode Cloud is wired up as follows.** The workflow may point at either
+`ios/KayaOfTheCanopy.xcodeproj` or the legacy `build/ios/KayaOfTheCanopy.xcodeproj`
+— both resolve.
+
+Xcode Cloud validates the project path **before** it runs
+`ci_scripts/ci_post_clone.sh`. Three builds failed proving this: a post-clone
+script cannot create the project, because the check has already happened. So
+`build/ios` is committed as a **symlink** to `../ios` — six bytes, carrying
+nothing. The pre-commit hook allows that one symlink and still refuses every
+real file under `build/`.
 
 `ios/` holds the project, sources and `.pck` — about 1.4 MB. It does **not**
 hold the Godot engine static libraries: those are **180 MB and 167 MB**, past

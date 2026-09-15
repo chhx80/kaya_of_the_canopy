@@ -5,6 +5,9 @@
 # Build output. NEVER commit this: Xcode's Packaging.log contains live Apple
 # auth headers (DSESSIONID, X-Apple-GS-Token). A pre-commit hook enforces it.
 build/
+# …except the symlink that lets Xcode Cloud find the project. It validates the
+# path BEFORE ci_post_clone.sh runs, so the path must exist at clone time.
+!build/ios
 
 # If Xcode Cloud needs the generated project committed, it goes in ios/ — but
 # never its logs, archives or signed artefacts.

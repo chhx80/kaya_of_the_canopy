@@ -13,7 +13,24 @@ fail() { echo "pre-commit: $*" >&2; }
 STAGED=$(git diff --cached --name-only --diff-filter=ACM)
 [ -z "$STAGED" ] && exit 0
 
-BAD_PATHS=$(echo "$STAGED" | grep -E '^build/' || true)
+# One narrow exception: build/ios may be a SYMLINK to ../ios. Xcode Cloud
+# validates the project path before ci_post_clone.sh runs, so the path has to
+# exist at clone time. A symlink is 6 bytes and carries nothing. Anything else
+# under build/ — including a real build/ios directory — is still refused.
+BAD_PATHS=""
+while IFS= read -r f; do
+  [ -z "$f" ] && continue
+  case "$f" in
+    build/ios)
+      mode=$(git ls-files -s -- "$f" | awk '{print $1}')
+      [ "$mode" = "120000" ] && continue      # symlink: allowed
+      ;;
+  esac
+  case "$f" in
+    build/*) BAD_PATHS="$BAD_PATHS$f\n" ;;
+  esac
+done <<< "$STAGED"
+BAD_PATHS=$(printf "%b" "$BAD_PATHS" | sed '/^$/d')
 if [ -n "$BAD_PATHS" ]; then
   fail "refusing to commit generated build output:"
   echo "$BAD_PATHS" | head -10 | sed 's/^/          /' >&2
