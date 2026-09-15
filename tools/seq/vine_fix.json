@@ -2,12 +2,11 @@
   {"scenario": "level:jungle_2", "settle": 60},
   {"teleport": [22, 20], "settle": 8},
   {"hold": "move_up", "frames": 230},
-  {"log": "top of the vine"},
-  {"shot": "shots/vine_a.png"},
   {"release": "move_up"},
-  {"hold": "move_left", "frames": 30},
+  {"log": "top of vine"},
+  {"hold": "move_left", "frames": 14},
   {"release": "move_left"},
-  {"wait": 40},
-  {"log": "after stepping off"},
+  {"wait": 25},
+  {"log": "stepped off (no jump pressed)"},
   {"shot": "shots/vine_b.png"}
 ]

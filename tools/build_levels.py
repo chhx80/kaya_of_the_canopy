@@ -153,8 +153,9 @@ def jungle_2():
     g.ground(2, 14, 6, depth=2)
     g.rect(8, 13, 4, 1, "A")                        # solid while group 1 is ON
     g.rect(12, 10, 4, 1, "a")                       # solid while group 1 is OFF
-    g.ground(16, 9, 5, depth=2)
-    g.platform(17, 12, 4)               # moved off col 22: it was severing the vine
+    g.ground(16, 9, 6, depth=2)          # reaches col 21, flush with the vine
+    g.platform(17, 12, 5)               # cols 17-21: flush with the vine, so you
+                                        # step off it rather than jumping a gap
     g.ground(2, 6, 8, depth=2)
     g.crates(9, 5, 2, vertical=True)
 
@@ -307,7 +308,8 @@ def jungle_4():
 
     # ---- and a soft landing back on solid ground
     g.ground(41, 26, 7)
-    g.vine(44, 9, 17)
+    g.vine(44, 7, 19)                   # through the ledge, so the climb
+                                        # ends level with somewhere to stand
     g.platform(20, 16, 3)
     g.platform(26, 19, 3)
     g.platform(33, 22, 3)
@@ -349,7 +351,6 @@ def jungle_5():
     g.ground(17, 26, 7)
     g.platform(11, 20, 4)
     g.platform(4, 21, 4)
-    g.vine(21, 15, 12)
 
     # ---- screen A: the canopy walk east
     g.ground(1, 14, 7, depth=2)
@@ -370,6 +371,10 @@ def jungle_5():
     g.rect(48, 15, 1, 13, "s")
     g.platform(30, 21, 3)
     g.platform(42, 21, 3)
+
+    # Drawn after the upper ledge on purpose: written before it, the ledge
+    # overwrote the top and the climb dead-ended.
+    g.vine(21, 9, 18)
 
     g.ent("player_spawn", 2, 25)
     g.ent("enemy_shooter", 6, 25)

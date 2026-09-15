@@ -176,6 +176,34 @@ def reachable(lv, start_xy, start_form="human"):
     return seen
 
 
+def ladder_exits(lv):
+    """Every climbable column needs somewhere to step OFF, next to the ladder
+    itself. A ladder whose only exit is a jump across a gap is reachable on
+    paper and miserable in play -- which is exactly how ROOT HOLLOW's vine
+    shipped: the nearest ledge was one empty column away, so you had to leave
+    the vine in mid-air and cross a gap blind.
+
+    Returns a list of (col, top_row) for ladders with no adjacent exit near the
+    top, where the climb actually ends."""
+    bad = []
+    cols = {}
+    for y in range(lv.h):
+        for x in range(lv.w):
+            if lv.ladder(x, y):
+                cols.setdefault(x, []).append(y)
+    for x, ys in cols.items():
+        top = min(ys)
+        # within three tiles of the top, is there anything to step onto?
+        ok = False
+        for y in range(top, min(top + 3, lv.h)):
+            for dx in (-1, 1):
+                if lv.standable(x + dx, y):
+                    ok = True
+        if not ok:
+            bad.append((x, top))
+    return bad
+
+
 MUST_REACH = {"exit", "boss_exit", "key_yellow", "key_red", "key_cyan",
               "pad_frog", "pad_fish", "pad_bird", "pad_human",
               "switch_a", "switch_b", "door_yellow", "door_red", "door_cyan"}
@@ -203,6 +231,8 @@ def main():
             s = (s[0], s[1] + 1)
         seen = reachable(lv, s)
         problems = []
+        for x, top in ladder_exits(lv):
+            problems.append(("ladder-with-no-exit", (x, top)))
         for e in d["entities"]:
             if e["type"] not in MUST_REACH:
                 continue

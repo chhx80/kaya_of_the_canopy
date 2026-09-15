@@ -492,3 +492,29 @@ a switch you cannot reach.
 
 `tools/validate.sh` now runs the reachability check, so this cannot recur.
 Verified it catches the reported bug by restoring the short vine.
+
+## Fix — vines you could climb but not get off
+
+Reported from play, a second time: the platform in ROOT HOLLOW's upper screen
+was still not reachable after the previous fix.
+
+The vine reached the upper screen, but **column 21 was empty at every row** —
+the nearest ledge sat one column away. Stepping off dropped you into the gap, so
+the only way across was a blind mid-air jump from a ladder. The reachability
+check passed it because it allows jumps of up to three tiles; reachable on paper
+is not the same as playable.
+
+Fixed by extending the ledge and the platform to sit flush against the vine, so
+you simply walk off. Verified with no jump pressed: the player leaves the vine
+and lands on the ledge, `on_floor=true`.
+
+Added a design rule to `tools/reachability.py`: **every climbable column must
+have somewhere to step off within three tiles of its top.** It immediately found
+the same defect in two more levels:
+
+- SKY BRANCH — the vine ended inside the ledge above it, so the climb finished
+  in solid rock.
+- HEART OF THE GROVE — the vine stopped in mid-air below the upper ledge, and
+  was drawn before it, so it had no exit at all.
+
+Both now run through to a standing surface.
