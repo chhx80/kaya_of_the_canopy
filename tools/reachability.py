@@ -104,25 +104,42 @@ class Level:
         return below or self.ladder(x, y) or self.water(x, y)
 
 
-def path_clear(lv, x1, y1, x2, y2):
-    """Can the body physically cross the columns between two tiles?
+def path_clear(lv, x1, y1, x2, y2, up):
+    """Can the body actually travel between two standing tiles?
 
-    Without this the model jumps straight THROUGH walls: it only checked that
-    the destination was standable. SKY BRANCH shipped with the frog pad sealed
-    behind a 20-tile wall and the check passed it, because a 2-tile hop from
-    col 10 to col 12 ignored the wall at col 11.
+    The move is modelled the way it is played: rise in the start column to
+    some travel row, cross at that row, then drop into the destination
+    column. If no travel row works the move is impossible, however generous
+    the jump envelope is.
 
-    A crossing is allowed if every column between the two has a 2-tall gap
-    somewhere in the band the arc covers.
+    Two failure modes this catches, both found by play and not by tests:
+
+      * a wall in a column the arc crosses -- jumping THROUGH it. SKY BRANCH
+        shipped with the frog pad sealed behind a 20-tile wall.
+      * a ceiling over the start -- jumping through the very slab you mean to
+        land on. The old check returned True for any vertical move, so the
+        same level's shaft could be a chimney with a lid and still pass.
+
+    One-way platforms are passable from below and from the side, so only
+    genuinely solid tiles block.
     """
-    if x1 == x2:
+    step = 1 if x2 >= x1 else -1
+    # You cross above both ends -- you cannot land on y2 from underneath it --
+    # and no higher than the form's apex.
+    for r in range(max(0, y1 - up), min(y1, y2) + 1):
+        # rise in the start column: feet r..y1, head one row above
+        if any(lv.solid(x1, yy) for yy in range(max(0, r - 1), y1)):
+            continue
+        # cross at r: the body is two tiles tall
+        if any(lv.solid(xi, yy)
+               for xi in range(x1 + step, x2 + step, step)
+               for yy in (r, r - 1) if yy >= 0):
+            continue
+        # drop into the destination column onto y2
+        if any(lv.solid(x2, yy) for yy in range(max(0, r - 1), y2 + 1)):
+            continue
         return True
-    lo, hi = min(y1, y2), max(y1, y2)
-    step = 1 if x2 > x1 else -1
-    for xi in range(x1 + step, x2, step):
-        if not any(lv.clear(xi, r) for r in range(lo - 2, hi + 1)):
-            return False
-    return True
+    return False
 
 
 def reachable(lv, start_xy, start_form="human"):
@@ -135,6 +152,7 @@ def reachable(lv, start_xy, start_form="human"):
     while q:
         x, y, form = q.popleft()
         up = ENVELOPES[form][0]
+        rise = max(up)          # highest the form can lift its feet, in tiles
         # a pad underfoot or at head height changes the form
         for pad_xy, pad_form in lv.pads.items():
             if abs(pad_xy[0] - x) <= 1 and abs(pad_xy[1] - y) <= 1:
@@ -195,7 +213,7 @@ def reachable(lv, start_xy, start_form="human"):
                 continue
             if not lv.standable(cx, cy):
                 continue
-            if not path_clear(lv, x, y, cx, cy):
+            if not path_clear(lv, x, y, cx, cy, rise):
                 continue
             seen.add(c)
             q.append(c)
@@ -235,7 +253,39 @@ MUST_REACH = {"exit", "boss_exit", "key_yellow", "key_red", "key_cyan",
               "switch_a", "switch_b", "door_yellow", "door_red", "door_cyan"}
 
 
+class _Stub:
+    """A hand-drawn grid for the path_clear self-test. '#' is solid."""
+    def __init__(self, rows):
+        self.rows = rows
+    def solid(self, x, y):
+        if y < 0:
+            return False                      # open sky
+        if y >= len(self.rows) or x < 0 or x >= len(self.rows[0]):
+            return True
+        return self.rows[y][x] == "#"
+
+
+def selftest():
+    """The checker has twice passed a level that could not be played, both
+    times because a move it allowed was physically impossible. These pin the
+    two cases so they cannot come back silently."""
+    # a chimney with a lid: you cannot jump onto a slab through the slab
+    lid = _Stub(["....", "....", "####", "....", "####"])
+    assert not path_clear(lid, 1, 3, 1, 1, 5), "jumped through a ceiling"
+    # the same shaft with a mouth cut in the lid is fine
+    mouth = _Stub(["....", "....", "#.##", "....", "####"])
+    assert path_clear(mouth, 1, 3, 0, 1, 5), "an open mouth was refused"
+    # a wall in a column the arc crosses
+    wall = _Stub(["...",
+                  ".#.",
+                  ".#.",
+                  "###"])
+    assert not path_clear(wall, 0, 2, 2, 2, 1), "jumped through a wall"
+    assert path_clear(wall, 0, 2, 2, 2, 3), "a wall low enough to clear was refused"
+
+
 def main():
+    selftest()
     flags = load_flags()
     for f, (up, apex) in ENVELOPES.items():
         print("  %-6s apex %5.2f tiles   reach %s" % (f, apex / 16, up))

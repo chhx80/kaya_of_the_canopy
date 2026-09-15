@@ -293,16 +293,27 @@ def jungle_4():
     # shaft. It used to run to the floor, which sealed the spawn and the frog
     # pad in a box with no way out -- the whole level after it was unreachable.
     g.rect(11, 8, 1, 16, "s")           # rows 8-23, floor level left open
-    g.rect(18, 6, 1, 20, "s")
+    g.rect(18, 8, 1, 18, "s")           # rows 8-25; the roof covers row 18,7
     g.ground(12, 26, 6)
-    # Frog apex is 5.16 tiles, so the shaft climbs in 4-tile steps. The first
-    # step used to be 6 tiles, which sealed everything above it — including the
-    # bird pad the rest of the level depends on.
-    g.platform(12, 22, 3)               # stand 21, 4 up from the floor
-    g.platform(15, 18, 3)               # stand 17
+    # Frog apex is 5.16 tiles, but that is a jump held to full height. Release
+    # the button early and jump_cut halves what is left, which tops out around
+    # 4.37 tiles -- so a 4-tile step leaves six pixels of margin and lands or
+    # misses depending on rounding. Measured in the running game: some 4-tile
+    # rungs caught, others dropped you to the bottom of the shaft. The climb is
+    # 3-tile steps now, which a cut jump clears with a tile to spare.
+    #
+    # A chimney also needs a MOUTH. This one used to be capped across its full
+    # width at row 7: you climbed the whole shaft and hit a lid, with the bird
+    # pad, the human pad and the exit all on the far side of it. Cols 12-14 are
+    # open sky now and the climb ends underneath them, so you come out on the
+    # roof and walk to the pad.
+    g.platform(15, 23, 3)               # stand 22
+    g.platform(12, 20, 3)               # stand 19
+    g.platform(15, 17, 3)               # stand 16
     g.platform(12, 14, 3)               # stand 13
-    g.platform(15, 10, 3)               # stand 9
-    g.ground(12, 7, 6, depth=1)         # stand 6, 3 up
+    g.platform(15, 11, 3)               # stand 10
+    g.platform(12, 9, 3)                # stand 8, right under the mouth
+    g.ground(15, 7, 4, depth=1)         # the roof, cols 15-18: stand 6
 
     # ---- the bird crossing: perches only, a long way apart
     g.ground(19, 7, 3, depth=1)
@@ -330,7 +341,7 @@ def jungle_4():
     g.ent("enemy_walker", 16, 25)
     g.ent("enemy_walker", 43, 7)
     g.ent("enemy_jumper", 38, 25)
-    for (x, y) in [(13, 19), (16, 14), (13, 10), (26, 4), (32, 8), (38, 3),
+    for (x, y) in [(16, 21), (13, 12), (16, 10), (26, 4), (32, 8), (38, 3),
                    (21, 15), (27, 18), (34, 21), (43, 25), (44, 25), (4, 25)]:
         g.ent("gem", x, y)
     g.ent("heart", 42, 7)

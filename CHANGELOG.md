@@ -536,3 +536,27 @@ requires every column a move crosses to have a two-tile gap somewhere in the
 band the arc covers. With that in place the check reports all three unreachable
 entities, and the wall now stops two tiles above the floor so you walk into the
 shaft.
+
+## Fix — the frog shaft was a chimney with a lid
+
+Reported from play: past the wall on the right, and the top, were both
+unreachable in SKY BRANCH.
+
+The shaft was capped at row 7 across its **full width**. You climbed the whole
+thing and hit a lid, with the bird pad, the human pad and the exit all on the
+far side of it. Cols 12-14 are now open sky, the climb ends underneath them,
+and you come out on the roof beside the bird pad.
+
+The climb was also re-spaced from 4-tile steps to 3. The frog's apex is 5.16
+tiles, but that is a jump held to full height; release early and `jump_cut`
+halves what is left, which tops out near 4.37 tiles. A 4-tile step therefore
+had about six pixels of margin, and measurement in the running game showed
+identical-looking rungs landing or dropping you to the bottom of the shaft
+depending on rounding. All seven rungs now catch with a deliberately cut jump.
+
+`path_clear()` missed the lid because it returned True for any move in a single
+column — it never checked what was between you and where you landed, so it
+happily jumped through the very slab it was landing on. It now models a move
+the way it is played: rise in the start column to a travel row, cross at that
+row, drop into the destination column. A self-test pins both this and the
+earlier jump-through-walls case, and fails if either is reintroduced.
