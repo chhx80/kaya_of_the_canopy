@@ -36,8 +36,26 @@ var current_level: Node = null
 ## Frozen simulation (camera slide, transitions). Actors check this every tick.
 var sim_paused := false
 
+## Identity of the running build, shown on the title and pause screens. Three
+## bug reports have been ambiguous between "the fix is wrong" and "you are on an
+## older build"; this makes that answerable at a glance.
+var build_info: Dictionary = {}
+
+## Timestamp first: the commit hash necessarily lags by one when the bundle is
+## rebuilt as part of the commit that ships it, but the build time never lies.
+func build_label() -> String:
+	var t := String(build_info.get("built", "?")).replace("2026-", "")
+	var c := String(build_info.get("commit", "?"))
+	return "%s %s%s" % [t, c, "+" if bool(build_info.get("dirty", false)) else ""]
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	var f := FileAccess.open("res://data/build_info.json", FileAccess.READ)
+	if f != null:
+		var d: Variant = JSON.parse_string(f.get_as_text())
+		f.close()
+		if typeof(d) == TYPE_DICTIONARY:
+			build_info = d
 
 # ---- stats -----------------------------------------------------------------
 func reset_run() -> void:

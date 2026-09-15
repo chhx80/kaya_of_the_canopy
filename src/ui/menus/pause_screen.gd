@@ -85,3 +85,5 @@ func _draw() -> void:
 		y += 16.0
 	PixelFont.draw_centered(self, W * 0.5, 200.0, "SCORE %06d   GEMS %03d" % [Game.score, Game.gems],
 		Color(0.62, 0.7, 0.62), 1, 0)
+	PixelFont.draw_centered(self, W * 0.5, 214.0, Game.build_label(),
+		Color(0.45, 0.5, 0.45), 1, 0)

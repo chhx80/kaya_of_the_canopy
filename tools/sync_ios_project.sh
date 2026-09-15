@@ -15,6 +15,8 @@ cd "$PROJECT_ROOT"
 STAGE="$(mktemp -d -t kaya_ios)"
 trap 'rm -rf "$STAGE"' EXIT
 
+"$PYVENV" tools/stamp_build.py
+
 echo "generating Xcode project…"
 "$GODOT" --headless --path . --export-release "iOS" "$STAGE/KayaOfTheCanopy.xcodeproj" \
   >/tmp/kaya_ios_sync.log 2>&1 || true

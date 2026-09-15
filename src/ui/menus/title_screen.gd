@@ -104,8 +104,8 @@ func _draw() -> void:
 	PixelFont.draw_centered(self, W * 0.5, 206.0,
 		"BEST %06d" % int(SaveManager.data.get("best_score", 0)),
 		Color(0.65, 0.72, 0.62), 1, 0)
-	PixelFont.draw(self, Vector2(4, Game.SCREEN_H - 10), "V0.1.0",
-		Color(0.5, 0.55, 0.5), 1, 0)
+	PixelFont.draw(self, Vector2(4, Game.SCREEN_H - 10),
+		"V0.1.0  %s" % Game.build_label(), Color(0.5, 0.55, 0.5), 1, 0)
 	# The hint has to match whatever the player is actually holding — a keyboard
 	# hint on a phone is just noise. Ask the touch overlay whether it is live
 	# rather than the display server, so the two can never disagree.
