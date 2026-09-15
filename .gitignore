@@ -8,6 +8,10 @@ build/
 
 # If Xcode Cloud needs the generated project committed, it goes in ios/ — but
 # never its logs, archives or signed artefacts.
+# The Godot engine static libraries are 180 MB and 167 MB — past GitHub's
+# 100 MB hard limit. ci_scripts/ci_post_clone.sh regenerates them on the build
+# machine instead.
+ios/*.xcframework/
 ios/**/*.log
 ios/**/*.ipa
 ios/**/*.xcarchive/

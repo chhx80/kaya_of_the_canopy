@@ -277,16 +277,26 @@ authentication headers** — `DSESSIONID`, `X-Apple-GS-Token`,
 `X-Apple-I-Identity-Id`. One was pushed to GitHub on 2026-09-07 and caught by
 secret scanning.
 
-If you need Xcode Cloud, export to `ios/` instead and commit only the project:
+**Xcode Cloud is wired up as follows.** Point the workflow at
+**`ios/KayaOfTheCanopy.xcodeproj`** (not `build/`).
 
-```
-tools/export_ios.sh
-rsync -a --delete \
-  --exclude '*.log' --exclude '*.ipa' --exclude '*.xcarchive' \
-  --exclude '*.dSYM' --exclude 'DistributionSummary.plist' \
-  build/ios/ ios/
-git add ios && git commit
-```
+`ios/` holds the project, sources and `.pck` — about 1.4 MB. It does **not**
+hold the Godot engine static libraries: those are **180 MB and 167 MB**, past
+GitHub's 100 MB hard limit, so a push containing them is rejected outright.
+
+`ci_scripts/ci_post_clone.sh` regenerates the full export on the build machine:
+it installs Godot 4.7.2 and the export templates, re-imports, and re-exports
+over `ios/`. That also guarantees the `.pck` matches the committed game data
+rather than whatever was last exported by hand.
+
+Refresh the committed project locally with `tools/sync_ios_project.sh`, which
+strips logs and archives and refuses to write anything still carrying a
+credential marker.
+
+**Is Xcode Cloud worth it here?** Each build downloads ~1.3 GB of Godot and
+templates. Archiving locally on a Mac with Xcode 26.1 is faster and has fewer
+moving parts; Xcode Cloud earns its keep when you want builds without a Mac
+in the loop.
 
 `.gitignore` excludes those artefacts under `ios/` too, and a pre-commit hook in
 `.githooks/` refuses any commit touching `build/` or containing a credential
