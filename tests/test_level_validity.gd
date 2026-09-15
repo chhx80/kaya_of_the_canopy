@@ -198,8 +198,12 @@ func test_no_standable_pockets_are_too_short_to_stand_in() -> void:
 		var w := def.world
 		for y in w.height:
 			for x in w.width:
-				if w.is_solid(x, y) or not w.is_solid(x, y + 1):
-					continue     # not a standable floor tile
+				# A one-way platform is floor too. Checking only solid tiles let a
+				# wood platform with one tile of headroom ship in ROOT HOLLOW —
+				# visible, obviously a platform, impossible to stand on.
+				var has_floor := w.is_solid(x, y + 1) or w.is_oneway(x, y + 1)
+				if w.is_solid(x, y) or not has_floor:
+					continue
 				if _clearance(w, x, y, {}) >= need:
 					continue     # roomy enough
 				var approachable := false

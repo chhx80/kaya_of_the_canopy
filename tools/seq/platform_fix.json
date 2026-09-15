@@ -1,0 +1,10 @@
+[
+  {"scenario": "level:jungle_2", "settle": 60},
+  {"teleport": [21, 11], "settle": 30},
+  {"log": "dropped onto the platform from row 11"},
+  {"shot": "shots/platform_fix.png"},
+  {"teleport": [21, 12], "settle": 30},
+  {"log": "placed at row 12"},
+  {"teleport": [19, 10], "settle": 30},
+  {"log": "placed mid-platform from above"}
+]

@@ -154,8 +154,10 @@ def jungle_2():
     g.rect(8, 13, 4, 1, "A")                        # solid while group 1 is ON
     g.rect(12, 10, 4, 1, "a")                       # solid while group 1 is OFF
     g.ground(16, 9, 6, depth=2)          # reaches col 21, flush with the vine
-    g.platform(17, 12, 5)               # cols 17-21: flush with the vine, so you
-                                        # step off it rather than jumping a gap
+    # Row 13, not 12: the ledge above occupies rows 9-10, so a platform at row
+    # 12 left exactly one tile of headroom and could never be stood on. Flush
+    # with the vine at col 21 so you step off rather than jumping a gap.
+    g.platform(17, 13, 5)
     g.ground(2, 6, 8, depth=2)
     g.crates(9, 5, 2, vertical=True)
 
