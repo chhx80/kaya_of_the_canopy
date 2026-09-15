@@ -14,7 +14,10 @@ build/
 # The Godot engine static libraries are 180 MB and 167 MB — past GitHub's
 # 100 MB hard limit. ci_scripts/ci_post_clone.sh regenerates them on the build
 # machine instead.
-ios/*.xcframework/
+# Only the two huge ones. They are committed xz'd under ios/frameworks/ and
+# reassembled by ci_scripts. The small visionos stubs are committed as-is.
+ios/KayaOfTheCanopy.xcframework/
+ios/MoltenVK.xcframework/
 ios/**/*.log
 ios/**/*.ipa
 ios/**/*.xcarchive/

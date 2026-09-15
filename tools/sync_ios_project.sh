@@ -42,6 +42,12 @@ mkdir -p ios
 cp -R "$STAGE"/. ios/
 cp export/PrivacyInfo.xcprivacy ios/ 2>/dev/null || true
 
+# Record what the .pck was built from. tests/test_ios_bundle.gd compares this
+# against the live project, so a stale committed .pck fails the suite instead of
+# shipping a build that silently lags the source.
+"$PYVENV" tools/hash_game_data.py > ios/.pck_source_hash
+echo "recorded pck source hash: $(cat ios/.pck_source_hash)"
+
 echo "wrote ios/ ($(find ios -type f | wc -l | tr -d ' ') files, $(du -sh ios | cut -f1))"
 echo
 echo "Point the Xcode Cloud workflow at:  ios/KayaOfTheCanopy.xcodeproj"

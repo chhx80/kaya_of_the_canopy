@@ -1,78 +1,20 @@
 #!/usr/bin/env bash
 # Xcode Cloud post-clone hook.
 #
-# The Godot engine static libraries are 180 MB and 167 MB — past GitHub's 100 MB
-# hard limit — so they are NOT in the repo. Neither is anything else Godot
-# generates. This regenerates the whole iOS export on the build machine, which
-# also guarantees the .pck matches the committed game data rather than whatever
-# was last exported by hand.
+# Deliberately does almost nothing. An earlier version installed Godot 4.7.2 and
+# 1.2 GB of export templates to regenerate the iOS export on every build. That
+# is no longer needed: the engine XCFrameworks are committed xz-compressed under
+# ios/frameworks/ (180 MB -> 25 MB, which fits under GitHub's 100 MB per-file
+# limit) and reassembled by ci_pre_xcodebuild.sh, and the .pck is committed.
+#
+# A stale committed .pck is the risk that buys, so tests/test_ios_bundle.gd
+# fails the suite if it falls behind the source. Refresh with
+# tools/sync_ios_project.sh.
 set -euo pipefail
-
-GODOT_VERSION="4.7.2-stable"
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="${CI_PRIMARY_REPOSITORY_PATH:-$(cd "$(dirname "$0")/.." && pwd)}"
 cd "$REPO_ROOT"
 
-echo "--- installing Godot $GODOT_VERSION"
-curl -fL -sS -o /tmp/godot.zip \
-  "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip"
-unzip -qo /tmp/godot.zip -d /tmp/godot
-GODOT="/tmp/godot/Godot.app/Contents/MacOS/Godot"
-chmod +x "$GODOT"
-
-echo "--- installing export templates"
-curl -fL -sS -o /tmp/templates.tpz \
-  "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz"
-unzip -qo /tmp/templates.tpz -d /tmp/tpl
-TPL_DIR="$HOME/Library/Application Support/Godot/export_templates/${GODOT_VERSION/-stable/.stable}"
-mkdir -p "$TPL_DIR"
-cp -f /tmp/tpl/templates/* "$TPL_DIR"/
-
-echo "--- importing project"
-"$GODOT" --headless --path . --import >/dev/null 2>&1 || true
-
-# The workflow may still be configured for the old build/ios/ path. A symlink
-# satisfies both without a second copy of a 350 MB export. Harmless: build/ is
-# gitignored and nothing here is ever committed.
-mkdir -p build
-# rm first: `ln -sfn` into an EXISTING directory creates the link inside it
-# rather than replacing it, which silently leaves build/ios/ empty.
-rm -rf build/ios
-ln -s "$REPO_ROOT/ios" build/ios
-echo "--- build/ios -> ios (so either workflow path resolves)"
-
-echo "--- exporting iOS project over ios/"
-# Godot also attempts an archive at the end; it has no signing identity here and
-# Xcode Cloud does the signing itself, so its exit code is not the gate — the
-# presence of the project is.
-"$GODOT" --headless --path . --export-release "iOS" ios/KayaOfTheCanopy.xcodeproj \
-  >/tmp/ios_export.log 2>&1 || true
-
-# Guard on what the export must PRODUCE, not on project.pbxproj — that file is
-# committed, so checking it passes even when the export did nothing. That is how
-# a failed export shipped a build with no XCFrameworks.
-MISSING=0
-for FW in ios/KayaOfTheCanopy.xcframework ios/MoltenVK.xcframework; do
-  if [ ! -d "$FW" ]; then echo "error: $FW was not produced" >&2; MISSING=1; fi
-done
-if [ "$MISSING" = 1 ]; then
-  echo "--- godot export log (last 40 lines) ---" >&2
-  tail -40 /tmp/ios_export.log >&2
-  exit 1
-fi
-
-# Never let a packaging log reach an artefact; it carries live Apple auth headers.
-find ios -name '*.log' -delete
-cp -f export/PrivacyInfo.xcprivacy ios/ 2>/dev/null || true
-
-echo "--- XCFrameworks produced:"
-du -sh ios/*.xcframework 2>/dev/null | sed 's/^/      /'
-echo "--- ready: $(find ios -type f | wc -l | tr -d ' ') files"
-echo "--- project visible at:"
-ls -d ios/KayaOfTheCanopy.xcodeproj build/ios/KayaOfTheCanopy.xcodeproj 2>/dev/null | sed 's/^/      /'
-
-# If the check that failed happens BEFORE this script runs, no script can help —
-# the workflow itself has to be repointed. Say so in the log so the next failure
-# is self-diagnosing rather than another round trip.
-echo "--- if the build still reports 'Project does not exist at build/ios/...',"
-echo "    the path check runs before post-clone: repoint the Xcode Cloud workflow"
-echo "    at ios/KayaOfTheCanopy.xcodeproj."
+echo "--- repository contents the build depends on"
+ls -l ios/KayaOfTheCanopy.pck 2>/dev/null | awk '{printf "    pck        %.1f MB\n", $5/1048576}'
+du -sh ios/frameworks 2>/dev/null | awk '{print "    frameworks " $1}'
+echo "--- nothing to fetch; ci_pre_xcodebuild.sh unpacks the frameworks"
