@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Blocks the two mistakes that leaked an Apple Developer session token:
+#   1. committing anything under build/ (generated output, and where the
+#      Xcode packaging log with live auth headers lives)
+#   2. staging content that looks like a credential
+#
+# Installed by tools/bootstrap.sh via core.hooksPath. Bypass with --no-verify
+# only if you are certain.
+set -uo pipefail
+
+fail() { echo "pre-commit: $*" >&2; }
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$STAGED" ] && exit 0
+
+BAD_PATHS=$(echo "$STAGED" | grep -E '^build/' || true)
+if [ -n "$BAD_PATHS" ]; then
+  fail "refusing to commit generated build output:"
+  echo "$BAD_PATHS" | head -10 | sed 's/^/          /' >&2
+  fail "build/ is gitignored for a reason — an Xcode Packaging.log once carried"
+  fail "a live DSESSIONID to GitHub. If Xcode Cloud needs the project, export it"
+  fail "to ios/ instead (see docs/shipping.md)."
+  exit 1
+fi
+
+# Match credential VALUES, not the names. An earlier version matched the names
+# alone and blocked the very documentation explaining the leak.
+#   <name> = "<20+ chars of secret>"   or a private key header, or a GitHub PAT
+NAMED='(DSESSIONID|X-Apple-GS-Token|X-Apple-I-Identity-Id|X-Mme-Device-Id|myacinfo|aws_secret_access_key)'
+VALUED="$NAMED[\"']?[[:space:]]*[=:][[:space:]]*[\"']?[A-Za-z0-9/+_-]{20,}"
+STANDALONE='BEGIN (RSA |EC |OPENSSH |DSA )?PRIVATE KEY|ghp_[A-Za-z0-9]{36}|sk-[A-Za-z0-9]{32,}'
+HITS=$(git diff --cached -U0 | grep -nE "^\+.*($VALUED|$STANDALONE)" || true)
+if [ -n "$HITS" ]; then
+  fail "staged content contains a credential marker:"
+  echo "$HITS" | head -5 | cut -c1-120 | sed 's/^/          /' >&2
+  fail "remove it, and rotate the credential if it was ever real."
+  exit 1
+fi
+exit 0

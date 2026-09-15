@@ -2,8 +2,18 @@
 .godot/
 *.translation
 
-# Build output
+# Build output. NEVER commit this: Xcode's Packaging.log contains live Apple
+# auth headers (DSESSIONID, X-Apple-GS-Token). A pre-commit hook enforces it.
 build/
+
+# If Xcode Cloud needs the generated project committed, it goes in ios/ — but
+# never its logs, archives or signed artefacts.
+ios/**/*.log
+ios/**/*.ipa
+ios/**/*.xcarchive/
+ios/**/*.dSYM/
+ios/**/DistributionSummary.plist
+ios/**/Packaging.log
 
 # Locally installed toolchain (Godot, venv) — see tools/bootstrap.sh
 .tooling/

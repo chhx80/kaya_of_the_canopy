@@ -268,6 +268,37 @@ The catch is that adding one tester means collecting a UDID and producing a new
 build, so it does not scale past a few devices you can physically reach. Use
 TestFlight unless you have a specific reason not to.
 
+### Xcode Cloud — and the leak it caused
+
+Xcode Cloud builds from an Xcode project committed to the repo, so the generated
+project has to be tracked. **Do not commit `build/`.** Xcode writes
+`build/ios/Packaging.log` during Distribute, and that log contains **live
+authentication headers** — `DSESSIONID`, `X-Apple-GS-Token`,
+`X-Apple-I-Identity-Id`. One was pushed to GitHub on 2026-09-07 and caught by
+secret scanning.
+
+If you need Xcode Cloud, export to `ios/` instead and commit only the project:
+
+```
+tools/export_ios.sh
+rsync -a --delete \
+  --exclude '*.log' --exclude '*.ipa' --exclude '*.xcarchive' \
+  --exclude '*.dSYM' --exclude 'DistributionSummary.plist' \
+  build/ios/ ios/
+git add ios && git commit
+```
+
+`.gitignore` excludes those artefacts under `ios/` too, and a pre-commit hook in
+`.githooks/` refuses any commit touching `build/` or containing a credential
+marker. `tools/bootstrap.sh` wires it up via `core.hooksPath`; run it once per
+clone or set `git config core.hooksPath .githooks` yourself.
+
+**If a token does get out:** rotate first, purge second. Sign out of the Apple ID
+in Xcode ▸ Settings ▸ Accounts and sign back in, which invalidates the session.
+Then rewrite history and force-push. Note that GitHub keeps unreachable objects
+addressable by SHA until it garbage-collects, so rewriting alone does not undo
+the exposure — only rotation does.
+
 ### Straight from Xcode
 For a device you are holding: plug it in, pick it as the run destination, ⌘R.
 The build lasts a year on a paid account. This is the right way to test your own

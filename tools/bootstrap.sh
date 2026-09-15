@@ -80,6 +80,11 @@ else
   echo "installed: $(.tooling/venv/bin/python -c 'import PIL; print("Pillow", PIL.__version__)')"
 fi
 
+# ---------------------------------------------------------------- git hooks
+say "Git hooks"
+git config core.hooksPath .githooks
+echo "installed — blocks commits of build/ and of credential markers"
+
 # ---------------------------------------------------------------- env.sh
 say "tools/env.sh"
 cat > tools/env.sh <<EOF

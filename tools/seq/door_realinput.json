@@ -1,0 +1,15 @@
+[
+  {"scenario": "level:jungle_2", "settle": 60},
+  {"call": "debug_give_yellow_key"},
+  {"log": "spawned with key"},
+  {"hold": "move_right", "frames": 200},
+  {"log": "walked right 200f"},
+  {"shot": "shots/door_a.png"},
+  {"hold": "move_right", "frames": 200},
+  {"log": "walked right 400f"},
+  {"shot": "shots/door_b.png"},
+  {"release": "move_right"},
+  {"wait": 20},
+  {"log": "final"},
+  {"shot": "shots/door_c.png"}
+]
