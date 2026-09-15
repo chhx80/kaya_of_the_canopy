@@ -20,11 +20,26 @@ func test_a_source_hash_was_recorded_for_it() -> void:
 		"no ios/.pck_source_hash — run tools/sync_ios_project.sh")
 
 func test_the_engine_frameworks_are_committed_compressed() -> void:
-	for f in ["res://ios/frameworks/libgodot.device.a.xz",
-			"res://ios/frameworks/libMoltenVK.device.a.xz",
+	for f in ["res://ios/frameworks/libgodot.device.tar.xz",
+			"res://ios/frameworks/libMoltenVK.device.tar.xz",
 			"res://ios/frameworks/KayaOfTheCanopy.Info.plist",
 			"res://ios/frameworks/MoltenVK.Info.plist"]:
 		ok(FileAccess.file_exists(f), "missing %s — the iOS build cannot link without it" % f)
+
+## The standalone `xz` binary is Homebrew, not macOS. Using it in CI cost a
+## build with exit 127. Everything must unpack with /usr/bin/tar alone.
+func test_compressed_frameworks_are_tar_xz_not_raw_xz() -> void:
+	var d := DirAccess.open("res://ios/frameworks")
+	if d == null:
+		return
+	d.list_dir_begin()
+	var f := d.get_next()
+	while f != "":
+		if not d.current_is_dir() and f.ends_with(".xz"):
+			ok(f.ends_with(".tar.xz"),
+				"%s is a raw .xz — CI has no xz binary; use .tar.xz so bsdtar can read it" % f)
+		f = d.get_next()
+	d.list_dir_end()
 
 func test_no_framework_exceeds_the_github_file_limit() -> void:
 	var d := DirAccess.open("res://ios/frameworks")
