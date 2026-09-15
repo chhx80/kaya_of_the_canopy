@@ -30,6 +30,16 @@ cp -f /tmp/tpl/templates/* "$TPL_DIR"/
 echo "--- importing project"
 "$GODOT" --headless --path . --import >/dev/null 2>&1 || true
 
+# The workflow may still be configured for the old build/ios/ path. A symlink
+# satisfies both without a second copy of a 350 MB export. Harmless: build/ is
+# gitignored and nothing here is ever committed.
+mkdir -p build
+# rm first: `ln -sfn` into an EXISTING directory creates the link inside it
+# rather than replacing it, which silently leaves build/ios/ empty.
+rm -rf build/ios
+ln -s "$REPO_ROOT/ios" build/ios
+echo "--- build/ios -> ios (so either workflow path resolves)"
+
 echo "--- exporting iOS project over ios/"
 # Godot also attempts an archive at the end; it has no signing identity here and
 # Xcode Cloud does the signing itself, so its exit code is not the gate — the
@@ -48,3 +58,12 @@ find ios -name '*.log' -delete
 cp -f export/PrivacyInfo.xcprivacy ios/ 2>/dev/null || true
 
 echo "--- ready: $(find ios -type f | wc -l | tr -d ' ') files"
+echo "--- project visible at:"
+ls -d ios/KayaOfTheCanopy.xcodeproj build/ios/KayaOfTheCanopy.xcodeproj 2>/dev/null | sed 's/^/      /'
+
+# If the check that failed happens BEFORE this script runs, no script can help —
+# the workflow itself has to be repointed. Say so in the log so the next failure
+# is self-diagnosing rather than another round trip.
+echo "--- if the build still reports 'Project does not exist at build/ios/...',"
+echo "    the path check runs before post-clone: repoint the Xcode Cloud workflow"
+echo "    at ios/KayaOfTheCanopy.xcodeproj."
