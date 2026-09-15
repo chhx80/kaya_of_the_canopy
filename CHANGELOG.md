@@ -462,3 +462,33 @@ Captures: `tools/seq/m10_phase4.json` → `shots/50_kaya_idle.png` …
 `level.gd` gained `debug_advance_boss_phase()` alongside the existing capture
 helpers: the Warden's phases are health thresholds, and a screenshot of all
 three otherwise means staging the whole fight from a script.
+
+## Fix — three of five levels were uncompletable
+
+Reported from play: in ROOT HOLLOW you cannot jump from the vine onto the
+platform in the upper-left screen.
+
+**Cause.** The vine stopped at row 15, the first row of the *lower* screen, and
+the platform above it was at row 12. The human jump apex is 44.5 px — 2.78
+tiles — so a 3-tile rise is short by 3.5 px and physically impossible. Screen A
+was sealed off entirely.
+
+That was one instance of a pattern. `tools/reachability.py` walks each level
+from its spawn using the real jump envelope from `data/forms/*.json`, including
+form changes at transform pads, and found **three of five levels uncompletable**:
+
+- ROOT HOLLOW — the key, both switches and the red key unreachable. The left
+  route needed a 4-tile climb, and the critical path crossed a switch block that
+  starts intangible and is only made solid by a switch on its far side.
+- THE WATERWAY — the exit unreachable. The vine was drawn *before* the ledge
+  above it, so the ledge overwrote its top two tiles.
+- SKY BRANCH — the bird pad unreachable. The frog shaft's first step was 6
+  tiles; the frog apex is 5.16.
+
+**Fixed** by re-spacing every climb to at most 2 tiles for the human and 4 for
+the frog, drawing the waterway vine after the ledge it passes through, and
+giving ROOT HOLLOW's right-hand route a real platform so it no longer depends on
+a switch you cannot reach.
+
+`tools/validate.sh` now runs the reachability check, so this cannot recur.
+Verified it catches the reported bug by restoring the short vine.

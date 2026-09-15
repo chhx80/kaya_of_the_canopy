@@ -131,11 +131,13 @@ def jungle_2():
     g.rect(48, 0, 2, 30, "s")
 
     # ---- screen C (bottom-left): entry hall and the yellow key
+    # Every step up must be <= 2 tiles: the human apex is 2.78 tiles, so a
+    # 3-tile rise is physically impossible. tools/reachability.py enforces it.
     g.ground(2, 26, 12, depth=2)
     g.rect(2, 24, 1, 2, "s")
-    g.platform(6, 22, 4)
-    g.platform(11, 19, 4)
-    g.crates(4, 25, 3, vertical=True)
+    g.crates(4, 25, 2, vertical=True)   # stand row 23, 2 up from the floor
+    g.platform(6, 22, 4)                # stand row 21, 2 up from the crates
+    g.platform(10, 20, 4)               # stand row 19, 2 up again
     g.rect(14, 16, 1, 12, "s")                      # wall with a door in it
     g.rect(14, 24, 1, 2, ".")                       # doorway: two tiles, so a
                                                     # 22px character actually fits
@@ -145,19 +147,24 @@ def jungle_2():
     g.rect(19, 29, 3, 1, "^")
     g.rect(19, 26, 3, 3, ".")
     g.platform(17, 22, 3)
-    g.vine(22, 15, 12)
+    g.vine(22, 8, 19)                   # must reach screen A, not stop at its floor
 
     # ---- screen A (top-left): switch puzzle over a drop
     g.ground(2, 14, 6, depth=2)
     g.rect(8, 13, 4, 1, "A")                        # solid while group 1 is ON
     g.rect(12, 10, 4, 1, "a")                       # solid while group 1 is OFF
     g.ground(16, 9, 5, depth=2)
-    g.platform(21, 12, 4)
+    g.platform(17, 12, 4)               # moved off col 22: it was severing the vine
     g.ground(2, 6, 8, depth=2)
     g.crates(9, 5, 2, vertical=True)
 
     # ---- screen B (top-right): the red key behind switch group 2
     g.ground(25, 9, 8, depth=2)
+    # The critical path must not run over a switch block: group 2 starts OFF, so
+    # this 'B' bridge is intangible until you flip switch_b -- which is on the
+    # far side of it. The platform below breaks that circular dependency and
+    # leaves the switch blocks as an optional shortcut.
+    g.platform(33, 7, 4)
     g.rect(33, 8, 4, 1, "B")
     g.ground(37, 6, 6, depth=2)
     g.platform(43, 9, 4)
@@ -175,7 +182,7 @@ def jungle_2():
 
     # ---- inhabitants
     g.ent("player_spawn", 3, 25)
-    g.ent("key_yellow", 12, 18)
+    g.ent("key_yellow", 11, 19)
     g.ent("door_yellow", 14, 25)
     g.ent("switch_a", 18, 8)
     g.ent("switch_b", 40, 5)
@@ -226,14 +233,22 @@ def jungle_3():
 
     # ---- the far bank, and the way up
     g.ground(44, 20, 4, depth=10)
-    g.vine(45, 9, 11)
     g.ground(38, 8, 10, depth=2)
-    g.platform(33, 11, 4)
-    g.ground(25, 13, 6, depth=2)
-    g.platform(19, 10, 4)
-    g.ground(2, 12, 10, depth=2)
-    g.platform(13, 7, 4)
-    g.ground(2, 5, 8, depth=2)
+    # The vine is drawn AFTER the ledge on purpose: written before, the ledge
+    # overwrote its top two tiles and left a 3-tile gap nobody could jump.
+    g.vine(45, 6, 14)                   # rows 6..19, punches through the ledge
+
+    # Upper traverse, right to left, every step <= 2 tiles and <= 4 across.
+    g.platform(35, 9, 3)                # stand 8
+    g.platform(33, 11, 4)               # stand 10
+    g.platform(20, 13, 4)               # stand 12
+    g.ground(25, 13, 6, depth=2)        # stand 12
+    g.platform(14, 13, 4)               # stand 12
+    g.ground(2, 12, 10, depth=2)        # stand 11
+    g.platform(12, 10, 4)               # stand 9
+    g.platform(17, 8, 4)                # stand 7
+    g.platform(12, 6, 4)                # stand 5
+    g.ground(2, 5, 8, depth=2)          # stand 4 — the cyan key sits here
 
     g.ent("player_spawn", 3, 25)
     g.ent("pad_fish", 7, 25)
@@ -274,10 +289,14 @@ def jungle_4():
     g.rect(11, 8, 1, 18, "s")
     g.rect(18, 6, 1, 20, "s")
     g.ground(12, 26, 6)
-    g.platform(12, 20, 3)
-    g.platform(15, 15, 3)
-    g.platform(12, 11, 3)
-    g.ground(12, 7, 6, depth=1)
+    # Frog apex is 5.16 tiles, so the shaft climbs in 4-tile steps. The first
+    # step used to be 6 tiles, which sealed everything above it — including the
+    # bird pad the rest of the level depends on.
+    g.platform(12, 22, 3)               # stand 21, 4 up from the floor
+    g.platform(15, 18, 3)               # stand 17
+    g.platform(12, 14, 3)               # stand 13
+    g.platform(15, 10, 3)               # stand 9
+    g.ground(12, 7, 6, depth=1)         # stand 6, 3 up
 
     # ---- the bird crossing: perches only, a long way apart
     g.ground(19, 7, 3, depth=1)
