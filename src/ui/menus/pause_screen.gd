@@ -70,8 +70,9 @@ func _activate() -> void:
 			Game.goto_title()
 
 func _draw() -> void:
-	var W := float(Screen.W)
-	draw_rect(Rect2(Vector2.ZERO, Vector2(Screen.W, Screen.H)), Color(0.03, 0.05, 0.06, 0.78))
+	var ui := Screen.ui_size(get_viewport())
+	var W := ui.x
+	draw_rect(Rect2(Vector2.ZERO, ui), Color(0.03, 0.05, 0.06, 0.78))
 	PixelFont.draw_centered(self, W * 0.5, 52.0, "PAUSED", Color(1, 0.86, 0.33), 2, 2)
 	var y := 100.0
 	for i in ITEMS.size():

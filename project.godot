@@ -27,7 +27,7 @@ window/size/window_width_override=1200
 window/size/window_height_override=720
 window/handheld/orientation=4
 window/stretch/mode="viewport"
-window/stretch/aspect="keep"
+window/stretch/aspect="expand"
 window/stretch/scale_mode="integer"
 
 [input]

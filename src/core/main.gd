@@ -1,7 +1,9 @@
 extends Node
 ## Root of the running game. Holds the world slot, the UI layer and the fader.
 
-@onready var world: Node2D = $World
+@onready var world: Node2D = $WorldFrame/WorldView/WorldViewport/World
+@onready var world_view: SubViewportContainer = $WorldFrame/WorldView
+@onready var world_viewport: SubViewport = $WorldFrame/WorldView/WorldViewport
 @onready var ui: CanvasLayer = $UI
 @onready var touch_layer: CanvasLayer = $TouchLayer
 @onready var fade: ColorRect = $Fade/Rect
@@ -16,11 +18,23 @@ func _ready() -> void:
 	# individually instead.
 	Game.main = self
 	fade.color = Color(0, 0, 0, 0)
+	_layout_world_view()
+	get_viewport().size_changed.connect(_layout_world_view)
 	touch = (load("res://src/ui/touch_controls.gd") as GDScript).new()
 	touch.name = "TouchControls"
 	touch_layer.add_child(touch)
 	_maybe_start_dev_harness()
 	Game.goto_title()
+
+## The world renders at exactly Screen.W x Screen.H into a SubViewport and is
+## centred in whatever the device gives us. Everything the camera and the level
+## code do is therefore unchanged by the device's aspect ratio; only the size of
+## the side margins moves.
+func _layout_world_view() -> void:
+	var r := Screen.world_rect_in_ui(get_viewport())
+	world_view.position = r.position
+	world_view.size = r.size
+	world_viewport.size = Vector2i(Screen.W, Screen.H)
 
 ## The screenshot/integration harness lives in tools/, which release exports
 ## strip. It used to be an autoload, which meant a shipped build died at startup

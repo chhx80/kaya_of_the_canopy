@@ -23,23 +23,63 @@ var _stick_pos := Vector2.ZERO
 var _btn_touch := {}                 ## touch index -> action
 var _held: Dictionary = {}           ## action -> true
 
-@onready var _jump_centre := Vector2(Screen.W - 44, Screen.H - 40)
-@onready var _attack_centre := Vector2(Screen.W - 88, Screen.H - 62)
+## Placement is computed from whatever margin the device leaves around the
+## world view. On a 19.5:9 phone that is ~61 px each side; on a 4:3 iPad it is
+## ~30 px top and bottom. Buttons go in the margin so they never sit on top of
+## the play area, and they hug the physical screen edge where a thumb rests.
+var _jump_centre := Vector2(Screen.W - 44, Screen.H - 40)
+var _attack_centre := Vector2(Screen.W - 88, Screen.H - 62)
+var _stick_home := Vector2(62, Screen.H - 54)
+var _in_margin := false
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	refresh_settings()
+	get_viewport().size_changed.connect(func() -> void:
+		_layout()
+		queue_redraw())
 	Input.joy_connection_changed.connect(_on_joy_changed)
 	_update_visibility()
 
 func refresh_settings() -> void:
 	opacity = float(SaveManager.setting("touch_opacity", 0.5))
 	ui_scale = float(SaveManager.setting("touch_scale", 1.0))
-	_jump_centre = Vector2(Screen.W - 44 * ui_scale, Screen.H - 40 * ui_scale)
-	_attack_centre = Vector2(Screen.W - 88 * ui_scale, Screen.H - 62 * ui_scale)
+	_layout()
 	queue_redraw()
+
+func _layout() -> void:
+	var vp := get_viewport()
+	var ui := Screen.ui_size(vp)
+	var world := Screen.world_rect_in_ui(vp)
+	var side := world.position.x                      # left/right margin width
+	var vert := world.position.y                      # top/bottom margin height
+	var r := BTN_R * ui_scale
+	if side >= r * 2.0 + 2.0:
+		# Widescreen: stack the buttons in the right margin, stick in the left.
+		_in_margin = true
+		var cx := ui.x - side * 0.5
+		_jump_centre = Vector2(cx, ui.y * 0.5 + r + 4.0)
+		_attack_centre = Vector2(cx, ui.y * 0.5 - r - 4.0)
+		_stick_home = Vector2(side * 0.5, ui.y * 0.5)
+	elif vert >= r + 2.0:
+		# Tall-ish display (iPad): use the bottom margin.
+		_in_margin = true
+		var cy := ui.y - vert * 0.5
+		_jump_centre = Vector2(ui.x - r - 6.0, cy)
+		_attack_centre = Vector2(ui.x - r * 3.0 - 12.0, cy)
+		_stick_home = Vector2(r + 6.0, cy)
+	else:
+		# No margin to use — fall back to overlaying the play area.
+		_in_margin = false
+		_jump_centre = Vector2(ui.x - 44.0 * ui_scale, ui.y - 40.0 * ui_scale)
+		_attack_centre = Vector2(ui.x - 88.0 * ui_scale, ui.y - 62.0 * ui_scale)
+		_stick_home = Vector2(62.0 * ui_scale, ui.y - 54.0 * ui_scale)
+
+## True when the buttons sit outside the play area.
+func buttons_clear_of_play_area() -> bool:
+	return _in_margin
 
 func _on_joy_changed(_device: int, _connected: bool) -> void:
 	_update_visibility()
@@ -87,7 +127,7 @@ func _begin(index: int, p: Vector2) -> void:
 		_haptic()
 		queue_redraw()
 		return
-	if p.x < Screen.W * 0.5 and _stick_touch == -1:
+	if p.x < Screen.ui_size(get_viewport()).x * 0.5 and _stick_touch == -1:
 		_stick_touch = index
 		_stick_origin = p
 		_stick_pos = p
@@ -156,7 +196,7 @@ func _draw() -> void:
 		return
 	var a := opacity
 	var r := STICK_RADIUS * ui_scale
-	var origin := _stick_origin if _stick_touch != -1 else Vector2(62 * ui_scale, Screen.H - 54 * ui_scale)
+	var origin := _stick_origin if _stick_touch != -1 else _stick_home
 	var knob := _stick_pos if _stick_touch != -1 else origin
 	var live := 1.0 if _stick_touch != -1 else 0.55
 	_ring(origin, r, Color(1, 1, 1, a * 0.55 * live))

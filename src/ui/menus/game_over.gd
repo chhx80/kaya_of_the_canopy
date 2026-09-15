@@ -20,8 +20,9 @@ func _physics_process(delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
-	var W := float(Screen.W)
-	draw_rect(Rect2(Vector2.ZERO, Vector2(Screen.W, Screen.H)), Color(0.05, 0.04, 0.06))
+	var ui := Screen.ui_size(get_viewport())
+	var W := ui.x
+	draw_rect(Rect2(Vector2.ZERO, ui), Color(0.05, 0.04, 0.06))
 	PixelFont.draw_centered(self, W * 0.5, 78.0, "GAME OVER", Color(0.75, 0.29, 0.23), 3, 2)
 	PixelFont.draw_centered(self, W * 0.5, 126.0, "SCORE %06d" % Game.score,
 		Color(0.96, 0.86, 0.4), 1, 1)

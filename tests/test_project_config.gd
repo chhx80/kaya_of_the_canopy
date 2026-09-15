@@ -13,7 +13,11 @@ func test_logical_resolution_is_the_one_everything_is_drawn_for() -> void:
 
 func test_rendering_stays_pixel_perfect() -> void:
 	eq(String(ProjectSettings.get_setting("display/window/stretch/mode", "")), "viewport")
-	eq(String(ProjectSettings.get_setting("display/window/stretch/aspect", "")), "keep")
+	# "expand", not "keep": the root viewport grows to the device aspect so the
+	# screen is filled, while the WORLD is drawn into a Screen.W x Screen.H
+	# SubViewport and centred. The camera therefore still sees exactly one
+	# world screen, and the leftover margin is where the touch controls live.
+	eq(String(ProjectSettings.get_setting("display/window/stretch/aspect", "")), "expand")
 	eq(String(ProjectSettings.get_setting("display/window/stretch/scale_mode", "")), "integer")
 	eq(int(ProjectSettings.get_setting("rendering/textures/canvas_textures/default_texture_filter", -1)),
 		0, "textures must be nearest-neighbour")

@@ -35,6 +35,11 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
+	# The HUD belongs to the game image, not the device: draw it in the world
+	# rect so it looks the same on every aspect ratio. Only the touch controls
+	# move out into the margins.
+	var origin := Screen.world_rect_in_ui(get_viewport()).position
+	draw_set_transform(origin, 0.0, Vector2.ONE)
 	var W := float(Game.SCREEN_W)
 	# hearts
 	for i in Game.max_health:

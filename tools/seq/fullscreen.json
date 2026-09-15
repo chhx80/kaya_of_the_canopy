@@ -1,0 +1,8 @@
+[
+  {"touch": true},
+  {"scenario": "level:jungle_1", "settle": 80},
+  {"touch_press": [30, 120], "index": 0},
+  {"touch_drag": [55, 112], "index": 0},
+  {"wait": 10},
+  {"shot": "shots/fs_phone.png"}
+]

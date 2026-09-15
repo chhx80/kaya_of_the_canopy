@@ -81,8 +81,9 @@ func _close() -> void:
 	queue_free()
 
 func _draw() -> void:
-	var W := float(Screen.W)
-	draw_rect(Rect2(Vector2.ZERO, Vector2(Screen.W, Screen.H)), Color(0.03, 0.05, 0.06, 0.97))
+	var ui := Screen.ui_size(get_viewport())
+	var W := ui.x
+	draw_rect(Rect2(Vector2.ZERO, ui), Color(0.03, 0.05, 0.06, 0.97))
 	PixelFont.draw_centered(self, W * 0.5, 30.0, "OPTIONS", Color(1, 0.86, 0.33), 2, 2)
 	var y := 76.0
 	for i in rows.size():
