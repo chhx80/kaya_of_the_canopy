@@ -1,0 +1,15 @@
+[
+  {"scenario": "level:jungle_4", "settle": 60},
+  {"teleport": [6, 24], "settle": 20},
+  {"hold": "move_right", "frames": 60},
+  {"log": "walked onto the frog pad"},
+  {"hold": "move_right", "frames": 80},
+  {"release": "move_right"},
+  {"wait": 20},
+  {"log": "walked into the shaft"},
+  {"shot": "shots/frog_a.png"},
+  {"press": "jump", "frames": 20},
+  {"wait": 40},
+  {"log": "frog jump inside the shaft"},
+  {"shot": "shots/frog_b.png"}
+]

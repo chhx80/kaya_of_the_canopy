@@ -104,6 +104,27 @@ class Level:
         return below or self.ladder(x, y) or self.water(x, y)
 
 
+def path_clear(lv, x1, y1, x2, y2):
+    """Can the body physically cross the columns between two tiles?
+
+    Without this the model jumps straight THROUGH walls: it only checked that
+    the destination was standable. SKY BRANCH shipped with the frog pad sealed
+    behind a 20-tile wall and the check passed it, because a 2-tile hop from
+    col 10 to col 12 ignored the wall at col 11.
+
+    A crossing is allowed if every column between the two has a 2-tall gap
+    somewhere in the band the arc covers.
+    """
+    if x1 == x2:
+        return True
+    lo, hi = min(y1, y2), max(y1, y2)
+    step = 1 if x2 > x1 else -1
+    for xi in range(x1 + step, x2, step):
+        if not any(lv.clear(xi, r) for r in range(lo - 2, hi + 1)):
+            return False
+    return True
+
+
 def reachable(lv, start_xy, start_form="human"):
     """BFS over (x, y, form). Stepping on a transform pad changes the form, so a
     pad the human can reach unlocks everywhere the new form can go."""
@@ -170,9 +191,14 @@ def reachable(lv, start_xy, start_form="human"):
             c = (cx, cy, form)
             if c in seen:
                 continue
-            if 0 <= cx < lv.w and 0 <= cy < lv.h and lv.standable(cx, cy):
-                seen.add(c)
-                q.append(c)
+            if not (0 <= cx < lv.w and 0 <= cy < lv.h):
+                continue
+            if not lv.standable(cx, cy):
+                continue
+            if not path_clear(lv, x, y, cx, cy):
+                continue
+            seen.add(c)
+            q.append(c)
     return seen
 
 

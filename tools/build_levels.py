@@ -289,7 +289,10 @@ def jungle_4():
     g.ground(15, 26, 4)
 
     # ---- the frog shaft: two walls to bounce between
-    g.rect(11, 8, 1, 18, "s")
+    # The left wall stops two tiles above the floor so you can WALK into the
+    # shaft. It used to run to the floor, which sealed the spawn and the frog
+    # pad in a box with no way out -- the whole level after it was unreachable.
+    g.rect(11, 8, 1, 16, "s")           # rows 8-23, floor level left open
     g.rect(18, 6, 1, 20, "s")
     g.ground(12, 26, 6)
     # Frog apex is 5.16 tiles, so the shaft climbs in 4-tile steps. The first

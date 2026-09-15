@@ -518,3 +518,21 @@ the same defect in two more levels:
   was drawn before it, so it had no exit at all.
 
 Both now run through to a standing surface.
+
+## Fix — the frog was sealed in a box
+
+Reported from play: in SKY BRANCH, transforming into a frog leaves you unable to
+jump anywhere, walls on both sides.
+
+Exactly right. The shaft's left wall ran from row 8 all the way to the floor —
+20 tiles — and both the spawn and the frog pad sat on its left. Becoming a frog
+put you in a sealed box. Everything past it, including the bird pad, the human
+pad and the exit, was unreachable.
+
+The reachability check passed it because **its jumps went through walls**. It
+only verified that the destination was standable, so a two-tile hop from column
+10 to column 12 ignored the 20-tile wall at column 11. `path_clear()` now
+requires every column a move crosses to have a two-tile gap somewhere in the
+band the arc covers. With that in place the check reports all three unreachable
+entities, and the wall now stops two tiles above the floor so you walk into the
+shaft.
