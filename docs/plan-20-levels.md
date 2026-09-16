@@ -151,8 +151,9 @@ Deliberately small, because every new mechanic is a new class of bug:
   player. Visual only, no collision impact, so the prover is unaffected.
 - **Enemies** — four types today (walker, jumper, shooter, swimmer) will not
   carry 25 levels. Add three: a charger, a ceiling-dropper, a patrolling flyer.
-- **Bosses** — four new, each a variation on `boss_grove`'s state machine
-  rather than a new system.
+- **Bosses** — four new. Each is the existing three-phase machine plus its
+  world's verb, not a new system. See *Bosses* below; they are a requirement,
+  not a garnish, and they have their own gate.
 
 No moving platforms. They would need dynamic collision against a static-tile
 collision model, and that is a rewrite, not a feature.
@@ -164,17 +165,73 @@ grows to 50×30 (2×2 screens) holding 25 doors in five clusters, gated
 world-by-world on the previous world's boss. No new systems — the same
 `hub_door` entity and `requires` chain.
 
+## Bosses
+
+**Every world ends with one.** Five in total: `boss_grove` exists, four are new.
+Each reuses the data-driven phase machine in `boss_grove.gd`
+(`data/enemies/*.json`, `until_health` thresholds, per-phase poses) and adds
+exactly one idea — its world's verb turned against you.
+
+| World | Boss | The fight |
+|-------|------|-----------|
+| 1 | **The Grove Warden** (exists) | Three phases, spray and slam. |
+| 2 | **The Tide Maw** | The arena floods and drains between phases. Flooded, you must be the fish; drained, human. Its pull is a current — you dodge by riding the counter-current, not by running. |
+| 3 | **The Stormcrest** | Airborne, fought as the bird. It is only vulnerable while roosting, so the fight is stamina against its roost cycle; updrafts are the only way to regain height. |
+| 4 | **The Brood Queen** | The arena is dark. She is visible only when she attacks, or lit by breaking a luminous wall — which also removes the cover you were standing behind. |
+| 5 | **The Obsidian Heart** | Final. Switch-blocks reconfigure the arena between phases, each phase demanding a different form from pads that move with the blocks. |
+
+### The Boss Gate
+
+The Route Prover proves traversal. **A boss fight is not a traversal problem**,
+so it needs its own gate, and it needs one for the same reason the levels did:
+the failure mode is an *unwinnable situation nobody modelled* — the fight
+equivalent of a shaft capped across its full width.
+
+Five checks, all run headless:
+
+1. **Defeatable.** The author writes a *strategy tape* alongside the route
+   tape — the intended fight. Replayed against the real boss, the boss must
+   die within a time bound.
+2. **Survivable.** That same replay must win from full health with at least one
+   heart left. A tape that only wins at exactly zero health is not a fight, it
+   is a coin flip.
+3. **Fair — every attack has a dodge window.** For each attack, in each phase,
+   sweep the player across every standable tile in the arena and assert at
+   least one tile where the attack does not connect. An attack that covers the
+   whole arena is unavoidable damage, and this is the check that catches it.
+   *This is the check worth building first.*
+4. **No softlock.** Run the Route Prover over the arena itself, in each phase
+   configuration — this matters most for The Obsidian Heart, whose arena moves.
+   The boss must also stay inside `arena_min`/`arena_max`.
+5. **It ends.** After defeat, `boss_exit` must be reachable from the arena
+   floor — one more proved hop.
+
+Checks 1 and 2 catch a boss that cannot be beaten. Check 3 catches one that
+cannot be beaten *fairly*, which is the harder and more common bug. Checks 4
+and 5 catch the level around the fight.
+
+### This is now affordable
+
+`tools/itest.sh` was believed to need a display. Measured today, the whole
+suite runs under `--headless` — 273 checks, exit 0, no window. The real `Level`
+scene, enemies, weapons, triggers and bosses can therefore all be driven in CI
+with no display at all. Boss simulation is not a special rig; it is the
+integration tier with a longer script. `itest.sh` switching to `--headless` is
+an M1 task, and `CLAUDE.md`'s note about needing a display is stale.
+
 ## Milestones
 
 Each milestone ends with screenshots and a playable build, as with every
 milestone so far.
 
-- **M1 — the gate.** Route Prover, tape replay, routes for the five existing
-  levels, six historical defects reproduced as failures. *No new content.*
-- **M2 — World 2, Sunken Ruins.** Currents, 5 levels, 1 boss, tileset palette.
-- **M3 — World 3, Thermal Heights.** Updrafts, bird stamina, 5 levels, 1 boss.
-- **M4 — World 4, Termite Deeps.** Darkness, breakable walls, 5 levels, 1 boss.
-- **M5 — World 5, The Obsidian Nest.** Switch-blocks at scale, 5 levels, final boss.
+- **M1 — the gate.** Route Prover, tape replay, `itest.sh` to headless, and the
+  Boss Gate's dodge-window sweep run against The Grove Warden. Routes for the
+  five existing levels; six historical defects reproduced as failures.
+  *No new content.*
+- **M2 — World 2, Sunken Ruins.** Currents, 4 levels + **The Tide Maw**, tileset palette.
+- **M3 — World 3, Thermal Heights.** Updrafts, 4 levels + **The Stormcrest**.
+- **M4 — World 4, Termite Deeps.** Darkness, breakables, 4 levels + **The Brood Queen**.
+- **M5 — World 5, The Obsidian Nest.** Switch-blocks, 4 levels + **The Obsidian Heart**.
 - **M6 — hub, balance, on-device pass.** 25-door hub, difficulty curve, VRAM and
   frame cost measured on a real iPhone.
 
@@ -192,5 +249,10 @@ can all be played" is a gate rather than a promise.
 ## What I would cut under pressure
 
 In order: rising water (forces time into the prover), the three new enemy types
-(reuse the four), World 5 down to 3 levels + boss. I would not cut M1; without
-it the other 20 levels inherit the defect rate of the first five.
+(reuse the four), then level *count* per world — five down to four, or three.
+
+**Never the bosses.** A world without one does not end, it just stops. If a
+world has to shrink, it shrinks in ordinary levels and keeps its boss.
+
+I would not cut M1 either; without it the other 20 levels inherit the defect
+rate of the first five.
