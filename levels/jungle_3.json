@@ -203,5 +203,69 @@
    "x": 44,
    "y": 8
   }
+ ],
+ "marks": {
+  "over_one": {
+   "x": 18,
+   "y": 23
+  },
+  "under_two": {
+   "x": 24,
+   "y": 27
+  },
+  "over_three": {
+   "x": 32,
+   "y": 23
+  },
+  "under_four": {
+   "x": 38,
+   "y": 27
+  },
+  "bank_foot": {
+   "x": 43,
+   "y": 22
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "pad_fish",
+   "form": "human"
+  },
+  {
+   "from": "pad_fish",
+   "to": "over_one",
+   "form": "fish"
+  },
+  {
+   "from": "over_one",
+   "to": "under_two",
+   "form": "fish"
+  },
+  {
+   "from": "under_two",
+   "to": "over_three",
+   "form": "fish"
+  },
+  {
+   "from": "over_three",
+   "to": "under_four",
+   "form": "fish"
+  },
+  {
+   "from": "under_four",
+   "to": "bank_foot",
+   "form": "fish"
+  },
+  {
+   "from": "bank_foot",
+   "to": "pad_human",
+   "form": "fish"
+  },
+  {
+   "from": "pad_human",
+   "to": "exit",
+   "form": "human"
+  }
  ]
 }

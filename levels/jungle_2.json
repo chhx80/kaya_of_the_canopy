@@ -203,5 +203,71 @@
    "x": 22,
    "y": 21
   }
+ ],
+ "marks": {
+  "vine_foot": {
+   "x": 22,
+   "y": 26
+  },
+  "vine_top": {
+   "x": 22,
+   "y": 8
+  },
+  "ruins_ledge": {
+   "x": 26,
+   "y": 8
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "key_yellow",
+   "form": "human"
+  },
+  {
+   "from": "key_yellow",
+   "to": "door_yellow",
+   "form": "human"
+  },
+  {
+   "from": "door_yellow",
+   "to": "vine_foot",
+   "form": "human"
+  },
+  {
+   "from": "vine_foot",
+   "to": "vine_top",
+   "form": "human"
+  },
+  {
+   "from": "vine_top",
+   "to": "switch_a",
+   "form": "human"
+  },
+  {
+   "from": "switch_a",
+   "to": "ruins_ledge",
+   "form": "human"
+  },
+  {
+   "from": "ruins_ledge",
+   "to": "switch_b",
+   "form": "human"
+  },
+  {
+   "from": "switch_b",
+   "to": "key_red",
+   "form": "human"
+  },
+  {
+   "from": "key_red",
+   "to": "door_red",
+   "form": "human"
+  },
+  {
+   "from": "door_red",
+   "to": "exit",
+   "form": "human"
+  }
  ]
 }

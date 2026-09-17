@@ -183,5 +183,137 @@
    "x": 42,
    "y": 7
   }
+ ],
+ "marks": {
+  "shaft_foot": {
+   "x": 16,
+   "y": 25
+  },
+  "rung_1": {
+   "x": 16,
+   "y": 22
+  },
+  "rung_2": {
+   "x": 13,
+   "y": 19
+  },
+  "rung_3": {
+   "x": 16,
+   "y": 16
+  },
+  "rung_4": {
+   "x": 13,
+   "y": 13
+  },
+  "rung_5": {
+   "x": 16,
+   "y": 10
+  },
+  "rung_6": {
+   "x": 13,
+   "y": 8
+  },
+  "roof": {
+   "x": 17,
+   "y": 6
+  },
+  "perch_1": {
+   "x": 26,
+   "y": 4
+  },
+  "perch_2": {
+   "x": 32,
+   "y": 8
+  },
+  "perch_3": {
+   "x": 38,
+   "y": 3
+  },
+  "vine_foot": {
+   "x": 44,
+   "y": 25
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "pad_frog",
+   "form": "human"
+  },
+  {
+   "from": "pad_frog",
+   "to": "shaft_foot",
+   "form": "frog"
+  },
+  {
+   "from": "shaft_foot",
+   "to": "rung_1",
+   "form": "frog"
+  },
+  {
+   "from": "rung_1",
+   "to": "rung_2",
+   "form": "frog"
+  },
+  {
+   "from": "rung_2",
+   "to": "rung_3",
+   "form": "frog"
+  },
+  {
+   "from": "rung_3",
+   "to": "rung_4",
+   "form": "frog"
+  },
+  {
+   "from": "rung_4",
+   "to": "rung_5",
+   "form": "frog"
+  },
+  {
+   "from": "rung_5",
+   "to": "rung_6",
+   "form": "frog"
+  },
+  {
+   "from": "rung_6",
+   "to": "roof",
+   "form": "frog"
+  },
+  {
+   "from": "roof",
+   "to": "pad_bird",
+   "form": "frog"
+  },
+  {
+   "from": "pad_bird",
+   "to": "perch_1",
+   "form": "bird"
+  },
+  {
+   "from": "perch_1",
+   "to": "perch_2",
+   "form": "bird"
+  },
+  {
+   "from": "perch_2",
+   "to": "perch_3",
+   "form": "bird"
+  },
+  {
+   "from": "perch_3",
+   "to": "pad_human",
+   "form": "bird"
+  },
+  {
+   "from": "pad_human",
+   "to": "vine_foot",
+   "form": "human"
+  },
+  {
+   "from": "vine_foot",
+   "to": "exit",
+   "form": "human"
+  }
  ]
 }
