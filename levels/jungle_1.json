@@ -183,6 +183,10 @@
    "x": 24,
    "y": 5
   },
+  "branch_lip": {
+   "x": 26,
+   "y": 5
+  },
   "branch_b": {
    "x": 31,
    "y": 7
@@ -230,11 +234,11 @@
   },
   {
    "from": "branch_a",
-   "to": "branch_b",
+   "to": "branch_lip",
    "form": "human"
   },
   {
-   "from": "branch_b",
+   "from": "branch_lip",
    "to": "branch_c",
    "form": "human"
   },

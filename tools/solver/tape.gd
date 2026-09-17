@@ -13,7 +13,18 @@ extends RefCounted
 
 
 static func tape_path_for(level_path: String) -> String:
-	return "%s.tape.json" % level_path.get_basename()
+	# Shipped levels keep their tapes in proofs/, NOT beside the level.
+	# LevelLoader.list_levels() globs levels/*.json, so a tape in there becomes a
+	# level id -- and the hub's requires_all door demands a save flag for every
+	# id it lists, so the final door could never open in a shipped build.
+	# levels/ is not excluded from the .pck either, so the tapes would ship.
+	# Moving them kills the whole class instead of filtering for it in three
+	# places. A level somewhere else (a test writing to user://) keeps its tape
+	# beside it, because nothing globs those directories.
+	var base := level_path.get_file().get_basename()
+	if level_path.begins_with("res://levels/"):
+		return "res://proofs/%s.tape.json" % base
+	return "%s/%s.tape.json" % [level_path.get_base_dir(), base]
 
 
 ## sha256 of the level file exactly as it sits on disk.
@@ -36,6 +47,9 @@ static func run_length(actions: PackedInt32Array) -> Array:
 
 
 static func write(tape_path: String, level_id: String, level_path: String, hops: Array) -> String:
+	var dir := tape_path.get_base_dir()
+	if not DirAccess.dir_exists_absolute(dir):
+		DirAccess.make_dir_recursive_absolute(dir)
 	var doc := {
 		"level": level_id,
 		"fps": 60,

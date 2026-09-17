@@ -400,8 +400,11 @@ func _check_chain(route: Array) -> String:
 	return ""
 
 
-## `g.mark("shaft_top", x, y)` may serialise either as a top-level `markers`
-## array or as a `marker` entity; both are accepted so the routes agent can pick.
+## `g.mark("shaft_top", x, y)` serialises as a top-level `marks` OBJECT keyed by
+## name — `{"shaft_top": {"x": 13, "y": 8}}` — which ADR 005 now pins. A
+## `markers` array and a `marker` entity are still read, because two of us
+## guessed differently before the ADR said so and a level file in either shape
+## should not silently become unprovable.
 ## `--mark shaft_top:14,25` adds one from the command line, which is how you try
 ## a waypoint out before committing it to the DSL.
 func _markers(raw: Dictionary) -> Array:
@@ -416,6 +419,16 @@ func _markers(raw: Dictionary) -> Array:
 			push_error("prove: cannot read --mark '%s' (want name:x,y)" % m)
 			continue
 		out.append({"name": bits[0].strip_edges(), "x": int(xy[0]), "y": int(xy[1])})
+	# the canonical shape: {"name": {"x": .., "y": ..}}
+	var mk: Variant = raw.get("marks", {})
+	if typeof(mk) == TYPE_DICTIONARY:
+		for name: Variant in (mk as Dictionary).keys():
+			var v: Variant = (mk as Dictionary)[name]
+			if typeof(v) != TYPE_DICTIONARY:
+				continue
+			var vd: Dictionary = v
+			out.append({"name": String(name), "x": int(vd.get("x", 0)),
+				"y": int(vd.get("y", 0))})
 	var m: Variant = raw.get("markers", [])
 	if typeof(m) != TYPE_ARRAY:
 		return out

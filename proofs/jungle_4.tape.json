@@ -1,0 +1,351 @@
+{
+ "fps": 60,
+ "hops": [
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "spawn",
+   "to": "pad_frog"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "right",
+     "n": 124
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "pad_frog",
+   "to": "shaft_foot"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "jump",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
+    }
+   ],
+   "from": "shaft_foot",
+   "to": "rung_1"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "left+jump",
+     "n": 8
+    },
+    {
+     "a": "left",
+     "n": 12
+    },
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 7
+    }
+   ],
+   "from": "rung_1",
+   "to": "rung_2"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "right+jump",
+     "n": 12
+    },
+    {
+     "a": "right",
+     "n": 28
+    },
+    {
+     "a": "left",
+     "n": 4
+    }
+   ],
+   "from": "rung_2",
+   "to": "rung_3"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "left+jump",
+     "n": 8
+    },
+    {
+     "a": "left",
+     "n": 24
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "rung_3",
+   "to": "rung_4"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 32
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "rung_4",
+   "to": "rung_5"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 32
+    }
+   ],
+   "from": "rung_5",
+   "to": "rung_6"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 32
+    },
+    {
+     "a": "left",
+     "n": 4
+    }
+   ],
+   "from": "rung_6",
+   "to": "roof"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "right",
+     "n": 44
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "roof",
+   "to": "pad_bird"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 12
+    },
+    {
+     "a": "none",
+     "n": 27
+    }
+   ],
+   "from": "pad_bird",
+   "to": "perch_1"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 44
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "perch_1",
+   "to": "perch_2"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 12
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 12
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 17
+    }
+   ],
+   "from": "perch_2",
+   "to": "perch_3"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 52
+    },
+    {
+     "a": "down",
+     "n": 3
+    }
+   ],
+   "from": "perch_3",
+   "to": "pad_human"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "down",
+     "n": 272
+    }
+   ],
+   "from": "pad_human",
+   "to": "vine_foot"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right",
+     "n": 12
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 9
+    }
+   ],
+   "from": "vine_foot",
+   "to": "exit"
+  }
+ ],
+ "level": "jungle_4",
+ "source_sha": "916a71522f3eee0bc0bfc3696e31de2228274e940e2644b1eb3286dfca80e386"
+}

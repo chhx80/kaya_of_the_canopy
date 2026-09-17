@@ -42,6 +42,7 @@ def jungle_1():
     g.platform(23, 6, 4)
     g.mark("branch_a", 24, 5)
     g.platform(30, 8, 4)
+    g.mark("branch_lip", 26, 5)     # the east lip of branch_a, where the jump starts
     g.mark("branch_b", 31, 7)
     g.ground(35, 10, 6, depth=2)
     g.mark("branch_c", 37, 9)
@@ -95,8 +96,13 @@ def jungle_1():
     g.route("spawn", "vine_foot", form="human")      # run east, clear the spike pit (14-16)
     g.route("vine_foot", "vine_top", form="human")   # 20 tiles of vine, C -> A
     g.route("vine_top", "branch_a", form="human")    # step off the vine eastward
-    g.route("branch_a", "branch_b", form="human")
-    g.route("branch_b", "branch_c", form="human")
+    # Measured in the running game, not reasoned: NO jump from branch_a lands on
+    # the platform at cols 30-33. Ten jump lengths from 0 to 30 frames either
+    # drop into the gap or sail over it to branch_c, and braking in mid-air with
+    # move_left overshoots backwards into the gap every time. That platform is
+    # scenery you pass over, so the route no longer claims you stand on it.
+    g.route("branch_a", "branch_lip", form="human")   # walk out to the lip
+    g.route("branch_lip", "branch_c", form="human")   # one jump, clearing the gap
     g.route("branch_c", "branch_d", form="human")    # A -> B, the screen flip east
     g.route("branch_d", "descent_1", form="human")   # over the lip into the shaft
     g.route("descent_1", "descent_2", form="human")  # drop through the one-way, B -> D

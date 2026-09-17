@@ -117,7 +117,7 @@ func run(sim: ProverSim, start: Array, goals: PackedInt32Array, budget: int) -> 
 				bad = sim.rejection()
 				if bad != "":
 					break
-				if _reached(sim.actor.aabb(), goal_rects):
+				if _reached(sim, goal_rects):
 					hit = true
 					break
 			if bad != "":
@@ -187,11 +187,25 @@ func _set_input(input: InputState, a: int, prev: int) -> void:
 	input._prev_attack = was_attack
 
 
-static func _reached(box: Rect2, goals: Array[Rect2]) -> bool:
+## A hop ends when the player is AT the waypoint, not merely touching it. Rect
+## overlap alone lets a hop finish in mid-flight, and the next hop then starts
+## from a falling body that drops straight off the ledge it supposedly reached.
+## That is how jungle_5 failed: hop 4 "arrived" at the branch while still in the
+## air, so hop 5 began by falling off it and never recovered.
+##
+## Arriving means standing, or hanging on a vine, or swimming, or being the bird
+## -- the four ways Kaya can actually be somewhere and stay there.
+static func _reached(sim: ProverSim, goals: Array[Rect2]) -> bool:
+	var box := sim.actor.aabb()
+	var hit := false
 	for g: Rect2 in goals:
 		if g.intersects(box):
-			return true
-	return false
+			hit = true
+			break
+	if not hit:
+		return false
+	return sim.actor.on_floor or sim.form.climbing \
+		or sim.actor.submerged() or sim.form_id == "bird"
 
 
 ## Manhattan gap between two rectangles — zero once they touch.
