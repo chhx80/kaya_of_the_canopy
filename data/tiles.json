@@ -2,6 +2,7 @@
   "_comment": "Tile id -> gameplay flags. Ids match the column-major index into assets/tiles/tileset.png (16 tiles per row).",
   "tile_size": 16,
   "atlas_columns": 16,
+  "_verbs": "Ids 200-219 are the M2-M4 engine verbs, reserved so the palette work in 220-399 can land beside them. 'current' is the velocity of the medium in px/s, applied to any form overlapping the tile (FormBase.current_at). A water push and an updraft are the same mechanism with different numbers - see src/player/forms/form_base.gd. 'break_hold' is how many seconds a form must shoulder into a breakable tile with attack held before it gives; a crate leaves it out and so stays weapon-only.",
   "tiles": {
     "0":  { "name": "empty" },
     "1":  { "name": "dirt", "solid": true },
@@ -30,6 +31,25 @@
     "24": { "name": "lava", "hazard": true },
     "25": { "name": "metal", "solid": true },
     "26": { "name": "switch_block_a_off", "solid": true, "switch_group": 1, "switch_state": false },
-    "27": { "name": "switch_block_b_off", "solid": true, "switch_group": 2, "switch_state": false }
+    "27": { "name": "switch_block_b_off", "solid": true, "switch_group": 2, "switch_state": false },
+
+    "200": { "name": "water_current_right", "water": true, "current": [68, 0] },
+    "201": { "name": "water_current_left", "water": true, "current": [-68, 0] },
+    "202": { "name": "water_current_up", "water": true, "current": [0, -62] },
+    "203": { "name": "water_current_down", "water": true, "current": [0, 62] },
+    "204": { "name": "water_current_right_fast", "water": true, "current": [120, 0] },
+    "205": { "name": "water_current_left_fast", "water": true, "current": [-120, 0] },
+
+    "206": { "name": "updraft", "current": [0, -400] },
+    "207": { "name": "updraft_strong", "current": [0, -560] },
+    "208": { "name": "downdraft", "current": [0, 170] },
+    "209": { "name": "gust_right", "current": [80, 0] },
+    "210": { "name": "gust_left", "current": [-80, 0] },
+
+    "211": { "name": "cracked_stone", "solid": true, "breakable": true, "break_hold": 0.35 },
+    "212": { "name": "cracked_dirt", "solid": true, "breakable": true, "break_hold": 0.25 },
+    "213": { "name": "termite_wall", "solid": true, "breakable": true, "break_hold": 0.45 },
+    "214": { "name": "luminous_wall", "solid": true, "breakable": true, "break_hold": 0.40 },
+    "215": { "name": "rubble", "solid": true, "breakable": true, "break_hold": 0.18 }
   }
 }
