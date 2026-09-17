@@ -117,3 +117,43 @@ damage.
   prove the level is fun or fair to a human taking damage. Human playtesting
   stays in the loop — the intent is that it starts finding design problems
   instead of impossibilities.
+
+## Addendum — the search heuristic, and four things that did not work
+
+The frontier is ordered by manhattan distance to the waypoint. That is a bad
+guide in a platformer: a gap between two ledges drops you *level with the
+target*, which scores better than the jump that crosses it, so the search dives
+into the hole. Measured on jungle_1, crossing one three-tile gap cost **44,421
+of a 50,000 expansion budget**, and the closest approach was recorded in mid-air
+over the pit, ten tiles short, on the goal's own row.
+
+Four replacements were built and measured. **All four were reverted**, and the
+numbers are here so the next person does not repeat them:
+
+| Attempt | jungle_3 | jungle_4 | Verdict |
+|---|---|---|---|
+| baseline, manhattan | 180 | 875 | all six levels prove |
+| charge "below the goal" 3× | — | — | jungle_2 1,357 → 4,713. Worse. |
+| order by a tile distance field | 4,830 | — | 27× worse; broke jungle_1 hop 1 |
+| …with sub-tile interpolation | 1,374 | — | still 7× worse |
+| …as a *filter* instead of a metric | 180 | 875 | free — but pruned the jump **across** a pit as if it were a dive **into** one, because an airborne body was judged by whatever lay directly beneath it. Broke jungle_1 and jungle_2. |
+| …scoring an airborne body by where it could land | 1,645 | timeout | still 9× worse |
+| manhattan + 0.6 × terrain surplus | 198 | 1,050 | at baseline on both — then broke jungle_1 hop 3, which costs 8 expansions today |
+
+The pattern is consistent: every variant fixed one level and broke another. The
+tile field is a **model**, and a model that is nearly right is exactly what
+produced the six historical defects. It is not accurate enough to steer the
+search, and it was not made accurate enough in the time spent on it.
+
+What stands instead:
+
+- **Manhattan stays.** It proves all six levels.
+- **A hop that needs a big budget is a hop that is too coarse.** That was already
+  the rule; jungle_1's crossing is now its own hop and still costs 44k, so the
+  rule has a limit and this is where it sits.
+- **This is the top open problem for M2 onwards.** Twenty more levels will meet
+  it. The most promising untried direction is to stop treating the search as
+  single-shot: run the cheap manhattan search first, and only if it exhausts its
+  budget rerun that one hop with terrain weighting. Then the slow, less reliable
+  guide is paid for only where the fast one has already demonstrably failed,
+  which is the one arrangement none of the four attempts tried.
