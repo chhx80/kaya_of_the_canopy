@@ -26,7 +26,7 @@ is gitignored — copy `tools/env.sh.example` and edit it after a fresh clone.
   or `tools/shot.sh --seq=tools/seq/<name>.json` for scripted play
 - Upscale a capture for review: `tools/upscale.sh shots/x.png shots/x3.png 3`
 - Contact-sheet several captures: `tools/grid.sh out.png <cols> <scale> a.png b.png …`
-- In-game integration suite: `tools/itest.sh` (needs a display; hard-bounded)
+- In-game integration suite: `tools/itest.sh` (headless; hard-bounded)
 - Rebuild levels from the authoring DSL: `tools/genlevels.sh`
 - Export: `tools/export_web.sh` / `export_macos.sh` / `export_android.sh` /
   `export_ios.sh` / `export_playtest.sh` — see `docs/shipping.md`
