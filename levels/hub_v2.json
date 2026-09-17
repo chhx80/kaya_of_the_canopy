@@ -1,0 +1,307 @@
+{
+ "id": "hub_v2",
+ "name": "THE CANOPY",
+ "music": "hub",
+ "next_level": "",
+ "topdown": true,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+  "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+  "MM.M...............MM..M............MM........MMMM",
+  "MM.M...............MM...............MM........MMMM",
+  "MM..............................................MM",
+  "MM..............................................MM",
+  "MM.........MM...............MM...............MM.MM",
+  "MM..............................................MM",
+  "dddddd..dddddddddddddddddsssssssssssssssss..ssssss",
+  "dd.d.......dd......d..dddds........ss.........ssss",
+  "dd......................dd......................ss",
+  "dd......................dd......................ss",
+  "dd.....d........................................ss",
+  "ddd........................s....................ss",
+  "ddd............dd.......dd.s...ss......ss...s...ss",
+  "@@@@@@..@@@@@@@@@@@@@@@@@@WWWWWWWWWWWWWWWW..WWWWWW",
+  "@@@@..@...............@@@@.WW.........WW......WWWW",
+  "@@@@.............@@@..@@@@............WW......WWWW",
+  "@@......@@.......@@@....@@....WWW...............WW",
+  "@@......@@..............@@....WWW...............WW",
+  "@@......................@@WW....................WW",
+  "@@.@@...................@@WW....................WW",
+  "@@.@@...........................................WW",
+  "@@.......@@..............................WWW....WW",
+  "@@.......@@..........@@.@@...............WWW....WW",
+  "@@...................@@.@@.......WW......WWW.WW.WW",
+  "@@@...........@@@....@@.@@.......WW..........WW.WW",
+  "@@@...........@@@.......@@WWW...................WW",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@WWWWWWWWWWWWWWWWWWWWWWWWW",
+  "@@@@@@@@@@@@@@@@@@@@@@@@@WWWWWWWWWWWWWWWWWWWWWWWWW"
+ ],
+ "bg": [
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr!!!rrrr",
+  "rrrr!!!rrrrrrrrrrrrrrrrrrrrrr!!!!!rrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrr!!rMMMMMMMMMMMrrrrrrrMMMMMMMMMMrrrrrrr",
+  "rrrrrrrrrrrrrrrMMMMMMMMMMMrrrrrrrMMMMMMMMMMrrrrrrr",
+  "rrrrrrrMMMMMMMMMMrrr!!!!MMMMMMMMMMMrr!!!rMMMrrrrrr",
+  "rrrrrrrMMMMMMMMMrrrrrrrrMMMMMMMMMMrrrrrrrMMMrrrrrr",
+  "XXXXXXXMXXXXXXXXXXXXXXXXXddddddddddddddddddddddddd",
+  "XXXXXXppXXXXXXXXXXXXXXXXXdddddddddddddddddrrdddddd",
+  "XXXXXXppXXXXXXXXXXXXXXXXXdd!!dddddddddddddrrdddddd",
+  "XXXXXppppppXXppppppXXXXXXddddddddrrrrrrd!rrrrrrddd",
+  "XXXXXppppppXXppppppXXppXXdrrdddddrrrrrrddrrrrrrddd",
+  "XXXXXpppXppppppXXppppppXXdrrrrrrrrrddrrrrrrr!rrddd",
+  "XXXXXpppXpppppXXXpppppXXXdrrrrrrrrdddrrrrrrrdddddd",
+  "XXXXXXXXXXXXXXXXXXXXXXXXXdddddddddddddddddrddddddd",
+  "ggggggppgggggggggggggggggSSSSSSSSSSSSSSSSSppSSSSSS",
+  "ggggggppgggggggggggggggggSSSSSSSssSSSSSSSSppSSSSSS",
+  "ggggggpppppppppggggggggggSSSSSSSSSSSppppppppssSSSS",
+  "ggggggpppppppppggggggggggSSSSSSSSSSSpppppppSSSSSSS",
+  "ggggggppgggggppggggggggggSSSSSSSSSSSppSSSSSSSSSSSS",
+  "ggggggppgggggpppppppppgggSSSSSSSSSSSppppppppppSSSS",
+  "ggggggppppppppppppppppppgSpppppSSSppppppppppppSSSS",
+  "ggggggpppppppppppppppppggSpppppSSSpppppppSSSppSSSS",
+  "gggggggggggppgggppggppgggSSSSppSSSppSSSppSSSppSSSS",
+  "ggggggpppppppgggppppppgggSSSSpppppppSSSpppppppSSSS",
+  "gggpppppppppggggpppppggggSSSSppppppSSSSppppppSSSSS",
+  "gggppppggggggggggggggggggSSSSSSSSSSSSSSSSSSSSSSSSS",
+  "gggggggggggggggggggggggggSSSSSSSSSSSSSSSSSSSSSSSSS",
+  "gggggggggggggggggggggggggSSSSSSSSSSSSSSSSSSSSSSSSS"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 3,
+   "y": 26
+  },
+  {
+   "type": "hub_door",
+   "x": 6,
+   "y": 24,
+   "level": "jungle_1",
+   "label": "CANOPY TRAIL",
+   "requires": "",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 11,
+   "y": 21,
+   "level": "jungle_2",
+   "label": "ROOT HOLLOW",
+   "requires": "jungle_1",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 16,
+   "y": 24,
+   "level": "jungle_3",
+   "label": "THE WATERWAY",
+   "requires": "jungle_2",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 20,
+   "y": 20,
+   "level": "jungle_4",
+   "label": "SKY BRANCH",
+   "requires": "jungle_3",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 13,
+   "y": 17,
+   "level": "jungle_5",
+   "label": "HEART OF THE GROVE",
+   "requires": "jungle_4",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 29,
+   "y": 24,
+   "level": "ruins_1",
+   "label": "DROWNED GATE",
+   "requires": "jungle_5",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 34,
+   "y": 21,
+   "level": "ruins_2",
+   "label": "THE CISTERN",
+   "requires": "ruins_1",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 39,
+   "y": 24,
+   "level": "ruins_3",
+   "label": "UNDERTOW",
+   "requires": "ruins_2",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 44,
+   "y": 20,
+   "level": "ruins_4",
+   "label": "THE FLOODED HALL",
+   "requires": "ruins_3",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 36,
+   "y": 17,
+   "level": "ruins_5",
+   "label": "THE TIDE MAW",
+   "requires": "ruins_4",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 29,
+   "y": 12,
+   "level": "heights_1",
+   "label": "UPDRAFT",
+   "requires": "ruins_5",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 33,
+   "y": 10,
+   "level": "heights_2",
+   "label": "THE THERMALS",
+   "requires": "heights_1",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 37,
+   "y": 12,
+   "level": "heights_3",
+   "label": "ASH COLUMN",
+   "requires": "heights_2",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 41,
+   "y": 10,
+   "level": "heights_4",
+   "label": "THE LONG GLIDE",
+   "requires": "heights_3",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 45,
+   "y": 12,
+   "level": "heights_5",
+   "label": "THE STORMCREST",
+   "requires": "heights_4",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 5,
+   "y": 12,
+   "level": "deeps_1",
+   "label": "THE LIGHTLESS",
+   "requires": "heights_5",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 9,
+   "y": 10,
+   "level": "deeps_2",
+   "label": "CHEW THROUGH",
+   "requires": "deeps_1",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 13,
+   "y": 12,
+   "level": "deeps_3",
+   "label": "THE GALLERIES",
+   "requires": "deeps_2",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 17,
+   "y": 10,
+   "level": "deeps_4",
+   "label": "SPORE LIGHT",
+   "requires": "deeps_3",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 21,
+   "y": 12,
+   "level": "deeps_5",
+   "label": "THE BROOD QUEEN",
+   "requires": "deeps_4",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 7,
+   "y": 5,
+   "level": "nest_1",
+   "label": "BLACK GLASS",
+   "requires": "deeps_5",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 15,
+   "y": 3,
+   "level": "nest_2",
+   "label": "THE SWITCHYARD",
+   "requires": "nest_1",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 24,
+   "y": 5,
+   "level": "nest_3",
+   "label": "FOUR SHAPES",
+   "requires": "nest_2",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 33,
+   "y": 3,
+   "level": "nest_4",
+   "label": "THE LAST ASCENT",
+   "requires": "nest_3",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 41,
+   "y": 5,
+   "level": "nest_5",
+   "label": "THE OBSIDIAN HEART",
+   "requires": "nest_4",
+   "requires_all": false
+  }
+ ]
+}
