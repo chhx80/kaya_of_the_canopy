@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# In-game integration suite (needs a real window; run on a desktop session).
+# In-game integration suite. Runs --headless: the real Level, its entities,
+# triggers and bosses all simulate with no display (ADR 005), so this is a CI
+# gate, not a desktop-only one.
 # Hard-bounded so a hang shows up as a failure instead of eating the session.
 set -uo pipefail
 source "$(dirname "$0")/env.sh"
 cd "$PROJECT_ROOT"
 LOG="$(mktemp -t kaya_itest)"
-"$GODOT" --path . --rendering-driver opengl3 --resolution 400x240 -- --itest=1 >"$LOG" 2>&1 &
+"$GODOT" --headless --path . -- --itest=1 "$@" >"$LOG" 2>&1 &
 PID=$!
 LIMIT=${ITEST_TIMEOUT:-240}
 for _ in $(seq "$LIMIT"); do
