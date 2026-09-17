@@ -614,3 +614,37 @@ proved. `tests/test_verbs_darkness.gd` holds it to that by running 240 ticks of
 the same inputs lit and dark for three forms and requiring the traces to agree
 to the last float. `tools/shot.sh --darkness=0.9` forces any level dark for
 tuning and capture; `shots/m4_darkness.png` is the before and after.
+## M2-M5 art — four world tilesets and four parallax backdrops
+
+Tilesets for SUNKEN RUINS, THERMAL HEIGHTS, TERMITE DEEPS and THE OBSIDIAN
+NEST, twelve gameplay tiles each, and a three-plane parallax backdrop for each
+world. All of it is script-generated from the same ramps, dithering and
+auto-shading as the jungle set — `tools/genart.sh`.
+
+- `data/tiles.json` gains ids **220-231** (ruins), **240-251** (heights),
+  **260-271** (deeps) and **280-291** (nest). Nothing already declared moved.
+  Each block is a solid mass, its capped form, a background wall, a secondary
+  solid, two more background fills, a background column, a one-way, a hazard, a
+  climbable and a breakable.
+- Three materials per world autotile across the 47-case blob set and pick from
+  three paintings per case; background fills get six. `VARIANT_BASE` moves from
+  32 to 400 so gameplay ids and variants stop sharing the front of the atlas.
+  The sheet grows from 256x1488 to **256x3680** — 3.8 MB as RGBA, inside the
+  4096 px every target guarantees, with 416 px of headroom left.
+- `tools/gen_art.py --readability` is new, and is the reason the worlds look
+  the way they do. It composites the real layers, stands each of the four forms
+  in the scene at seven positions, and measures how much of each silhouette the
+  world swallows — against a threshold derived from the palette's own finest
+  step rather than picked. It is calibrated on the defect the brief names: the
+  green frog on the green jungle parallax scores worst in the table, losing
+  15.2% of its outline with a 10.4% connected hole. Every new world beats it;
+  the worst new combination is the fish in TERMITE DEEPS at 10.4% / 5.0%.
+  `--preview` writes the panels the per-world contact sheets are built from.
+- Findings that came out of that loop and changed the art: THERMAL HEIGHTS read
+  as planking until its strata were broken up and half its surface turned grey;
+  TERMITE DEEPS had no separation at all between the mass and the wall behind
+  it; the heights mountains were eating a tenth of the fish's outline in one
+  run and were hazed two ramp steps paler to stop it.
+- Screenshots: `shots/world_{ruins,heights,deeps,obsidian}_sheet.png`, each
+  four panels — the world drawn by the running game, the same world with all
+  four forms standing in it, the parallax alone, and the twelve tiles.

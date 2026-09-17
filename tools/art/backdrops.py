@@ -583,7 +583,334 @@ def _sky():
     return {"sky": sky, "far": far, "near": near}
 
 
-WORLDS = {"jungle": _jungle, "sky": _sky}
+def colonnade(p, x0, spacing, top, bottom, width, v, seed, ramp=None,
+              arch=True):
+    """A run of columns, optionally with the arches still standing on them.
+
+    SUNKEN RUINS is architecture rather than landscape, and architecture is the
+    one backdrop subject where *regularity* is the read — so this is the only
+    brush here that repeats on a fixed pitch."""
+    rnd = random.Random(seed)
+    x = x0
+    while x < p.w + spacing:
+        h = bottom - rnd.randint(0, 22)                  # some are broken off
+        trunk(p, x, top + rnd.randint(0, 10), h, width, v, ramp)
+        if arch and rnd.random() < 0.7:
+            r = spacing // 2
+            for a in range(-r, r + 1):
+                dy = int((1.0 - (a / float(r)) ** 2) ** 0.5 * (r * 0.55))
+                for t in range(3):
+                    p.set(x + width // 2 + r + a, top + 10 - dy + t,
+                          v + (0.26 if t == 0 else -0.16), ramp)
+        x += spacing
+
+
+def spires(p, base_y, count, v, seed, ramp=None, height=(40, 130),
+           width=(10, 34)):
+    """Jagged volcanic-glass teeth. Lit on the upper-left face and falling away
+    to the right, like every other solid in this game."""
+    rnd = random.Random(seed)
+    for i in range(count):
+        cx = int(i * (p.w / float(count)) + rnd.randint(-14, 14))
+        h = rnd.randint(*height)
+        half = rnd.randint(*width) // 2
+        lean = rnd.uniform(-0.18, 0.18)
+        for y in range(max(0, base_y - h), min(p.h, base_y + 6)):
+            t = (base_y - y) / float(h)
+            if t < 0:
+                continue
+            wdt = half * (1.0 - t ** 0.8)
+            sx = cx + int(lean * (base_y - y))
+            for x in range(int(sx - wdt), int(sx + wdt) + 1):
+                u = (x - sx) / max(wdt, 0.8)
+                p.set(x, y, v + (0.34 if u < -0.35 else
+                                 (-0.26 if u > 0.45 else 0.0)), ramp)
+
+
+def glow(p, cx, cy, r, dv, seed, frac=0.9):
+    """A pool of light in the backdrop, dithered outward. `boost`-based, so it
+    lifts whatever is already painted rather than stamping a disc on it."""
+    rnd = random.Random(seed)
+    for y in range(cy - r, cy + r + 1):
+        for x in range(cx - r, cx + r + 1):
+            d = math.hypot(x - cx, y - cy) / float(r)
+            if d > 1.0:
+                continue
+            k = (1.0 - d) ** 1.6
+            p.boost(x, y, dv * k, min(1.0, frac * k + 0.08))
+
+
+# ---------------------------------------------------------- 2. SUNKEN RUINS
+def _ruins():
+    """A drowned hall. You are underwater and the light is above you, so the
+    gradient runs the opposite way to every other world here: bright at the
+    top, black at the floor. Cold greens and blue-greys, and nothing warm in
+    it at all — which is most of what separates it from the jungle."""
+    sky = Plane("water", (1.4, 3.8), opaque=True, windows={"stone": (1.2, 2.4)})
+    vband(sky, 0, 92, 1.0, 0.48, curve=0.9)
+    vband(sky, 92, 240, 0.48, 0.05, curve=1.3)
+    shafts(sky, 6, 6010, dv=0.26, slope=5, width=(14, 38), reach=0.75)
+    # The far wall of the hall: an arcade, dissolving downward into the dark.
+    colonnade(sky, -10, 58, 44, 200, 9, 0.30, 6011, ramp="stone")
+    ridge(sky, 202, 0.18, 6012, amp=13, step=13, ramp="stone", crest=0.12,
+          fade=0.32, rough=0.10)
+    mist(sky, 84, 40, 0.5, dv=0.2)
+    mist(sky, 182, 44, 0.42, dv=0.16)                # silt hanging in the water
+    grain(sky, 6013, 1500, dv=0.09)
+
+    # Far: a second arcade nearer to you, with the vault it used to hold up.
+    far = Plane("stone", (1.1, 2.5), windows={"foliage": (0.7, 1.8)})
+    colonnade(far, 12, 96, 20, 226, 15, 0.46, 6020)
+    rnd = random.Random(6021)
+    for i in range(7):                               # algae down the shafts
+        hang(far, rnd.randrange(400), rnd.randrange(24, 70),
+             rnd.randrange(40, 130), 0.62, 6030 + i, ramp="foliage")
+    ridge(far, 216, 0.34, 6022, amp=7, step=15, thickness=40, crest=0.2,
+          fade=0.3, rough=0.06)                      # silt drifted at the base
+    mist(far, 120, 36, 0.42, dv=0.18)
+
+    # Near: the frame. Two fallen columns and the kelp growing on them, dark
+    # enough that a green frog in front of it is still a green frog.
+    near = Plane("stone", (0.0, 1.6), windows={"foliage": (0.0, 1.2)})
+    rnd = random.Random(6040)
+    for i in range(3):
+        x = (i * 151 + rnd.randrange(40)) % 400
+        w = rnd.randrange(16, 26)
+        trunk(near, x, 0, 240, w, 0.52)
+        for k in range(rnd.randrange(2, 4)):         # drum joints
+            y = rnd.randrange(20, 210)
+            for t in range(3):
+                for xx in range(x - 2, x + w + 2):
+                    near.set(xx, y + t, 0.68 if t == 0 else 0.22)
+    for i in range(11):                              # kelp off the top
+        hang(near, rnd.randrange(400), rnd.randrange(0, 16),
+             rnd.randrange(30, 150), 0.74, 6050 + i, ramp="foliage")
+    canopy(near, 6, 0.5, 6060, count=9, rx=(14, 26), ry=(6, 12), spread=5,
+           ramp="foliage")
+    return {"sky": sky, "far": far, "near": near}
+
+
+# ------------------------------------------------------- 3. THERMAL HEIGHTS
+def _heights():
+    """High air. The one thing this world must not do is put the `gold` ramp on
+    screen as a field: the fish is built out of gold — e08c3a, f2d565, a86422
+    are literally its three commonest colours — and a warm orange sky would
+    take it whole. So the warmth is carried by `ember` at its dark end and by
+    `dirt`, gold appears only inside the sun itself, and the pale end of the
+    gradient is `metal`, which no form uses."""
+    sky = Plane("ember", (1.1, 3.1), opaque=True,
+                windows={"metal": (3.4, 5.8), "gold": (4.4, 6.4)})
+    sky_path(sky, [("ember", 0.10), ("ember", 0.26), ("ember", 0.44),
+                   ("ember", 0.64), ("metal", 0.22), ("metal", 0.46),
+                   ("metal", 0.70), ("metal", 0.90)], curve=1.25)
+    rnd = random.Random(7010)
+    for i in range(7):                               # high cirrus
+        cloud(sky, rnd.randrange(400), rnd.randrange(30, 104),
+              rnd.randrange(30, 60), rnd.randrange(3, 6), 0.55, 7020 + i,
+              ramp="metal")
+    glow(sky, 318, 58, 46, 0.30, 7030, frac=0.75)    # the sun, behind it all
+    for r in (10, 7):
+        for y in range(58 - r, 58 + r + 1):
+            for x in range(318 - r, 318 + r + 1):
+                if math.hypot(x - 318, y - 58) <= r:
+                    sky.set(x, y, 0.9 if r == 10 else 1.0, "gold")
+    grain(sky, 7040, 1200, dv=0.07)
+
+    # Far: the range. Peaks rather than a treeline, and a cloud sea eating
+    # their feet — the "how high am I" cue, and the flattest thing on screen.
+    # The window starts at dirt 2.2 rather than dirt 1.0, and the reason is a
+    # measurement rather than taste: the fish is a `gold`-ramp sprite whose
+    # shadow side is 4e2e11, and dirt step 2 is 52331d — 23.7 apart, under the
+    # palette's own finest step of 28.6, so the peaks were eating a tenth of
+    # the fish's outline in one connected run. Paler peaks are also simply more
+    # correct: this is the furthest thing on screen and it is seen through the
+    # most air.
+    far = Plane("dirt", (2.2, 3.4), windows={"metal": (3.8, 5.0)})
+    rnd = random.Random(7050)
+    for i in range(9):                               # the peaks themselves
+        cx = int(i * 46 + rnd.randrange(24))
+        h = rnd.randrange(56, 118)
+        half = rnd.randrange(26, 52)
+        base = 196
+        for y in range(base - h, base):
+            t = (base - y) / float(h)
+            w = int(half * (1.0 - t))
+            for x in range(cx - w, cx + w + 1):
+                u = (x - cx) / max(w, 1.0)
+                v = 0.52 + (0.30 if u < -0.3 else (-0.22 if u > 0.4 else 0.0))
+                if t > 0.82:                         # snow on the very top
+                    far.set(x, y, 0.78, "metal")
+                else:
+                    far.set(x, y, v)
+    for i in range(9):
+        cloud(far, rnd.randrange(400), rnd.randrange(176, 224),
+              rnd.randrange(34, 70), rnd.randrange(10, 18), 0.42, 7060 + i,
+              ramp="metal")
+    mist(far, 168, 40, 0.42, dv=0.16)
+
+    # Near: the cliff you are actually on, running up both edges of the screen.
+    # Dark, because everything behind it is pale and the play field sits on it.
+    near = Plane("dirt", (0.0, 1.5))
+    rnd = random.Random(7070)
+    # Two cliffs, one up each edge. Written as an explicit span per row rather
+    # than as an offset loop: the first pass started at x0 - 12, `Plane.set`
+    # wraps in x by design, and the left cliff duly painted a second slab down
+    # the right edge of the screen.
+    for y in range(240):
+        jag = int(9 * math.sin(y / 31.0) + 5 * math.sin(y / 11.0)
+                  + 3 * math.sin(y / 4.5))
+        for (lo, hi, lit_left) in ((0, 44 + jag, True),
+                                   (356 - jag, 400, False)):
+            span = max(1, hi - lo)
+            for x in range(lo, hi):
+                t = (x - lo) / float(span)
+                edge = t < 0.16 if lit_left else t > 0.84
+                fade = t > 0.86 if lit_left else t < 0.14
+                near.set(x, y, 0.42 + (0.28 if edge else
+                                       (-0.3 if fade else 0.0)))
+    for i in range(5):                               # ledges jutting out
+        y = rnd.randrange(20, 210)
+        wdt = rnd.randrange(16, 40)
+        left = rnd.random() < 0.5
+        for k in range(rnd.randrange(5, 11)):
+            for x in range(wdt):
+                px = (34 + x) if left else (366 - x)
+                near.set(px, y + k, 0.62 if k == 0 else 0.26)
+    spires(near, 250, 5, 0.3, 7080, height=(18, 46), width=(16, 40))
+    return {"sky": sky, "far": far, "near": near}
+
+
+# --------------------------------------------------------- 4. TERMITE DEEPS
+def _deeps():
+    """There is no sky under a termite mound, so all three planes are earth and
+    the depth is carried by how much violet reaches each one. The Brood Queen's
+    arena is unlit: every plane is held low enough that a silhouette in front
+    of it survives having no light on it at all."""
+    sky = Plane("dirt", (0.05, 1.15), opaque=True,
+                windows={"purple": (0.6, 2.6)})
+    vband(sky, 0, 240, 0.30, 0.9, curve=1.4)
+    rnd = random.Random(8010)
+    for i in range(7):                               # galleries going back
+        cx = rnd.randrange(400)
+        cy = rnd.randrange(40, 210)
+        for r in range(rnd.randrange(16, 40), 0, -6):
+            for a in range(0, 360, 4):
+                x = cx + int(math.cos(math.radians(a)) * r * 1.5)
+                y = cy + int(math.sin(math.radians(a)) * r)
+                sky.set(x, y, 0.16 + r / 90.0)
+    for i in range(9):                               # fungus, far away
+        glow(sky, rnd.randrange(400), rnd.randrange(30, 220),
+             rnd.randrange(14, 30), 0.34, 8020 + i, frac=0.6)
+    grain(sky, 8030, 1500, dv=0.08)
+
+    # Far: the comb. Cell after cell of it, which is the one shape that says
+    # "something built this" rather than "something dug this".
+    far = Plane("wood", (0.4, 1.5), windows={"purple": (1.4, 3.6)})
+    rnd = random.Random(8040)
+    for cy in range(-14, 250, 24):
+        off = rnd.randrange(34)
+        for cx in range(-24, 424, 32):
+            x = cx + off + rnd.randint(-6, 6)
+            y = cy + rnd.randint(-5, 5)
+            if rnd.random() < 0.22:                  # a cell that never formed
+                continue
+            rx = rnd.randint(11, 18)
+            ry = rnd.randint(7, 13)
+            thick = 2 if rnd.random() < 0.6 else 3
+            for a in range(0, 360, 5):               # the cell wall
+                for t in range(thick):
+                    far.set(x + int(math.cos(math.radians(a)) * (rx - t)),
+                            y + int(math.sin(math.radians(a)) * (ry - t)),
+                            0.62 if t == 0 else 0.30)
+            if rnd.random() < 0.14:
+                glow(far, x, y, 12, 0.5, 8050 + cx + cy, frac=0.8)
+    mist(far, 140, 64, 0.34, dv=0.14)
+
+    # Near: two great roots coming down through everything, and the mycelium
+    # strung between them.
+    near = Plane("wood", (0.0, 1.4), windows={"purple": (0.8, 2.8)})
+    rnd = random.Random(8060)
+    for i in range(3):
+        x = (i * 143 + rnd.randrange(50)) % 400
+        w = rnd.randrange(20, 34)
+        for y in range(240):
+            cx = x + int(7 * math.sin(y / 41.0 + i))
+            for k in range(w):
+                t = k / float(w - 1)
+                near.set(cx + k, y, 0.5 + (0.28 if t < 0.2 else
+                                           (-0.26 if t > 0.82 else 0.0)))
+            if y % 9 == 3:                           # bark fissure
+                for k in range(rnd.randrange(3, 8)):
+                    near.set(cx + 4 + k, y, 0.2)
+    for i in range(13):                              # mycelium strands
+        hang(near, rnd.randrange(400), rnd.randrange(0, 30),
+             rnd.randrange(24, 110), 0.72, 8070 + i, ramp="purple")
+    for i in range(6):
+        glow(near, rnd.randrange(400), rnd.randrange(0, 240),
+             rnd.randrange(10, 22), 0.4, 8080 + i, frac=0.7)
+    return {"sky": sky, "far": far, "near": near}
+
+
+# ----------------------------------------------------- 5. THE OBSIDIAN NEST
+def _obsidian():
+    """Black glass over a magma sea. The light comes from *below*, which is the
+    whole look: everything is a silhouette with its underside lit, and the
+    brightest thing on screen is at the bottom of it where the tiles are
+    darkest. Ember is kept to the glow and the seams — it is the bird's own
+    hue, and a field of it would take a red sprite with it."""
+    sky = Plane("purple", (0.05, 1.05), opaque=True,
+                windows={"ember": (0.8, 4.4)})
+    vband(sky, 0, 168, 0.10, 0.62, curve=1.6)
+    # The sea does not start at a row, it *dissolves* in over forty of them:
+    # the Bayer fraction rises with depth, so the two materials interleave the
+    # way the sky gradients do rather than meeting at a ruled line.
+    for y in range(128, 240):
+        t = (y - 128) / 111.0
+        for x in range(400):
+            if bayer_on(x, y, min(1.0, (t * 1.5) ** 2.0)):
+                sky.set(x, y, 0.10 + 0.86 * (t ** 1.3)
+                        + 0.05 * math.sin((x + y * 3) / 17.0), "ember")
+    rnd = random.Random(9010)
+    for i in range(8):                               # its swell
+        glow(sky, rnd.randrange(400), rnd.randrange(196, 240),
+             rnd.randrange(18, 44), 0.30, 9020 + i, frac=0.7)
+    for i in range(24):                              # sparks going up
+        sky.set(rnd.randrange(400), rnd.randrange(60, 230), 0.95, "ember")
+    grain(sky, 9030, 1300, dv=0.07)
+
+    # Far: a range of spires standing out of the sea, lit along their feet.
+    far = Plane("stone", (0.15, 1.4), windows={"ember": (1.2, 3.4)})
+    spires(far, 208, 11, 0.44, 9040, height=(46, 138), width=(16, 46))
+    rnd = random.Random(9050)
+    for i in range(9):                               # heat under them
+        glow(far, rnd.randrange(400), rnd.randrange(198, 224),
+             rnd.randrange(16, 36), 0.5, 9060 + i, frac=0.8)
+    mist(far, 176, 42, 0.36, dv=0.16)
+
+    # Near: the flues. Black columns with the heat still running up the inside,
+    # and nothing else — the Nest is the last world and it is meant to be bare.
+    near = Plane("stone", (0.0, 1.1), windows={"ember": (0.8, 3.0)})
+    rnd = random.Random(9070)
+    for i in range(4):
+        x = (i * 109 + rnd.randrange(46)) % 400
+        w = rnd.randrange(18, 30)
+        for y in range(240):
+            cx = x + int(4 * math.sin(y / 53.0 + i))
+            for k in range(w):
+                t = k / float(w - 1)
+                near.set(cx + k, y, 0.44 + (0.3 if t < 0.18 else
+                                            (-0.3 if t > 0.84 else 0.0)))
+            if rnd.random() < 0.10:                  # the seam inside it
+                near.set(cx + w // 2 + rnd.choice((-1, 0, 1)), y, 0.8, "ember")
+    spires(near, 244, 6, 0.3, 9080, height=(24, 70), width=(20, 52))
+    for i in range(7):
+        glow(near, rnd.randrange(400), rnd.randrange(214, 240),
+             rnd.randrange(12, 28), 0.42, 9090 + i, frac=0.7)
+    return {"sky": sky, "far": far, "near": near}
+
+
+WORLDS = {"jungle": _jungle, "sky": _sky, "ruins": _ruins,
+          "heights": _heights, "deeps": _deeps, "obsidian": _obsidian}
 
 
 def build_backdrops():
@@ -594,11 +921,18 @@ def build_backdrops():
     level draws the same backdrop on both rows, so there is no seam to find at
     the join. `src/world/parallax_bg.gd` relies on both.
 
-    Only `jungle` and `sky` are built. ROOT HOLLOW and THE WATERWAY author a
-    solid `bg_rock` wall behind every tile of every screen, so nothing of the
-    parallax is visible in either of them — measured, 0% of both levels. Their
-    depth comes from ambient tint and light pools instead, which is what
-    data/ambience.json is for.
+    Six worlds now: `jungle` and `sky` for world 1, then one each for the four
+    of docs/plan-20-levels.md — `ruins`, `heights`, `deeps`, `obsidian`. Those
+    four names are an interface: data/ambience.json has to name the same
+    string, or `Ambience.for_level()` resolves a level to a backdrop that has
+    no art. tests/test_art_depth.gd checks exactly that, in both directions.
+
+    A world whose levels wall themselves in behind a solid background layer —
+    ROOT HOLLOW and THE WATERWAY do, and TERMITE DEEPS is likely to — never
+    shows its parallax at all, and takes its depth from ambient tint and light
+    pools instead. The planes are still built: it costs 300 KB and it is the
+    only thing standing between a level author and a black screen the first
+    time they leave a hole in the background layer.
     """
     for world, make in sorted(WORLDS.items()):
         planes = make()

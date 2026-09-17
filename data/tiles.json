@@ -2,54 +2,419 @@
   "_comment": "Tile id -> gameplay flags. Ids match the column-major index into assets/tiles/tileset.png (16 tiles per row).",
   "tile_size": 16,
   "atlas_columns": 16,
-  "_verbs": "Ids 200-219 are the M2-M4 engine verbs, reserved so the palette work in 220-399 can land beside them. 'current' is the velocity of the medium in px/s, applied to any form overlapping the tile (FormBase.current_at). A water push and an updraft are the same mechanism with different numbers - see src/player/forms/form_base.gd. 'break_hold' is how many seconds a form must shoulder into a breakable tile with attack held before it gives; a crate leaves it out and so stays weapon-only.",
+  "_comment_worlds": "Ids 220-399 are the four new worlds of docs/plan-20-levels.md, one block of twenty per world. 200-219 is reserved for the new movement verbs and is not declared here. Every id below is painted at that exact atlas cell by tools/art/tiles.py, which places them by index rather than by append order so the blocks can be filled in independently. Gaps inside a block are deliberate room to grow.",
+  "_comment_ruins": "World 2, SUNKEN RUINS. Waterlogged stone and algae; 220/221 autotile against each other and 222 is the background wall.",
+  "_comment_heights": "World 3, THERMAL HEIGHTS. Sun-bleached high rock; 240/241 autotile against each other and 242 is the background cliff.",
+  "_comment_deeps": "World 4, TERMITE DEEPS. Chitin and packed earth; 260/261 autotile against each other and 262 is the background comb. 270 is the luminous breakable wall the Brood Queen fight is about.",
+  "_comment_nest": "World 5, THE OBSIDIAN NEST. Volcanic glass and ember; 280/281 autotile against each other and 282 is the background glass.",
   "tiles": {
-    "0":  { "name": "empty" },
-    "1":  { "name": "dirt", "solid": true },
-    "2":  { "name": "grass_top", "solid": true },
-    "3":  { "name": "stone", "solid": true },
-    "4":  { "name": "stone_mossy", "solid": true },
-    "5":  { "name": "wood_platform", "oneway": true },
-    "6":  { "name": "vine", "ladder": true },
-    "7":  { "name": "water_top", "water": true, "water_surface": true },
-    "8":  { "name": "water", "water": true },
-    "9":  { "name": "spikes", "hazard": true },
-    "10": { "name": "crate", "solid": true, "breakable": true },
-    "11": { "name": "switch_block_a_on", "solid": true, "switch_group": 1, "switch_state": true },
-    "12": { "name": "switch_block_b_on", "solid": true, "switch_group": 2, "switch_state": true },
-    "13": { "name": "bg_leaves" },
-    "14": { "name": "tree_trunk" },
-    "15": { "name": "bg_rock" },
-    "16": { "name": "grass_left", "solid": true },
-    "17": { "name": "grass_right", "solid": true },
-    "18": { "name": "bg_dark" },
-    "19": { "name": "rope_bridge", "oneway": true },
-    "20": { "name": "hub_grass" },
-    "21": { "name": "hub_path" },
-    "22": { "name": "hub_water", "solid": true },
-    "23": { "name": "hub_tree", "solid": true },
-    "24": { "name": "lava", "hazard": true },
-    "25": { "name": "metal", "solid": true },
-    "26": { "name": "switch_block_a_off", "solid": true, "switch_group": 1, "switch_state": false },
-    "27": { "name": "switch_block_b_off", "solid": true, "switch_group": 2, "switch_state": false },
-
-    "200": { "name": "water_current_right", "water": true, "current": [68, 0] },
-    "201": { "name": "water_current_left", "water": true, "current": [-68, 0] },
-    "202": { "name": "water_current_up", "water": true, "current": [0, -62] },
-    "203": { "name": "water_current_down", "water": true, "current": [0, 62] },
-    "204": { "name": "water_current_right_fast", "water": true, "current": [120, 0] },
-    "205": { "name": "water_current_left_fast", "water": true, "current": [-120, 0] },
-
-    "206": { "name": "updraft", "current": [0, -400] },
-    "207": { "name": "updraft_strong", "current": [0, -560] },
-    "208": { "name": "downdraft", "current": [0, 170] },
-    "209": { "name": "gust_right", "current": [80, 0] },
-    "210": { "name": "gust_left", "current": [-80, 0] },
-
-    "211": { "name": "cracked_stone", "solid": true, "breakable": true, "break_hold": 0.35 },
-    "212": { "name": "cracked_dirt", "solid": true, "breakable": true, "break_hold": 0.25 },
-    "213": { "name": "termite_wall", "solid": true, "breakable": true, "break_hold": 0.45 },
-    "214": { "name": "luminous_wall", "solid": true, "breakable": true, "break_hold": 0.40 },
-    "215": { "name": "rubble", "solid": true, "breakable": true, "break_hold": 0.18 }
+    "0": {
+      "name": "empty"
+    },
+    "1": {
+      "name": "dirt",
+      "solid": true
+    },
+    "2": {
+      "name": "grass_top",
+      "solid": true
+    },
+    "3": {
+      "name": "stone",
+      "solid": true
+    },
+    "4": {
+      "name": "stone_mossy",
+      "solid": true
+    },
+    "5": {
+      "name": "wood_platform",
+      "oneway": true
+    },
+    "6": {
+      "name": "vine",
+      "ladder": true
+    },
+    "7": {
+      "name": "water_top",
+      "water": true,
+      "water_surface": true
+    },
+    "8": {
+      "name": "water",
+      "water": true
+    },
+    "9": {
+      "name": "spikes",
+      "hazard": true
+    },
+    "10": {
+      "name": "crate",
+      "solid": true,
+      "breakable": true
+    },
+    "11": {
+      "name": "switch_block_a_on",
+      "solid": true,
+      "switch_group": 1,
+      "switch_state": true
+    },
+    "12": {
+      "name": "switch_block_b_on",
+      "solid": true,
+      "switch_group": 2,
+      "switch_state": true
+    },
+    "13": {
+      "name": "bg_leaves"
+    },
+    "14": {
+      "name": "tree_trunk"
+    },
+    "15": {
+      "name": "bg_rock"
+    },
+    "16": {
+      "name": "grass_left",
+      "solid": true
+    },
+    "17": {
+      "name": "grass_right",
+      "solid": true
+    },
+    "18": {
+      "name": "bg_dark"
+    },
+    "19": {
+      "name": "rope_bridge",
+      "oneway": true
+    },
+    "20": {
+      "name": "hub_grass"
+    },
+    "21": {
+      "name": "hub_path"
+    },
+    "22": {
+      "name": "hub_water",
+      "solid": true
+    },
+    "23": {
+      "name": "hub_tree",
+      "solid": true
+    },
+    "24": {
+      "name": "lava",
+      "hazard": true
+    },
+    "25": {
+      "name": "metal",
+      "solid": true
+    },
+    "26": {
+      "name": "switch_block_a_off",
+      "solid": true,
+      "switch_group": 1,
+      "switch_state": false
+    },
+    "27": {
+      "name": "switch_block_b_off",
+      "solid": true,
+      "switch_group": 2,
+      "switch_state": false
+    },
+    "200": {
+      "name": "water_current_right",
+      "water": true,
+      "current": [
+        68,
+        0
+      ]
+    },
+    "201": {
+      "name": "water_current_left",
+      "water": true,
+      "current": [
+        -68,
+        0
+      ]
+    },
+    "202": {
+      "name": "water_current_up",
+      "water": true,
+      "current": [
+        0,
+        -62
+      ]
+    },
+    "203": {
+      "name": "water_current_down",
+      "water": true,
+      "current": [
+        0,
+        62
+      ]
+    },
+    "204": {
+      "name": "water_current_right_fast",
+      "water": true,
+      "current": [
+        120,
+        0
+      ]
+    },
+    "205": {
+      "name": "water_current_left_fast",
+      "water": true,
+      "current": [
+        -120,
+        0
+      ]
+    },
+    "206": {
+      "name": "updraft",
+      "current": [
+        0,
+        -400
+      ]
+    },
+    "207": {
+      "name": "updraft_strong",
+      "current": [
+        0,
+        -560
+      ]
+    },
+    "208": {
+      "name": "downdraft",
+      "current": [
+        0,
+        170
+      ]
+    },
+    "209": {
+      "name": "gust_right",
+      "current": [
+        80,
+        0
+      ]
+    },
+    "210": {
+      "name": "gust_left",
+      "current": [
+        -80,
+        0
+      ]
+    },
+    "211": {
+      "name": "cracked_stone",
+      "solid": true,
+      "breakable": true,
+      "break_hold": 0.35
+    },
+    "212": {
+      "name": "cracked_dirt",
+      "solid": true,
+      "breakable": true,
+      "break_hold": 0.25
+    },
+    "213": {
+      "name": "termite_wall",
+      "solid": true,
+      "breakable": true,
+      "break_hold": 0.45
+    },
+    "214": {
+      "name": "luminous_wall",
+      "solid": true,
+      "breakable": true,
+      "break_hold": 0.4
+    },
+    "215": {
+      "name": "rubble",
+      "solid": true,
+      "breakable": true,
+      "break_hold": 0.18
+    },
+    "220": {
+      "name": "ruin_stone",
+      "solid": true
+    },
+    "221": {
+      "name": "ruin_stone_algae",
+      "solid": true
+    },
+    "222": {
+      "name": "ruin_wall"
+    },
+    "223": {
+      "name": "ruin_silt",
+      "solid": true
+    },
+    "224": {
+      "name": "ruin_deep"
+    },
+    "225": {
+      "name": "ruin_column"
+    },
+    "226": {
+      "name": "ruin_slab",
+      "oneway": true
+    },
+    "227": {
+      "name": "ruin_urchin",
+      "hazard": true
+    },
+    "228": {
+      "name": "ruin_grate",
+      "solid": true
+    },
+    "229": {
+      "name": "kelp",
+      "ladder": true
+    },
+    "230": {
+      "name": "ruin_algae"
+    },
+    "231": {
+      "name": "ruin_cracked",
+      "solid": true,
+      "breakable": true
+    },
+    "240": {
+      "name": "heights_rock",
+      "solid": true
+    },
+    "241": {
+      "name": "heights_rock_sun",
+      "solid": true
+    },
+    "242": {
+      "name": "heights_wall"
+    },
+    "243": {
+      "name": "heights_scree",
+      "solid": true
+    },
+    "244": {
+      "name": "heights_air"
+    },
+    "245": {
+      "name": "heights_stack"
+    },
+    "246": {
+      "name": "heights_plank",
+      "oneway": true
+    },
+    "247": {
+      "name": "heights_vent",
+      "hazard": true
+    },
+    "248": {
+      "name": "heights_chain",
+      "ladder": true
+    },
+    "249": {
+      "name": "heights_basalt",
+      "solid": true
+    },
+    "250": {
+      "name": "heights_cloud"
+    },
+    "251": {
+      "name": "heights_shell",
+      "solid": true,
+      "breakable": true
+    },
+    "260": {
+      "name": "deep_earth",
+      "solid": true
+    },
+    "261": {
+      "name": "deep_crust",
+      "solid": true
+    },
+    "262": {
+      "name": "deep_comb"
+    },
+    "263": {
+      "name": "deep_chitin",
+      "solid": true
+    },
+    "264": {
+      "name": "deep_void"
+    },
+    "265": {
+      "name": "deep_root"
+    },
+    "266": {
+      "name": "deep_shelf",
+      "oneway": true
+    },
+    "267": {
+      "name": "deep_spore",
+      "hazard": true
+    },
+    "268": {
+      "name": "deep_ladder",
+      "ladder": true
+    },
+    "269": {
+      "name": "deep_fungus"
+    },
+    "270": {
+      "name": "deep_glowwall",
+      "solid": true,
+      "breakable": true
+    },
+    "271": {
+      "name": "deep_packed",
+      "solid": true
+    },
+    "280": {
+      "name": "obsidian",
+      "solid": true
+    },
+    "281": {
+      "name": "obsidian_hot",
+      "solid": true
+    },
+    "282": {
+      "name": "nest_wall"
+    },
+    "283": {
+      "name": "nest_block",
+      "solid": true
+    },
+    "284": {
+      "name": "nest_void"
+    },
+    "285": {
+      "name": "nest_flue"
+    },
+    "286": {
+      "name": "nest_ledge",
+      "oneway": true
+    },
+    "287": {
+      "name": "nest_shard",
+      "hazard": true
+    },
+    "288": {
+      "name": "nest_chain",
+      "ladder": true
+    },
+    "289": {
+      "name": "nest_vein"
+    },
+    "290": {
+      "name": "nest_plate",
+      "solid": true
+    },
+    "291": {
+      "name": "nest_crust",
+      "solid": true,
+      "breakable": true
+    }
   }
 }
