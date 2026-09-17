@@ -1,0 +1,70 @@
+{
+  "id": "charger",
+  "display_name": "THORN BOAR",
+  "sprite": "res://assets/sprites/enemy_charger.png",
+  "frame_w": 16,
+  "frame_h": 16,
+  "hitbox": {
+    "w": 14,
+    "h": 11,
+    "ox": 1,
+    "oy": 5
+  },
+  "health": 3,
+  "contact_damage": 1,
+  "score": 250,
+  "gravity": 720.0,
+  "speed": 26.0,
+  "turn_at_ledge": true,
+  "ledge_lookahead": 2.0,
+  "turn_cooldown": 0.15,
+  "sight_range": 140.0,
+  "sight_band": 20.0,
+  "sight_step": 6.0,
+  "wind_up": 0.55,
+  "charge_speed": 165.0,
+  "charge_time": 0.85,
+  "charge_commits": true,
+  "recover": 1.1,
+  "wall_recover": 1.3,
+  "skid_decel": 240.0,
+  "sfx_windup": "blip",
+  "sfx_charge": "hop",
+  "sfx_stagger": "land",
+  "death_fx": "scatter",
+  "hitstop": "kill",
+  "drops": {
+    "gem": 0.55,
+    "heart": 0.1
+  },
+  "anim": {
+    "move": {
+      "frames": [
+        0,
+        1
+      ],
+      "fps": 6
+    },
+    "windup": {
+      "frames": [
+        2,
+        3
+      ],
+      "fps": 5,
+      "loop": false
+    },
+    "charge": {
+      "frames": [
+        4,
+        5
+      ],
+      "fps": 14
+    },
+    "dazed": {
+      "frames": [
+        6
+      ],
+      "fps": 1
+    }
+  }
+}
