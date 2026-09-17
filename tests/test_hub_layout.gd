@@ -1,5 +1,5 @@
 extends TestCase
-## Structure of the 25-door overworld, levels/hub_v2.json (built by
+## Structure of the 25-door overworld, staging/hub_v2.json (built by
 ## tools/build_hub.py).
 ##
 ## The walkability proof lives next door in tests/test_hub_walkable.gd. This
@@ -14,15 +14,21 @@ const TS := TileData4.TILE_SIZE
 var def: LevelLoader.LevelDef = null
 var doors: Array = []
 
-## tools/build_hub.py writes levels/hub_v2.json; the merge that adopts it
+## tools/build_hub.py writes staging/hub_v2.json; the merge that adopts it
 ## renames that to levels/hub.json. Follow the file, so this proof does not
 ## quietly stop running on the day it becomes the real overworld.
 func _hub_id() -> String:
-	return "hub_v2" if FileAccess.file_exists("res://levels/hub_v2.json") else "hub"
+	return "hub_v2" if FileAccess.file_exists("res://staging/hub_v2.json") else "hub"
+
+
+func _load_hub() -> LevelLoader.LevelDef:
+	if FileAccess.file_exists("res://staging/hub_v2.json"):
+		return LevelLoader.load_path("res://staging/hub_v2.json", "hub_v2")
+	return LevelLoader.load_level("hub")
 
 func before_each() -> void:
 	if def == null:
-		def = LevelLoader.load_level(_hub_id())
+		def = _load_hub()
 		if def.ok():
 			doors = def.entities_of("hub_door")
 

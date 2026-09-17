@@ -35,7 +35,7 @@ func ok() -> bool:
 	return error == ""
 
 static func tape_path(id: String) -> String:
-	return "res://levels/%s.tape.json" % id
+	return "res://proofs/%s.tape.json" % id
 
 static func level_path(id: String) -> String:
 	return "res://levels/%s.json" % id

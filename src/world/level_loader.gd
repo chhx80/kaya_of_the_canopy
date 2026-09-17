@@ -58,7 +58,12 @@ static func list_levels() -> PackedStringArray:
 	d.list_dir_begin()
 	var f := d.get_next()
 	while f != "":
-		if f.ends_with(".json"):
+		# A proof tape is not a level. They live in proofs/ for exactly this
+		# reason, but the rule is repeated here because the consequence of one
+		# slipping back in is severe and silent: every id this returns must be
+		# completed before the hub's requires_all door opens, so a stray
+		# levels/x.tape.json makes the FINAL DOOR UNOPENABLE in a shipped build.
+		if f.ends_with(".json") and not f.ends_with(".tape.json"):
 			out.append(f.get_basename())
 		f = d.get_next()
 	d.list_dir_end()
@@ -66,9 +71,16 @@ static func list_levels() -> PackedStringArray:
 	return out
 
 static func load_level(id: String) -> LevelDef:
+	return load_path(level_path(id), id)
+
+
+## Load a level from an explicit path. Used for levels that are built but not yet
+## part of the game -- staging/ holds those, and staging/ is deliberately outside
+## LEVEL_DIR so list_levels() never sees them. A hub with doors to twenty levels
+## that do not exist is not something to ship while they do not exist.
+static func load_path(path: String, id: String = "") -> LevelDef:
 	var def := LevelDef.new()
-	def.id = id
-	var path := level_path(id)
+	def.id = id if id != "" else path.get_file().get_basename()
 	var f := FileAccess.open(path, FileAccess.READ)
 	if f == null:
 		def.errors.append("cannot open %s" % path)

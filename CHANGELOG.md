@@ -648,3 +648,37 @@ auto-shading as the jungle set — `tools/genart.sh`.
 - Screenshots: `shots/world_{ruins,heights,deeps,obsidian}_sheet.png`, each
   four panels — the world drawn by the running game, the same world with all
   four forms standing in it, the parallax alone, and the twelve tiles.
+
+## Wave 1 integration — the proofs and the game disagree
+
+All eight parallel branches are merged. The headline is not the merge, it is
+what the merge revealed: **the prover's tapes do not reproduce in the real
+game.** Five of six levels fail to replay.
+
+That is the two-tier design working. The prover proves geometry against the
+shipping movement code; the replay tier plays the recorded buttons in the real
+booted level. They disagree, so one of them is wrong — and until that is
+resolved, a `PROVED` verdict is worth less than ADR 005 claims.
+
+Two causes are known. The first is fixed, the second is not:
+
+1. **Damage desynchronises a tape completely.** `player.gd` clears the input for
+   the duration of `hurt_t`, so every press after first contact with an enemy
+   lands on a different frame than the one it was recorded for. The prover does
+   not simulate enemies, so its tapes walk straight into them. All six levels
+   failed on this, `test_arena` included — one screen, one walker. The replay
+   now runs Kaya unhittable and says so in the code: this tier proves the
+   buttons drive the real level through real doors, switches, pads and the
+   screen-flip freeze. It does **not** prove survival, and it no longer pretends
+   to.
+
+2. **Four of the five remaining failures involve vine columns**, and one of them
+   walks off the world entirely. Ladder detection is pure and identical on both
+   sides, so the divergence is elsewhere — most likely that the prover applies a
+   hop's entity effects at the hop boundary, while the real game applies them on
+   the frame Kaya actually overlaps the pad or pickup. Unproven. The diagnostic
+   that settles it is a frame-by-frame position comparison between the prover's
+   sim and the booted game on one tape.
+
+`jungle_4` replays cleanly, all sixteen hops, which is why this reads as a
+specific divergence rather than a broken harness.

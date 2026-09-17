@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Builds levels/hub_v2.json — the 25-door overworld (M6).
+"""Builds staging/hub_v2.json — the 25-door overworld (M6).
 
 Standalone on purpose. `tools/build_levels.py` owns the five-door 50x15 hub and
 is not touched by this file; nothing here imports from it, so the two can be

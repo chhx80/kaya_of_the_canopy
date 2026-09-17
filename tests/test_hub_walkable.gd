@@ -1,5 +1,5 @@
 extends TestCase
-## Proof that every gateway on levels/hub_v2.json can actually be reached.
+## Proof that every gateway on staging/hub_v2.json can actually be reached.
 ##
 ## The overworld is top-down with no gravity, so none of the platformer
 ## reachability rules apply — but "the door is on the map" is exactly the kind
@@ -55,15 +55,21 @@ var _pw := 0
 var _ph := 0
 var _flooded := false
 
-## tools/build_hub.py writes levels/hub_v2.json; the merge that adopts it
+## tools/build_hub.py writes staging/hub_v2.json; the merge that adopts it
 ## renames that to levels/hub.json. Follow the file, so this proof does not
 ## quietly stop running on the day it becomes the real overworld.
 func _hub_id() -> String:
-	return "hub_v2" if FileAccess.file_exists("res://levels/hub_v2.json") else "hub"
+	return "hub_v2" if FileAccess.file_exists("res://staging/hub_v2.json") else "hub"
+
+
+func _load_hub() -> LevelLoader.LevelDef:
+	if FileAccess.file_exists("res://staging/hub_v2.json"):
+		return LevelLoader.load_path("res://staging/hub_v2.json", "hub_v2")
+	return LevelLoader.load_level("hub")
 
 func before_each() -> void:
 	if def == null:
-		def = LevelLoader.load_level(_hub_id())
+		def = _load_hub()
 		if def.ok():
 			doors = def.entities_of("hub_door")
 	if not _flooded and def.ok():

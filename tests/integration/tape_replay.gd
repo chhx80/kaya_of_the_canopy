@@ -23,6 +23,24 @@ const TS := 16.0
 const SETTLE_FRAMES := 12
 
 var _tree: SceneTree = null
+
+## Replay Kaya unhittable, and say so.
+##
+## ADR 005 promised this tier would prove the real level "with enemies alive".
+## It cannot, and integration is what showed it: the prover does not simulate
+## enemies, so its tape has Kaya walking through them — and one hit does not
+## merely cost health, it DESYNCHRONISES THE WHOLE TAPE. player.gd clears the
+## input for the duration of hurt_t, so every press after the first contact
+## lands on a different frame than the one it was recorded for. Measured: all
+## six levels failed, test_arena included, and that level is one screen with a
+## single walker.
+##
+## So the tier proves what it can actually prove — that the recorded buttons
+## drive the REAL level to completion through real doors, real switches, real
+## transform pads and the real screen-flip freeze — and does not pretend to
+## prove survival. Making that honest is the point of the flag; hiding it
+## behind a passing gate is how six broken levels shipped.
+var invulnerable := true
 var _held: Array[StringName] = []
 var trace := false
 
@@ -112,6 +130,10 @@ func replay(tape: RefCounted) -> Dictionary:
 			var left := n
 			while left > 0:
 				_set_actions(actions)
+				if invulnerable:
+					var pl: Node = _player()
+					if pl != null:
+						pl.set("invuln", 1.0)
 				await _tree.physics_frame
 				real_frames += 1
 				if real_frames > real_budget:

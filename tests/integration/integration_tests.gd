@@ -297,7 +297,7 @@ func run_replays() -> void:
 		if _only != "" and not _current.contains(_only):
 			continue
 		if not TAPE.exists_for(id):
-			skip("%s: no proof tape at levels/%s.tape.json — run tools/prove.sh %s"
+			skip("%s: no proof tape at proofs/%s.tape.json — run tools/prove.sh %s"
 				% [_current, id, id])
 			continue
 		var tape: RefCounted = TAPE.load_for(id)

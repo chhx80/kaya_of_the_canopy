@@ -1860,6 +1860,116 @@ def T_AT(tid, img):
     TILE_DEFS.append(img)
 
 
+# ------------------------------------------------------------- movement verbs
+# Ids 200-219 are the verbs added for worlds 2-4: currents, drafts and walls you
+# can break. They are painted here rather than by the agent that gave them
+# behaviour, because that agent owns flags and numbers and this file owns pixels.
+# A verb you cannot SEE is a verb that reads as a bug: a current has to announce
+# which way it pushes before it pushes you, or the room is unfair.
+
+def t_current(seed, dx, dy, fast=False):
+    """Water with chevrons running the way it pushes."""
+    img = t_water(seed)
+    rnd = random.Random(seed + 7)
+    n = 3 if fast else 2
+    for i in range(n):
+        off = rnd.randrange(TS)
+        for k in range(-3, 4):
+            a = abs(k)
+            if dx:
+                x = (off + k * (1 if dx > 0 else -1)) % TS
+                y = (off * 5 + 4 + i * 6 + a) % TS
+                put(img, x, y, "water", 6.4 if fast else 5.9)
+                put(img, (x - (1 if dx > 0 else -1)) % TS, y, "water", 5.2)
+            else:
+                y = (off + k * (1 if dy > 0 else -1)) % TS
+                x = (off * 5 + 4 + i * 6 + a) % TS
+                put(img, x, y, "water", 6.4 if fast else 5.9)
+                put(img, x, (y - (1 if dy > 0 else -1)) % TS, "water", 5.2)
+    return img
+
+
+def t_draft(seed, dy, strong=False, sideways=0):
+    """Moving air. Mostly transparent — it sits in front of the backdrop."""
+    img = tile(0)
+    rnd = random.Random(seed)
+    streaks = 5 if strong else 3
+    for i in range(streaks):
+        x = rnd.randrange(TS)
+        y = rnd.randrange(TS)
+        run = rnd.randrange(4, 9)
+        for k in range(run):
+            lvl = 6.6 - abs(k - run * 0.5) * 0.35
+            if sideways:
+                px, py = (x + k * sideways) % TS, (y + (k // 5)) % TS
+            else:
+                px, py = (x + (k // 4)) % TS, (y + k * (1 if dy > 0 else -1)) % TS
+            put(img, px, py, "cloth", lvl, alpha=150 if strong else 110)
+    return img
+
+
+def t_cracked(seed, base):
+    """A wall the blade can open. The cracks are the tell."""
+    img = t_stone(seed) if base == "stone" else t_dirt(seed)
+    rnd = random.Random(seed + 3)
+    ramp = "stone" if base == "stone" else "dirt"
+    for _ in range(3):
+        crack(img, ramp, rnd.randrange(2, TS - 2), rnd.randrange(1, 5),
+              rnd.randrange(6, 11), 1.4, rnd)
+    return img
+
+
+def t_termite_wall(seed):
+    img = t_dirt(seed)
+    rnd = random.Random(seed + 5)
+    for _ in range(14):                       # chewed cells
+        wrap_blob(img, "dirt", rnd.randrange(TS), rnd.randrange(TS),
+                  rnd.uniform(0.9, 1.8), rnd.uniform(0.8, 1.5), 2.2,
+                  lit=0.7, dark=1.5)
+    return img
+
+
+def t_luminous_wall(seed):
+    """Breakable, and the only light in a dark room — so breaking it is a
+    choice, not a freebie."""
+    img = t_stone(seed, mossy=False)
+    rnd = random.Random(seed + 9)
+    for _ in range(3):
+        x, y = rnd.randrange(2, TS - 2), rnd.randrange(2, TS - 2)
+        for k in range(rnd.randrange(4, 8)):
+            put(img, (x + k) % TS, (y + (k // 2)) % TS, "gold", 6.5)
+            put(img, (x + k) % TS, (y + (k // 2) + 1) % TS, "gold", 4.6)
+    return img
+
+
+def t_rubble(seed):
+    """What a broken wall leaves. Not solid; it is dressing."""
+    img = tile(0)
+    rnd = random.Random(seed)
+    for _ in range(9):
+        x, y = rnd.randrange(TS), rnd.randrange(10, TS)
+        blob(img, "stone", x, y, rnd.uniform(0.8, 1.6), rnd.uniform(0.7, 1.2), 3.0)
+    return img
+
+
+T_AT(200, t_current(2001, 1, 0))                      # water current, east
+T_AT(201, t_current(2011, -1, 0))                     # water current, west
+T_AT(202, t_current(2021, 0, -1))                     # water current, up
+T_AT(203, t_current(2031, 0, 1))                      # water current, down
+T_AT(204, t_current(2041, 1, 0, fast=True))           # fast current, east
+T_AT(205, t_current(2051, -1, 0, fast=True))          # fast current, west
+T_AT(206, t_draft(2061, -1))                          # updraft
+T_AT(207, t_draft(2071, -1, strong=True))             # strong updraft
+T_AT(208, t_draft(2081, 1))                           # downdraft
+T_AT(209, t_draft(2091, 0, sideways=1))               # gust, east
+T_AT(210, t_draft(2101, 0, sideways=-1))              # gust, west
+T_AT(211, t_cracked(2111, "stone"))                   # cracked stone
+T_AT(212, t_cracked(2121, "dirt"))                    # cracked dirt
+T_AT(213, t_termite_wall(2131))                       # termite wall
+T_AT(214, t_luminous_wall(2141))                      # luminous wall
+T_AT(215, t_rubble(2151))                             # rubble
+
+
 # 2. SUNKEN RUINS
 T_AT(220, t_ruin_stone(2201))                         # waterlogged ashlar
 T_AT(221, t_ruin_stone(2211, algae=True))             # ... capped with algae
