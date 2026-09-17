@@ -5,7 +5,7 @@ extends FormBase
 var _cling := 0.0
 var _cling_dir := 0
 
-func update(p: Actor, input: InputState, delta: float) -> void:
+func step(p: Actor, input: InputState, delta: float) -> void:
 	var wet := p.submerged()
 	tick_timers(p, input, delta)
 
@@ -21,11 +21,11 @@ func update(p: Actor, input: InputState, delta: float) -> void:
 		_cling = maxf(0.0, _cling - delta)
 		p.facing = -_cling_dir
 		if input.jump_pressed:
-			p.vel.y = float(cfg.get("wall_jump_vel", -305.0))
-			p.vel.x = -_cling_dir * float(cfg.get("wall_jump_push", 120.0))
+			p.vel.y = float(cfg.get("wall_jump_vel", -305.0)) + current.y
+			p.vel.x = -_cling_dir * float(cfg.get("wall_jump_push", 120.0)) + current.x
 			_cling = 0.0
 			buffer = 0.0
-			AudioManager.play("jump")
+			sfx("jump")
 			return
 	else:
 		_cling = maxf(0.0, _cling - delta)
@@ -34,10 +34,10 @@ func update(p: Actor, input: InputState, delta: float) -> void:
 	apply_gravity(p, delta, wet)
 	if clinging:
 		# Clamp *after* gravity, or the slide speed drifts up by g*dt each tick.
-		p.vel.y = minf(p.vel.y, float(cfg.get("wall_slide_speed", 34.0)))
+		p.vel.y = minf(p.vel.y, float(cfg.get("wall_slide_speed", 34.0)) + current.y)
 	if can_jump_now(p):
 		do_jump(p, water_jump_scale if wet else 1.0)
-		AudioManager.play("hop")
+		sfx("hop")
 	if input.jump_released and p.vel.y < 0.0:
 		p.vel.y *= jump_cut
 

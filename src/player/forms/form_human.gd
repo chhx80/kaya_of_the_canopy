@@ -11,7 +11,7 @@ var _drop_timer := 0.0
 var _land_t := 0.0
 var _air_vy := 0.0
 
-func update(p: Actor, input: InputState, delta: float) -> void:
+func step(p: Actor, input: InputState, delta: float) -> void:
 	var wet := p.submerged()
 	var ladder := can_climb and p.on_ladder()
 	tick_timers(p, input, delta)
@@ -48,18 +48,20 @@ func update(p: Actor, input: InputState, delta: float) -> void:
 
 	if can_jump_now(p):
 		do_jump(p, water_jump_scale if wet else 1.0)
-		AudioManager.play("jump")
+		sfx("jump")
 	elif wet and input.jump_pressed:
 		# Swimming up: a weak repeated stroke rather than a real jump.
-		p.vel.y = jump_vel * 0.45
+		p.vel.y = jump_vel * 0.45 + current.y
 		buffer = 0.0
 	# variable jump height
 	if input.jump_released and p.vel.y < 0.0:
 		p.vel.y *= jump_cut
 
 func _climb(p: Actor, input: InputState, delta: float) -> void:
-	p.vel.y = input.axis_y() * climb_speed
-	p.vel.x = input.axis_x() * climb_speed * 0.7
+	# Climbing speeds are relative to the medium too: a vine in a draught pulls
+	# you up it, and a vine in a river is not a handhold that ignores the river.
+	p.vel.y = input.axis_y() * climb_speed + current.y
+	p.vel.x = input.axis_x() * climb_speed * 0.7 + current.x
 	if bool(cfg.get("climb_snap", true)) and absf(input.axis_x()) < 0.01:
 		# Snap to the middle of the vine column so climbing looks deliberate.
 		var col := int(floor(p.center().x / TileData4.TILE_SIZE))
@@ -68,7 +70,7 @@ func _climb(p: Actor, input: InputState, delta: float) -> void:
 	if input.jump_pressed:
 		climbing = false
 		do_jump(p)
-		AudioManager.play("jump")
+		sfx("jump")
 	elif p.on_floor and input.down:
 		climbing = false
 

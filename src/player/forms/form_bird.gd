@@ -4,7 +4,7 @@ extends FormBase
 
 var _flap_cd := 0.0
 
-func update(p: Actor, input: InputState, delta: float) -> void:
+func step(p: Actor, input: InputState, delta: float) -> void:
 	var wet := p.submerged()
 	tick_timers(p, input, delta)
 	_flap_cd = maxf(0.0, _flap_cd - delta)
@@ -12,10 +12,12 @@ func update(p: Actor, input: InputState, delta: float) -> void:
 	run_axis(p, input.axis_x(), delta, water_move_scale if wet else 1.0)
 
 	var gliding := input.jump and p.vel.y > 0.0 and stamina > 0.0 and not wet
-	var g := float(cfg.get("glide_gravity", 105.0)) if gliding else gravity
-	if wet:
-		g *= water_gravity_scale
-	p.vel.y = minf(p.vel.y + g * delta, water_max_fall if wet else max_fall)
+	var g := gravity
+	if gliding:
+		g = float(cfg.get("glide_gravity", 105.0))
+	# Shared with every other form, so an updraft lifts the bird by the same rule
+	# that lifts the frog — it is one feature, not a flight special case.
+	apply_gravity(p, delta, wet, g)
 
 	if p.on_floor:
 		# Perched: refill faster than in the air.
@@ -24,15 +26,15 @@ func update(p: Actor, input: InputState, delta: float) -> void:
 				+ float(cfg.get("perch_regen_bonus", 34.0))) * delta)
 		if can_jump_now(p):
 			do_jump(p, water_jump_scale if wet else 1.0)
-			AudioManager.play("flap")
+			sfx("flap")
 	else:
 		stamina = minf(max_stamina, stamina + float(cfg.get("stamina_regen", 46.0)) * delta * 0.25)
 		var cost := float(cfg.get("flap_cost", 12.0))
 		if input.jump and _flap_cd <= 0.0 and stamina >= cost:
 			stamina -= cost
-			p.vel.y = float(cfg.get("flap_vel", -172.0))
+			p.vel.y = float(cfg.get("flap_vel", -172.0)) + current.y
 			_flap_cd = float(cfg.get("flap_interval", 0.24))
-			AudioManager.play("flap")
+			sfx("flap")
 
 func anim_for(p: Actor) -> String:
 	if not p.on_floor:

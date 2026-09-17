@@ -64,6 +64,18 @@
       "boss_kill": 0.18
     }
   },
+  "darkness": {
+    "_comment": "World 4, Termite Deeps. A level turns this on with \"darkness\": 0.86 in data/ambience.json (or an object overriding any field below). It is a full-screen shade quad plus one additive pool that follows the player — the same two mechanisms AmbienceLayer already draws for the vignette and the authored lights, so a dark level costs two more quads and nothing else. Defaults live here rather than in ambience.gd because src/fx/ holds the mechanism and data/ holds every number.",
+    "_why_visual_only": "The Route Prover cannot see light. A level whose solvability depended on what you could see would be unprovable, so darkness never reaches collision, movement or the tile flags — it is drawn over the world and under the entities, and the player, enemies and pickups stay at full contrast.",
+    "shade": { "ramp": "water", "step": 0 },
+    "radius": 74.0,
+    "intensity": 0.80,
+    "ramp": "gold",
+    "step": 5,
+    "flicker": 0.08,
+    "rate": 1.6
+  },
+
   "timings": {
     "land_dust_min_fall": 170.0,
     "gem_shimmer_interval": 0.85,

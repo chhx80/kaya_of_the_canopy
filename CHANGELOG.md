@@ -560,3 +560,57 @@ happily jumped through the very slab it was landing on. It now models a move
 the way it is played: rise in the start column to a travel row, cross at that
 row, drop into the destination column. A self-test pins both this and the
 earlier jump-through-walls case, and fails if either is reintroduced.
+
+## M2-M4 — the engine verbs the later worlds are built on
+
+Four new verbs for worlds 2, 3 and 4. Three of them change where the player
+ends up, so all three live in the *tile flags* and are applied inside
+`FormBase.update()` — never in a Node. The Route Prover (ADR 005) drives
+`form.update()` + `actor.step_motion()` and nothing else, so anything it cannot
+see is something it would prove a level without. Every case below is exercised
+headlessly against a real `TileWorld`, with no scene tree, no `Level` and no
+`Player` in the loop.
+
+**Currents and updrafts — one feature, two data configurations.** A tile may
+declare `"current": [vx, vy]` in px/s: the velocity of the medium standing in
+it. `FormBase.current_at()` samples the tiles the hitbox overlaps, weighted by
+how much of the hitbox is in each, and `FormBase.current` then offsets every
+target the form steers towards — the run target, terminal velocity, the swim
+vector, a jump, a flap, a climb. So a form always moves *relative to the water*:
+the fish's own 92 px/s against a 68 px/s push is 24 px/s of headway, and the
+120 px/s push is a one-way gate. Ids 200-205 are water pushes for the Sunken
+Ruins, 206-210 air for Thermal Heights. Weighted rather than all-or-nothing
+because a step function on a tile edge makes the answer depend on which side of
+a single pixel you are, and six pixels is what cost this project a level.
+
+`apply_gravity()` now falls with `move_toward` instead of `min(v + g·dt, cap)`,
+because an updraft puts the cap *below* your current speed and walking into one
+at full fall speed has to decelerate at gravity rather than snap. The two are
+identical below the cap, so every measured arc is unchanged — the frog's real
+apex is still 5.34 tiles, pinned by a test.
+
+Measured, and it is a fact level authors need: because the push is weighted, a
+rider does not shoot out of the top of a draught. The lift tapers as the hitbox
+leaves it and you settle hovering with your head clear of the lip. You leave by
+steering sideways, or — as the bird — by flapping. You cannot jump out; you were
+never on the ground.
+
+**Breakable walls.** Crate-breaking generalised: any `breakable` tile may
+declare `"break_hold"`, the seconds of shouldering it takes to open without a
+weapon. Hold attack and press into it; up and down beat facing, so a frog can
+dig a ceiling or a floor. Ids 211-215. The frog carries no weapon and is half of
+the Termite Deeps, and the blade is a Node the prover cannot see, so the verb
+lives on the form instead. Crates declare no `break_hold` and so behave exactly
+as they have for five levels: blade only.
+
+**Darkness.** `"darkness": 0.86` on a level's `data/ambience.json` entry draws a
+palette-ramp shade over the whole screen and one additive pool that follows
+Kaya, with the defaults in `data/fx.json`. Drawn over the tiles and under the
+entities, so a dark level *raises* the contrast between her and the ground.
+
+It is visual only, and that is a constraint rather than an omission: the prover
+cannot see, so a level whose solvability turned on what was lit could never be
+proved. `tests/test_verbs_darkness.gd` holds it to that by running 240 ticks of
+the same inputs lit and dark for three forms and requiring the traces to agree
+to the last float. `tools/shot.sh --darkness=0.9` forces any level dark for
+tuning and capture; `shots/m4_darkness.png` is the before and after.
