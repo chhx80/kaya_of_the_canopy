@@ -1,0 +1,50 @@
+{
+ "id": "b_oneway_headroom_fixed",
+ "name": "ONE-WAY, ONE TILE OF HEADROOM (REPAIRED)",
+ "music": "",
+ "next_level": "",
+ "topdown": false,
+ "fg": [
+  "ssssssssssssss",
+  "ssssssssssssss",
+  "ssssssssssssss",
+  "ssssssssssssss",
+  "ssssssssssssss",
+  "s............s",
+  "s............s",
+  "ssss======ssss",
+  "ssss^^^^^^ssss",
+  "ssssssssssssss"
+ ],
+ "bg": [
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  ".............."
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 2,
+   "y": 6
+  },
+  {
+   "type": "exit",
+   "x": 11,
+   "y": 6
+  }
+ ],
+ "route": [
+  {
+   "from": "spawn",
+   "to": "exit",
+   "form": "human"
+  }
+ ]
+}

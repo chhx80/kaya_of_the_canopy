@@ -1,0 +1,48 @@
+{
+ "id": "a_vine_no_exit_fixed",
+ "name": "VINE WITH NO EXIT (REPAIRED)",
+ "music": "",
+ "next_level": "",
+ "topdown": false,
+ "fg": [
+  "ssssssssssssss",
+  "s............s",
+  "s............s",
+  "s..|ssssssssss",
+  "s..|.........s",
+  "s..|.........s",
+  "s..|.........s",
+  "ssss^^^^^^^^^s",
+  "ssssssssssssss"
+ ],
+ "bg": [
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  ".............."
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 3,
+   "y": 6
+  },
+  {
+   "type": "exit",
+   "x": 11,
+   "y": 2
+  }
+ ],
+ "route": [
+  {
+   "from": "spawn",
+   "to": "exit",
+   "form": "human"
+  }
+ ]
+}

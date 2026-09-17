@@ -1,0 +1,60 @@
+{
+ "id": "d_fish_bank_fixed",
+ "name": "A BANK THE FISH CANNOT CLEAR (REPAIRED)",
+ "music": "",
+ "next_level": "",
+ "topdown": false,
+ "fg": [
+  "ssssssssssssss",
+  "s............s",
+  "s............s",
+  "s............s",
+  "s.........ssss",
+  "ssss~~~~~~ssss",
+  "sssswwwwwwssss",
+  "sssswwwwwwssss",
+  "sssswwwwwwssss",
+  "ssssssssssssss"
+ ],
+ "bg": [
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  ".............."
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 2,
+   "y": 4
+  },
+  {
+   "type": "pad_fish",
+   "x": 6,
+   "y": 7
+  },
+  {
+   "type": "exit",
+   "x": 11,
+   "y": 3
+  }
+ ],
+ "route": [
+  {
+   "from": "spawn",
+   "to": "pad_fish",
+   "form": "human"
+  },
+  {
+   "from": "pad_fish",
+   "to": "exit",
+   "form": "fish"
+  }
+ ]
+}
