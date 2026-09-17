@@ -198,5 +198,68 @@
    "x": 46,
    "y": 26
   }
+ ],
+ "marks": {
+  "vine_foot": {
+   "x": 21,
+   "y": 26
+  },
+  "canopy_ledge": {
+   "x": 19,
+   "y": 9
+  },
+  "east_ledge": {
+   "x": 26,
+   "y": 9
+  },
+  "branch": {
+   "x": 35,
+   "y": 7
+  },
+  "ledge_b": {
+   "x": 41,
+   "y": 5
+  },
+  "arena_floor": {
+   "x": 38,
+   "y": 26
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "vine_foot",
+   "form": "human"
+  },
+  {
+   "from": "vine_foot",
+   "to": "canopy_ledge",
+   "form": "human"
+  },
+  {
+   "from": "canopy_ledge",
+   "to": "east_ledge",
+   "form": "human"
+  },
+  {
+   "from": "east_ledge",
+   "to": "branch",
+   "form": "human"
+  },
+  {
+   "from": "branch",
+   "to": "ledge_b",
+   "form": "human"
+  },
+  {
+   "from": "ledge_b",
+   "to": "arena_floor",
+   "form": "human"
+  },
+  {
+   "from": "arena_floor",
+   "to": "boss_exit",
+   "form": "human"
+  }
  ]
 }

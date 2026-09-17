@@ -169,5 +169,104 @@
    "x": 47,
    "y": 26
   }
+ ],
+ "marks": {
+  "vine_foot": {
+   "x": 21,
+   "y": 26
+  },
+  "vine_top": {
+   "x": 21,
+   "y": 6
+  },
+  "branch_a": {
+   "x": 24,
+   "y": 5
+  },
+  "branch_b": {
+   "x": 31,
+   "y": 7
+  },
+  "branch_c": {
+   "x": 37,
+   "y": 9
+  },
+  "branch_d": {
+   "x": 43,
+   "y": 7
+  },
+  "descent_1": {
+   "x": 46,
+   "y": 11
+  },
+  "descent_2": {
+   "x": 46,
+   "y": 16
+  },
+  "descent_3": {
+   "x": 41,
+   "y": 20
+  },
+  "descent_4": {
+   "x": 39,
+   "y": 23
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "vine_foot",
+   "form": "human"
+  },
+  {
+   "from": "vine_foot",
+   "to": "vine_top",
+   "form": "human"
+  },
+  {
+   "from": "vine_top",
+   "to": "branch_a",
+   "form": "human"
+  },
+  {
+   "from": "branch_a",
+   "to": "branch_b",
+   "form": "human"
+  },
+  {
+   "from": "branch_b",
+   "to": "branch_c",
+   "form": "human"
+  },
+  {
+   "from": "branch_c",
+   "to": "branch_d",
+   "form": "human"
+  },
+  {
+   "from": "branch_d",
+   "to": "descent_1",
+   "form": "human"
+  },
+  {
+   "from": "descent_1",
+   "to": "descent_2",
+   "form": "human"
+  },
+  {
+   "from": "descent_2",
+   "to": "descent_3",
+   "form": "human"
+  },
+  {
+   "from": "descent_3",
+   "to": "descent_4",
+   "form": "human"
+  },
+  {
+   "from": "descent_4",
+   "to": "exit",
+   "form": "human"
+  }
  ]
 }
