@@ -22,18 +22,61 @@ SCREEN_W, SCREEN_H = 25, 15   # tiles per screen at 400x240 / 16px
 TERMINAL_WAYPOINTS = ("exit", "boss_exit")
 
 
-def _tile_flags():
+_LEGEND_DOC = None
+
+
+def legend_doc():
+    global _LEGEND_DOC
+    if _LEGEND_DOC is None:
+        with open(os.path.join(ROOT, "data/level_legend.json")) as f:
+            _LEGEND_DOC = json.load(f)
+    return _LEGEND_DOC
+
+
+def default_tileset():
+    return legend_doc().get("default_tileset", "jungle")
+
+
+def tileset_names():
+    return sorted(legend_doc().get("tilesets", {}))
+
+
+def legend_for(tileset):
+    """char -> tile id for one world: the shared characters plus its own.
+
+    Mirrors LevelLoader.legend_for(). A name the file does not define raises,
+    because a level built against a tileset the game cannot resolve would fail
+    at load and there is no reason to write it out first.
+    """
+    doc = legend_doc()
+    sets = doc.get("tilesets", {})
+    if tileset not in sets:
+        raise ValueError(
+            "tileset '%s' is not defined in data/level_legend.json (it defines %s)"
+            % (tileset, ", ".join(tileset_names())))
+    merged = dict(doc.get("shared", {}))
+    merged.update(sets[tileset])
+    return merged
+
+
+def _tile_flags(tileset):
     """char -> gameplay flags, straight from the two files the game reads.
 
     Only used to sanity-check marks; the level JSON still carries characters.
     """
     tiles = json.load(open(os.path.join(ROOT, "data/tiles.json")))["tiles"]
-    legend = json.load(open(os.path.join(ROOT, "data/level_legend.json")))["legend"]
-    return {ch: tiles.get(str(tid), {}) for ch, tid in legend.items()}
+    return {ch: tiles.get(str(tid), {}) for ch, tid in legend_for(tileset).items()}
 
 
 class Grid:
-    def __init__(self, w, h, fill="."):
+    def __init__(self, w, h, fill=".", tileset=None):
+        ## Which per-world legend this grid's characters are read against
+        ## (ADR 002). '#' is this world's ground, '|' its ladder, and so on --
+        ## so the idioms below (ground(), platform(), vine()) build any world.
+        ## A level only serialises the key when it is not the default, which is
+        ## what keeps the jungle levels byte-identical.
+        self.tileset = tileset or default_tileset()
+        legend_for(self.tileset)          # raises now, not at write() time
         self.w, self.h = w, h
         self.fg = [[fill] * w for _ in range(h)]
         self.bg = [["."] * w for _ in range(h)]
@@ -60,7 +103,7 @@ class Grid:
 
     # -- level idioms -------------------------------------------------------
     def ground(self, x, y, w, depth=None):
-        """Grass-capped dirt shelf with rounded edges."""
+        """Capped shelf: this world's ground over this world's fill."""
         depth = depth if depth is not None else self.h - y
         self.hline(x, y, w, "#")
         self.rect(x, y + 1, w, max(0, depth - 1), "d")
@@ -82,7 +125,8 @@ class Grid:
             self.put(x + (0 if vertical else i), y - (i if vertical else 0), "c")
 
     def canopy(self, x, y, w, h):
-        """Decorative leaf mass on the background layer."""
+        """Decorative mass on the background layer -- leaves in the jungle,
+        this world's background wall everywhere else."""
         self.rect(x, y, w, h, "L", "bg")
 
     def trunk(self, x, y, h):
@@ -192,7 +236,7 @@ class Grid:
         # A waypoint the player cannot physically occupy is a typo that would
         # cost a whole prover run to discover. Two tiles, because the human
         # hitbox is 22px.
-        flags = _tile_flags()
+        flags = _tile_flags(self.tileset)
         for name, m in sorted(self.marks.items()):
             for dy in (0, -1):
                 y = m["y"] + dy
@@ -211,9 +255,34 @@ class Grid:
                                  % (level_id, name, m["x"], m["y"]))
 
     # -- output -------------------------------------------------------------
+    def _check_characters(self, level_id):
+        """Every character in the grid has to mean something in this world.
+
+        The game refuses to load a level that names a character its tileset
+        does not define (LevelLoader.from_dict returns no world at all). This
+        catches the same mistake one step earlier, while the author is still
+        looking at it, and names the tileset it was checked against.
+        """
+        legend = legend_for(self.tileset)
+        bad = {}
+        for layer, rows in (("fg", self.fg), ("bg", self.bg)):
+            for y, row in enumerate(rows):
+                for x, ch in enumerate(row):
+                    if ch not in legend:
+                        bad.setdefault(ch, (layer, x, y))
+        if bad:
+            detail = "; ".join(
+                "'%s' (%s layer, first at %d,%d)" % (ch, l, x, y)
+                for ch, (l, x, y) in sorted(bad.items()))
+            raise ValueError(
+                "%s: tileset '%s' does not define %s -- it defines %s"
+                % (level_id, self.tileset, detail,
+                   " ".join(sorted(legend))))
+
     def to_dict(self, level_id, name, music="", next_level="", topdown=False):
+        self._check_characters(level_id)
         self._check_route(level_id, topdown)
-        return {
+        d = {
             "id": level_id,
             "name": name,
             "music": music,
@@ -229,6 +298,14 @@ class Grid:
             "marks": self.marks,
             "route": self.hops,
         }
+        # Only non-default worlds carry the key. The alternative -- writing
+        # "tileset": "jungle" into every level -- would rewrite all six
+        # existing files, change their sha256, and stale every proof tape
+        # (ADR 005) for a line that says what the absence of the line already
+        # says.
+        if self.tileset != default_tileset():
+            d["tileset"] = self.tileset
+        return d
 
 
 def write(level_id, grid, name, music="", next_level="", topdown=False):
@@ -236,5 +313,6 @@ def write(level_id, grid, name, music="", next_level="", topdown=False):
     with open(path, "w") as f:
         json.dump(grid.to_dict(level_id, name, music, next_level, topdown), f, indent=1)
         f.write("\n")
-    print("%-16s %dx%d tiles  %d entities  %d route hop(s)" % (
-        level_id + ".json", grid.w, grid.h, len(grid.entities), len(grid.hops)))
+    print("%-16s %-8s %dx%d tiles  %d entities  %d route hop(s)" % (
+        level_id + ".json", grid.tileset, grid.w, grid.h,
+        len(grid.entities), len(grid.hops)))

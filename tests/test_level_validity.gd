@@ -224,6 +224,40 @@ func test_unknown_legend_characters_are_reported() -> void:
 	not_ok(def.ok(), "an unmapped character must fail validation")
 	ok(", ".join(def.errors).contains("Z"), "the error names the bad character")
 
+## Each level reads its grid against one world's legend (ADR 002). Which world
+## is a fact about the level, so it is checked here with the rest of them;
+## tests/test_level_format.gd is where the legend itself is checked.
+func test_every_level_reads_against_a_world_the_legend_defines() -> void:
+	var known := LevelLoader.tileset_names()
+	for id in ids:
+		var def := LevelLoader.load_level(id)
+		ok(known.has(def.tileset),
+			"%s names tileset '%s'; the legend defines %s"
+				% [id, def.tileset, ", ".join(known)])
+
+## Every character a level actually uses has to be one its own world defines.
+## The loader already refuses such a level, but it refuses it at load, which in
+## a shipped build is a push_error and a black screen. This says it here, in
+## the tier that runs on every change.
+func test_no_level_uses_a_character_its_own_world_does_not_define() -> void:
+	for id in ids:
+		var raw := _level_json(id)
+		if raw.is_empty():
+			continue
+		var tileset := String(raw.get("tileset", LevelLoader.default_tileset()))
+		var lg := LevelLoader.legend_for(tileset)
+		ok(not lg.is_empty(), "%s: unknown tileset '%s'" % [id, tileset])
+		if lg.is_empty():
+			continue
+		for layer in ["fg", "bg"]:
+			var rows: Array = raw.get(layer, []) as Array
+			for y in rows.size():
+				var row := String(rows[y])
+				for x in row.length():
+					ok(lg.has(row[x]),
+						"%s: '%s' at %s (%d,%d) is not in tileset '%s'"
+							% [id, row[x], layer, x, y, tileset])
+
 func test_a_level_without_a_spawn_is_rejected() -> void:
 	var def := LevelLoader.from_dict({"id": "synthetic", "fg": ["#####"], "entities": []})
 	not_ok(def.ok(), "no spawn means no level")
