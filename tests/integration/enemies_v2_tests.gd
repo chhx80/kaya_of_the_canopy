@@ -19,9 +19,22 @@ extends Node
 ## columns 14-16, a breakable crate at (18, 11).
 ##
 ## Standalone (this file owns its whole harness):
-##   $GODOT --headless --path . res://<a scene whose script is this file>
-## or fold `run_all()`'s list into tests/integration/integration_tests.gd —
-## see REPORT.md.
+##   $GODOT --headless --path . res://tests/integration/enemies_v2_runner.tscn
+##
+## Not wired into tests/integration/integration_tests.gd: this branch does not
+## own that file. To wire it in, add to `run_all()`'s list:
+##     "t_enemies_v2",
+## and the method:
+##     func t_enemies_v2() -> void:
+##         var s: Node = (load("res://tests/integration/enemies_v2_tests.gd") as GDScript).new()
+##         s.standalone = false
+##         add_child(s)
+##         await s.run_all()
+##         passes += s.passes
+##         failures.append_array(s.failures)
+##         s.queue_free()
+## `standalone = false` is what stops it printing its own report; the host's
+## counters are the ones that matter then. See REPORT.md.
 
 const ARENA := "test_arena"
 const TS := 16.0
@@ -37,9 +50,10 @@ var failures: PackedStringArray = PackedStringArray()
 var passes := 0
 var _current := ""
 
-func _ready() -> void:
-	process_mode = Node.PROCESS_MODE_ALWAYS
-	call_deferred("run_all")
+## Cleared by a host that folds this suite into its own run. It does not start
+## itself: tests/integration/enemies_v2_runner.gd awaits `run_all()` and exits
+## on what it returns, which is also what lets a host await it exactly once.
+var standalone := true
 
 # ---------------------------------------------------------------- harness
 func frames(n: int) -> void:
@@ -91,13 +105,34 @@ func enter_arena() -> void:
 		e.queue_free()
 	await frames(2)
 
-## The same spawn path src/world/level.gd uses for an authored enemy entity.
-## `level.gd` does not yet map "enemy_charger"/"enemy_dropper"/"enemy_flyer"
-## onto it — see REPORT.md — so the tests call it directly.
-func spawn(id: String, tx: int, ty: int, props: Dictionary = {}) -> Enemy:
-	var e: Enemy = level()._spawn_enemy(id, Vector2(tx * TS, ty * TS), props)
-	await frames(1)
+## One entity dictionary in the shape LevelLoader.from_dict() emits: the tile
+## coordinates a level author writes, plus the pixel pair src/world/level.gd
+## reads back out.
+func entity_def(type: String, tx: int, ty: int, props: Dictionary = {}) -> Dictionary:
+	var e: Dictionary = props.duplicate()
+	e["type"] = type
+	e["x"] = tx
+	e["y"] = ty
+	e["px"] = float(tx) * TS
+	e["py"] = float(ty) * TS
 	return e
+
+## Every enemy in this file is placed the way a level places one: an authored
+## entity dictionary through `Level.spawn_entity()`, the same call
+## `Level._spawn_entities()` makes for each line of `levels/*.json`.
+##
+## It used to call `level()._spawn_enemy()` directly, which reached past the
+## `enemy_*` registry — the exact thing that was missing. Every test below
+## passed while no level on disk could contain the enemy it was testing. Going
+## through the front door is what makes them mean anything.
+func spawn(id: String, tx: int, ty: int, props: Dictionary = {}) -> Enemy:
+	var n: Node = level().spawn_entity(entity_def("enemy_" + id, tx, ty, props))
+	# Asserted here rather than left to each caller: several tests below bail
+	# out quietly on a null enemy, so an unregistered id used to cost nothing
+	# more than a shorter run and a green report.
+	check(n is Enemy, "the level places an enemy_%s at tile (%d, %d)" % [id, tx, ty])
+	await frames(1)
+	return n as Enemy
 
 func place(tx: float, ty: float, settle: int = 20) -> void:
 	var p := player()
@@ -138,8 +173,10 @@ func shown_frame(e: Enemy) -> int:
 	return int(e.sprite.region_rect.position.x / float(e.sprite.region_rect.size.x))
 
 # ---------------------------------------------------------------- tests
-func run_all() -> void:
+func run_all() -> int:
 	var tests := [
+		"t_a_level_definition_can_place_all_three",
+		"t_an_enemy_the_registry_does_not_know_spawns_nothing",
 		"t_charger_patrols_and_turns_at_a_wall",
 		"t_charger_stands_still_in_a_new_pose_before_every_charge",
 		"t_charger_charges_faster_than_kaya_can_run",
@@ -166,7 +203,146 @@ func run_all() -> void:
 		_current = t
 		await enter_arena()
 		await call(t)
-	_report()
+	if standalone:
+		_report()
+	return 0 if failures.is_empty() else 1
+
+# ---------------------------------------------------------------- the registry
+## The registry itself, read from src/world/level.gd rather than copied here,
+## so this file cannot drift into agreeing with a list that no longer exists.
+func registered_enemy_ids() -> Array:
+	var script: GDScript = load("res://src/world/level.gd")
+	var consts: Dictionary = script.get_script_constant_map()
+	var ids: Array = []
+	if consts.has("ENEMY_IDS"):
+		ids = consts["ENEMY_IDS"]
+	return ids
+
+## What was actually broken, tested the way a level author meets it: take the
+## arena's own JSON off disk, add the three enemies to its entity list, put the
+## whole thing through the real LevelLoader, and hand every parsed entity to
+## the level's own factory — the two steps Level._spawn_entities() performs on
+## boot, with nothing simulated in between.
+##
+## Before src/world/level.gd knew these three ids, every one of these returned
+## null and a level containing one was a level with a hole in it.
+func t_a_level_definition_can_place_all_three() -> void:
+	await park(3, 10)
+	var raw: Variant = JSON.parse_string(
+		FileAccess.get_file_as_string("res://levels/%s.json" % ARENA))
+	check(typeof(raw) == TYPE_DICTIONARY, "the arena's level file parses")
+	if typeof(raw) != TYPE_DICTIONARY:
+		return
+	var d: Dictionary = (raw as Dictionary).duplicate(true)
+	var authored: Array = (d.get("entities", []) as Array).duplicate()
+	authored.append({"type": "enemy_charger", "x": 5, "y": 11})
+	authored.append({"type": "enemy_dropper", "x": 10, "y": 4})
+	authored.append({"type": "enemy_flyer", "x": 19, "y": 5, "axis": "y", "range": 24.0})
+	d["entities"] = authored
+
+	var fixture: LevelLoader.LevelDef = LevelLoader.from_dict(d)
+	check(fixture.ok(), "a level that places all three is a valid level (%s)"
+		% str(fixture.errors))
+	if not fixture.ok():
+		return
+
+	# Positions are read before a single frame runs: add_child() runs the
+	# enemy's _ready() synchronously, so this is where the level put it, not
+	# where it walked to.
+	var wanted := ["enemy_charger", "enemy_dropper", "enemy_flyer"]
+	var made: Dictionary = {}
+	var at: Dictionary = {}
+	var authored_enemies := 0
+	var built := 0
+	for e: Dictionary in fixture.entities:
+		var type := String(e["type"])
+		if not type.begins_with("enemy_"):
+			continue
+		# The arena ships a walker of its own; it goes through the same door,
+		# so it is counted too. Nothing in the file may come back empty.
+		authored_enemies += 1
+		var n: Node = level().spawn_entity(e)
+		check(n is Enemy, "the level factory built a '%s'" % type)
+		if n is Enemy:
+			built += 1
+			if wanted.has(type):
+				made[type] = n
+				at[type] = (n as Enemy).pos
+	check_eq(built, authored_enemies,
+		"every enemy the definition authored reached the world")
+	check_eq(made.size(), 3, "including all three of the new ones")
+	if made.size() != 3:
+		return
+
+	for type: String in made.keys():
+		var en: Enemy = made[type]
+		check_eq("enemy_" + en.enemy_id, type, "%s loaded its own data file" % type)
+		check(en.is_in_group(&"enemies"), "%s is a live enemy" % type)
+		check(en.get_parent() == level().entities, "%s hangs off the level" % type)
+		check(en.world == level().world, "%s collides against this level" % type)
+		check(en.max_health >= 1, "%s took its health from data/enemies/" % type)
+
+	var boar: Enemy = made["enemy_charger"]
+	var tick: Enemy = made["enemy_dropper"]
+	var wasp: Enemy = made["enemy_flyer"]
+	check_eq((at["enemy_charger"] as Vector2).x + boar.box.x * 0.5, 5.0 * TS + 8.0,
+		"the boar stands in the column it was authored in")
+	check_eq(int((at["enemy_charger"] as Vector2).y + boar.box.y), FLOOR_ROW * 16,
+		"and on the floor of its tile")
+	check_eq(int((at["enemy_dropper"] as Vector2).y), 4 * 16,
+		"the tick hangs at the top of the tile above the one it was authored in")
+	check_eq((at["enemy_flyer"] as Vector2).x + wasp.box.x * 0.5, 19.0 * TS + 8.0,
+		"the wasp holds the column it was authored in")
+
+	# Authored per-instance properties survive the trip through the loader:
+	# the wasp was given a vertical leg, so it has to leave its own row.
+	var y0 := wasp.pos.y
+	var spread := 0.0
+	await frames(90)
+	for type: String in made.keys():
+		check(is_instance_valid(made[type]),
+			"%s is still alive after a second and a half of real play" % type)
+	if is_instance_valid(wasp):
+		spread = absf(wasp.pos.y - y0)
+	check(spread > 4.0, "the wasp flies the axis the entity asked for")
+
+## Requirement four. A level that names an enemy the registry has never heard
+## of must not leave a silent hole where a threat was authored.
+##
+## The half that can be asserted from inside the process is asserted: nothing
+## is built, nothing half-exists, the level plays on. Godot's warning stream is
+## not readable from GDScript, so the warning *text* is verified by reading the
+## headless log — the exact grep is in REPORT.md, and it is the only claim in
+## this file that a machine here does not make.
+func t_an_enemy_the_registry_does_not_know_spawns_nothing() -> void:
+	await park(3, 10)
+	var children: int = level().entities.get_child_count()
+	var live: int = enemies().size()
+	# "enemy_" alone, a typo, a real file in src/enemies/ that is not an enemy,
+	# and an id nobody ever wrote.
+	for bogus: String in ["enemy_", "enemy_walkr", "enemy_enemy_base",
+			"enemy_projectile", "enemy_ghost"]:
+		var n: Node = level().spawn_entity(entity_def(bogus, 8, 11))
+		check(n == null, "'%s' spawns nothing at all" % bogus)
+	await frames(10)
+	check_eq(level().entities.get_child_count(), children,
+		"and leaves no half-built node behind")
+	check_eq(enemies().size(), live, "and nothing joins the enemies group")
+	check(is_instance_valid(level()) and player() != null and not player().dead,
+		"the level plays on regardless")
+
+	# The other side of the same contract: every id the registry does claim can
+	# be resolved, or the warning above is the one a real level would hit.
+	var ids := registered_enemy_ids()
+	check(ids.size() >= 7, "the registry lists every enemy (%s)" % str(ids))
+	for id: String in ids:
+		check(ResourceLoader.exists("res://src/enemies/%s.gd" % id),
+			"registered id '%s' resolves to a script" % id)
+		check(FileAccess.file_exists("res://data/enemies/%s.json" % id),
+			"registered id '%s' has a data file" % id)
+	for id: String in ["walker", "jumper", "shooter", "swimmer",
+			"charger", "dropper", "flyer"]:
+		check(ids.has(id), "'%s' is still placeable" % id)
 
 # ---------------------------------------------------------------- charger
 func t_charger_patrols_and_turns_at_a_wall() -> void:
@@ -732,13 +908,13 @@ func _hex(rgb: Variant) -> String:
 	return "%02x%02x%02x" % [int(a[0]), int(a[1]), int(a[2])]
 
 # ---------------------------------------------------------------- report
+## Prints, and only prints. Quitting is the runner's job — a sub-suite that
+## kills the process takes the host's remaining cases with it.
 func _report() -> void:
 	print("")
 	if failures.is_empty():
 		print("enemies_v2: %d checks, ALL PASSED" % passes)
-		get_tree().quit(0)
 	else:
 		for f in failures:
 			print("  FAIL %s" % f)
 		print("enemies_v2: %d passed, %d FAILED" % [passes, failures.size()])
-		get_tree().quit(1)
