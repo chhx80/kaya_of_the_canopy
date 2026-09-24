@@ -1,299 +1,411 @@
-# M6 — the 25-door hub
+# wave2/registry — the three finished enemies can be placed in a level
 
-Branch `wave1/hub`. Files added, and nothing else touched:
+Branch `wave2/registry`, from `wave1/integration`.
 
-| File | What it is |
-|---|---|
-| `tools/build_hub.py` | standalone generator for the new overworld; refuses to write a map it cannot prove |
-| `levels/hub_v2.json` | the generated map, 50×30, 25 gateways, five clusters |
-| `tests/test_hub_layout.gd` | shape, gateway list, and the `requires` chain |
-| `tests/test_hub_walkable.gd` | the walkability proof, and a negative control for it |
-| `shots/m6_hub_*.png` | screenshots (see *Evidence*) |
+`src/world/level.gd:141` matched exactly four entity types, so `charger`,
+`dropper` and `flyer` — finished, tuned, art-complete and covered by 97 of
+their own integration checks — could not appear in a level file. This branch
+registers them, and rebuilds their suite so that it would have caught the
+omission instead of passing around it.
 
-`tools/build_levels.py`, `levels/hub.json` and `src/**` are untouched — `git
-status` shows them clean and `git diff` is empty for all three. `build_hub.py`
-imports nothing from `build_levels.py`, so the two can be merged in any order.
+---
 
-## The map
+## 1. What I built
 
-```
- rows  0..1    border
- rows  2..7    WORLD 5  The Obsidian Nest   x  2..47   dark rock, metal walkways, lava veins
- row   8       ridge, crossings at x 6..7 and x 42..43
- rows  9..14   WORLD 4  Termite Deeps       x  2..23   black ground, brown tunnels, dirt mounds
-               WORLD 3  Thermal Heights     x 26..47   brown ash, rock trails, stone crags, vents
- row  15       ridge, crossings at x 6..7 and x 42..43
- rows 16..27   WORLD 1  Canopy Trail        x  2..23   grass, brown trails, trees      <- spawn (3,26)
-               WORLD 2  Sunken Ruins        x 26..47   mossy flagstones, blue water
- rows 28..29   border
- cols 24..25   the wall between the left and right clusters, crossings at y 12..13 and y 22..23
+### 1.1 `src/world/level.gd` — the registry
+
+The literal
+
+```gdscript
+		"enemy_walker", "enemy_jumper", "enemy_shooter", "enemy_swimmer":
+			return _spawn_enemy(type.substr(6), p, e)
 ```
 
-Region edges sit on the screen seams (x=25, y=15) wherever they can, so no
-cluster is split across a screen flip. Only the Nest band spans both screen
-columns, the same way the shipped five-door hub spanned both of its screens.
+is gone. In its place, ahead of the `match`:
 
-Each region has its own ground tile, its own trail tile and its own obstacle
-tile — five different grounds (`g` grass, `S` mossy brick, `d` ash, `X` dark,
-`r` rock) and five different obstacles (`@` tree, `W` water, `s` stone, `d`
-dirt, `M` metal), so no two clusters read alike.
-
-**The five jungle gateways keep their shipped level ids and labels** —
-`jungle_1` CANOPY TRAIL, `jungle_2` ROOT HOLLOW, `jungle_3` THE WATERWAY,
-`jungle_4` SKY BRANCH, `jungle_5` HEART OF THE GROVE — asserted by
-`test_the_five_jungle_gateways_keep_their_shipped_ids_and_labels`. Their tile
-positions moved, because the map they lived on is now a quarter of the map.
-
-### Gating
-
-One `requires` chain per world, and each world's first gateway requires the
-previous world's fifth:
-
-```
-jungle_1 (open)  -> jungle_2 -> jungle_3 -> jungle_4 -> jungle_5
-jungle_5 -> ruins_1   -> ruins_2   -> ruins_3   -> ruins_4   -> ruins_5
-ruins_5  -> heights_1 -> heights_2 -> heights_3 -> heights_4 -> heights_5
-heights_5 -> deeps_1  -> deeps_2   -> deeps_3   -> deeps_4   -> deeps_5
-deeps_5  -> nest_1    -> nest_2    -> nest_3    -> nest_4    -> nest_5
+```gdscript
+const ENEMY_PREFIX := "enemy_"
+const ENEMY_IDS: Array[String] = [
+	"walker", "jumper", "shooter", "swimmer", "charger", "dropper", "flyer",
+]
+...
+	if type.begins_with(ENEMY_PREFIX):
+		return _spawn_named_enemy(type.substr(ENEMY_PREFIX.length()), p, e)
 ```
 
-No new mechanism: this is the existing `hub_door` `requires` field and
-`HubDoor.unlocked()`, unchanged.
+and
 
-**`requires_all` is deliberately not used, including on `jungle_5`, which
-shipped with it.** `HubDoor.unlocked()` implements `requires_all` as *every
-file in `levels/` except `hub` and `test_arena` has its flag set*. That counts
-files, not worlds, so it has two problems here:
+```gdscript
+func _spawn_named_enemy(id: String, p: Vector2, e: Dictionary) -> Enemy:
+	if not ENEMY_IDS.has(id):
+		push_warning("Level: '%s%s' is not a registered enemy; known ids are %s"
+			% [ENEMY_PREFIX, id, ", ".join(PackedStringArray(ENEMY_IDS))])
+		return null
+	return _spawn_enemy(id, p, e)
+```
 
-1. While `levels/hub_v2.json` sits next to `levels/hub.json`, `hub_v2` is
-   itself counted as an unfinished level, and any `requires_all` gateway is
-   locked forever.
-2. With 25 levels it means "clear all 24 others", which is a game-wide gate,
-   not a world gate.
+`_spawn_enemy()` already resolved `res://src/enemies/<id>.gd` dynamically and
+is unchanged, so the file names already matched: `charger.gd`, `dropper.gd`,
+`flyer.gd`. Registering an enemy is now **one id in one list**.
 
-Under a strict chain the two are equivalent for the final door anyway — you
-cannot reach `nest_5` without having cleared all 24 — so the chain loses
-nothing. `test_no_gateway_uses_the_requires_all_shortcut` pins this.
-If you want `jungle_5` to keep `requires_all` at merge, it will behave
-correctly only *after* the file is renamed to `levels/hub.json`.
+Why a list and not "whatever `.gd` is in `src/enemies/`": `enemy_base.gd` and
+`projectile.gd` live in that directory and neither is placeable. A glob would
+happily instantiate `Enemy` itself — a node with an empty `think()` that never
+moves and never dies — which is exactly the kind of silent half-success this
+project has been bitten by. `t_an_enemy_the_registry_does_not_know_spawns_nothing`
+asserts `enemy_enemy_base` and `enemy_projectile` are refused.
 
-## How the walkability is proved
+**Requirement 4, the unknown type.** Two warnings fire, both naming the level's
+own word:
 
-The rule was: prove every gateway is walkable from the spawn, with a flood fill,
-as a gating test. It is, twice over, plus a control.
+```
+WARNING: Level: 'enemy_ghost' is not a registered enemy; known ids are walker, jumper, shooter, swimmer, charger, dropper, flyer
+WARNING: Level: unknown entity type 'enemy_ghost'
+```
 
-**1. Flood fill over player positions, not tiles.** A tile flood fill is a
-model — it would say a 16 px gap is "a walkable tile" without ever asking
-whether the player fits. So the flood runs over the space of *positions the
-real 10×10 `HubPlayer` box can occupy*, deciding "free" with the game's own
-`TileWorld.is_solid()` and the game's own tile-span arithmetic (`(p + size −
-EPS) / TS`, the `TileCollision.tile_range()` rule). Steps are one pixel along
-one axis; a frame of walking covers 1.23 px at full speed and the character
-accelerates from rest, so no step in the flood is a step the character could
-not take.
+The second is the pre-existing one in `spawn_entity()` and is left in place —
+it is still true, and it is what a level author greps for. Nothing is spawned,
+nothing half-exists (asserted), and the level keeps playing (asserted).
 
-Three things are asserted per gateway, and the third is the one that matters:
+`data/enemies/charger.json`, `dropper.json` and `flyer.json` are mine and
+**needed no change**. Every key the three scripts read is already present and
+already loads; the registry was the whole defect.
 
-- you can walk onto the gateway tile;
-- you can walk to **the tile the game returns you to** — `overworld.gd` drops
-  you at `door.pos + (3, 20)`, one tile *below* the gateway, when you come back
-  out of a level. A solid tile there means you return inside a wall, and
-  nothing else in the suite looks at it;
-- **some position you can actually reach makes the "PRESS JUMP TO ENTER"
-  prompt appear** — the real `door.aabb().grow(6.0).intersects(player.aabb())`
-  test from `overworld.gd`. Reaching the tile is the mechanism; lighting the
-  prompt is the outcome.
+### 1.2 `tests/integration/enemies_v2_tests.gd` — made to bite
 
-**2. An actual walk.** For each gateway a simulated `HubPlayer` — the real box,
-the real `SPEED`/`ACCEL`/`FRICTION` constants read off `HubPlayer`, the real
-`TileCollision.move_x`/`move_y` in the real order — is driven from the spawn,
-one 60 Hz frame at a time, holding whole d-pad directions along the route the
-flood found, and has to arrive. This exists because a path through free space
-and a character that gets there are two different claims: the character
-accelerates and coasts a couple of pixels past where it meant to stop. The
-first version of this test failed on 13 of 25 gateways for exactly that reason
-(the flood's route hugged the last free pixel of a two-tile gap), which is why
-routes are now relaxed to the middle of their corridor before the walk.
+The old suite spawned every enemy with `level()._spawn_enemy(id, ...)`, which
+reaches *past* the `enemy_*` dispatch. That is why 97 green checks coexisted
+with three unplaceable enemies. Changed:
 
-**3. A negative control.** `test_a_walled_in_gateway_is_reported` walls a
-gateway in, re-floods, and fails if the flood *still* reaches it. A prover that
-cannot fail proves nothing.
+* **`spawn()` now goes through the front door** — it builds an entity
+  dictionary in the exact shape `LevelLoader.from_dict()` emits (`type`, `x`,
+  `y`, `px`, `py`, plus the authored props) and hands it to
+  `Level.spawn_entity()`, the same call `Level._spawn_entities()` makes for
+  every line of a level file. Every one of the 21 existing behaviour tests now
+  depends on the registry.
+* **`spawn()` asserts the spawn.** Several tests did `if c == null: return`,
+  which turned a missing registration into a *shorter green run*. A null enemy
+  is now a named failure at the point of spawning.
+* **`t_a_level_definition_can_place_all_three`** (new) — reads
+  `levels/test_arena.json` off disk, appends the three enemies to its entity
+  list, puts the whole file through the real `LevelLoader.from_dict()`, asserts
+  the result is a valid level, then hands every parsed entity to the level's
+  own factory. Asserts: every `enemy_*` line in the definition produced an
+  `Enemy` (the arena's own walker included), each loaded its own data file,
+  each is in the `enemies` group and parented to the level, each collides
+  against this level's world, each landed in the authored column — the boar on
+  the floor of its tile, the tick against the ceiling above its tile — that a
+  per-instance prop authored on the entity (`"axis": "y"`) survives the trip,
+  and that all three are still alive after 90 frames of real simulation.
+* **`t_an_enemy_the_registry_does_not_know_spawns_nothing`** (new) — five bad
+  ids (`enemy_`, `enemy_walkr`, `enemy_enemy_base`, `enemy_projectile`,
+  `enemy_ghost`), each returning null, no node left behind, no group
+  membership, level still playable. Then reads `ENEMY_IDS` back out of
+  `src/world/level.gd` with `get_script_constant_map()` — not a copy in the
+  test — and asserts every id in it resolves to both a script and a data file,
+  and that all seven are still placeable.
+* **The suite is now embeddable.** It no longer starts itself from `_ready()`
+  and `_report()` no longer calls `get_tree().quit()`. `run_all()` returns
+  `0`/`1`, and `standalone = false` silences its own report so a host can add
+  `passes`/`failures` to its own. This is the same shape
+  `tests/integration/boss_gate_smoke.gd` uses. See §4.
 
-**4. A staleness guard.** `test_the_numbers_this_file_trusts_are_still_the_ones_
-the_game_uses` reads `src/hub/hub_player.gd` and `src/hub/overworld.gd` and
-fails if the box (`Vector2(10, 10)`), the spawn offset (`Vector2(3, 5)`), the
-return offset (`Vector2(3, 20)`), the gateway reach (`grow(6.0)`),
-`HubDoor.SIZE` or the walk speed change. If someone edits the hub player, this
-proof stops quoting a stale result and says so. I confirmed it finds all four
-strings today; I did not fire it in the failing direction, because doing so
-means editing `src/hub/`, which I do not own.
+**97 checks → 179 checks, all passing.**
 
-`tools/build_hub.py` runs the same flood in Python before it writes anything,
-so a bad map never reaches `levels/`.
+### 1.3 `tests/integration/enemies_v2_runner.gd` + `.tscn` (new)
 
-### The gate was fired on purpose
+Headless entry point. The suite needs autoloads and a scene tree, which
+`--headless --script` does not have (ADR 003), so this boots
+`src/core/main.tscn` as a child — which is what sets `Game.main` — then awaits
+`run_all()` and exits on what it returns. Same shape and same reason as
+`tools/bossgate/bossgate_runner.gd`. `KAYA_V2_MODE=shot` runs
+`enemies_v2_shot.gd` instead (needs a window); the environment rather than a
+`--` user arg, because user args are what switch `tools/dev_capture.gd` into
+screenshot mode.
 
-Five defects injected — three through `build_hub.py`, two straight into
-`levels/hub_v2.json` — plus the control that lives in the suite:
+Before this, the suite could only be run by hand-writing a scene file into the
+worktree and deleting it afterwards, which is what the previous agent's report
+instructed. **`enemies_v2_runner.tscn` is outside my declared ownership** (I own
+`tests/integration/enemies_v2_*.gd`, and this is a `.tscn`). It is additive and
+conflicts with nothing; if the merge drops it, recreate it from §2 or wire the
+suite in per §4 — the `.gd` half is mine and stands either way.
 
-| Injected | Caught by |
-|---|---|
-| `jungle_2` moved onto a tree | python: *gateway tile (3,21) cannot be walked to* |
-| a solid tile under `jungle_2` | python and GDScript: *the tile the game returns you to, (11,22), is not walkable* |
-| both crossings into Thermal Heights bricked up | python: 15 problems across all five `heights_*` gateways |
-| ditto, in the JSON | GDScript: all three checks fail for all five, incl. *no position you can walk to lights its prompt* |
-| the walled-in gateway control | passes, i.e. sealing a gateway in does break the flood |
+### 1.4 `tests/integration/enemies_v2_shot.gd`
 
-Commands to reproduce the injections are in *Verifying it* below.
+Now authors its three enemies through `Level.spawn_entity()` too, so the
+screenshot is evidence of the registry working rather than of three nodes
+assembled beside it. Re-running it produced a **byte-identical**
+`shots/enemies_v2.png` (git reports the file unmodified), which is a small
+extra confirmation that the front-door path places them exactly where the
+direct call did.
 
-## Verifying it
+---
+
+## 2. Exact commands to verify
 
 ```bash
-tools/env.sh          # must point PROJECT_ROOT at THIS worktree, see Assumptions
-$PYVENV tools/build_hub.py        # regenerates levels/hub_v2.json; prints the proof
-tools/test.sh                     # tests/test_hub_layout.gd + tests/test_hub_walkable.gd
-tools/validate.sh
-tools/itest.sh
+cd /Users/christianheuer/.herdr/worktrees/jungle-project/wave2-registry
+
+# One-time in a fresh worktree: tools/env.sh must point PROJECT_ROOT here, and
+# the import cache has to exist or every unit test reports "parse error".
+tools/import.sh
+
+# ---- my suite: 179 checks, exit 0
+source tools/env.sh
+"$GODOT" --headless --fixed-fps 60 --path . \
+    res://tests/integration/enemies_v2_runner.tscn
+echo "RC=$?"
+# => enemies_v2: 179 checks, ALL PASSED   RC=0
+
+# ---- the unknown-enemy warning (requirement 4), which the harness cannot
+#      assert from inside the process — Godot's warning stream is not readable
+#      from GDScript. This is the only claim in this branch a machine here does
+#      not make for me:
+"$GODOT" --headless --fixed-fps 60 --path . \
+    res://tests/integration/enemies_v2_runner.tscn 2>&1 \
+    | grep "WARNING: Level:" | sort -u
+# => 'enemy_' / 'enemy_walkr' / 'enemy_enemy_base' / 'enemy_projectile' /
+#    'enemy_ghost' each "is not a registered enemy; known ids are walker,
+#    jumper, shooter, swimmer, charger, dropper, flyer", plus the pre-existing
+#    "unknown entity type '<the same>'" for each.
+
+# ---- the four project gates (results and the four pre-existing reds below)
+tools/test.sh      # 217 tests, 19283 assertions, 0 failed        exit 0
+tools/validate.sh  # every level reachable                        exit 0
+tools/itest.sh     # 298 passed, 3 FAILED (all three pre-existing) exit 1
+tools/prove.sh     # 5 PROVED, jungle_3 FAIL (pre-existing)        exit 1
+
+# ---- the screenshot (needs a display)
+source tools/env.sh
+KAYA_V2_MODE=shot "$GODOT" --path . --rendering-driver opengl3 \
+    --resolution 1200x720 res://tests/integration/enemies_v2_runner.tscn
+# => [capture] shots/enemies_v2.png (400x240) err=0
 ```
 
-Results, run on this worktree:
+### Gate results on this branch
 
-| Gate | As committed (`hub_v2.json` beside `hub.json`) | As merged (`hub_v2.json` → `hub.json`) |
+| gate | baseline (before my change) | after |
 |---|---|---|
-| `tools/test.sh` | 155 tests, 8962 assertions, **1 failed** | 155 tests, **1 failed** |
-| `tools/validate.sh` | `validate: OK` | `validate: OK` |
-| `tools/itest.sh` | `273 checks, ALL PASSED` | `273 checks, ALL PASSED` |
+| `tools/test.sh` | 217 tests, 19283 assertions, 0 failed — exit 0 | **217 tests, 19283 assertions, 0 failed — exit 0** (identical) |
+| `tools/validate.sh` | OK, exit 0 | **OK, exit 0** (identical) |
+| `tools/itest.sh` | 298 passed, **3 FAILED** — exit 1 | **298 passed, 3 FAILED — exit 1** (the same three, same closest-approach numbers) |
+| `tools/prove.sh` | `jungle_3` FAILs (measured separately, see below) | **5 levels PROVED, `jungle_3` FAIL — exit 1** |
+| `enemies_v2` suite | 97 checks (per the previous agent's report) | 179 checks, ALL PASSED, exit 0 |
 
-All 26 of my own assertions' test methods pass in both states. The single
-failure is in `tests/test_level_validity.gd`, which I do not own — see
-*Two things the merge has to fix*.
+`tools/prove.sh` is the one gate I did not have a baseline for at the start, so
+I measured one: I reverted `src/world/level.gd` to `HEAD`, ran
+`tools/prove.sh jungle_3` on the untouched file, and got the **same failure**:
 
-To re-run the defect injections:
-
-```bash
-# python-side gate
-$PYVENV - <<'PY'
-import importlib.util
-spec = importlib.util.spec_from_file_location("bh", "tools/build_hub.py")
-bh = importlib.util.module_from_spec(spec); spec.loader.exec_module(bh)
-bh.DOORS[1] = ("jungle_2", "ROOT HOLLOW", "jungle_1", (3, 21), "canopy")   # onto a tree
-m = bh.build(); seen, stride, _w, _h = bh.prove_walkable(m)
-for p in bh.check_doors(m, seen, stride): print("FAIL", p)
-PY
-
-# gdscript-side gate: brick up both crossings into Thermal Heights, then restore
-python3 - <<'PY'
-import json
-d = json.load(open('levels/hub_v2.json')); fg = [list(r) for r in d['fg']]
-for x, y, ch in [(42,8,'s'),(43,8,'s'),(42,15,'W'),(43,15,'W'),
-                 (24,12,'d'),(25,12,'d'),(24,13,'d'),(25,13,'d')]:
-    fg[y][x] = ch
-d['fg'] = [''.join(r) for r in fg]; json.dump(d, open('levels/hub_v2.json','w'), indent=1)
-PY
-tools/test.sh            # expect test_hub_walkable failures for all five heights_*
-$PYVENV tools/build_hub.py   # regenerate the good map
+```
+FAIL   jungle_3 — the tape does not reproduce the proof
+       hop 8/8  pad_human > exit replayed to (743.000000, 164.000000),
+       but the search left it at (727.000000, 105.000000)
 ```
 
-## Evidence
+Then restored my file. So `jungle_3` is pre-existing and is the same defect as
+the red `t_replay_jungle_3` in `tools/itest.sh`. It is also structurally
+impossible for this branch to have caused it: `tools/solver/` never
+instantiates `Level` — it mirrors the geometry in `sim.gd` and only *quotes*
+`level.gd` in comments — and `tools/reachability.py` does not mention enemies
+at all. The other five levels prove, and every regenerated `levels/*.tape.json`
+came back byte-identical (`git status` clean).
 
-Screenshots were taken by temporarily copying `levels/hub_v2.json` over
-`levels/hub.json` (the `hub` capture scenario hardcodes `HUB_ID = "hub"`), then
-restoring `levels/hub.json` from git. It is byte-identical to `HEAD` now.
+So: **three red integration cases and one red prover level, all four of them
+red before I started, none of them mine.** Everything else is green.
 
-- `shots/m6_hub_regions.png` — contact sheet, one screen per region. The HUD
-  reads **CLEARED 0/25**, and the gateway prompts show **UPDRAFT / LOCKED**,
-  **THE LIGHTLESS / LOCKED**, **BLACK GLASS / LOCKED** — the `requires` chain
-  doing its job in the running game, not in a test.
-- `shots/m6_hub_region_{canopy,ruins,heights,deeps,nest}.png` — the five
-  clusters. These five were captured with the spawn moved into each region (a
-  scratch copy of the map, never written to `levels/`) purely to point the
-  camera; the geometry is the shipped geometry, and each variant was re-proved
-  before capture.
-- `shots/m6_hub_walk_{1_spawn,2_seam,3_ruins}.png` — one continuous capture,
-  **real input only, no teleports**: from the spawn, right, up, and right
-  across the col-24/25 crossing, with the screen flipping into Sunken Ruins.
+### I proved the new tests actually bite
 
-## What I could NOT verify
+Removing `"charger"` from `ENEMY_IDS` — and changing nothing else — turns the
+suite red in fourteen places, including every charger behaviour test that
+previously would have returned early and stayed green:
 
-- **That the twenty new levels exist.** They do not. Every `ruins_*`,
-  `heights_*`, `deeps_*` and `nest_*` gateway points at a file that is not on
-  disk. My tests tolerate this deliberately: `test_hub_layout.gd` checks that
-  every `requires` names another *gateway on this map*, never that the target
-  *file* exists. Nothing here proves those levels load, are finishable, or have
-  the ids the level authors will actually use. If a level author picks
-  different ids, `DOORS` in `tools/build_hub.py` is the one place to change.
-- **That a human enjoys walking it.** The proof says every gateway is
-  reachable and that a simulated walk arrives. It says nothing about whether
-  the routes are pleasant, whether 25 doors on one map is legible, or whether
-  the Nest band spanning two screens is confusing in the hand. That is a
-  playtest, and this project's history says the playtest is where the real
-  answers come from.
-- **On-device cost.** The rest of M6 (difficulty curve, VRAM and frame cost on
-  a real iPhone) is not in this branch. The hub is two screens' worth of the
-  same tileset the levels use, so I expect nothing new, but I did not measure
-  it.
-- **The `_relax`/`_walk` route follower is my code, not the game's.** The
-  physics inside it (`_step`) is the real constants and the real
-  `TileCollision` calls in the real order, but the *controller* that decides
-  which direction to hold is mine — a player might hold different directions.
-  It proves a route can be walked; it does not prove every route can.
-- **Screen-flip behaviour during the walk** is only covered by the one real-
-  input capture above; the simulated walk in `test_hub_walkable.gd` has no
-  camera and therefore no screen flip, and `overworld.gd` does not freeze the
-  sim on a flip the way a level does, so I do not believe there is a gap —
-  but I did not prove it.
+```
+FAIL t_a_level_definition_can_place_all_three :: the level factory built a 'enemy_charger'
+FAIL t_a_level_definition_can_place_all_three :: every enemy the definition authored reached the world (got 3, want 4)
+FAIL t_a_level_definition_can_place_all_three :: including all three of the new ones (got 2, want 3)
+FAIL t_an_enemy_the_registry_does_not_know_spawns_nothing :: the registry lists every enemy (["walker", "jumper", "shooter", "swimmer", "dropper", "flyer"])
+FAIL t_an_enemy_the_registry_does_not_know_spawns_nothing :: 'charger' is still placeable
+FAIL t_charger_patrols_and_turns_at_a_wall :: the level places an enemy_charger at tile (2, 11)
+... 8 more, one per charger test
+enemies_v2: 93 passed, 14 FAILED
+```
 
-## Two things the merge has to fix
+The registry was restored immediately afterwards; `git diff` on
+`src/world/level.gd` shows the seven ids.
 
-Both are in `tests/test_level_validity.gd`, which another agent owns. I did not
-touch it. Neither is caused by the map being wrong.
+### Requirement 3, and where each half is proved
 
-1. **`test_every_playable_level_has_a_way_out` fails on `hub_v2`.** It skips
-   `id == "hub"` and demands an `exit` or `boss_exit` from everything else. An
-   overworld has neither. This is the one failing assertion in the committed
-   state. Fix: `if id == "hub" or def.topdown: continue` — or just rename
-   `hub_v2.json` to `hub.json`, which is the plan anyway.
-2. **`test_every_level_a_hub_gateway_points_at_actually_exists` fails once the
-   map becomes `hub.json`** — 20 gateways, 39 assertions, all "points at
-   missing level 'ruins_1'" and friends. It will keep failing until the twenty
-   levels land. Fix while the worlds are being built: skip a target whose file
-   is absent, or keep a list of ids that are allowed to be pending.
+All six run through `Level.spawn_entity()` on an authored entity dictionary:
 
-I could have made the first one go away by putting a fake `exit` entity in the
-overworld. I did not, because a hub with an exit in it is exactly the kind of
-data that makes a later test lie.
+| claim | test |
+|---|---|
+| a level definition can place a charger | `t_a_level_definition_can_place_all_three`, plus every `t_charger_*` |
+| a level definition can place a dropper | same, plus every `t_dropper_*` |
+| a level definition can place a flyer | same, plus every `t_flyer_*` |
+| charger damages Kaya on contact | `t_a_charger_damages_the_player_on_contact` — `Game.health` falls |
+| dropper damages Kaya on contact | `t_a_falling_dropper_damages_the_player_on_contact` — it drops onto her and `Game.health` falls |
+| flyer damages Kaya on contact | `t_a_flyer_damages_the_player_on_contact` — `Game.health` falls |
+| charger dies to the blade | `t_the_blade_kills_a_charger_and_scores_it` — three real throws, and `Game.score` rises by exactly `score_value` |
+| dropper dies to the blade | `t_the_blade_kills_a_dropper_on_its_ceiling` — one throw, killed while clinging |
+| flyer dies to the blade | `t_the_blade_kills_a_flyer_and_scores_it` — two throws, score asserted |
 
-## Assumptions I made about other agents' work
+---
 
-1. **`levels/hub_v2.json` will be renamed to `levels/hub.json` at merge.**
-   Nothing loads `hub_v2`: `Overworld.HUB_ID` is the literal `"hub"` and I did
-   not edit `src/`. Until the rename, the new map is data nobody reads.
-   My two test files call `_hub_id()`, which returns `"hub_v2"` if that file
-   exists and `"hub"` otherwise, so they follow the map through the rename with
-   no edit — and if `hub_v2.json` is deleted without the rename they fail
-   loudly against the old five-door hub rather than silently passing.
-2. **`src/hub/hub_player.gd` and `src/hub/overworld.gd` stay as they are.** The
-   proof depends on four literals in them; the staleness guard above fails if
-   any of them moves. It is a string match on the source, so a purely cosmetic
-   reformat of those lines would also fail it. That is the intended trade.
-3. **`data/tiles.json` and `data/level_legend.json` keep their current tile
-   ids and characters.** `build_hub.py` reads both and derives solidity from
-   them rather than hardcoding it, so a *new* tile is fine; changing which
-   character maps to which id is not.
-4. **`HubDoor.unlocked()` keeps its current `requires` semantics.** If someone
-   changes `requires_all` to mean "the levels this door's world contains", the
-   chain still works — it just becomes one of two valid ways to express it.
-5. **The world order is jungle → ruins → heights → deeps → nest**, taken from
-   `docs/plan-20-levels.md` (World 2 Sunken Ruins, 3 Thermal Heights, 4 Termite
-   Deeps, 5 The Obsidian Nest). The level *labels* I invented for the twenty
-   pending gateways (`DROWNED GATE`, `THE CISTERN`, …) are placeholders; the
-   boss levels are named after the bosses the plan names (`THE TIDE MAW`, `THE
-   STORMCREST`, `THE BROOD QUEEN`, `THE OBSIDIAN HEART`). Whoever builds a
-   world should overwrite its labels in `DOORS`.
-6. **`CHANGELOG.md` is not mine**, so it does not mention this. It needs a line
-   at merge.
-7. **`tools/env.sh` is gitignored and was pointing `PROJECT_ROOT` at the main
-   checkout**, not this worktree, so every tool script would have run against
-   the wrong tree. I repointed it locally. Nothing is committed — but every
-   agent in a worktree has this, and a first `tools/import.sh` is also needed
-   or the whole suite reports "parse error" on files that are fine.
+## 3. What I could NOT verify — plainly
+
+1. **No level in `levels/` contains one of these three.** `levels/` and
+   `tools/build_levels.py` are not mine. `t_a_level_definition_can_place_all_three`
+   builds its fixture by reading `levels/test_arena.json`, appending three
+   entities in memory and parsing the result with the real `LevelLoader` — so
+   the loader, the entity list and the factory are all real, but the file on
+   disk is not. **Nothing I ran boots a committed level file containing a
+   charger.** The last hop (`Game.goto_level(id)` → `LevelLoader.load_level`)
+   is an id-to-path lookup that does not look at entity types, so I believe the
+   gap is inert; I did not prove it.
+2. **The unknown-enemy warning text is verified by eye, not by assertion.**
+   GDScript cannot read Godot's warning stream from inside the process. The
+   test asserts everything else about that path (null return, no node, no group
+   membership, level survives); the *wording* is checked by the grep in §2,
+   which I ran. If someone changes the message, that grep is what breaks, and
+   nothing in the gates will.
+3. **The suite is still not in `tools/itest.sh`.** It runs only via the runner
+   scene in §2. Until §4.1 lands, a CI run of the four gates does not execute a
+   single one of these 179 checks. That is the single most important thing left.
+4. **No playtest.** I never played a level containing one of these. Whether a
+   charger in a corridor is fair, whether 0.55 s of tell reads on a phone,
+   whether a dropper over a pit is a cheap death — all unknown, and all the
+   kind of thing this project's six shipped defects were.
+5. **No prover/tape coverage of a level containing one.** `tools/prove.sh` and
+   `tools/reachability.py` ignore `enemy_*` entities entirely (verified by
+   grep: neither file mentions enemies), and I ran `tools/prove.sh` — five
+   levels prove and every tape came back byte-identical — so placing one
+   cannot break an existing proof. But a tape recorded on a level that *does*
+   contain a charger
+   is likely to be **fragile**, because the charge is driven by the player's
+   position and a replay that arrives a frame late meets a different boar.
+   Whoever authors the first level with one should expect to re-record.
+6. **No performance measurement**, on a phone or anywhere. Three more enemy
+   types on one screen is untested for frame cost.
+7. **Multi-screen freeze/respawn is still synthetic.** `test_arena` is one
+   screen, so `t_a_screen_flip_freezes_them_and_puts_them_back_as_they_started`
+   calls `set_active_screen()` by hand. I never walked a real camera across a
+   boundary with one of these on the far side.
+8. **I did not touch `CHANGELOG.md`.** It is not mine and an edit would be
+   discarded at merge; the entry I would have written is in §4.4.
+
+---
+
+## 4. What a merge step must do (files I do not own)
+
+### 4.1 `tests/integration/integration_tests.gd` — REQUIRED for CI coverage
+
+The suite is ready to be folded in; it no longer self-starts and no longer
+quits the process. Add to `run_all()`'s list:
+
+```gdscript
+		"t_enemies_v2",
+```
+
+and the method:
+
+```gdscript
+## The three M5 enemies, in their own file because they carry their own arena
+## setup. 179 checks — see tests/integration/enemies_v2_tests.gd.
+func t_enemies_v2() -> void:
+	var s: Node = (load("res://tests/integration/enemies_v2_tests.gd") as GDScript).new()
+	s.standalone = false
+	add_child(s)
+	await s.run_all()
+	passes += s.passes
+	failures.append_array(s.failures)
+	s.queue_free()
+```
+
+Two things to know before wiring it:
+
+* `s.standalone = false` is not optional. Left `true`, the sub-suite prints its
+  own `enemies_v2: N checks` report line into the middle of the host's run.
+  It will no longer kill the process — that was removed — but the report is
+  confusing.
+* The suite calls `Game.reset_run()` / `Game.goto_level()` in its own
+  `enter_arena()` before every case, so it leaves the host in the arena with a
+  fresh run. Put `t_enemies_v2` where the host's next case does its own
+  `enter_arena()` — which is every case in `run_all()`'s loop — and nothing
+  needs to change. It costs roughly 25 s of wall clock on this machine.
+
+### 4.2 `tools/gen_art.py` — still outstanding from wave 1
+
+`tools/art/sprites_enemies_v2.py` exists but `gen_art.py` still imports only
+`backdrops, palette, sprites, tiles` and never calls it. A full `tools/genart.sh`
+will not refresh the three sheets. It will not delete them either, so this is
+not urgent — but it is a trap.
+
+### 4.3 `tests/test_art_palette.gd` — still outstanding from wave 1
+
+`SHEETS` still lists only the four original enemies. The ramp-purity rule for
+the three new sheets is enforced only by
+`t_the_new_sheets_stay_on_the_material_ramps` inside my suite, which is not in
+the gates until §4.1 lands. Adding
+
+```gdscript
+	"res://assets/sprites/enemy_charger.png",
+	"res://assets/sprites/enemy_dropper.png",
+	"res://assets/sprites/enemy_flyer.png",
+```
+
+to `SHEETS` makes `tools/test.sh` guard it and my stopgap redundant.
+
+### 4.4 `CHANGELOG.md`
+
+```markdown
+- `src/world/level.gd` dispatches every `enemy_<id>` entity type through one
+  registry (`ENEMY_IDS`) instead of a literal list of four, so `charger`,
+  `dropper` and `flyer` can be placed in a level at last. An unregistered id
+  warns with the ids it could have used and spawns nothing.
+- `tests/integration/enemies_v2_tests.gd` places its enemies through
+  `Level.spawn_entity()` rather than reaching past the factory, so its checks
+  now depend on the registration they used to skip; two cases cover the level
+  definition and the unknown-id path. 97 → 179 checks.
+```
+
+### 4.5 Nothing else needs to change to author one
+
+`tools/build_levels.py`'s `g.ent()` takes a raw type string, and
+`data/level_legend.json` maps *tile characters*, not entities — so
+`g.ent("enemy_charger", 12, 25)` works today. The flyer's per-instance props
+ride along on the entity dictionary and survive `LevelLoader`, which
+`t_a_level_definition_can_place_all_three` asserts:
+
+```python
+g.ent("enemy_flyer", 12, 5, axis="y", range=48)
+```
+
+---
+
+## 5. Assumptions I made about other agents' work
+
+1. **The three enemy scripts and their data are correct as delivered.** I read
+   them and changed neither. Their 21 behaviour tests pass through the new
+   spawn path unchanged, which is the evidence.
+2. **`tools/itest.sh`'s three red cases are not mine.**
+   `t_replay_jungle_3`, `t_replay_jungle_5` and
+   `t_the_replay_plays_a_tape_split_across_several_hops` were red before I
+   touched anything — I ran the baseline first, and they are the same three
+   failures with the same closest-approach numbers afterwards.
+   `ERROR: Error calling method from 'filter' … Cannot convert argument 1 from
+   Object to Object` out of `src/player/weapons/boomerang_blade.gd:8` also
+   appears in the baseline log; it is noise from a freed blade in a lambda
+   filter, not something this branch introduced, and not my file.
+3. **Nobody else is editing `src/world/level.gd`.** If another wave-2 branch
+   adds an entity type to `_spawn_gameplay_entity()`, the merge conflicts with
+   my diff hunk. Mine deletes one `match` arm and adds a guard above the
+   `match`; another agent's new arm should apply cleanly beside it.
+4. **`levels/` belongs to the level agent.** I placed nothing on disk and
+   assume whoever authors wave-2 levels will use §4.5.
+5. **`REPORT.md` at `HEAD~1` was somebody else's.** It held the wave1/hub
+   agent's M6 report, and writing mine over it is what the brief asked for. I
+   copied it to `REPORT-wave1-hub.md` rather than lose it; it is also still at
+   `git show 2d48d72:REPORT.md`. If the integrator drops per-agent reports the
+   way `9c61796` did, drop both.
+6. **`shots/enemies_v2.png` is already committed** (by wave 1) and my
+   regeneration reproduced it byte-for-byte, so this branch adds no image.

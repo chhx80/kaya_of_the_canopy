@@ -2,16 +2,17 @@ extends Node
 ## Proof-of-render for the three new enemies, because "the tests pass" and
 ## "it draws" are different claims and only one of them is checkable by eye.
 ##
-## `tools/shot.sh` cannot reach these yet: it drives the real game, and
-## src/world/level.gd has no `enemy_charger`/`enemy_dropper`/`enemy_flyer`
-## entity types to author into a level (see REPORT.md). So this boots the
-## arena, drops one of each into it by hand, poses them — the boar mid-charge,
-## the tick hanging, the wasp in flight — and saves the viewport.
+## `tools/shot.sh` drives the real game against a level on disk, and no level
+## in `levels/` places these three yet. So this boots the arena and authors one
+## of each into it — through `Level.spawn_entity()`, the same entity dictionary
+## a level file would carry — then poses them: the boar mid-charge, the tick
+## hanging, the wasp in flight. What it captures is therefore the registry
+## working, not three nodes assembled beside it.
 ##
 ## Needs a window: the frames it captures do not exist under --headless.
 ##
-##   $GODOT --path . --rendering-driver opengl3 --resolution 1200x720 \
-##          res://<a scene whose script is this file>
+##   KAYA_V2_MODE=shot $GODOT --path . --rendering-driver opengl3 \
+##       --resolution 1200x720 res://tests/integration/enemies_v2_runner.tscn
 ##
 ## Writes shots/enemies_v2.png.
 
@@ -26,6 +27,17 @@ func _ready() -> void:
 func frames(n: int) -> void:
 	for i in n:
 		await get_tree().physics_frame
+
+## One authored entity, in the shape LevelLoader.from_dict() emits, through the
+## level's own factory.
+func author(level: Node, type: String, tx: int, ty: int) -> Enemy:
+	var n: Node = level.spawn_entity({
+		"type": type, "x": tx, "y": ty,
+		"px": float(tx) * TS, "py": float(ty) * TS,
+	})
+	if n is Enemy:
+		(n as Enemy).contact_damage = 0
+	return n as Enemy
 
 func run() -> void:
 	Game.reset_run()
@@ -48,14 +60,15 @@ func run() -> void:
 
 	# The boar: far enough away that it patrols rather than charging, then
 	# forced into its charge pose for the capture.
-	var boar: Enemy = level._spawn_enemy("charger", Vector2(8.0 * TS, 11.0 * TS), {})
-	boar.contact_damage = 0
+	var boar: Enemy = author(level, "enemy_charger", 8, 11)
 	# The tick: hanging, which is the pose that has to read as upside-down.
-	var tick: Enemy = level._spawn_enemy("dropper", Vector2(13.0 * TS, 3.0 * TS), {})
-	tick.contact_damage = 0
+	var tick: Enemy = author(level, "enemy_dropper", 13, 3)
 	# The wasp: mid-patrol over the one-way platform it ignores.
-	var wasp: Enemy = level._spawn_enemy("flyer", Vector2(17.0 * TS, 6.0 * TS), {})
-	wasp.contact_damage = 0
+	var wasp: Enemy = author(level, "enemy_flyer", 17, 6)
+	if boar == null or tick == null or wasp == null:
+		print("[capture] the level refused an enemy; nothing to shoot")
+		get_tree().quit(1)
+		return
 
 	await frames(30)
 	boar.set_anim("charge")
