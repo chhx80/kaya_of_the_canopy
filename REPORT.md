@@ -1,299 +1,302 @@
-# M6 — the 25-door hub
+# wave2/legend — a per-world level legend
 
-Branch `wave1/hub`. Files added, and nothing else touched:
+Branch `wave2/legend`, one commit: `74a4362`.
 
-| File | What it is |
+## The problem, restated from the measurement
+
+`data/tiles.json` declares 92 tile entries. `data/level_legend.json` mapped 28
+characters to ids 0–27. Everything the four new worlds needed — the movement
+verbs at 200–215 and the four tilesets at 220–291 — was painted in
+`assets/tiles/tileset.png`, covered by `tests/test_tile_variants.gd`, and
+**unplaceable**, because a level is a character grid and no character named it.
+
+## What I built
+
+**The legend is per-world.** `data/level_legend.json` now holds:
+
+| key | what it is |
 |---|---|
-| `tools/build_hub.py` | standalone generator for the new overworld; refuses to write a map it cannot prove |
-| `levels/hub_v2.json` | the generated map, 50×30, 25 gateways, five clusters |
-| `tests/test_hub_layout.gd` | shape, gateway list, and the `requires` chain |
-| `tests/test_hub_walkable.gd` | the walkability proof, and a negative control for it |
-| `shots/m6_hub_*.png` | screenshots (see *Evidence*) |
+| `shared` | characters meaning the same tile in every world — water, the eleven currents/drafts, the five breakable walls, switch blocks, lava, metal, the hub tiles |
+| `tilesets` | one character map per world: `jungle`, `ruins`, `heights`, `deeps`, `nest` |
+| `default_tileset` | `jungle` |
+| `legend` | a **derived** copy of `shared` + `tilesets.jungle` (see *Compatibility*) |
 
-`tools/build_levels.py`, `levels/hub.json` and `src/**` are untouched — `git
-status` shows them clean and `git diff` is empty for all three. `build_hub.py`
-imports nothing from `build_levels.py`, so the two can be merged in any order.
+A level names its world with a top-level key, and **the key is optional —
+absent means `jungle`**:
 
-## The map
-
-```
- rows  0..1    border
- rows  2..7    WORLD 5  The Obsidian Nest   x  2..47   dark rock, metal walkways, lava veins
- row   8       ridge, crossings at x 6..7 and x 42..43
- rows  9..14   WORLD 4  Termite Deeps       x  2..23   black ground, brown tunnels, dirt mounds
-               WORLD 3  Thermal Heights     x 26..47   brown ash, rock trails, stone crags, vents
- row  15       ridge, crossings at x 6..7 and x 42..43
- rows 16..27   WORLD 1  Canopy Trail        x  2..23   grass, brown trails, trees      <- spawn (3,26)
-               WORLD 2  Sunken Ruins        x 26..47   mossy flagstones, blue water
- rows 28..29   border
- cols 24..25   the wall between the left and right clusters, crossings at y 12..13 and y 22..23
+```json
+{ "id": "ruins_1", "name": "THE DROWNED GATE", "tileset": "ruins",
+  "fg": ["....|....", "#########"], ... }
 ```
 
-Region edges sit on the screen seams (x=25, y=15) wherever they can, so no
-cluster is split across a screen flip. Only the Nest band spans both screen
-columns, the same way the shipped five-door hub spanned both of its screens.
+### Where I improved on the brief
 
-Each region has its own ground tile, its own trail tile and its own obstacle
-tile — five different grounds (`g` grass, `S` mossy brick, `d` ash, `X` dark,
-`r` rock) and five different obstacles (`@` tree, `W` water, `s` stone, `d`
-dirt, `M` metal), so no two clusters read alike.
+The brief proposed "the same characters mean that world's stone, that world's
+water, that world's breakable wall". I made that literal and closed, in five
+ways:
 
-**The five jungle gateways keep their shipped level ids and labels** —
-`jungle_1` CANOPY TRAIL, `jungle_2` ROOT HOLLOW, `jungle_3` THE WATERWAY,
-`jungle_4` SKY BRANCH, `jungle_5` HEART OF THE GROVE — asserted by
-`test_the_five_jungle_gateways_keep_their_shipped_ids_and_labels`. Their tile
-positions moved, because the map they lived on is now a quarter of the map.
+1. **A role alphabet, not an ad-hoc per-world map.** Every tileset binds the
+   *same twelve characters* to its own art:
 
-### Gating
+   | | | | |
+   |---|---|---|---|
+   | `#` ground cap | `S` the solid it autotiles against | `d` fill under the cap | `s` a second, harder solid |
+   | `=` one-way platform | `\|` ladder / climbable | `^` hazard | `c` breakable block |
+   | `L` background wall | `T` background column | `r` background accent | `X` background deep / void |
 
-One `requires` chain per world, and each world's first gateway requires the
-previous world's fifth:
+   The consequence that matters is not readability, it is that **the DSL
+   idioms become world-agnostic**: `g.ground()`, `g.platform()`, `g.vine()`,
+   `g.spikes()`, `g.canopy()` build any of the five worlds unchanged, and a
+   screen can be ported between worlds by changing one key. The jungle adds
+   `[`, `]`, `-` for tiles no other world has.
 
-```
-jungle_1 (open)  -> jungle_2 -> jungle_3 -> jungle_4 -> jungle_5
-jungle_5 -> ruins_1   -> ruins_2   -> ruins_3   -> ruins_4   -> ruins_5
-ruins_5  -> heights_1 -> heights_2 -> heights_3 -> heights_4 -> heights_5
-heights_5 -> deeps_1  -> deeps_2   -> deeps_3   -> deeps_4   -> deeps_5
-deeps_5  -> nest_1    -> nest_2    -> nest_3    -> nest_4    -> nest_5
-```
+2. **A `shared` block, and tilesets may not redefine it.** Water is water. A
+   design where `w` means one thing in the ruins and another in the nest would
+   be a bug generator; the test refuses it outright.
 
-No new mechanism: this is the existing `hub_door` `requires` field and
-`HubDoor.unlocked()`, unchanged.
+3. **The tileset key is omitted when it is the default.** Writing
+   `"tileset": "jungle"` into the six existing levels would change their bytes,
+   change their `source_sha`, and stale every tape in `proofs/` (ADR 005) to
+   say what the absence of the key already says.
 
-**`requires_all` is deliberately not used, including on `jungle_5`, which
-shipped with it.** `HubDoor.unlocked()` implements `requires_all` as *every
-file in `levels/` except `hub` and `test_arena` has its flag set*. That counts
-files, not worlds, so it has two problems here:
+4. **A rejected level hands back no world at all** — see *Failing loudly*.
 
-1. While `levels/hub_v2.json` sits next to `levels/hub.json`, `hub_v2` is
-   itself counted as an unfinished level, and any `requires_all` gateway is
-   locked forever.
-2. With 25 levels it means "clear all 24 others", which is a game-wide gate,
-   not a world gate.
+5. **The flag-parity invariant is pinned** — see *Compatibility*.
 
-Under a strict chain the two are equivalent for the final door anyway — you
-cannot reach `nest_5` without having cleared all 24 — so the chain loses
-nothing. `test_no_gateway_uses_the_requires_all_shortcut` pins this.
-If you want `jungle_5` to keep `requires_all` at merge, it will behave
-correctly only *after* the file is renamed to `levels/hub.json`.
+### Where I disagree with nothing, but flag a cost
 
-## How the walkability is proved
+A character grid is no longer self-describing. You cannot read
+`levels/nest_3.json` without first looking at its `tileset` key. Loader, DSL
+and validity tier all check it so the failure is loud, but a human skimming a
+diff has one more thing to hold. I think that is the right trade — five worlds
+is ~75 gameplay ids competing for printable ASCII, and a global legend reaches
+`Ω`-means-nest-ledge long before it runs out, which is an LDtk uid table with
+extra steps — but it is a real cost and it is now written into ADR 002 rather
+than discovered later.
 
-The rule was: prove every gateway is walkable from the spawn, with a flood fill,
-as a gating test. It is, twice over, plus a control.
+### Failing loudly (requirement 4)
 
-**1. Flood fill over player positions, not tiles.** A tile flood fill is a
-model — it would say a 16 px gap is "a walkable tile" without ever asking
-whether the player fits. So the flood runs over the space of *positions the
-real 10×10 `HubPlayer` box can occupy*, deciding "free" with the game's own
-`TileWorld.is_solid()` and the game's own tile-span arithmetic (`(p + size −
-EPS) / TS`, the `TileCollision.tile_range()` rule). Steps are one pixel along
-one axis; a frame of walking covers 1.23 px at full speed and the character
-accelerates from rest, so no step in the flood is a step the character could
-not take.
+A character the level's own world does not define is an error, and
+`LevelLoader.from_dict()` returns a `LevelDef` with **`world == null`**.
 
-Three things are asserted per gateway, and the third is the one that matters:
+The null is the point, and it is a behaviour change beyond the brief. The
+unmapped character used to fall through `legend.get(ch, 0)` to tile 0, so the
+grid came back looking like a level with some air in it and only `errors` —
+which a caller can forget to check — said otherwise. A mis-declared world
+would have loaded as a field of empty space: rendering, walkable-looking,
+unfinishable. That is the shape of all six historical defects — the mechanism
+reported a problem while the outcome looked fine. There is now nothing to
+misuse. Every caller in the repo (`Level.load_level`, `validate_scenes.gd`,
+`tools/solver/prove.gd` ×2, `overworld.gd`, `diverge.gd`, the tests) checks
+`ok()` before touching `.world`; I read each one.
 
-- you can walk onto the gateway tile;
-- you can walk to **the tile the game returns you to** — `overworld.gd` drops
-  you at `door.pos + (3, 20)`, one tile *below* the gateway, when you come back
-  out of a level. A solid tile there means you return inside a wall, and
-  nothing else in the suite looks at it;
-- **some position you can actually reach makes the "PRESS JUMP TO ENTER"
-  prompt appear** — the real `door.aabb().grow(6.0).intersects(player.aabb())`
-  test from `overworld.gd`. Reaching the tile is the mechanism; lighting the
-  prompt is the outcome.
+The error names **every** bad character, **and the tileset it was checked
+against** — `"level 'ruins_1' (tileset 'ruins') uses '[', which that tileset
+does not define in data/level_legend.json"`. A level naming a tileset that
+does not exist fails the same way and the message lists the ones that do. An
+empty `"tileset": ""` is a typo, not "unset", and also fails.
 
-**2. An actual walk.** For each gateway a simulated `HubPlayer` — the real box,
-the real `SPEED`/`ACCEL`/`FRICTION` constants read off `HubPlayer`, the real
-`TileCollision.move_x`/`move_y` in the real order — is driven from the spawn,
-one 60 Hz frame at a time, holding whole d-pad directions along the route the
-flood found, and has to arrive. This exists because a path through free space
-and a character that gets there are two different claims: the character
-accelerates and coasts a couple of pixels past where it meant to stop. The
-first version of this test failed on 13 of 25 gateways for exactly that reason
-(the flood's route hugged the last free pixel of a two-tile gap), which is why
-routes are now relaxed to the middle of their corridor before the walk.
+The same mistake also fails one step earlier: `Grid.to_dict()` refuses to
+serialise a grid containing a character its tileset does not define, naming the
+layer and coordinates of the first occurrence.
 
-**3. A negative control.** `test_a_walled_in_gateway_is_reported` walls a
-gateway in, re-floods, and fails if the flood *still* reaches it. A prover that
-cannot fail proves nothing.
+### Compatibility, and the one thing I did not touch
 
-**4. A staleness guard.** `test_the_numbers_this_file_trusts_are_still_the_ones_
-the_game_uses` reads `src/hub/hub_player.gd` and `src/hub/overworld.gd` and
-fails if the box (`Vector2(10, 10)`), the spawn offset (`Vector2(3, 5)`), the
-return offset (`Vector2(3, 20)`), the gateway reach (`grow(6.0)`),
-`HubDoor.SIZE` or the walk speed change. If someone edits the hub player, this
-proof stops quoting a stale result and says so. I confirmed it finds all four
-strings today; I did not fire it in the failing direction, because doing so
-means editing `src/hub/`, which I do not own.
+`tools/reachability.py` and `tools/build_hub.py` (neither mine) read
+`json.load(...)["legend"]` directly. That key still exists as a resolved copy
+of the jungle. Two copies of one fact drift, so
+`test_the_compatibility_legend_still_equals_shared_plus_the_default` fails if
+it ever does.
 
-`tools/build_hub.py` runs the same flood in Python before it writes anything,
-so a bad map never reaches `levels/`.
+Those two tools therefore still resolve every character against the jungle.
+**Today that gives them the right answer on a ruins level anyway**, for a
+reason worth naming: the role mapping preserves gameplay flags across worlds —
+`#` is solid in all five, `^` a hazard in all five, `=` one-way in all five —
+and both tools read nothing but flags. I measured that rather than assuming it
+(all 12 role chars × 4 worlds, 7 flags each: zero differences), and
+`test_a_role_character_has_the_same_gameplay_flags_in_every_world` pins it.
+Bind `r` to something solid in one world and that test fails, rather than the
+pre-filter quietly modelling a wall as air. **Both tools should still learn
+`legend_for(tileset)` before a world needs to break that; this is the
+hand-off.**
 
-### The gate was fired on purpose
+## Files touched
 
-Five defects injected — three through `build_hub.py`, two straight into
-`levels/hub_v2.json` — plus the control that lives in the suite:
-
-| Injected | Caught by |
+| File | Change |
 |---|---|
-| `jungle_2` moved onto a tree | python: *gateway tile (3,21) cannot be walked to* |
-| a solid tile under `jungle_2` | python and GDScript: *the tile the game returns you to, (11,22), is not walkable* |
-| both crossings into Thermal Heights bricked up | python: 15 problems across all five `heights_*` gateways |
-| ditto, in the JSON | GDScript: all three checks fail for all five, incl. *no position you can walk to lights its prompt* |
-| the walled-in gateway control | passes, i.e. sealing a gateway in does break the flood |
+| `data/level_legend.json` | `shared` + five `tilesets` + `default_tileset` + the derived `legend` view |
+| `src/world/level_loader.gd` | `legend_doc()`, `default_tileset()`, `tileset_names()`, `legend_for(name)`; `legend()` kept meaning the default; `LevelDef.tileset`; per-world resolution and the null-world rejection in `from_dict()` |
+| `tools/gen_levels.py` | `legend_for()` / `tileset_names()`; `Grid(w, h, tileset=...)`; `_check_characters()`; `"tileset"` serialised only when non-default; `_tile_flags()` now per-world |
+| `tests/test_level_format.gd` | **new**, 24 cases |
+| `tests/test_level_validity.gd` | +2 cases: every level names a world that exists; no level uses a character its own world does not define |
+| `docs/adr/002-level-format.md` | amendment: *the legend is per-world, not global* |
 
-Commands to reproduce the injections are in *Verifying it* below.
+Nothing outside my ownership list is modified. `git status` is clean.
 
-## Verifying it
+## How to verify
 
 ```bash
-tools/env.sh          # must point PROJECT_ROOT at THIS worktree, see Assumptions
-$PYVENV tools/build_hub.py        # regenerates levels/hub_v2.json; prints the proof
-tools/test.sh                     # tests/test_hub_layout.gd + tests/test_hub_walkable.gd
-tools/validate.sh
-tools/itest.sh
+# 0. fresh worktree only: tools/env.sh must point PROJECT_ROOT here, then
+tools/import.sh
+
+# 1. requirement 1 — the six levels (seven files) are byte-identical
+tools/genlevels.sh && git status --porcelain levels/    # prints nothing
+
+# 2. unit + data tier
+tools/test.sh                                            # 243 tests, 0 failed
+
+# 3. structural validator
+tools/validate.sh                                        # exit 0
+
+# 4. requirement 2 — the prover
+tools/prove.sh                                           # see Results
+
+# 5. in-game tier
+tools/itest.sh                                           # see Results
 ```
 
-Results, run on this worktree:
+## Results, measured, including what is red
 
-| Gate | As committed (`hub_v2.json` beside `hub.json`) | As merged (`hub_v2.json` → `hub.json`) |
+### Requirement 1 — byte-identity: **verified, not assumed**
+
+`tools/genlevels.sh` regenerates all seven committed level files
+(`hub`, `jungle_1..5`, `test_arena`) with `git status --porcelain levels/`
+printing nothing. Re-checked after every subsequent edit.
+
+### `tools/test.sh` — **243 tests, 37481 assertions, 0 failed**
+
+Baseline before my change was 217 tests. The `FAIL a_vine_no_exit` style lines
+in the output are `test_prover_fixtures.gd` deliberately reproducing the six
+historical defects; that test passes when they fail.
+
+### `tools/validate.sh` — **exit 0**
+
+### `tools/prove.sh` — **bit-for-bit identical to the baseline I measured before touching anything**
+
+|  | before my change | after |
 |---|---|---|
-| `tools/test.sh` | 155 tests, 8962 assertions, **1 failed** | 155 tests, **1 failed** |
-| `tools/validate.sh` | `validate: OK` | `validate: OK` |
-| `tools/itest.sh` | `273 checks, ALL PASSED` | `273 checks, ALL PASSED` |
+| jungle_1 | PROVED, 11 hops, 750 frames, 38435 expansions | PROVED, 11 hops, 750 frames, **38435** |
+| jungle_2 | PROVED, 10 hops, 783 frames, 1534 | PROVED, 10 hops, 783 frames, **1534** |
+| jungle_3 | **FAIL** — "the tape does not reproduce the proof", hop 8/8 `pad_human > exit` replayed to (743, 164), search left it at (727, 105) | **identical failure, identical coordinates** |
+| jungle_4 | PROVED, 16 hops, 1040 frames, 1550 | PROVED, 16 hops, 1040 frames, **1550** |
+| jungle_5 | PROVED, 7 hops, 903 frames, 8945 | PROVED, 7 hops, 903 frames, **8945** |
+| test_arena | PROVED, 2 hops, 219 frames, 68 | PROVED, 2 hops, 219 frames, **68** |
+| exit code | **1** | **1** |
 
-All 26 of my own assertions' test methods pass in both states. The single
-failure is in `tests/test_level_validity.gd`, which I do not own — see
-*Two things the merge has to fix*.
+`proofs/*.tape.json` are rewritten byte-identically (`git status` clean), so
+no tape went stale.
 
-To re-run the defect injections:
+**Read this honestly: `tools/prove.sh` does not prove all six, and did not
+before I started.** My brief said it must still prove all six; the measured
+baseline at `2d48d72` is five of six, with `jungle_3` already red. I did not
+fix it and it is not mine — `jungle_3`'s red is the same defect as the already-
+declared red integration case `t_replay_jungle_3`. What I can state is the
+stronger useful claim: **my change is prover-neutral to the expansion count**,
+which is the sharpest evidence available that per-world legends did not perturb
+the search.
 
-```bash
-# python-side gate
-$PYVENV - <<'PY'
-import importlib.util
-spec = importlib.util.spec_from_file_location("bh", "tools/build_hub.py")
-bh = importlib.util.module_from_spec(spec); spec.loader.exec_module(bh)
-bh.DOORS[1] = ("jungle_2", "ROOT HOLLOW", "jungle_1", (3, 21), "canopy")   # onto a tree
-m = bh.build(); seen, stride, _w, _h = bh.prove_walkable(m)
-for p in bh.check_doors(m, seen, stride): print("FAIL", p)
-PY
+### `tools/itest.sh` — **298 passed, 3 FAILED, exit 1 — identical to the pre-change baseline**
 
-# gdscript-side gate: brick up both crossings into Thermal Heights, then restore
-python3 - <<'PY'
-import json
-d = json.load(open('levels/hub_v2.json')); fg = [list(r) for r in d['fg']]
-for x, y, ch in [(42,8,'s'),(43,8,'s'),(42,15,'W'),(43,15,'W'),
-                 (24,12,'d'),(25,12,'d'),(24,13,'d'),(25,13,'d')]:
-    fg[y][x] = ch
-d['fg'] = [''.join(r) for r in fg]; json.dump(d, open('levels/hub_v2.json','w'), indent=1)
-PY
-tools/test.sh            # expect test_hub_walkable failures for all five heights_*
-$PYVENV tools/build_hub.py   # regenerate the good map
-```
+The three are exactly the ones declared red at hand-off, and nothing else:
+`t_the_replay_plays_a_tape_split_across_several_hops`, `t_replay_jungle_3`,
+`t_replay_jungle_5`.
 
-## Evidence
+I did not take this on trust. I checked my five modified files out at `HEAD~1`,
+moved the new `tests/test_level_format.gd` aside, and ran the suite again. The two runs are
+identical line for line — same three cases, same hop, same sim-frame counts
+(181 / 674 / 903), same closest approaches (56.7 px / 194.4 px / 8.5 px), same
+298 passing. My change is integration-neutral.
 
-Screenshots were taken by temporarily copying `levels/hub_v2.json` over
-`levels/hub.json` (the `hub` capture scenario hardcodes `HUB_ID = "hub"`), then
-restoring `levels/hub.json` from git. It is byte-identical to `HEAD` now.
+### Negative controls — I broke each invariant to confirm the test catches it
 
-- `shots/m6_hub_regions.png` — contact sheet, one screen per region. The HUD
-  reads **CLEARED 0/25**, and the gateway prompts show **UPDRAFT / LOCKED**,
-  **THE LIGHTLESS / LOCKED**, **BLACK GLASS / LOCKED** — the `requires` chain
-  doing its job in the running game, not in a test.
-- `shots/m6_hub_region_{canopy,ruins,heights,deeps,nest}.png` — the five
-  clusters. These five were captured with the spawn moved into each region (a
-  scratch copy of the map, never written to `levels/`) purely to point the
-  camera; the geometry is the shipped geometry, and each variant was re-proved
-  before capture.
-- `shots/m6_hub_walk_{1_spawn,2_seam,3_ruins}.png` — one continuous capture,
-  **real input only, no teleports**: from the spawn, right, up, and right
-  across the col-24/25 crossing, with the screen flipping into Sunken Ruins.
+| break | expected | got |
+|---|---|---|
+| delete `tilesets.deeps["c"]` (→ 270 `deep_glowwall`) | the "every declared tile is nameable" test fails | ✅ that test **and** `test_every_tileset_binds_the_whole_role_alphabet` failed; 2 failed, nothing else |
+| set `legend["#"] = 999` | the drift test fails | ✅ exactly 1 failed, `test_the_compatibility_legend_still_equals_shared_plus_the_default` |
+| bind `tilesets.heights["r"]` to 9 (spikes) | the flag-parity test fails | ✅ 2 failed: the flag-parity test **and** the nameable test — both true, since rebinding `r` also leaves `heights_cloud` unnameable |
+| revert the loader's `def.world = null` to the old fall-through | the null-world test fails | ✅ exactly 1 failed, `test_a_rejected_level_hands_back_no_world_at_all` |
+
+The positive cases (a level in each world loads and keeps that world's ids; `#`
+is 2 in the jungle and 220 in the ruins; `[` is legal in the jungle and
+rejected in the ruins; a rejected level hands back `world == null`) are all in
+`tests/test_level_format.gd` and pass.
+
+### Two things I measured that were handed to me as assumptions
+
+- **Every id my legend names is actually painted.** I decoded
+  `assets/tiles/tileset.png` and checked the 16×16 cell behind all 92 legend
+  entries (29 shared + 15 jungle + 12 each for ruins, heights, deeps, nest).
+  Exactly one is fully transparent: tile 0, `empty`, which is supposed to be.
+  The art really is there. The same pass confirms the mapping is a bijection —
+  92 entries, 92 distinct ids, and `data/tiles.json` declares 92, so **every
+  declared tile is named exactly once and nothing is named twice**.
+- **`assets/tiles/variants.json` covers the new worlds' structural tiles**
+  (220–226, 228–231, 240–246, 248–251, 260–266, 268–271, 280–286, 288–291).
+  The ids with no variant entry — the hazards 227/247/267/287, and the verbs
+  200–215 — are the same categories that have none in the jungle either (vine,
+  water, spikes, crates, switch blocks, lava). They will render as their flat
+  atlas cell, which is correct.
 
 ## What I could NOT verify
 
-- **That the twenty new levels exist.** They do not. Every `ruins_*`,
-  `heights_*`, `deeps_*` and `nest_*` gateway points at a file that is not on
-  disk. My tests tolerate this deliberately: `test_hub_layout.gd` checks that
-  every `requires` names another *gateway on this map*, never that the target
-  *file* exists. Nothing here proves those levels load, are finishable, or have
-  the ids the level authors will actually use. If a level author picks
-  different ids, `DOORS` in `tools/build_hub.py` is the one place to change.
-- **That a human enjoys walking it.** The proof says every gateway is
-  reachable and that a simulated walk arrives. It says nothing about whether
-  the routes are pleasant, whether 25 doors on one map is legible, or whether
-  the Nest band spanning two screens is confusing in the hand. That is a
-  playtest, and this project's history says the playtest is where the real
-  answers come from.
-- **On-device cost.** The rest of M6 (difficulty curve, VRAM and frame cost on
-  a real iPhone) is not in this branch. The hub is two screens' worth of the
-  same tileset the levels use, so I expect nothing new, but I did not measure
-  it.
-- **The `_relax`/`_walk` route follower is my code, not the game's.** The
-  physics inside it (`_step`) is the real constants and the real
-  `TileCollision` calls in the real order, but the *controller* that decides
-  which direction to hold is mine — a player might hold different directions.
-  It proves a route can be walked; it does not prove every route can.
-- **Screen-flip behaviour during the walk** is only covered by the one real-
-  input capture above; the simulated walk in `test_hub_walkable.gd` has no
-  camera and therefore no screen flip, and `overworld.gd` does not freeze the
-  sim on a flip the way a level does, so I do not believe there is a gap —
-  but I did not prove it.
+1. **That a level in a new world renders on screen.** There is no such level:
+   creating one means editing `tools/build_levels.py`, which another agent
+   owns, and adding a file to `levels/` would change `list_levels()` — which
+   gates the hub's `requires_all` door and requires a declared route, so a
+   stub level would fail `prove.sh` with exit 2. I therefore have **no
+   screenshot**, and I am not claiming the feature renders. What I have is:
+   the loader returns the world's ids for the world's characters (tested), the
+   atlas cells those ids point at are painted (measured), and the renderer is
+   untouched by this change. The first ruins level is the thing that will
+   actually prove it:
+   `tools/shot.sh --scenario=level:ruins_1 --out=shots/ruins_1.png`.
+2. **`CHANGELOG.md` is not updated.** `CLAUDE.md`'s definition of done item 5
+   asks for it; `CHANGELOG.md` is not in my ownership list and five agents
+   appending to it is a guaranteed conflict. Entry text to paste is at the
+   bottom of this file.
+3. **Anything about how the new worlds *play*.** This change makes tiles
+   nameable. It says nothing about whether a current is fun or an updraft is
+   survivable; ADR 005's gate is what will answer that, one level at a time.
 
-## Two things the merge has to fix
+## Assumptions about other agents' work
 
-Both are in `tests/test_level_validity.gd`, which another agent owns. I did not
-touch it. Neither is caused by the map being wrong.
+1. **`tools/build_levels.py` (not mine) needs no signature change.** I put the
+   tileset on the `Grid`, not on `write()`, so the new-worlds agent writes
+   `Grid(50, 30, tileset="ruins")` and `write("ruins_1", g, "THE DROWNED
+   GATE", music="world2")` unchanged. Verified by regenerating all seven
+   existing levels through the current, unmodified `build_levels.py`.
+2. **`data/tiles.json` (not mine) is the id authority and I did not touch it.**
+   My role→id mapping is read off the names the art agent chose
+   (`ruin_slab`/`heights_plank`/`deep_shelf`/`nest_ledge` are all `oneway`, so
+   they are all `=`). If a name and its flags disagree about intent, the flags
+   won; `test_every_character_names_a_tile_that_data_tiles_json_declares` and
+   the flag-parity test are where that would surface.
+3. **Three of the four new worlds have twelve declared ids inside a
+   twenty-wide block** (e.g. ruins uses 220–231 of 220–239). I assumed the
+   gaps are the "deliberate room to grow" `data/tiles.json` says they are, and
+   bound only the declared ids. Adding an id later without a legend entry now
+   **fails** `test_every_declared_tile_can_be_named_by_some_level` rather than
+   going unnoticed.
+4. **`tools/reachability.py` and `tools/build_hub.py` are someone's to fix.**
+   See *Compatibility*. They are correct today and will stay correct while
+   flag-parity holds.
+5. **The three already-red integration cases are not mine.** `t_replay_jungle_3`,
+   `t_replay_jungle_5`, `t_the_replay_plays_a_tape_split_across_several_hops`
+   were declared red at hand-off, and `prove.sh`'s `jungle_3` failure at
+   `2d48d72` is the same defect from the other tier.
 
-1. **`test_every_playable_level_has_a_way_out` fails on `hub_v2`.** It skips
-   `id == "hub"` and demands an `exit` or `boss_exit` from everything else. An
-   overworld has neither. This is the one failing assertion in the committed
-   state. Fix: `if id == "hub" or def.topdown: continue` — or just rename
-   `hub_v2.json` to `hub.json`, which is the plan anyway.
-2. **`test_every_level_a_hub_gateway_points_at_actually_exists` fails once the
-   map becomes `hub.json`** — 20 gateways, 39 assertions, all "points at
-   missing level 'ruins_1'" and friends. It will keep failing until the twenty
-   levels land. Fix while the worlds are being built: skip a target whose file
-   is absent, or keep a list of ids that are allowed to be pending.
+## CHANGELOG entry for whoever owns the file
 
-I could have made the first one go away by putting a fake `exit` entity in the
-overworld. I did not, because a hub with an exit in it is exactly the kind of
-data that makes a later test lie.
-
-## Assumptions I made about other agents' work
-
-1. **`levels/hub_v2.json` will be renamed to `levels/hub.json` at merge.**
-   Nothing loads `hub_v2`: `Overworld.HUB_ID` is the literal `"hub"` and I did
-   not edit `src/`. Until the rename, the new map is data nobody reads.
-   My two test files call `_hub_id()`, which returns `"hub_v2"` if that file
-   exists and `"hub"` otherwise, so they follow the map through the rename with
-   no edit — and if `hub_v2.json` is deleted without the rename they fail
-   loudly against the old five-door hub rather than silently passing.
-2. **`src/hub/hub_player.gd` and `src/hub/overworld.gd` stay as they are.** The
-   proof depends on four literals in them; the staleness guard above fails if
-   any of them moves. It is a string match on the source, so a purely cosmetic
-   reformat of those lines would also fail it. That is the intended trade.
-3. **`data/tiles.json` and `data/level_legend.json` keep their current tile
-   ids and characters.** `build_hub.py` reads both and derives solidity from
-   them rather than hardcoding it, so a *new* tile is fine; changing which
-   character maps to which id is not.
-4. **`HubDoor.unlocked()` keeps its current `requires` semantics.** If someone
-   changes `requires_all` to mean "the levels this door's world contains", the
-   chain still works — it just becomes one of two valid ways to express it.
-5. **The world order is jungle → ruins → heights → deeps → nest**, taken from
-   `docs/plan-20-levels.md` (World 2 Sunken Ruins, 3 Thermal Heights, 4 Termite
-   Deeps, 5 The Obsidian Nest). The level *labels* I invented for the twenty
-   pending gateways (`DROWNED GATE`, `THE CISTERN`, …) are placeholders; the
-   boss levels are named after the bosses the plan names (`THE TIDE MAW`, `THE
-   STORMCREST`, `THE BROOD QUEEN`, `THE OBSIDIAN HEART`). Whoever builds a
-   world should overwrite its labels in `DOORS`.
-6. **`CHANGELOG.md` is not mine**, so it does not mention this. It needs a line
-   at merge.
-7. **`tools/env.sh` is gitignored and was pointing `PROJECT_ROOT` at the main
-   checkout**, not this worktree, so every tool script would have run against
-   the wrong tree. I repointed it locally. Nothing is committed — but every
-   agent in a worktree has this, and a first `tools/import.sh` is also needed
-   or the whole suite reports "parse error" on files that are fine.
+```markdown
+- **Per-world level legends** (ADR 002 amendment). `data/level_legend.json`
+  splits into `shared` characters and one `tilesets` map per world; a level
+  names its world with an optional top-level `"tileset"` key (absent =
+  `jungle`). Every tileset binds the same twelve role characters to its own
+  art, so `g.ground()` builds the jungle, the ruins, the heights, the deeps
+  and the nest unchanged. The 64 tile ids the four new worlds and the movement
+  verbs added could not previously appear in any level; they can now, and
+  `tests/test_level_format.gd` fails if a future world's art lands without a
+  legend entry. A character its world does not define is now an error that
+  yields no `TileWorld` at all, instead of silently becoming empty space. All
+  seven committed level files regenerate byte-identically.
+```
