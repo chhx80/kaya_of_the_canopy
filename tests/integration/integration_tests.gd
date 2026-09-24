@@ -163,7 +163,6 @@ func run_all() -> void:
 		"t_light_pools_follow_the_screen_and_only_exist_where_a_level_asked",
 		"t_a_tape_that_no_longer_matches_its_level_is_refused",
 		"t_a_tape_that_is_malformed_or_starts_anywhere_but_spawn_is_refused",
-		"t_the_replay_plays_a_tape_split_across_several_hops",
 	]
 	for t in tests:
 		if _only != "" and not t.contains(_only):
@@ -175,11 +174,10 @@ func run_all() -> void:
 	_report()
 
 # ---------------------------------------------------------------- the gate itself
-## These three do to the tape gate what the rest of the suite does to the game:
+## These two do to the tape gate what the rest of the suite does to the game:
 ## check the outcome, not the mechanism. A stale-tape rule nobody has watched
-## fire is a comment. So each of these hands the loader a tape that is wrong in
-## one specific way and insists it is refused — and the last one hands it a tape
-## that is only *shaped* differently and insists it still finishes the level.
+## fire is a comment. So each of them hands the loader a tape that is wrong in
+## one specific way and insists it is refused.
 
 const SCRATCH := "user://itest_tape_scratch.json"
 
@@ -253,40 +251,39 @@ func t_a_tape_that_is_malformed_or_starts_anywhere_but_spawn_is_refused() -> voi
 	check(not TAPE.exists_for("no_such_level_at_all"),
 		"a level with no tape beside it is simply absent, not an error")
 
-## Real tapes have one hop per leg of the declared route, and the replay has to
-## run them end to end as one continuous play. The fixture is a single hop, so
-## this re-cuts it into three at step boundaries — same buttons, same order —
-## and insists the level still finishes.
-func t_the_replay_plays_a_tape_split_across_several_hops() -> void:
-	var d := arena_tape_json()
-	if d.is_empty():
-		failures.append("%s :: fixture tape missing" % _current)
-		return
-	var frames: Array = ((d["hops"] as Array)[0] as Dictionary)["frames"]
-	var cut_a := int(frames.size() / 3.0)
-	var cut_b := int(frames.size() * 2.0 / 3.0)
-	d["hops"] = [
-		{"from": "spawn", "to": "mid_a", "form": "human",
-			"frames": frames.slice(0, cut_a)},
-		{"from": "mid_a", "to": "mid_b", "form": "human",
-			"frames": frames.slice(cut_a, cut_b)},
-		{"from": "mid_b", "to": "exit", "form": "human",
-			"frames": frames.slice(cut_b)},
-	]
-	var tape: RefCounted = TAPE.load_from(ARENA, write_scratch(d))
-	check(tape.ok(), "the re-cut tape loads: %s" % tape.error)
-	if not tape.ok():
-		return
-	check_eq(tape.hops.size(), 3, "it really is three hops")
-	var driver: RefCounted = TAPE_REPLAY.new(get_tree())
-	driver.trace = _trace
-	var r: Dictionary = await driver.replay(tape)
-	check(bool(r["completed"]),
-		"three hops play as one continuous run — %s" % TAPE_REPLAY.describe(r))
+## There is no "replay a tape re-cut into several hops" case, and that is on
+## purpose. There was one: it took the arena tape, re-cut it at three arbitrary
+## seams and asserted the level still finished. It had rotted — it re-cut
+## `hops[0]` only, so the day the arena was re-proved into two hops it silently
+## dropped the second and ran 181 of 219 frames, ending 56.7 px short. Repairing
+## it is easy; the question was whether the thing it tested is tested anywhere
+## else, now that six real prover tapes exist with 2 to 16 hops each.
+##
+## It is, and better. Two hop-boundary defects were injected into
+## tape_replay.gd and the whole tier run against each:
+##
+##   a one-frame lull at every hop seam   real tapes: jungle_1, jungle_4 and
+##                                        test_arena all fail. Re-cut case: PASSES.
+##   seed each hop at its `from` waypoint,
+##   the way the prover does              real tapes: jungle_1 dies mid-route,
+##                                        jungle_4 lands 18.8 px short.
+##                                        Re-cut case: PASSES.
+##
+## It passes both because three seams in one 219-frame arena tape is a smaller
+## sample of the same property than fifty-odd seams across five real levels —
+## and because its invented waypoints (`mid_a`, `mid_b`) name nothing, so a
+## driver that seeds at waypoints simply skips them. The case was strictly
+## weaker than the tapes beside it at the one thing it existed to check, so it
+## was deleted rather than repaired. Re-run those two injections before adding
+## anything like it back.
 
 # ---------------------------------------------------------------- tape replay
 ## ADR 005 §3. One case per level: play the level with the proof tape written by
-## tools/prove.sh and assert the level reports itself complete.
+## tools/prove.sh and assert the outcome those buttons actually produce.
+##
+## On an ordinary level that outcome is the whole of §3 — the level reports
+## itself complete. On a boss level it is not, and cannot be: see
+## `check_boss_arrival()`.
 ##
 ## A level with no tape SKIPS, loudly, so this tier stays green before the
 ## prover lands — and turns red the moment a tape exists and is wrong. A tape
@@ -307,7 +304,9 @@ func run_replays() -> void:
 		var driver: RefCounted = TAPE_REPLAY.new(get_tree())
 		driver.trace = _trace
 		var r: Dictionary = await driver.replay(tape)
-		if bool(r["completed"]):
+		if boss_of(id) != "":
+			check_boss_arrival(id, r)
+		elif bool(r["completed"]):
 			passes += 1
 			check(SaveManager.get_flag(id),
 				"completing %s sets its flag" % id)
@@ -323,6 +322,80 @@ func run_replays() -> void:
 	_current = "harness"
 	await enter_arena()
 
+## A boss level's tape proves arrival, because arrival is all it records.
+##
+## `src/world/level.gd` places `boss_exit` only inside `on_boss_defeated()`, so
+## on jungle_5 the tape walks to the gate's tile and finds nothing there: the
+## closest a pure traversal tape can get to completing that level is standing on
+## the right square with 8.5 px of error and no gate. Asserting completion there
+## asserts something the recording cannot contain, and a gate that demands the
+## impossible gets relaxed until it demands nothing.
+##
+## So this asserts the outcome the buttons *do* produce: Kaya, alive, carried
+## from spawn onto the floor of the boss arena, with the fight still in front of
+## her. Whether the fight can then be won, survived and walked out of is the
+## Boss Gate's question (ADR 005 §4) and is answered by
+## tests/integration/boss_gate_*.gd — deliberately not here, and not implied
+## here.
+func check_boss_arrival(id: String, r: Dictionary) -> void:
+	if bool(r["completed"]):
+		failures.append(("%s :: the %s tape finished the level, which a traversal tape "
+			+ "cannot do — boss_exit is placed when the boss dies. Either the boss has "
+			+ "become skippable, or this tape now fights and this case must assert the "
+			+ "fight instead of arrival. — %s")
+			% [_current, id, TAPE_REPLAY.describe(r)])
+		return
+
+	var lvl: Node = level()
+	if lvl == null or not is_instance_valid(lvl) or String(lvl.def.id) != id:
+		failures.append("%s :: the replay left %s before the tape ran out — %s"
+			% [_current, id, TAPE_REPLAY.describe(r)])
+		return
+	var p: Player = lvl.player as Player
+	if p == null or not is_instance_valid(p):
+		failures.append("%s :: no player at the end of the %s tape — %s"
+			% [_current, id, TAPE_REPLAY.describe(r)])
+		return
+	var boss: Node = lvl.get("boss") as Node
+	if boss == null or not is_instance_valid(boss):
+		failures.append("%s :: %s declares a '%s' the level never spawned"
+			% [_current, id, boss_of(id)])
+		return
+
+	var where := TAPE_REPLAY.describe(r)
+	check(not bool(r["died"]), "the %s tape carries Kaya to the arena alive — %s" % [id, where])
+	# The arena is the boss's own screen and the span it is clamped inside — the
+	# numbers boss_grove.gd itself fights within, not a rectangle written here.
+	var c := p.center()
+	check_eq(Screen.index_of(c, Vector2i(999, 999)), boss.home_screen,
+		"and onto the boss's screen — %s" % where)
+	check(p.on_floor, "standing on the arena floor, not falling through it — %s" % where)
+	check(c.x >= boss.arena_min and c.x <= boss.arena_max + boss.box.x,
+		"inside the span the boss is clamped to (%.0f..%.0f, Kaya at %.0f)"
+			% [boss.arena_min, boss.arena_max + boss.box.x, c.x])
+	# And the reason completion is not asserted is itself an outcome: the tape
+	# did not beat the Warden.
+	check(not bool(boss.get("defeated")),
+		"with the boss still alive, which is why this case stops here — %s" % where)
+
+## The boss entity a level declares, or "" if it has none. `boss_exit` is a
+## gate, not a boss, and a level may carry one without the fight being spawned.
+func boss_of(id: String) -> String:
+	var d := level_json(id)
+	for raw: Variant in (d.get("entities", []) as Array):
+		var t := String((raw as Dictionary).get("type", ""))
+		if t.begins_with("boss_") and t != "boss_exit":
+			return t
+	return ""
+
+func level_json(id: String) -> Dictionary:
+	var f := FileAccess.open("%s/%s.json" % [LEVEL_DIR, id], FileAccess.READ)
+	if f == null:
+		return {}
+	var parsed: Variant = JSON.parse_string(f.get_as_text())
+	f.close()
+	return parsed as Dictionary if typeof(parsed) == TYPE_DICTIONARY else {}
+
 ## Every level a tape can be asked to finish: the playable ones. The hub is a
 ## top-down map with no exit to reach, so it is not one of them.
 func replayable_levels() -> PackedStringArray:
@@ -337,14 +410,8 @@ func replayable_levels() -> PackedStringArray:
 		if not n.ends_with(".json") or n.ends_with(".tape.json"):
 			continue
 		var id := n.substr(0, n.length() - 5)
-		var f := FileAccess.open("%s/%s" % [LEVEL_DIR, n], FileAccess.READ)
-		if f == null:
-			continue
-		var parsed: Variant = JSON.parse_string(f.get_as_text())
-		f.close()
-		if typeof(parsed) != TYPE_DICTIONARY:
-			continue
-		if bool((parsed as Dictionary).get("topdown", false)):
+		var def := level_json(id)
+		if def.is_empty() or bool(def.get("topdown", false)):
 			continue
 		out.append(id)
 	return out
