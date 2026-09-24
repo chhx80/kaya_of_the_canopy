@@ -1,0 +1,91 @@
+{
+ "id": "nest_lattice",
+ "name": "NEST LATTICE",
+ "music": "",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "ssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssbsssssssssssss",
+  "ssssssssssssssssssssbsssssssssssss",
+  "s...................b............s",
+  "s...................b............s",
+  "ssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssss"
+ ],
+ "bg": [
+  "..................................",
+  "..................................",
+  "..................................",
+  "..................................",
+  "..................................",
+  "..................................",
+  "..................................",
+  "..................................",
+  "..................................",
+  "..................................",
+  "..................................",
+  "..................................",
+  "..................................",
+  "..................................",
+  "..................................",
+  "..................................",
+  "..................................",
+  ".................................."
+ ],
+ "entities": [
+  {
+   "type": "switch_b",
+   "x": 8,
+   "y": 15
+  },
+  {
+   "type": "player_spawn",
+   "x": 2,
+   "y": 15
+  },
+  {
+   "type": "exit",
+   "x": 30,
+   "y": 15
+  }
+ ],
+ "marks": {
+  "past_gate": {
+   "x": 24,
+   "y": 15
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "switch_b",
+   "form": "human"
+  },
+  {
+   "from": "switch_b",
+   "to": "past_gate",
+   "form": "human"
+  },
+  {
+   "from": "past_gate",
+   "to": "exit",
+   "form": "human"
+  }
+ ]
+}

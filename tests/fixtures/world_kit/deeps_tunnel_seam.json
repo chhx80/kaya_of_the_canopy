@@ -1,0 +1,93 @@
+{
+ "id": "deeps_tunnel_seam",
+ "name": "DEEPS TUNNEL SEAM",
+ "music": "",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "ssssssssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssss|..............sss",
+  "ssssssssssssssssssssss|..............sss",
+  "ssssssssssssssssssssss|sssssssssssssssss",
+  "ssssssssssssssssssssss|sssssssssssssssss",
+  "ssssssssssssssssssssss|sssssssssssssssss",
+  "ssssssssssssssssssssss|sssssssssssssssss",
+  "ssssssssssssssssssssss|sssssssssssssssss",
+  "ssssssssssssssssssssss|sssssssssssssssss",
+  "ssssssssssssssssssssss|sssssssssssssssss",
+  "ssssssssssssssssssssss|sssssssssssssssss",
+  "ss....................|sssssssssssssssss",
+  "ss....................|sssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssssssssss"
+ ],
+ "bg": [
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................",
+  "........................................"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 3,
+   "y": 20
+  },
+  {
+   "type": "exit",
+   "x": 35,
+   "y": 10
+  }
+ ],
+ "marks": {
+  "riser_top": {
+   "x": 23,
+   "y": 10
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "riser_top",
+   "form": "human"
+  },
+  {
+   "from": "riser_top",
+   "to": "exit",
+   "form": "human"
+  }
+ ]
+}

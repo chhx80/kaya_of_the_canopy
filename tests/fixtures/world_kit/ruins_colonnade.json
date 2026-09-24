@@ -1,0 +1,130 @@
+{
+ "id": "ruins_colonnade",
+ "name": "RUINS COLONNADE",
+ "music": "",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "ssssssssssssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssssssssssssss",
+  "ssssssssssssssssssssssssssssssssssssssssssss",
+  "ss....ssssssssssssssssssssssssssssssssssssss",
+  "ss....ssssssssssssssssssssssssssssssssssssss",
+  "ss........................................ss",
+  "ss........................................ss",
+  "ss....................................ssssss",
+  "ssssss~~~~~~~~~ss~~~~~~~~~~~~ss~~~~~~~ddddss",
+  "ssddddwwwwwwwwwsswwwwwwwwwwwwsswwwwwwwddddss",
+  "sswwwwwwsswwwwwsswwwwwsswwwwwsswwwwwwwddddss",
+  "sswwwwwwsswwwwwsswwwwwsswwwwwsswwwwwwwddddss",
+  "sswwwwwwsswwwwwsswwwwwsswwwwwsswwwwwwwddddss",
+  "sswwwwwwsswwwwwsswwwwwsswwwwwsswwwwwwwddddss",
+  "sswwwwwwsswwwwwsswwwwwsswwwwwsswwwwwwwddddss",
+  "sswwwwwwsswwwwwwwwwwwwsswwwwwwwwwwwwwwddddss",
+  "sswwwwwwsswwwwwwwwwwwwsswwwwwwwwwwwwwwddddss",
+  "ssddddddddddddddddddddddddddddddddddddddddss",
+  "ssssssssssssssssssssssssssssssssssssssddddss",
+  "ssssssssssssssssssssssssssssssssssssssddddss",
+  "ssssssssssssssssssssssssssssssssssssssddddss"
+ ],
+ "bg": [
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................",
+  "............................................"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 3,
+   "y": 10
+  },
+  {
+   "type": "pad_fish",
+   "x": 5,
+   "y": 10
+  },
+  {
+   "type": "exit",
+   "x": 39,
+   "y": 9
+  }
+ ],
+ "marks": {
+  "col_1": {
+   "x": 9,
+   "y": 12
+  },
+  "col_2": {
+   "x": 16,
+   "y": 19
+  },
+  "col_3": {
+   "x": 23,
+   "y": 12
+  },
+  "col_4": {
+   "x": 30,
+   "y": 19
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "pad_fish",
+   "form": "human"
+  },
+  {
+   "from": "pad_fish",
+   "to": "col_1",
+   "form": "fish"
+  },
+  {
+   "from": "col_1",
+   "to": "col_2",
+   "form": "fish"
+  },
+  {
+   "from": "col_2",
+   "to": "col_3",
+   "form": "fish"
+  },
+  {
+   "from": "col_3",
+   "to": "col_4",
+   "form": "fish"
+  },
+  {
+   "from": "col_4",
+   "to": "exit",
+   "form": "fish"
+  }
+ ]
+}
