@@ -1,7 +1,7 @@
 # wave2/legend — a per-world level legend
 
-Branch `wave2/legend`, three commits off `2d48d72`. The work is `74a4362`;
-the other two are this report and the `.uid` Godot generates for the new test
+Branch `wave2/legend`, four commits off `2d48d72`. The work is `74a4362`;
+the rest are this report and the `.uid` Godot generates for the new test
 script.
 
 ## The problem, restated from the measurement
