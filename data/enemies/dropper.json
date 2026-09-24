@@ -1,0 +1,62 @@
+{
+  "id": "dropper",
+  "display_name": "HOLLOW TICK",
+  "sprite": "res://assets/sprites/enemy_dropper.png",
+  "frame_w": 16,
+  "frame_h": 16,
+  "hitbox": {
+    "w": 14,
+    "h": 12,
+    "ox": 1,
+    "oy": 3
+  },
+  "health": 1,
+  "contact_damage": 1,
+  "score": 150,
+  "gravity": 900.0,
+  "speed": 30.0,
+  "wind_up": 0.45,
+  "trigger_width": 14.0,
+  "trigger_depth": 112.0,
+  "land_action": "walk",
+  "land_fx": "dust",
+  "turn_at_ledge": true,
+  "ledge_lookahead": 2.0,
+  "turn_cooldown": 0.15,
+  "sfx_tell": "blip",
+  "sfx_land": "land",
+  "death_fx": "scatter",
+  "hitstop": "kill",
+  "drops": {
+    "gem": 0.35,
+    "heart": 0.05
+  },
+  "anim": {
+    "cling": {
+      "frames": [
+        0
+      ],
+      "fps": 1
+    },
+    "tell": {
+      "frames": [
+        1,
+        2
+      ],
+      "fps": 12
+    },
+    "fall": {
+      "frames": [
+        3
+      ],
+      "fps": 1
+    },
+    "walk": {
+      "frames": [
+        4,
+        5
+      ],
+      "fps": 8
+    }
+  }
+}

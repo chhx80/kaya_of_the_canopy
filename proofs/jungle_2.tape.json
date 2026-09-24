@@ -1,0 +1,417 @@
+{
+ "fps": 60,
+ "hops": [
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "right+jump",
+     "n": 12
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "right+jump",
+     "n": 16
+    },
+    {
+     "a": "right",
+     "n": 12
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "left",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "spawn",
+   "to": "key_yellow"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "key_yellow",
+   "to": "door_yellow"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 12
+    },
+    {
+     "a": "down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 12
+    },
+    {
+     "a": "none",
+     "n": 8
+    },
+    {
+     "a": "down",
+     "n": 3
+    }
+   ],
+   "from": "door_yellow",
+   "to": "vine_foot"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "jump",
+     "n": 16
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 16
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 16
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 16
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 16
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "up",
+     "n": 1
+    }
+   ],
+   "from": "vine_foot",
+   "to": "vine_top"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "left+down",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 20
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "vine_top",
+   "to": "switch_a"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 20
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "right+up+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 20
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "switch_a",
+   "to": "ruins_ledge"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right+jump",
+     "n": 8
+    },
+    {
+     "a": "right",
+     "n": 20
+    },
+    {
+     "a": "right+jump",
+     "n": 12
+    },
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "right+jump",
+     "n": 8
+    },
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
+    }
+   ],
+   "from": "ruins_ledge",
+   "to": "switch_b"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 32
+    },
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 15
+    }
+   ],
+   "from": "switch_b",
+   "to": "key_red"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 52
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "key_red",
+   "to": "door_red"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "door_red",
+   "to": "exit"
+  }
+ ],
+ "level": "jungle_2",
+ "source_sha": "0ce82431785ad208c1a27a7775480401219a194c93652ebbd27565e4d1d94412"
+}

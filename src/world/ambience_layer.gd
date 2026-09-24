@@ -42,6 +42,9 @@ var _visible: Array = []
 var _flickers := false
 var _t := 0.0
 var _phase := 0
+## Whole-pixel position of the lantern, so a dark level redraws when Kaya moves
+## a pixel and not on every frame she stands still.
+var _lantern_px := Vector2(-9999, -9999)
 
 func setup(r: Role, a: Ambience, w: TileWorld) -> void:
 	role = r
@@ -49,6 +52,7 @@ func setup(r: Role, a: Ambience, w: TileWorld) -> void:
 	world = w
 	if role == Role.LIGHT:
 		_pool_tex = load(POOL_TEX)
+		_lantern_px = Vector2(-9999, -9999)
 		# The one material in the level. Additive is what makes a pool read as
 		# light falling on the scene rather than as a pale sticker over it.
 		var m := CanvasItemMaterial.new()
@@ -125,8 +129,29 @@ func _add_run(x0: int, x1: int, ty: int, id: int) -> void:
 func visible_pools() -> int:
 	return _visible.size()
 
+## The player, found through the Level this layer is a child of. A lookup rather
+## than a wired reference because darkness is a *drawing*: nothing in the level
+## should have to know it is dark, and nothing here may reach back into movement.
+func _lantern_pos() -> Vector2:
+	var lv := get_parent()
+	if lv == null:
+		return Vector2(-9999, -9999)
+	var pl: Variant = lv.get("player")
+	if pl is Actor:
+		return (pl as Actor).center()
+	return Vector2(-9999, -9999)
+
 func _process(delta: float) -> void:
-	if not _flickers or Game.sim_paused:
+	# Only the light layer animates: the haze and the shade are flat fills that
+	# change when the screen flips and never in between.
+	if role != Role.LIGHT or amb == null or Game.sim_paused:
+		return
+	if amb.lantern_radius > 0.0:
+		var here := _lantern_pos().round()
+		if here != _lantern_px:
+			_lantern_px = here
+			queue_redraw()
+	if not _flickers and amb.lantern_flicker <= 0.0:
 		return
 	_t += delta
 	# Quantised: a flicker that redraws on every frame costs more than the
@@ -136,6 +161,21 @@ func _process(delta: float) -> void:
 		_phase = ph
 		queue_redraw()
 
+## The light Kaya carries in a dark level. Drawn outside `_visible` so a screen
+## full of emissive tiles can never push it past MAX_POOLS and leave her blind
+## in a room she cannot see — that is a softlock made of pixels.
+func _draw_lantern() -> void:
+	if amb.lantern_radius <= 0.0:
+		return
+	var at := _lantern_pos()
+	if at.x < -9000.0:
+		return
+	var c := amb.lantern
+	if amb.lantern_flicker > 0.0:
+		c.a *= 1.0 - amb.lantern_flicker * (0.5 + 0.5 * sin(_t * TAU * amb.lantern_rate))
+	var half := Vector2(amb.lantern_radius, amb.lantern_radius)
+	draw_texture_rect(_pool_tex, Rect2((at - half).round(), half * 2.0), false, c)
+
 func _draw() -> void:
 	if amb == null:
 		return
@@ -144,12 +184,17 @@ func _draw() -> void:
 			if amb.air.a > 0.0:
 				draw_rect(view, amb.air)
 		Role.SHADE:
+			# Darkness first, vignette on top: the vignette is the *edge* of the
+			# screen getting darker still, not a second flat fill.
+			if amb.darkness > 0.0:
+				draw_rect(view, amb.shade)
 			if amb.vignette > 0.0 and _vig_tex != null:
 				draw_texture_rect(_vig_tex, Rect2(view.position, view.size), false,
 					Color(1, 1, 1, amb.vignette))
 		Role.LIGHT:
 			if _pool_tex == null:
 				return
+			_draw_lantern()
 			for raw: Variant in _visible:
 				var p: Ambience.Pool = raw
 				var c := p.colour

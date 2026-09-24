@@ -1,0 +1,65 @@
+{
+ "id": "gap_human_7",
+ "name": "GAP HUMAN 7",
+ "music": "",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  1,
+  1
+ ],
+ "fg": [
+  "ssssssssssssssssssssssss",
+  "ssssssssssssssssssssssss",
+  "ssssssssssssssssssssssss",
+  "ssssssssssssssssssssssss",
+  "ssssssssssssssssssssssss",
+  "s......................s",
+  "s......................s",
+  "s......................s",
+  "s......................s",
+  "s......................s",
+  "sssssssss.......ssssssss",
+  "sdddddddd.......ddddddds",
+  "sssssssss^^^^^^^ssssssss",
+  "ssssssssssssssssssssssss",
+  "ssssssssssssssssssssssss"
+ ],
+ "bg": [
+  "........................",
+  "........................",
+  "........................",
+  "........................",
+  "........................",
+  "........................",
+  "........................",
+  "........................",
+  "........................",
+  "........................",
+  "........................",
+  "........................",
+  "........................",
+  "........................",
+  "........................"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 2,
+   "y": 9
+  },
+  {
+   "type": "exit",
+   "x": 18,
+   "y": 9
+  }
+ ],
+ "marks": {},
+ "route": [
+  {
+   "from": "spawn",
+   "to": "exit",
+   "form": "human"
+  }
+ ]
+}

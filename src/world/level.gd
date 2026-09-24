@@ -11,6 +11,17 @@ const PARALLAX_SKY := 0.10
 const PARALLAX_FAR := 0.28
 const PARALLAX_NEAR := 0.58
 
+## Entity types of the form `enemy_<id>` are dispatched to
+## res://src/enemies/<id>.gd. The ids are listed rather than globbed off the
+## directory, because `enemy_base.gd` and `projectile.gd` live there too and
+## neither is a thing a level may place — and because a level naming an enemy
+## this file has never heard of has to say so out loud instead of leaving a
+## silent hole where a threat was authored.
+const ENEMY_PREFIX := "enemy_"
+const ENEMY_IDS: Array[String] = [
+	"walker", "jumper", "shooter", "swimmer", "charger", "dropper", "flyer",
+]
+
 var def: LevelLoader.LevelDef = null
 var world: TileWorld = null
 var player: Player = null
@@ -137,9 +148,13 @@ func spawn_entity(e: Dictionary) -> Node:
 			return node
 
 func _spawn_gameplay_entity(type: String, p: Vector2, e: Dictionary) -> Node:
+	# Ahead of the match, so registering an enemy is its id in ENEMY_IDS and
+	# its script in src/enemies/, and nothing else. Three finished, tuned and
+	# tested enemies could not be placed in a level for a whole milestone
+	# because this used to be a literal list of four type names.
+	if type.begins_with(ENEMY_PREFIX):
+		return _spawn_named_enemy(type.substr(ENEMY_PREFIX.length()), p, e)
 	match type:
-		"enemy_walker", "enemy_jumper", "enemy_shooter", "enemy_swimmer":
-			return _spawn_enemy(type.substr(6), p, e)
 		"boss_grove":
 			boss = _spawn_enemy(type, p, e)
 			return boss
@@ -180,6 +195,17 @@ func _spawn_gameplay_entity(type: String, p: Vector2, e: Dictionary) -> Node:
 			entities.add_child(ex)
 			return ex
 	return null
+
+## `enemy_*` dispatch. An unregistered id is a level-authoring mistake, and it
+## says so with the ids it could have used; the caller still warns about the
+## entity type, so the two lines together name both the level's word and the
+## registry's answer. What it must never do is return quietly.
+func _spawn_named_enemy(id: String, p: Vector2, e: Dictionary) -> Enemy:
+	if not ENEMY_IDS.has(id):
+		push_warning("Level: '%s%s' is not a registered enemy; known ids are %s"
+			% [ENEMY_PREFIX, id, ", ".join(PackedStringArray(ENEMY_IDS))])
+		return null
+	return _spawn_enemy(id, p, e)
 
 func _spawn_enemy(id: String, p: Vector2, e: Dictionary) -> Enemy:
 	var script_path := "res://src/enemies/%s.gd" % id

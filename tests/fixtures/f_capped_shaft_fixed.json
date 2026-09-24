@@ -1,0 +1,64 @@
+{
+ "id": "f_capped_shaft_fixed",
+ "name": "A SHAFT WITH A LID (REPAIRED)",
+ "music": "",
+ "next_level": "",
+ "topdown": false,
+ "fg": [
+  "ssssssssssssss",
+  "sssss...ssssss",
+  "sssss...ssssss",
+  "sssss...ssssss",
+  "sssss...ssssss",
+  "sssss...ssssss",
+  "sssss..sssssss",
+  "sssss...ssssss",
+  "sssss...ssssss",
+  "sssss...ssssss",
+  "ssssssssssssss",
+  "ssssssssssssss"
+ ],
+ "bg": [
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  ".............."
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 7,
+   "y": 9
+  },
+  {
+   "type": "pad_frog",
+   "x": 5,
+   "y": 9
+  },
+  {
+   "type": "exit",
+   "x": 6,
+   "y": 5
+  }
+ ],
+ "route": [
+  {
+   "from": "spawn",
+   "to": "pad_frog",
+   "form": "human"
+  },
+  {
+   "from": "pad_frog",
+   "to": "exit",
+   "form": "frog"
+  }
+ ]
+}

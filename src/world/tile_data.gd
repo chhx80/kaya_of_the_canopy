@@ -13,6 +13,7 @@ enum Flag {
 	BREAKABLE = 1 << 5,
 	SURFACE   = 1 << 6,   ## top row of a body of water
 	SWITCHED  = 1 << 7,   ## solidity depends on a switch group
+	CURRENT   = 1 << 8,   ## carries a constant velocity — see `current_of()`
 }
 
 const TILE_SIZE := 16
@@ -23,6 +24,19 @@ var names: PackedStringArray = PackedStringArray()
 ## For SWITCHED tiles: group number (1..N) and the group state that makes it solid.
 var switch_group: PackedInt32Array = PackedInt32Array()
 var switch_state: PackedInt32Array = PackedInt32Array()
+## For CURRENT tiles: the velocity of the medium, px/s, split by axis because a
+## PackedVector2Array of mostly-zero entries costs twice as much to keep around.
+## A water push is horizontal, an updraft is vertical; they are one feature with
+## two data configurations, not two systems.
+var current_x: PackedFloat32Array = PackedFloat32Array()
+var current_y: PackedFloat32Array = PackedFloat32Array()
+## For BREAKABLE tiles: how long a form has to shoulder into this tile with
+## attack held before it gives. 0 means only a weapon can break it, which is
+## what keeps crates behaving exactly as they did before walls existed.
+var break_hold: PackedFloat32Array = PackedFloat32Array()
+## Set when any tile declares a current, so a level without one pays nothing for
+## the feature: `FormBase.current_at()` returns early instead of scanning tiles.
+var has_currents := false
 var atlas_columns := 16
 
 static var _shared: TileData4 = null
@@ -59,6 +73,10 @@ func load_from_dict(d: Dictionary) -> bool:
 	names.resize(max_id + 1)
 	switch_group.resize(max_id + 1)
 	switch_state.resize(max_id + 1)
+	current_x.resize(max_id + 1)
+	current_y.resize(max_id + 1)
+	break_hold.resize(max_id + 1)
+	has_currents = false
 	for k: String in tiles.keys():
 		var id := int(k)
 		var t: Dictionary = tiles[k]
@@ -74,6 +92,19 @@ func load_from_dict(d: Dictionary) -> bool:
 			fl |= Flag.SWITCHED
 			switch_group[id] = int(t["switch_group"])
 			switch_state[id] = 1 if t.get("switch_state", true) else 0
+		if t.has("current"):
+			var v: Array = t["current"]
+			if v.size() == 2 and not (is_zero_approx(float(v[0])) and is_zero_approx(float(v[1]))):
+				fl |= Flag.CURRENT
+				current_x[id] = float(v[0])
+				current_y[id] = float(v[1])
+				has_currents = true
+			else:
+				push_error("TileData: tile %d has a malformed or zero 'current'" % id)
+		if fl & Flag.BREAKABLE:
+			break_hold[id] = maxf(0.0, float(t.get("break_hold", 0.0)))
+		elif t.has("break_hold"):
+			push_error("TileData: tile %d declares break_hold but is not breakable" % id)
 		flags[id] = fl
 		names[id] = String(t.get("name", "tile_%d" % id))
 	return true
@@ -82,6 +113,19 @@ func flags_of(id: int) -> int:
 	if id < 0 or id >= flags.size():
 		return 0
 	return flags[id]
+
+## The velocity of the medium inside this tile, px/s. Zero for every tile that
+## does not declare one, so callers never have to check the flag first.
+func current_of(id: int) -> Vector2:
+	if id < 0 or id >= current_x.size():
+		return Vector2.ZERO
+	return Vector2(current_x[id], current_y[id])
+
+## Seconds of shouldering that break this tile without a weapon; 0 for weapon-only.
+func break_hold_of(id: int) -> float:
+	if id < 0 or id >= break_hold.size():
+		return 0.0
+	return break_hold[id]
 
 func name_of(id: int) -> String:
 	if id < 0 or id >= names.size():

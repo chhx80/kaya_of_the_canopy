@@ -1,0 +1,41 @@
+{
+  "id": "flyer",
+  "display_name": "CANOPY WASP",
+  "sprite": "res://assets/sprites/enemy_flyer.png",
+  "frame_w": 16,
+  "frame_h": 16,
+  "hitbox": {
+    "w": 14,
+    "h": 7,
+    "ox": 1,
+    "oy": 5
+  },
+  "health": 2,
+  "contact_damage": 1,
+  "score": 200,
+  "gravity": 0.0,
+  "speed": 46.0,
+  "patrol_axis": "x",
+  "patrol_range": 64.0,
+  "bob_amplitude": 6.0,
+  "bob_period": 1.7,
+  "bob_max_speed": 90.0,
+  "steer_gain": 4.0,
+  "death_fx": "scatter",
+  "hitstop": "kill",
+  "drops": {
+    "gem": 0.45,
+    "heart": 0.07
+  },
+  "anim": {
+    "fly": {
+      "frames": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "fps": 14
+    }
+  }
+}

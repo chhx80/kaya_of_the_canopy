@@ -1,0 +1,75 @@
+{
+ "id": "gap_frog_4",
+ "name": "GAP FROG 4",
+ "music": "",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  1,
+  1
+ ],
+ "fg": [
+  "sssssssssssssssssssss",
+  "sssssssssssssssssssss",
+  "sssssssssssssssssssss",
+  "sssssssssssssssssssss",
+  "sssssssssssssssssssss",
+  "s...................s",
+  "s...................s",
+  "s...................s",
+  "s...................s",
+  "s...................s",
+  "sssssssss....ssssssss",
+  "sdddddddd....ddddddds",
+  "sssssssss^^^^ssssssss",
+  "sssssssssssssssssssss",
+  "sssssssssssssssssssss"
+ ],
+ "bg": [
+  ".....................",
+  ".....................",
+  ".....................",
+  ".....................",
+  ".....................",
+  ".....................",
+  ".....................",
+  ".....................",
+  ".....................",
+  ".....................",
+  ".....................",
+  ".....................",
+  ".....................",
+  ".....................",
+  "....................."
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 2,
+   "y": 9
+  },
+  {
+   "type": "exit",
+   "x": 15,
+   "y": 9
+  },
+  {
+   "type": "pad_frog",
+   "x": 5,
+   "y": 9
+  }
+ ],
+ "marks": {},
+ "route": [
+  {
+   "from": "spawn",
+   "to": "pad_frog",
+   "form": "human"
+  },
+  {
+   "from": "pad_frog",
+   "to": "exit",
+   "form": "frog"
+  }
+ ]
+}

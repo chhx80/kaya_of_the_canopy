@@ -224,6 +224,173 @@ func test_unknown_legend_characters_are_reported() -> void:
 	not_ok(def.ok(), "an unmapped character must fail validation")
 	ok(", ".join(def.errors).contains("Z"), "the error names the bad character")
 
+## Each level reads its grid against one world's legend (ADR 002). Which world
+## is a fact about the level, so it is checked here with the rest of them;
+## tests/test_level_format.gd is where the legend itself is checked.
+func test_every_level_reads_against_a_world_the_legend_defines() -> void:
+	var known := LevelLoader.tileset_names()
+	for id in ids:
+		var def := LevelLoader.load_level(id)
+		ok(known.has(def.tileset),
+			"%s names tileset '%s'; the legend defines %s"
+				% [id, def.tileset, ", ".join(known)])
+
+## Every character a level actually uses has to be one its own world defines.
+## The loader already refuses such a level, but it refuses it at load, which in
+## a shipped build is a push_error and a black screen. This says it here, in
+## the tier that runs on every change.
+func test_no_level_uses_a_character_its_own_world_does_not_define() -> void:
+	for id in ids:
+		var raw := _level_json(id)
+		if raw.is_empty():
+			continue
+		var tileset := String(raw.get("tileset", LevelLoader.default_tileset()))
+		var lg := LevelLoader.legend_for(tileset)
+		ok(not lg.is_empty(), "%s: unknown tileset '%s'" % [id, tileset])
+		if lg.is_empty():
+			continue
+		for layer in ["fg", "bg"]:
+			var rows: Array = raw.get(layer, []) as Array
+			for y in rows.size():
+				var row := String(rows[y])
+				for x in row.length():
+					ok(lg.has(row[x]),
+						"%s: '%s' at %s (%d,%d) is not in tileset '%s'"
+							% [id, row[x], layer, x, y, tileset])
+
 func test_a_level_without_a_spawn_is_rejected() -> void:
 	var def := LevelLoader.from_dict({"id": "synthetic", "fg": ["#####"], "entities": []})
 	not_ok(def.ok(), "no spawn means no level")
+
+## ADR 005: a level is playable when a machine has played it, and the machine
+## cannot play one that never says how it is meant to be solved. A level with no
+## route is not "probably fine", it is unproved — so it fails here. Silence is
+## not a pass.
+##
+## These read the raw JSON rather than LevelDef because the route is the
+## prover's contract, not the game's: nothing in src/ consumes it, so nothing in
+## src/ would notice it going missing.
+func _level_json(id: String) -> Dictionary:
+	var f := FileAccess.open(LevelLoader.level_path(id), FileAccess.READ)
+	if f == null:
+		return {}
+	var parsed: Variant = JSON.parse_string(f.get_as_text())
+	f.close()
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return {}
+	return parsed as Dictionary
+
+func _route_of(id: String) -> Array:
+	var raw: Variant = _level_json(id).get("route", [])
+	if typeof(raw) != TYPE_ARRAY:
+		return []
+	return raw as Array
+
+func _marks_of(id: String) -> Dictionary:
+	var raw: Variant = _level_json(id).get("marks", {})
+	if typeof(raw) != TYPE_DICTIONARY:
+		return {}
+	return raw as Dictionary
+
+## The hub is an overworld, not something you finish; every other level has to
+## declare how it is finished.
+func _routed_ids() -> PackedStringArray:
+	var out := PackedStringArray()
+	for id in ids:
+		if id == "hub":
+			continue
+		out.append(id)
+	return out
+
+func test_every_playable_level_declares_a_route() -> void:
+	for id in _routed_ids():
+		gt(float(_route_of(id).size()), 0.0,
+			"%s declares no route — tools/prove.sh cannot play it, so it is not proved" % id)
+
+func test_every_route_hop_names_a_form_that_exists() -> void:
+	for id in _routed_ids():
+		for raw: Variant in _route_of(id):
+			if typeof(raw) != TYPE_DICTIONARY:
+				ok(false, "%s: a route hop is not an object" % id)
+				continue
+			var hop: Dictionary = raw as Dictionary
+			var form_id := String(hop.get("form", ""))
+			ok(FileAccess.file_exists("res://data/forms/%s.json" % form_id),
+				"%s: route hop '%s' -> '%s' asks for unknown form '%s'"
+					% [id, hop.get("from", ""), hop.get("to", ""), form_id])
+
+## A waypoint is 'spawn', a mark, or an entity type that occurs exactly once.
+## Several of a type is as bad as none: "gem" names sixteen different places.
+func test_every_route_waypoint_resolves_to_one_place() -> void:
+	for id in _routed_ids():
+		var def := LevelLoader.load_level(id)
+		if not def.ok():
+			continue
+		var counts := {}
+		for e: Dictionary in def.entities:
+			var t := String(e.get("type", ""))
+			counts[t] = int(counts.get(t, 0)) + 1
+		var marks := _marks_of(id)
+		for raw: Variant in _route_of(id):
+			var hop: Dictionary = raw as Dictionary
+			for end in ["from", "to"]:
+				var wp := String(hop.get(end, ""))
+				if wp == "spawn" or marks.has(wp):
+					continue
+				eq(int(counts.get(wp, 0)), 1,
+					"%s: route names '%s', which is not 'spawn', not a mark, and is "
+					% [id, wp]
+					+ "%d entit(ies) in the level" % int(counts.get(wp, 0)))
+
+## The hops have to chain. A route that starts anywhere but the spawn, or whose
+## hops do not join up, describes a player teleporting between them — and would
+## let the prover report a pass over a gap nobody can cross.
+func test_every_route_starts_at_the_spawn_and_chains() -> void:
+	for id in _routed_ids():
+		var route := _route_of(id)
+		if route.is_empty():
+			continue
+		var first: Dictionary = route[0] as Dictionary
+		eq(String(first.get("from", "")), "spawn",
+			"%s: the route must start at 'spawn'" % id)
+		for i in range(1, route.size()):
+			var prev: Dictionary = route[i - 1] as Dictionary
+			var cur: Dictionary = route[i] as Dictionary
+			eq(String(cur.get("from", "")), String(prev.get("to", "")),
+				"%s: route hop %d starts at '%s' but hop %d arrived at '%s'"
+					% [id, i, cur.get("from", ""), i - 1, prev.get("to", "")])
+
+## Arriving somewhere is not finishing. The last hop has to reach a way out, or
+## the route proves a walk rather than a completion.
+func test_every_route_ends_at_a_way_out() -> void:
+	for id in _routed_ids():
+		var route := _route_of(id)
+		if route.is_empty():
+			continue
+		var last: Dictionary = route[route.size() - 1] as Dictionary
+		var dest := String(last.get("to", ""))
+		ok(dest == "exit" or dest == "boss_exit",
+			"%s: the route ends at '%s', which is not an exit" % [id, dest])
+
+## A waypoint inside rock, or standing on spikes, is a typo that would otherwise
+## cost a whole prover run to find. The player is 22px, so a waypoint needs its
+## own tile and the one above it.
+func test_every_mark_is_somewhere_the_player_could_be() -> void:
+	for id in _routed_ids():
+		var def := LevelLoader.load_level(id)
+		if not def.ok() or def.topdown:
+			continue
+		for name: String in _marks_of(id).keys():
+			var m: Dictionary = _marks_of(id)[name]
+			var mx := int(m.get("x", -1))
+			var my := int(m.get("y", -1))
+			ok(mx >= 0 and my >= 1 and mx < def.world.width and my < def.world.height,
+				"%s: mark '%s' at (%d,%d) is off the grid" % [id, name, mx, my])
+			if mx < 0 or my < 1:
+				continue
+			not_ok(def.world.is_solid(mx, my),
+				"%s: mark '%s' at (%d,%d) is inside a solid tile" % [id, name, mx, my])
+			not_ok(def.world.is_solid(mx, my - 1),
+				"%s: mark '%s' at (%d,%d) has a solid tile on its head" % [id, name, mx, my])
+			not_ok(def.world.is_hazard(mx, my),
+				"%s: mark '%s' at (%d,%d) sits on a hazard" % [id, name, mx, my])

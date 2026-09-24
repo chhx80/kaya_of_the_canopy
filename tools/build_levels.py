@@ -1,8 +1,44 @@
 #!/usr/bin/env python3
-"""Level definitions. Run via tools/genlevels.sh."""
+"""Level definitions. Run via tools/genlevels.sh.
+
+The five jungle levels below are drawn with `Grid` directly, because `Grid`'s
+eighteen methods ARE the jungle vocabulary -- `ground`, `vine`, `canopy`,
+`trunk`, `crates`.
+
+The four new worlds of docs/plan-20-levels.md need different shapes, and those
+live in tools/world_kit.py. A level that uses them wraps its grid in a `Kit`,
+draws, and returns BOTH -- the writer below audits the kit before it writes the
+JSON, so a helper's promises are checked against the finished grid rather than
+against the call that made them:
+
+    from world_kit import Kit, RUINS
+
+    def ruins_1():
+        g = Grid(50, 30)
+        k = Kit(g, RUINS)
+        k.fill_bg()
+        k.shell()
+        k.flooded_chamber(2, 12, 46, 16, surface=15)
+        cols = k.colonnade(8, 5, 8, surface=15, bed=27, mark="col")
+        k.bank(44, 15, 4, rise=1)
+        g.ent("player_spawn", 3, 11)
+        ...
+        return g, k          # <- the tuple is what asks for the audit
+
+Two things the kit will not do for you, both on purpose:
+
+* it does not author a route. ADR 005 wants the intended solution written by
+  the author, next to the geometry; the helpers return the mark names in
+  traversal order so `g.route()` can be chained down them.
+* it does not prove anything. `tools/prove.sh` does. The kit's audit is a fast
+  filter that catches the class of error that has shipped here six times, and
+  its verdict is not evidence -- exactly the standing rule for
+  tools/reachability.py.
+"""
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_levels import Grid, write
+from world_kit import Kit
 
 
 def jungle_1():
@@ -28,6 +64,8 @@ def jungle_1():
 
     # ---------------- the vine, C -> A
     g.vine(21, 6, 21)             # rows 6..26
+    g.mark("vine_foot", 21, 26)   # stand on the east shelf at its base
+    g.mark("vine_top", 21, 6)
 
     # ---------------- screen A (top-left)
     g.ground(17, 7, 4, depth=2)
@@ -38,15 +76,24 @@ def jungle_1():
 
     # ---------------- A -> B along the canopy
     g.platform(23, 6, 4)
+    g.mark("branch_a", 24, 5)
     g.platform(30, 8, 4)
+    g.mark("branch_lip", 26, 5)     # the east lip of branch_a, where the jump starts
+    g.mark("branch_b", 31, 7)
     g.ground(35, 10, 6, depth=2)
+    g.mark("branch_c", 37, 9)
     g.platform(42, 8, 3)
+    g.mark("branch_d", 43, 7)
 
     # ---------------- descent shaft B -> D
     g.platform(45, 12, 4)
+    g.mark("descent_1", 46, 11)
     g.platform(45, 17, 4)
+    g.mark("descent_2", 46, 16)
     g.platform(40, 21, 4)
+    g.mark("descent_3", 41, 20)
     g.platform(38, 24, 4)
+    g.mark("descent_4", 39, 23)
 
     # ---------------- screen D (bottom-right): the run to the exit
     g.ground(25, 27, 25)
@@ -78,6 +125,26 @@ def jungle_1():
     g.ent("gem", 30, 25)
     g.ent("gem", 31, 25)
     g.ent("exit", 47, 26)
+
+    # ---------------- the intended solution (ADR 005)
+    # One form the whole way. The level is a loop of the four screens: east
+    # along the floor, up the vine, east along the canopy, down the shaft.
+    g.route("spawn", "vine_foot", form="human")      # run east, clear the spike pit (14-16)
+    g.route("vine_foot", "vine_top", form="human")   # 20 tiles of vine, C -> A
+    g.route("vine_top", "branch_a", form="human")    # step off the vine eastward
+    # Measured in the running game, not reasoned: NO jump from branch_a lands on
+    # the platform at cols 30-33. Ten jump lengths from 0 to 30 frames either
+    # drop into the gap or sail over it to branch_c, and braking in mid-air with
+    # move_left overshoots backwards into the gap every time. That platform is
+    # scenery you pass over, so the route no longer claims you stand on it.
+    g.route("branch_a", "branch_lip", form="human")   # walk out to the lip
+    g.route("branch_lip", "branch_c", form="human")   # one jump, clearing the gap
+    g.route("branch_c", "branch_d", form="human")    # A -> B, the screen flip east
+    g.route("branch_d", "descent_1", form="human")   # over the lip into the shaft
+    g.route("descent_1", "descent_2", form="human")  # drop through the one-way, B -> D
+    g.route("descent_2", "descent_3", form="human")  # off the west edge of the shaft
+    g.route("descent_3", "descent_4", form="human")
+    g.route("descent_4", "exit", form="human")       # land east of the second spike pit
     return g
 
 
@@ -148,6 +215,10 @@ def jungle_2():
     g.rect(19, 26, 3, 3, ".")
     g.platform(17, 22, 3)
     g.vine(22, 8, 19)                   # must reach screen A, not stop at its floor
+    # The vine punches a notch in the floor at col 22, so its foot is one tile
+    # lower than the shelf either side of it.
+    g.mark("vine_foot", 22, 26)
+    g.mark("vine_top", 22, 8)
 
     # ---- screen A (top-left): switch puzzle over a drop
     g.ground(2, 14, 6, depth=2)
@@ -163,6 +234,7 @@ def jungle_2():
 
     # ---- screen B (top-right): the red key behind switch group 2
     g.ground(25, 9, 8, depth=2)
+    g.mark("ruins_ledge", 26, 8)        # where the jump east off the vine lands
     # The critical path must not run over a switch block: group 2 starts OFF, so
     # this 'B' bridge is intangible until you flip switch_b -- which is on the
     # far side of it. The platform below breaks that circular dependency and
@@ -204,6 +276,27 @@ def jungle_2():
                    (34, 21), (35, 21), (43, 25), (5, 5), (6, 5)]:
         g.ent("gem", x, y)
     g.ent("heart", 22, 21)
+
+    # ---- the intended solution (ADR 005)
+    # Key, door, key, door, with the switch levers taken on the way past rather
+    # than as gates -- the switch blocks are deliberately a shortcut, not the
+    # critical path, so the route does not stand on one.
+    #
+    # KNOWN WART, declared as found: the drop from key_red lands at cols 43-46,
+    # which is already EAST of door_red at col 38, so the red door can be walked
+    # around entirely. The route still goes through it because that is what the
+    # level is about; the fix is geometry and geometry is not this task's to
+    # change. Expect the prover to pass and a human to notice the door is free.
+    g.route("spawn", "key_yellow", form="human")          # crates, then two platforms
+    g.route("key_yellow", "door_yellow", form="human")    # back down to the hall floor
+    g.route("door_yellow", "vine_foot", form="human")     # east over the spike pit (19-21)
+    g.route("vine_foot", "vine_top", form="human")        # 18 tiles of vine, C -> A
+    g.route("vine_top", "switch_a", form="human")         # step west onto the ledge
+    g.route("switch_a", "ruins_ledge", form="human")      # jump the gap at 22-24, A -> B
+    g.route("ruins_ledge", "switch_b", form="human")      # up the platform and the shelf
+    g.route("switch_b", "key_red", form="human")          # drop east onto the key ledge
+    g.route("key_red", "door_red", form="human")          # one-way fall into screen D
+    g.route("door_red", "exit", form="human")
     return g
 
 
@@ -227,12 +320,18 @@ def jungle_3():
         g.put(x, 21, "~")
     g.rect(9, 22, 35, 7, "w")
 
-    # ---- things to swim around
+    # ---- things to swim around. Alternating: the first stops short of the
+    # bed so you go over it, the second reaches the surface so you go under.
     g.rect(14, 24, 2, 5, "s")
+    g.mark("over_one", 18, 23)
     g.rect(21, 21, 2, 6, "s")
+    g.mark("under_two", 24, 27)
     g.rect(28, 25, 2, 4, "s")
+    g.mark("over_three", 32, 23)
     g.rect(35, 21, 2, 5, "s")
+    g.mark("under_four", 38, 27)
     g.rect(40, 26, 2, 3, "s")
+    g.mark("bank_foot", 43, 22)         # open water against the far bank
 
     # ---- the far bank, and the way up
     g.ground(44, 20, 4, depth=10)
@@ -268,6 +367,27 @@ def jungle_3():
     g.ent("heart", 26, 12)
     g.ent("key_cyan", 3, 4)
     g.ent("door_cyan", 44, 8)
+
+    # ---- the intended solution (ADR 005)
+    # One fish crossing, weaving over and under the five pillars, then human
+    # again for the vine. The hop out of the water onto the far bank at
+    # bank_foot -> pad_human is the 16px bank that defect 4 died on, so it is a
+    # hop of its own and not folded into the swim.
+    #
+    # KNOWN WART, declared as found: key_cyan and door_cyan are NOT on this
+    # route, because the vine surfaces at col 45 and the door is at col 44 --
+    # east of the door is the exit, so the exit needs no key and the whole
+    # upper-left traverse is optional. Routing through the key would mean
+    # declaring a hop that crosses a shut door to fetch the key that opens it,
+    # which is not a solution. Flagged for a geometry fix, not fixed here.
+    g.route("spawn", "pad_fish", form="human")            # two steps along the shore
+    g.route("pad_fish", "over_one", form="fish")          # in, and over the first pillar
+    g.route("over_one", "under_two", form="fish")         # under 21-22, which breaks surface
+    g.route("under_two", "over_three", form="fish")       # over 28-29, which sits on the bed
+    g.route("over_three", "under_four", form="fish")      # under 35-36
+    g.route("under_four", "bank_foot", form="fish")       # over 40-41, to the far wall
+    g.route("bank_foot", "pad_human", form="fish")        # surface and hop the 16px bank
+    g.route("pad_human", "exit", form="human")            # 12 tiles of vine, through the ledge
     return g
 
 
@@ -295,6 +415,7 @@ def jungle_4():
     g.rect(11, 8, 1, 16, "s")           # rows 8-23, floor level left open
     g.rect(18, 8, 1, 18, "s")           # rows 8-25; the roof covers row 18,7
     g.ground(12, 26, 6)
+    g.mark("shaft_foot", 16, 25)        # walk in under the left wall's lip
     # Frog apex is 5.16 tiles, but that is a jump held to full height. Release
     # the button early and jump_cut halves what is left, which tops out around
     # 4.37 tiles -- so a 4-tile step leaves six pixels of margin and lands or
@@ -308,24 +429,37 @@ def jungle_4():
     # open sky now and the climb ends underneath them, so you come out on the
     # roof and walk to the pad.
     g.platform(15, 23, 3)               # stand 22
+    g.mark("rung_1", 16, 22)
     g.platform(12, 20, 3)               # stand 19
+    g.mark("rung_2", 13, 19)
     g.platform(15, 17, 3)               # stand 16
+    g.mark("rung_3", 16, 16)
     g.platform(12, 14, 3)               # stand 13
+    g.mark("rung_4", 13, 13)
     g.platform(15, 11, 3)               # stand 10
+    g.mark("rung_5", 16, 10)
     g.platform(12, 9, 3)                # stand 8, right under the mouth
+    g.mark("rung_6", 13, 8)
     g.ground(15, 7, 4, depth=1)         # the roof, cols 15-18: stand 6
+    g.mark("roof", 17, 6)               # out through the mouth and east
 
     # ---- the bird crossing: perches only, a long way apart
     g.ground(19, 7, 3, depth=1)
     g.platform(25, 5, 3)
+    g.mark("perch_1", 26, 4)
     g.platform(31, 9, 3)
+    g.mark("perch_2", 32, 8)
     g.platform(37, 4, 3)
+    g.mark("perch_3", 38, 3)            # 5 up and 6 across: the stamina test
     g.ground(41, 8, 7, depth=2)
 
     # ---- and a soft landing back on solid ground
     g.ground(41, 26, 7)
     g.vine(44, 7, 19)                   # through the ledge, so the climb
                                         # ends level with somewhere to stand
+    g.mark("vine_foot", 44, 25)         # named because the way down is WEST of
+                                        # the exit: without it a distance-driven
+                                        # search has no reason to leave the pad
     g.platform(20, 16, 3)
     g.platform(26, 19, 3)
     g.platform(33, 22, 3)
@@ -345,6 +479,29 @@ def jungle_4():
                    (21, 15), (27, 18), (34, 21), (43, 25), (44, 25), (4, 25)]:
         g.ent("gem", x, y)
     g.ent("heart", 42, 7)
+
+    # ---- the intended solution (ADR 005)
+    # Arrive human, take the frog pad, climb the shaft in 3-tile steps, leave
+    # through the mouth at cols 12-14 onto the roof, take the bird pad, cross
+    # the canopy, take the human pad, and climb down the vine to the exit.
+    # Every rung is its own hop, because the 3-tile step IS the level -- a 4th
+    # tile on any of them is the bug that dropped the player back to the floor.
+    g.route("spawn", "pad_frog", form="human")
+    g.route("pad_frog", "shaft_foot", form="frog")        # east along the floor, into the shaft
+    g.route("shaft_foot", "rung_1", form="frog")
+    g.route("rung_1", "rung_2", form="frog")
+    g.route("rung_2", "rung_3", form="frog")
+    g.route("rung_3", "rung_4", form="frog")
+    g.route("rung_4", "rung_5", form="frog")
+    g.route("rung_5", "rung_6", form="frog")
+    g.route("rung_6", "roof", form="frog")                # up through the mouth (12-14, row 7)
+    g.route("roof", "pad_bird", form="frog")              # walk east along the roof
+    g.route("pad_bird", "perch_1", form="bird")
+    g.route("perch_1", "perch_2", form="bird")
+    g.route("perch_2", "perch_3", form="bird")
+    g.route("perch_3", "pad_human", form="bird")
+    g.route("pad_human", "vine_foot", form="human")       # step west onto the vine, descend
+    g.route("vine_foot", "exit", form="human")
     return g
 
 
@@ -367,23 +524,29 @@ def jungle_5():
     g.ground(17, 26, 7)
     g.platform(11, 20, 4)
     g.platform(4, 21, 4)
+    g.mark("vine_foot", 21, 26)         # the vine notches the shelf at col 21
 
     # ---- screen A: the canopy walk east
     g.ground(1, 14, 7, depth=2)
     g.platform(9, 12, 4)
     g.ground(14, 10, 9, depth=2)
+    g.mark("canopy_ledge", 19, 9)       # where the vine lets you off, C -> A
     g.platform(6, 7, 4)
     g.ground(1, 5, 4, depth=2)
 
     # ---- screen B: the ledge you jump from
     g.ground(25, 10, 8, depth=2)
+    g.mark("east_ledge", 26, 9)         # across the gap at 23-24, A -> B
     g.platform(34, 8, 4)
+    g.mark("branch", 35, 7)
     g.ground(39, 6, 9, depth=2)
+    g.mark("ledge_b", 41, 5)            # the lip you step off, B -> D
 
     # ---- screen D: the arena. Sealed on both sides, flat floor.
     g.rect(25, 15, 1, 13, "s")      # down to the floor: a 12-tall wall left a
                                     # one-tile nook nobody can stand in
     g.ground(26, 27, 22)
+    g.mark("arena_floor", 38, 26)       # 21 tiles straight down off ledge_b
     g.rect(48, 15, 1, 13, "s")
     g.platform(30, 21, 3)
     g.platform(42, 21, 3)
@@ -409,6 +572,25 @@ def jungle_5():
 
     g.ent("boss_grove", 40, 25)
     g.ent("boss_exit", 46, 26)
+
+    # ---- the intended solution (ADR 005)
+    # Swim the pool, up the vine, east across two screens, then off the lip into
+    # the arena, which is sealed on both sides and cannot be left by climbing.
+    #
+    # The Warden is deliberately NOT a waypoint. A fight is not a traversal
+    # problem -- it has its own gate (ADR 005 section 4) -- and boss_grove is
+    # authored at row 25 while the arena floor is stood on at row 26, so asking
+    # the prover to "arrive at the boss" asks it to reach a point a tile above
+    # anywhere the player can be. What this route claims about screen D is the
+    # part the prover can actually answer: you can get in, and the floor you
+    # land on connects to the way out.
+    g.route("spawn", "vine_foot", form="human")           # across the pool at 9-16
+    g.route("vine_foot", "canopy_ledge", form="human")    # 17 tiles of vine, C -> A
+    g.route("canopy_ledge", "east_ledge", form="human")   # jump the gap at 23-24
+    g.route("east_ledge", "branch", form="human")
+    g.route("branch", "ledge_b", form="human")
+    g.route("ledge_b", "arena_floor", form="human")       # the one-way drop, B -> D
+    g.route("arena_floor", "boss_exit", form="human")     # across the arena floor
     return g
 
 
@@ -432,6 +614,13 @@ def test_arena():
     g.ent("gem", 4, 11)
     g.ent("heart", 5, 9)
     g.ent("exit", 22, 11)
+
+    # The arena is a fixture, but it still has to be finishable or the replay
+    # case built on it proves nothing. Run the lane east, past the crate at
+    # col 18, then clear the two spike tiles at 20-21 in one jump.
+    g.mark("spike_lip", 19, 11)
+    g.route("spawn", "spike_lip", form="human")
+    g.route("spike_lip", "exit", form="human")
     return g
 
 
@@ -444,11 +633,30 @@ HUB_DOORS = [
      "requires": "jungle_4", "requires_all": True},
 ]
 
+def build(level_id, built, name, **kw):
+    """Write one level, auditing it first if it came with a Kit.
+
+    A level function returns either a `Grid` or a `(Grid, Kit)` tuple. The
+    tuple form runs `Kit.audit()` before anything is written, so a level whose
+    shapes stopped being traversable never reaches levels/ at all -- and prints
+    whatever the kit could not check, which for the new worlds includes every
+    tile drawn with an understudy because data/level_legend.json has no
+    character for it yet.
+    """
+    kit = None
+    if isinstance(built, tuple):
+        built, kit = built
+    if kit is not None:
+        for line in kit.audit():
+            print(line)
+    write(level_id, built, name, **kw)
+
+
 if __name__ == "__main__":
-    write("hub", hub(HUB_DOORS), "THE CANOPY", music="hub", topdown=True)
-    write("jungle_1", jungle_1(), "CANOPY TRAIL", music="world1")
-    write("jungle_2", jungle_2(), "ROOT HOLLOW", music="world1")
-    write("jungle_3", jungle_3(), "THE WATERWAY", music="world2")
-    write("jungle_4", jungle_4(), "SKY BRANCH", music="world2")
-    write("jungle_5", jungle_5(), "HEART OF THE GROVE", music="boss")
-    write("test_arena", test_arena(), "TEST ARENA")
+    build("hub", hub(HUB_DOORS), "THE CANOPY", music="hub", topdown=True)
+    build("jungle_1", jungle_1(), "CANOPY TRAIL", music="world1")
+    build("jungle_2", jungle_2(), "ROOT HOLLOW", music="world1")
+    build("jungle_3", jungle_3(), "THE WATERWAY", music="world2")
+    build("jungle_4", jungle_4(), "SKY BRANCH", music="world2")
+    build("jungle_5", jungle_5(), "HEART OF THE GROVE", music="boss")
+    build("test_arena", test_arena(), "TEST ARENA")

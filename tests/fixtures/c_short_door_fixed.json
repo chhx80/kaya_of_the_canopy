@@ -1,0 +1,68 @@
+{
+ "id": "c_short_door_fixed",
+ "name": "A DOOR TOO SHORT TO WALK THROUGH (REPAIRED)",
+ "music": "",
+ "next_level": "",
+ "topdown": false,
+ "fg": [
+  "ssssssssssssss",
+  "ssssssssssssss",
+  "ssssssssssssss",
+  "ssssssssssssss",
+  "ssssssssssssss",
+  "s............s",
+  "s............s",
+  "ssssssssssssss",
+  "ssssssssssssss"
+ ],
+ "bg": [
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  "..............",
+  ".............."
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 2,
+   "y": 6
+  },
+  {
+   "type": "key_yellow",
+   "x": 4,
+   "y": 6
+  },
+  {
+   "type": "door_yellow",
+   "x": 7,
+   "y": 6
+  },
+  {
+   "type": "exit",
+   "x": 11,
+   "y": 6
+  }
+ ],
+ "route": [
+  {
+   "from": "spawn",
+   "to": "key_yellow",
+   "form": "human"
+  },
+  {
+   "from": "key_yellow",
+   "to": "door_yellow",
+   "form": "human"
+  },
+  {
+   "from": "door_yellow",
+   "to": "exit",
+   "form": "human"
+  }
+ ]
+}

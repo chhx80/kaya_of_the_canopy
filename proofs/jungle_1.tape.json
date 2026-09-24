@@ -1,0 +1,376 @@
+{
+ "fps": 60,
+ "hops": [
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 32
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "spawn",
+   "to": "vine_foot"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "jump",
+     "n": 16
+    },
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 12
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 16
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 16
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 16
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 16
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "up",
+     "n": 1
+    }
+   ],
+   "from": "vine_foot",
+   "to": "vine_top"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "right+up+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
+    }
+   ],
+   "from": "vine_top",
+   "to": "branch_a"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "branch_a",
+   "to": "branch_lip"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right",
+     "n": 12
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 44
+    },
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 20
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "branch_lip",
+   "to": "branch_c"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 20
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "left",
+     "n": 12
+    },
+    {
+     "a": "right+jump",
+     "n": 12
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 8
+    }
+   ],
+   "from": "branch_c",
+   "to": "branch_d"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "branch_d",
+   "to": "descent_1"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "down+jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 24
+    }
+   ],
+   "from": "descent_1",
+   "to": "descent_2"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 36
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "descent_2",
+   "to": "descent_3"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 12
+    },
+    {
+     "a": "none",
+     "n": 6
+    }
+   ],
+   "from": "descent_3",
+   "to": "descent_4"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "descent_4",
+   "to": "exit"
+  }
+ ],
+ "level": "jungle_1",
+ "source_sha": "a8d71a1039b70a6ea852f19f93496d4d9fe7617a4c5f656c430e4dcb1f360478"
+}

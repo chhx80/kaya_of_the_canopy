@@ -1,0 +1,283 @@
+{
+ "fps": 60,
+ "hops": [
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "spawn",
+   "to": "pad_fish"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 16
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 8
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 44
+    },
+    {
+     "a": "up",
+     "n": 8
+    },
+    {
+     "a": "right+up",
+     "n": 8
+    },
+    {
+     "a": "right",
+     "n": 40
+    }
+   ],
+   "from": "pad_fish",
+   "to": "over_one"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right+down",
+     "n": 40
+    },
+    {
+     "a": "down",
+     "n": 12
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "down",
+     "n": 4
+    },
+    {
+     "a": "right+down",
+     "n": 8
+    },
+    {
+     "a": "right",
+     "n": 28
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "over_one",
+   "to": "under_two"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right+up",
+     "n": 56
+    },
+    {
+     "a": "right",
+     "n": 44
+    }
+   ],
+   "from": "under_two",
+   "to": "over_three"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right+down",
+     "n": 36
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "down",
+     "n": 2
+    }
+   ],
+   "from": "over_three",
+   "to": "under_four"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "right+up",
+     "n": 52
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
+    }
+   ],
+   "from": "under_four",
+   "to": "bank_foot"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right+up",
+     "n": 12
+    },
+    {
+     "a": "up",
+     "n": 20
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 28
+    },
+    {
+     "a": "jump",
+     "n": 4
+    }
+   ],
+   "from": "bank_foot",
+   "to": "pad_human"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right+jump",
+     "n": 8
+    },
+    {
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "right+jump",
+     "n": 8
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 16
+    },
+    {
+     "a": "left+up+jump",
+     "n": 4
+    },
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 8
+    },
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right+up",
+     "n": 3
+    }
+   ],
+   "from": "pad_human",
+   "to": "exit"
+  }
+ ],
+ "level": "jungle_3",
+ "source_sha": "414d4154f0e2b81e51492b14877a132ec832992a19d0471159756d6ba4d84e77"
+}

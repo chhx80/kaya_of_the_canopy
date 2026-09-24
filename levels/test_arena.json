@@ -68,5 +68,23 @@
    "x": 22,
    "y": 11
   }
+ ],
+ "marks": {
+  "spike_lip": {
+   "x": 19,
+   "y": 11
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "spike_lip",
+   "form": "human"
+  },
+  {
+   "from": "spike_lip",
+   "to": "exit",
+   "form": "human"
+  }
  ]
 }

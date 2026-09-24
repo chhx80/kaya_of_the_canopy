@@ -560,3 +560,296 @@ happily jumped through the very slab it was landing on. It now models a move
 the way it is played: rise in the start column to a travel row, cross at that
 row, drop into the destination column. A self-test pins both this and the
 earlier jump-through-walls case, and fails if either is reintroduced.
+
+## M2-M4 — the engine verbs the later worlds are built on
+
+Four new verbs for worlds 2, 3 and 4. Three of them change where the player
+ends up, so all three live in the *tile flags* and are applied inside
+`FormBase.update()` — never in a Node. The Route Prover (ADR 005) drives
+`form.update()` + `actor.step_motion()` and nothing else, so anything it cannot
+see is something it would prove a level without. Every case below is exercised
+headlessly against a real `TileWorld`, with no scene tree, no `Level` and no
+`Player` in the loop.
+
+**Currents and updrafts — one feature, two data configurations.** A tile may
+declare `"current": [vx, vy]` in px/s: the velocity of the medium standing in
+it. `FormBase.current_at()` samples the tiles the hitbox overlaps, weighted by
+how much of the hitbox is in each, and `FormBase.current` then offsets every
+target the form steers towards — the run target, terminal velocity, the swim
+vector, a jump, a flap, a climb. So a form always moves *relative to the water*:
+the fish's own 92 px/s against a 68 px/s push is 24 px/s of headway, and the
+120 px/s push is a one-way gate. Ids 200-205 are water pushes for the Sunken
+Ruins, 206-210 air for Thermal Heights. Weighted rather than all-or-nothing
+because a step function on a tile edge makes the answer depend on which side of
+a single pixel you are, and six pixels is what cost this project a level.
+
+`apply_gravity()` now falls with `move_toward` instead of `min(v + g·dt, cap)`,
+because an updraft puts the cap *below* your current speed and walking into one
+at full fall speed has to decelerate at gravity rather than snap. The two are
+identical below the cap, so every measured arc is unchanged — the frog's real
+apex is still 5.34 tiles, pinned by a test.
+
+Measured, and it is a fact level authors need: because the push is weighted, a
+rider does not shoot out of the top of a draught. The lift tapers as the hitbox
+leaves it and you settle hovering with your head clear of the lip. You leave by
+steering sideways, or — as the bird — by flapping. You cannot jump out; you were
+never on the ground.
+
+**Breakable walls.** Crate-breaking generalised: any `breakable` tile may
+declare `"break_hold"`, the seconds of shouldering it takes to open without a
+weapon. Hold attack and press into it; up and down beat facing, so a frog can
+dig a ceiling or a floor. Ids 211-215. The frog carries no weapon and is half of
+the Termite Deeps, and the blade is a Node the prover cannot see, so the verb
+lives on the form instead. Crates declare no `break_hold` and so behave exactly
+as they have for five levels: blade only.
+
+**Darkness.** `"darkness": 0.86` on a level's `data/ambience.json` entry draws a
+palette-ramp shade over the whole screen and one additive pool that follows
+Kaya, with the defaults in `data/fx.json`. Drawn over the tiles and under the
+entities, so a dark level *raises* the contrast between her and the ground.
+
+It is visual only, and that is a constraint rather than an omission: the prover
+cannot see, so a level whose solvability turned on what was lit could never be
+proved. `tests/test_verbs_darkness.gd` holds it to that by running 240 ticks of
+the same inputs lit and dark for three forms and requiring the traces to agree
+to the last float. `tools/shot.sh --darkness=0.9` forces any level dark for
+tuning and capture; `shots/m4_darkness.png` is the before and after.
+## M2-M5 art — four world tilesets and four parallax backdrops
+
+Tilesets for SUNKEN RUINS, THERMAL HEIGHTS, TERMITE DEEPS and THE OBSIDIAN
+NEST, twelve gameplay tiles each, and a three-plane parallax backdrop for each
+world. All of it is script-generated from the same ramps, dithering and
+auto-shading as the jungle set — `tools/genart.sh`.
+
+- `data/tiles.json` gains ids **220-231** (ruins), **240-251** (heights),
+  **260-271** (deeps) and **280-291** (nest). Nothing already declared moved.
+  Each block is a solid mass, its capped form, a background wall, a secondary
+  solid, two more background fills, a background column, a one-way, a hazard, a
+  climbable and a breakable.
+- Three materials per world autotile across the 47-case blob set and pick from
+  three paintings per case; background fills get six. `VARIANT_BASE` moves from
+  32 to 400 so gameplay ids and variants stop sharing the front of the atlas.
+  The sheet grows from 256x1488 to **256x3680** — 3.8 MB as RGBA, inside the
+  4096 px every target guarantees, with 416 px of headroom left.
+- `tools/gen_art.py --readability` is new, and is the reason the worlds look
+  the way they do. It composites the real layers, stands each of the four forms
+  in the scene at seven positions, and measures how much of each silhouette the
+  world swallows — against a threshold derived from the palette's own finest
+  step rather than picked. It is calibrated on the defect the brief names: the
+  green frog on the green jungle parallax scores worst in the table, losing
+  15.2% of its outline with a 10.4% connected hole. Every new world beats it;
+  the worst new combination is the fish in TERMITE DEEPS at 10.4% / 5.0%.
+  `--preview` writes the panels the per-world contact sheets are built from.
+- Findings that came out of that loop and changed the art: THERMAL HEIGHTS read
+  as planking until its strata were broken up and half its surface turned grey;
+  TERMITE DEEPS had no separation at all between the mass and the wall behind
+  it; the heights mountains were eating a tenth of the fish's outline in one
+  run and were hazed two ramp steps paler to stop it.
+- Screenshots: `shots/world_{ruins,heights,deeps,obsidian}_sheet.png`, each
+  four panels — the world drawn by the running game, the same world with all
+  four forms standing in it, the parallax alone, and the twelve tiles.
+
+## Wave 1 integration — the proofs and the game disagree
+
+All eight parallel branches are merged. The headline is not the merge, it is
+what the merge revealed: **the prover's tapes do not reproduce in the real
+game.** Five of six levels fail to replay.
+
+That is the two-tier design working. The prover proves geometry against the
+shipping movement code; the replay tier plays the recorded buttons in the real
+booted level. They disagree, so one of them is wrong — and until that is
+resolved, a `PROVED` verdict is worth less than ADR 005 claims.
+
+Two causes are known. The first is fixed, the second is not:
+
+1. **Damage desynchronises a tape completely.** `player.gd` clears the input for
+   the duration of `hurt_t`, so every press after first contact with an enemy
+   lands on a different frame than the one it was recorded for. The prover does
+   not simulate enemies, so its tapes walk straight into them. All six levels
+   failed on this, `test_arena` included — one screen, one walker. The replay
+   now runs Kaya unhittable and says so in the code: this tier proves the
+   buttons drive the real level through real doors, switches, pads and the
+   screen-flip freeze. It does **not** prove survival, and it no longer pretends
+   to.
+
+2. **Four of the five remaining failures involve vine columns**, and one of them
+   walks off the world entirely. Ladder detection is pure and identical on both
+   sides, so the divergence is elsewhere — most likely that the prover applies a
+   hop's entity effects at the hop boundary, while the real game applies them on
+   the frame Kaya actually overlaps the pad or pickup. Unproven. The diagnostic
+   that settles it is a frame-by-frame position comparison between the prover's
+   sim and the booted game on one tape.
+
+`jungle_4` replays cleanly, all sixteen hops, which is why this reads as a
+specific divergence rather than a broken harness.
+
+## The proofs and the game now agree — mostly, and for a findable reason
+
+The divergence ran down to a single bug, in the one place nobody looks: the
+prover's own snapshot/restore.
+
+`_reset_form()` put back only the properties `_apply_form_diff` had touched, on
+the theory that nothing else could have changed them. But **the form changes
+them**: `form.update()` writes `coyote`, `buffer`, `_drop_timer`, `_land_t` and
+`_air_vy` every tick, and nothing marked those dirty. So every `restore()` left
+the previous state's timers in place, and the search explored from bodies
+carrying **phantom coyote time** — finding jumps that continuous play cannot
+make. The proof was real; the tape recording it was not.
+
+It is the quietest possible version of the bug this project keeps meeting. The
+mechanism was right — `restore()` was called, every time. The outcome was not —
+the state did not actually come back.
+
+Three fixes, each measured:
+
+1. **Restore puts everything back.** jungle_1, jungle_2 and jungle_4 now replay
+   in the real game, start to finish.
+2. **Arrival at an entity means the entity fired.** Overlapping a door's
+   waypoint rect is not opening the door; the rect is the tile grown by two
+   pixels, and the door opens only on contact with a key in hand. The prover
+   used to finish the job itself with `apply_waypoint_effect()` — opening the
+   door *out of band* — so the next hop searched a world its own buttons had
+   never produced. Replay the tape and the door is still shut.
+3. **The prover replays its own tape before claiming a proof.** A tape that
+   does not reproduce the search is not a proof, it is a story about one. This
+   is what caught jungle_3, below, and it is now a permanent gate.
+
+`tools/diverge.sh` is the instrument: it steps the prover's simulation and the
+real booted game through the same tape and names the first frame where they
+part. It found all of the above.
+
+### What is still red, and why
+
+- **jungle_3** — its last hop, a vine climb, still does not reproduce: the tape
+  replays to (743,164) where the search left the body at (727,105). The prover
+  refuses to emit the tape, which is the gate working.
+- **jungle_5** — `boss_exit` does not exist during play. `level.gd` returns
+  `null` for it and places it only in `on_boss_defeated()`, so the tape walks to
+  the right tile and finds nothing there. The route ends at a waypoint that is
+  not in the world until the boss dies, and the prover cannot fight. This is the
+  seam ADR 005 already draws: traversal is the prover's, the fight is the boss
+  gate's. The route and the replay need to meet at the arena floor.
+- **one synthetic fixture** hand-authored before real tapes existed.
+
+## Wave 2 — the prover's two remaining proof-correctness defects
+
+Both were the same shape as everything else this project has had to learn:
+verification that checked the mechanism and reported it as the outcome.
+
+**jungle_3's last hop did not reproduce.** The self-check replayed the tape to
+(743, 164) where the search had left the body at (727, 105), sixty pixels lower
+and a tile to the right. `snapshot()`/`restore()` were not to blame this time —
+the join between hops was. A tape is one continuous stream of button presses, so
+the first frame of hop N+1 follows the last frame of hop N with no gap for a
+thumb to lift in. The search rooted every hop at *no button held*, so its first
+macro read a rising edge the replay could never see. jungle_3's hop 7 ends
+holding jump and hop 8 starts standing on a transform pad: the search spent that
+phantom press on a jump, the replay's jump was already down and did nothing.
+
+The fix carries the last frame's action across the join (`ProverSearch.run(...,
+held)`), and `tools/diverge.sh` now reports that the prover's simulation and the
+real booted game **agree for every frame of all five tapes** — 750, 783, 689,
+1040 and 823 frames. `t_replay_jungle_3` passes in the real game.
+
+Three things were tightened at the same time, because the bug got through a gate
+that was watching:
+
+- **`restore()` really does restore.** `last_floor_tile` and `last_wall_tile`
+  were never snapshotted. Nothing in the movement path reads them, which is
+  exactly the argument that was wrong the last two times; they are packed into
+  the snapshot now.
+- **The self-check compares the whole outcome, not the position.** Landing on
+  the right pixel with the wrong velocity is somewhere else a frame later, and
+  landing there without having taken the key walks the next hop through a door
+  the search found open. Velocity, form, grounded/climbing state, keys, doors and
+  switches are all compared now.
+- **A self-check that does not finish is not a self-check that passed.** A type
+  error inside its loop aborted it halfway and the level still printed PROVED,
+  because "no error string" was read as "checked". It now reports how many hops
+  it got through, and the prover requires that to be all of them.
+
+**jungle_5's route ended at a waypoint that does not exist during play.**
+`Level.spawn_entity()` returns null for `boss_exit`; `on_boss_defeated()` places
+it. The prover treated it as ordinary scenery, walked to the tile, and claimed a
+level it had not finished.
+
+ADR 005 already draws the seam — section 2 gives the prover traversal, section 4
+gives the boss gate the fight and its check 5, "boss_exit is reachable from the
+arena floor after defeat" — so the prover now stops at the arena and says so:
+
+```
+PARTIAL jungle_5 — 6 hops, 823 frames (13.7s of play), 8925 expansions
+       NOT a full proof: traversal is proved to 'arena_floor'; 1 hop(s) to
+       'boss_exit' are the boss gate's (ADR 005 section 4).
+```
+
+The tape carries `"partial": true`, `"ends_at"` and an `"unproved"` list naming
+the hops and their owner, the run ends with a summary of every partial level, and
+`--verify-tapes` reports a partial tape as `partial`, never as `ok`.
+`--require-full` turns a partial into a failure for anyone who wants that.
+The prover deliberately does **not** search its own simulation for the last hop:
+the gate exists there and not in the game, and proving a level the player never
+sees is the modelling mistake ADR 005 exists to stop.
+
+New: `tests/test_prover_snapshot.gd` (9 cases) asserts restore-fidelity as an
+outcome — save, disturb, restore, and require the same frames — plus the hop
+join, and a classification test that fails when `Actor` gains a variable nobody
+has decided about. `tools/prove.sh --diff-hops` names the state that differs on
+either side of a hop boundary; it is what found this one.
+
+## Wave 2 — the gates are green and the four new worlds are reachable
+
+All four gates pass. Three of them for the first time together.
+
+```
+tools/test.sh      260 tests, 37,897 assertions, 0 failed
+tools/validate.sh  OK
+tools/itest.sh     304 checks, ALL PASSED
+tools/prove.sh     5 PROVED, 1 PARTIAL (jungle_5, honestly)
+```
+
+### The three proof defects are closed
+
+**jungle_3's last hop reproduces.** It was the same class as the previous one —
+state that snapshot/restore did not round-trip — and the prover's own self-check
+caught it rather than a human playing the level.
+
+**jungle_5 no longer claims what it cannot prove.** `boss_exit` does not exist
+during play: `level.gd` returns `null` for it and places it only in
+`on_boss_defeated()`. The prover cannot fight a boss, so it now reports
+
+```
+PARTIAL jungle_5 — 6 hops, 823 frames
+        NOT a full proof: traversal is proved to 'arena_floor'; 1 hop(s) to
+        'boss_exit' are the boss gate's (ADR 005 section 4).
+```
+
+and stamps the tape partial. The replay tier asserts arrival at the arena floor
+instead of a level completion a traversal tape can never reach. That is the seam
+ADR 005 drew; both sides now sit on it honestly.
+
+**The stale synthetic fixture is gone**, deleted rather than repaired, because
+six real tapes cover the same ground and a test kept alive by being mended is
+worse than no test.
+
+### The four new worlds can now be built
+
+**Per-world legends.** A level declares a `tileset` and the same twelve role
+characters bind to that world's art — `#` is always this world's ground, `|`
+always its ladder. Verbs (currents, updrafts, cracked and luminous walls) are
+shared across all five. Before this, `data/level_legend.json` mapped 28
+characters to ids 0-27 and every one of the 64 new world tiles was unreachable:
+painted, tested, and impossible to place.
+
+Proved end to end rather than assumed: `tests/fixtures/ruins_probe.json`
+declares `"tileset": "ruins"`, is built from Sunken Ruins tiles, and
+`tools/prove.sh` plays it — three hops, 226 frames. It is the only thing that
+demonstrates a non-jungle world is playable, so it stays.
+
+**The three new enemies can be placed.** `charger`, `dropper` and `flyer` were
+finished, tunable and tested, and no level could contain one because
+`level.gd` dispatched four hard-coded ids.
+
+**`tools/world_kit.py`** — 37 helpers for flooded chambers, colonnades, current
+channels, updraft shafts, tunnels and switch lattices, each checking its own
+geometry against the measured jump envelope rather than the modelled one.

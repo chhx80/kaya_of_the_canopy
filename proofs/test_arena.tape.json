@@ -1,0 +1,97 @@
+{
+ "fps": 60,
+ "hops": [
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 28
+    },
+    {
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "right+up+jump",
+     "n": 4
+    },
+    {
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right+down",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "down+jump",
+     "n": 1
+    }
+   ],
+   "from": "spawn",
+   "to": "spike_lip"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 12
+    },
+    {
+     "a": "none",
+     "n": 14
+    }
+   ],
+   "from": "spike_lip",
+   "to": "exit"
+  }
+ ],
+ "level": "test_arena",
+ "source_sha": "18bd2c2b1b72a4c78d02764f75e3b92ff28addee47e5a11d5176cce87e67a176"
+}
