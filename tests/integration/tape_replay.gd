@@ -5,8 +5,13 @@ extends RefCounted
 ## enemies alive, doors shut, triggers armed, the screen flip freezing the sim —
 ## can actually be finished, because a machine finished it. Nothing here models
 ## anything: the tape's buttons go in through `InputState` exactly as a thumb's
-## would, and the only thing asserted at the end is the outcome, `Game`
-## reporting the level complete.
+## would, and the only thing asserted at the end is an outcome.
+##
+## This class only *plays* the tape and reports where it ended up. Which outcome
+## counts as a pass is the caller's, because it is not the same on every level:
+## on an ordinary level it is `Game` reporting the level complete, and on a boss
+## level a traversal tape cannot reach that and must not claim it — see
+## `check_boss_arrival()` in integration_tests.gd.
 ##
 ## Frames are *simulation* frames. `Game.sim_paused` is true for the length of
 ## every screen flip, and on those ticks the player does not read its input at
@@ -102,7 +107,7 @@ func replay(tape: RefCounted) -> Dictionary:
 		r["note"] = "level '%s' did not boot a player" % id
 		return r
 
-	var goal := _goal_point(lvl)
+	var goal := _goal_point(lvl, tape)
 	r["goal_tile"] = Vector2i((goal / TS).floor())
 	var closest := INF
 
@@ -164,9 +169,9 @@ func replay(tape: RefCounted) -> Dictionary:
 					break
 			if trace:
 				var p2: Node = _player()
-				print("[tape] %s hop %d step %d a=%-18s f=%d tile=%s pos=%s vel=%s hp=%d" % [
+				print("[tape] %s hop %d step %d a=%-18s f=%d tile=%s as %-5s pos=%s vel=%s hp=%d" % [
 					id, hop_i, step_i, _names(actions), sim_frames,
-					str(r["end_tile"]),
+					str(r["end_tile"]), String(r["end_form"]),
 					str(p2.pos.round()) if p2 != null else "-",
 					str(p2.vel.round()) if p2 != null else "-",
 					Game.health])
@@ -206,18 +211,55 @@ func _player() -> Node:
 		return null
 	return p as Node
 
-## Where the tape is trying to end up, in world pixels: the level's exit. Used
-## only to say how close a failed replay got — the same number the prover
-## reports when a hop fails, so the two failures read alike.
-func _goal_point(lvl: Node) -> Vector2:
+## Where the tape is trying to end up, in world pixels. Used only to say how
+## close a failed replay got — the same number the prover reports when a hop
+## fails, so the two failures read alike.
+##
+## It is the *tape's own* last waypoint, not always the exit, because a tape no
+## longer always aims at one: a boss level's traversal tape ends on the arena
+## floor, and measuring it against a `boss_exit` that only exists once the boss
+## is dead reports a distance to a place that is not there. The waypoint is an
+## entity type, a named mark, or — when the tape names something this level does
+## not have — the exit, so the readout degrades to the old one instead of to
+## nothing.
+func _goal_point(lvl: Node, tape: RefCounted) -> Vector2:
 	var def: Variant = lvl.get("def")
 	if def == null:
 		return Vector2.ZERO
+	var want := ""
+	if not tape.hops.is_empty():
+		want = String((tape.hops[tape.hops.size() - 1] as Dictionary).get("to", ""))
+
+	if want != "":
+		for e: Dictionary in (def.entities as Array):
+			if String(e.get("type", "")) == want:
+				return Vector2(float(e.get("px", 0.0)), float(e.get("py", 0.0))) + Vector2(8, 8)
+		var mark: Variant = _mark(String(def.id), want)
+		if mark != null:
+			return mark as Vector2
+
 	for e: Dictionary in (def.entities as Array):
 		var t := String(e.get("type", ""))
 		if t == "exit" or t == "boss_exit":
 			return Vector2(float(e.get("px", 0.0)), float(e.get("py", 0.0))) + Vector2(8, 8)
 	return Vector2.ZERO
+
+## A named mark from the level file, in world pixels, or null. `LevelDef` does
+## not carry `marks` — they are authoring waypoints, not gameplay — so this
+## reads the level json the same way the prover does.
+func _mark(level_id: String, name: String) -> Variant:
+	var f := FileAccess.open("res://levels/%s.json" % level_id, FileAccess.READ)
+	if f == null:
+		return null
+	var parsed: Variant = JSON.parse_string(f.get_as_text())
+	f.close()
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return null
+	var marks: Variant = (parsed as Dictionary).get("marks", null)
+	if typeof(marks) != TYPE_DICTIONARY or not (marks as Dictionary).has(name):
+		return null
+	var m: Dictionary = (marks as Dictionary)[name]
+	return Vector2(float(m.get("x", 0)) * TS, float(m.get("y", 0)) * TS) + Vector2(8, 8)
 
 static func _names(actions: Array) -> String:
 	if actions.is_empty():
@@ -232,7 +274,10 @@ static func describe(r: Dictionary) -> String:
 	var bits: PackedStringArray = PackedStringArray()
 	bits.append("hop %d (%s) step %d" % [r["hop"], r["hop_desc"], r["step"]])
 	bits.append("%d sim frames" % r["sim_frames"])
-	bits.append("ended at tile %s" % str(r["end_tile"]))
+	# The form matters as much as the tile: a hop recorded for one form replayed
+	# in another is a whole class of failure, and it looks like "stuck" without
+	# this.
+	bits.append("ended at tile %s as %s" % [str(r["end_tile"]), String(r["end_form"])])
 	bits.append("goal tile %s" % str(r["goal_tile"]))
 	if float(r["closest_px"]) >= 0.0:
 		bits.append("closest %.1f px" % float(r["closest_px"]))
