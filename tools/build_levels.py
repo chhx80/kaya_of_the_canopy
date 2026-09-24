@@ -1,8 +1,44 @@
 #!/usr/bin/env python3
-"""Level definitions. Run via tools/genlevels.sh."""
+"""Level definitions. Run via tools/genlevels.sh.
+
+The five jungle levels below are drawn with `Grid` directly, because `Grid`'s
+eighteen methods ARE the jungle vocabulary -- `ground`, `vine`, `canopy`,
+`trunk`, `crates`.
+
+The four new worlds of docs/plan-20-levels.md need different shapes, and those
+live in tools/world_kit.py. A level that uses them wraps its grid in a `Kit`,
+draws, and returns BOTH -- the writer below audits the kit before it writes the
+JSON, so a helper's promises are checked against the finished grid rather than
+against the call that made them:
+
+    from world_kit import Kit, RUINS
+
+    def ruins_1():
+        g = Grid(50, 30)
+        k = Kit(g, RUINS)
+        k.fill_bg()
+        k.shell()
+        k.flooded_chamber(2, 12, 46, 16, surface=15)
+        cols = k.colonnade(8, 5, 8, surface=15, bed=27, mark="col")
+        k.bank(44, 15, 4, rise=1)
+        g.ent("player_spawn", 3, 11)
+        ...
+        return g, k          # <- the tuple is what asks for the audit
+
+Two things the kit will not do for you, both on purpose:
+
+* it does not author a route. ADR 005 wants the intended solution written by
+  the author, next to the geometry; the helpers return the mark names in
+  traversal order so `g.route()` can be chained down them.
+* it does not prove anything. `tools/prove.sh` does. The kit's audit is a fast
+  filter that catches the class of error that has shipped here six times, and
+  its verdict is not evidence -- exactly the standing rule for
+  tools/reachability.py.
+"""
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gen_levels import Grid, write
+from world_kit import Kit
 
 
 def jungle_1():
@@ -597,11 +633,30 @@ HUB_DOORS = [
      "requires": "jungle_4", "requires_all": True},
 ]
 
+def build(level_id, built, name, **kw):
+    """Write one level, auditing it first if it came with a Kit.
+
+    A level function returns either a `Grid` or a `(Grid, Kit)` tuple. The
+    tuple form runs `Kit.audit()` before anything is written, so a level whose
+    shapes stopped being traversable never reaches levels/ at all -- and prints
+    whatever the kit could not check, which for the new worlds includes every
+    tile drawn with an understudy because data/level_legend.json has no
+    character for it yet.
+    """
+    kit = None
+    if isinstance(built, tuple):
+        built, kit = built
+    if kit is not None:
+        for line in kit.audit():
+            print(line)
+    write(level_id, built, name, **kw)
+
+
 if __name__ == "__main__":
-    write("hub", hub(HUB_DOORS), "THE CANOPY", music="hub", topdown=True)
-    write("jungle_1", jungle_1(), "CANOPY TRAIL", music="world1")
-    write("jungle_2", jungle_2(), "ROOT HOLLOW", music="world1")
-    write("jungle_3", jungle_3(), "THE WATERWAY", music="world2")
-    write("jungle_4", jungle_4(), "SKY BRANCH", music="world2")
-    write("jungle_5", jungle_5(), "HEART OF THE GROVE", music="boss")
-    write("test_arena", test_arena(), "TEST ARENA")
+    build("hub", hub(HUB_DOORS), "THE CANOPY", music="hub", topdown=True)
+    build("jungle_1", jungle_1(), "CANOPY TRAIL", music="world1")
+    build("jungle_2", jungle_2(), "ROOT HOLLOW", music="world1")
+    build("jungle_3", jungle_3(), "THE WATERWAY", music="world2")
+    build("jungle_4", jungle_4(), "SKY BRANCH", music="world2")
+    build("jungle_5", jungle_5(), "HEART OF THE GROVE", music="boss")
+    build("test_arena", test_arena(), "TEST ARENA")
