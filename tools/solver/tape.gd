@@ -46,7 +46,15 @@ static func run_length(actions: PackedInt32Array) -> Array:
 	return out
 
 
-static func write(tape_path: String, level_id: String, level_path: String, hops: Array) -> String:
+## `extra` is merged into the document, and exists for one thing: a tape that
+## does not cover the whole route has to SAY so, in the file, where a reader and
+## a replay both trip over it. jungle_5's route ends at `boss_exit`, which
+## `level.gd` does not place until the boss dies -- so the prover proves as far
+## as the arena floor and stamps the tape `partial`, with the hops it did not
+## prove and who owns them. A tape that quietly stops early is the same defect
+## class as a stale one: a claim about something it never played.
+static func write(tape_path: String, level_id: String, level_path: String, hops: Array,
+		extra: Dictionary = {}) -> String:
 	var dir := tape_path.get_base_dir()
 	if not DirAccess.dir_exists_absolute(dir):
 		DirAccess.make_dir_recursive_absolute(dir)
@@ -56,6 +64,7 @@ static func write(tape_path: String, level_id: String, level_path: String, hops:
 		"source_sha": source_sha(level_path),
 		"hops": hops,
 	}
+	doc.merge(extra, true)
 	var f := FileAccess.open(tape_path, FileAccess.WRITE)
 	if f == null:
 		return "cannot open %s for writing" % tape_path
@@ -71,6 +80,18 @@ static func read(tape_path: String) -> Dictionary:
 	var parsed: Variant = JSON.parse_string(f.get_as_text())
 	f.close()
 	return parsed if typeof(parsed) == TYPE_DICTIONARY else {}
+
+
+## True when this tape covers only part of its level's route. Written by the
+## prover; read by anything that would otherwise treat the tape as a full proof.
+static func is_partial(tape_path: String) -> bool:
+	return bool(read(tape_path).get("partial", false))
+
+
+## The hops a partial tape does not prove, each {from, to, why, owner}.
+static func unproved_hops(tape_path: String) -> Array:
+	var u: Variant = read(tape_path).get("unproved", [])
+	return u if typeof(u) == TYPE_ARRAY else []
 
 
 ## "" when the tape still describes this level; otherwise why it does not.

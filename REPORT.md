@@ -1,299 +1,392 @@
-# M6 — the 25-door hub
+# wave2/proverfix — the prover's two proof-correctness defects
 
-Branch `wave1/hub`. Files added, and nothing else touched:
+> This file replaces a leftover `REPORT.md` from wave 1's hub agent ("M6 — the
+> 25-door hub", 299 lines) that is still committed on this branch even though
+> `9c61796` dropped one from the integration branch. Recover it with
+> `git show 2d48d72:REPORT.md` if anyone still needs it.
 
-| File | What it is |
-|---|---|
-| `tools/build_hub.py` | standalone generator for the new overworld; refuses to write a map it cannot prove |
-| `levels/hub_v2.json` | the generated map, 50×30, 25 gateways, five clusters |
-| `tests/test_hub_layout.gd` | shape, gateway list, and the `requires` chain |
-| `tests/test_hub_walkable.gd` | the walkability proof, and a negative control for it |
-| `shots/m6_hub_*.png` | screenshots (see *Evidence*) |
+Branch `wave2/proverfix`. Both defects are fixed and verified against the real
+booted game. One integration case is still red on purpose and one was already
+red for a reason that is now pinned down; both are in files I do not own and both
+are handed over below with the exact change they need.
 
-`tools/build_levels.py`, `levels/hub.json` and `src/**` are untouched — `git
-status` shows them clean and `git diff` is empty for all three. `build_hub.py`
-imports nothing from `build_levels.py`, so the two can be merged in any order.
+---
 
-## The map
+## Defect 1 — jungle_3's last hop did not reproduce
 
-```
- rows  0..1    border
- rows  2..7    WORLD 5  The Obsidian Nest   x  2..47   dark rock, metal walkways, lava veins
- row   8       ridge, crossings at x 6..7 and x 42..43
- rows  9..14   WORLD 4  Termite Deeps       x  2..23   black ground, brown tunnels, dirt mounds
-               WORLD 3  Thermal Heights     x 26..47   brown ash, rock trails, stone crags, vents
- row  15       ridge, crossings at x 6..7 and x 42..43
- rows 16..27   WORLD 1  Canopy Trail        x  2..23   grass, brown trails, trees      <- spawn (3,26)
-               WORLD 2  Sunken Ruins        x 26..47   mossy flagstones, blue water
- rows 28..29   border
- cols 24..25   the wall between the left and right clusters, crossings at y 12..13 and y 22..23
-```
+### What was wrong
 
-Region edges sit on the screen seams (x=25, y=15) wherever they can, so no
-cluster is split across a screen flip. Only the Nest band spans both screen
-columns, the same way the shipped five-door hub spanned both of its screens.
-
-Each region has its own ground tile, its own trail tile and its own obstacle
-tile — five different grounds (`g` grass, `S` mossy brick, `d` ash, `X` dark,
-`r` rock) and five different obstacles (`@` tree, `W` water, `s` stone, `d`
-dirt, `M` metal), so no two clusters read alike.
-
-**The five jungle gateways keep their shipped level ids and labels** —
-`jungle_1` CANOPY TRAIL, `jungle_2` ROOT HOLLOW, `jungle_3` THE WATERWAY,
-`jungle_4` SKY BRANCH, `jungle_5` HEART OF THE GROVE — asserted by
-`test_the_five_jungle_gateways_keep_their_shipped_ids_and_labels`. Their tile
-positions moved, because the map they lived on is now a quarter of the map.
-
-### Gating
-
-One `requires` chain per world, and each world's first gateway requires the
-previous world's fifth:
+`tools/prove.sh jungle_3` failed its own self-check:
 
 ```
-jungle_1 (open)  -> jungle_2 -> jungle_3 -> jungle_4 -> jungle_5
-jungle_5 -> ruins_1   -> ruins_2   -> ruins_3   -> ruins_4   -> ruins_5
-ruins_5  -> heights_1 -> heights_2 -> heights_3 -> heights_4 -> heights_5
-heights_5 -> deeps_1  -> deeps_2   -> deeps_3   -> deeps_4   -> deeps_5
-deeps_5  -> nest_1    -> nest_2    -> nest_3    -> nest_4    -> nest_5
+hop 8/8 pad_human > exit replayed to (743,164), but the search left it at (727,105)
 ```
 
-No new mechanism: this is the existing `hub_door` `requires` field and
-`HubDoor.unlocked()`, unchanged.
+It was not `snapshot()`/`restore()`. It was the **join between hops**.
 
-**`requires_all` is deliberately not used, including on `jungle_5`, which
-shipped with it.** `HubDoor.unlocked()` implements `requires_all` as *every
-file in `levels/` except `hub` and `test_arena` has its flag set*. That counts
-files, not worlds, so it has two problems here:
+A tape is one continuous stream of button presses. The first frame of hop N+1
+follows the last frame of hop N with no gap for a thumb to lift in. But
+`ProverSearch.run()` rooted every hop's search tree at a node whose action was
+`0` — *no button held* — so the first macro of every hop derived its press and
+release edges against silence. If the previous hop ended holding a button, the
+search read a rising edge that a replay of the same tape can never see.
 
-1. While `levels/hub_v2.json` sits next to `levels/hub.json`, `hub_v2` is
-   itself counted as an unfinished level, and any `requires_all` gateway is
-   locked forever.
-2. With 25 levels it means "clear all 24 others", which is a game-wide gate,
-   not a world gate.
+jungle_3 hits it exactly: hop 7 (`bank_foot > pad_human`, as the fish) ends
+holding **jump**, and hop 8 begins standing on the transform pad. The search
+spent a phantom `jump_pressed` on a real jump; on replay the button was already
+down, `jump_buffer` was never filled, `can_jump_now()` was false, and Kaya stayed
+put. Everything after that frame was a different run.
 
-Under a strict chain the two are equivalent for the final door anyway — you
-cannot reach `nest_5` without having cleared all 24 — so the chain loses
-nothing. `test_no_gateway_uses_the_requires_all_shortcut` pins this.
-If you want `jungle_5` to keep `requires_all` at merge, it will behave
-correctly only *after* the file is renamed to `levels/hub.json`.
+This was found with `tools/diverge.sh`'s sibling instrument, a new
+`tools/prove.sh --diff-hops`, which prints the state on both sides of every hop
+boundary. It named the cause in one line: at hop 8's boundary every piece of
+simulation state was identical and `prev_action=16` (JUMP).
 
-## How the walkability is proved
+### The fix
 
-The rule was: prove every gateway is walkable from the spawn, with a flood fill,
-as a gating test. It is, twice over, plus a control.
+- `ProverSearch.run(sim, start, goals, budget, held)` — the root node's action is
+  now the bitmask the controller was holding on the frame before the hop begins.
+- `prove.gd` carries `held` across hops: `held = res.actions[-1]` after each hop.
 
-**1. Flood fill over player positions, not tiles.** A tile flood fill is a
-model — it would say a 16 px gap is "a walkable tile" without ever asking
-whether the player fits. So the flood runs over the space of *positions the
-real 10×10 `HubPlayer` box can occupy*, deciding "free" with the game's own
-`TileWorld.is_solid()` and the game's own tile-span arithmetic (`(p + size −
-EPS) / TS`, the `TileCollision.tile_range()` rule). Steps are one pixel along
-one axis; a frame of walking covers 1.23 px at full speed and the character
-accelerates from rest, so no step in the flood is a step the character could
-not take.
+**Do not** confuse this with loosening anything: the self-check was correct and
+was made stricter, not weaker (below).
 
-Three things are asserted per gateway, and the third is the one that matters:
+### Three things tightened while I was in here
 
-- you can walk onto the gateway tile;
-- you can walk to **the tile the game returns you to** — `overworld.gd` drops
-  you at `door.pos + (3, 20)`, one tile *below* the gateway, when you come back
-  out of a level. A solid tile there means you return inside a wall, and
-  nothing else in the suite looks at it;
-- **some position you can actually reach makes the "PRESS JUMP TO ENTER"
-  prompt appear** — the real `door.aabb().grow(6.0).intersects(player.aabb())`
-  test from `overworld.gd`. Reaching the tile is the mechanism; lighting the
-  prompt is the outcome.
+1. **`restore()` now restores everything.** `Actor.last_floor_tile` and
+   `last_wall_tile` were never in the snapshot. Nothing in the movement path
+   reads them today — which is precisely the argument that was wrong the last two
+   times — so they are packed into one int and restored.
+   (`ProverSim._tile_bits()` / `_set_tile_bits()`.)
+2. **The self-check compares the outcome, not the position.**
+   `ProverSim.replay_signature()` is compared at every hop end: position,
+   velocity, form, on_floor, climbing, key counts, pickups taken, doors opened,
+   switch states. Position alone passes a tape that lands on the right pixel with
+   the wrong velocity, or that arrives without having picked the key up.
+3. **A self-check that does not finish is not one that passed.** While developing
+   this I hit a type error inside the self-check loop; it aborted halfway and the
+   level printed `PROVED`, because "returned no error string" was read as
+   "checked every hop". `_selfcheck()` now returns `{error, checked}` and
+   `_prove_level()` fails unless `checked == hops`.
 
-**2. An actual walk.** For each gateway a simulated `HubPlayer` — the real box,
-the real `SPEED`/`ACCEL`/`FRICTION` constants read off `HubPlayer`, the real
-`TileCollision.move_x`/`move_y` in the real order — is driven from the spawn,
-one 60 Hz frame at a time, holding whole d-pad directions along the route the
-flood found, and has to arrive. This exists because a path through free space
-and a character that gets there are two different claims: the character
-accelerates and coasts a couple of pixels past where it meant to stop. The
-first version of this test failed on 13 of 25 gateways for exactly that reason
-(the flood's route hugged the last free pixel of a two-tile gap), which is why
-routes are now relaxed to the middle of their corridor before the walk.
+### Evidence
 
-**3. A negative control.** `test_a_walled_in_gateway_is_reported` walls a
-gateway in, re-floods, and fails if the flood *still* reaches it. A prover that
-cannot fail proves nothing.
+- `tools/prove.sh` — all six levels come out with a tape that passes the
+  self-check. jungle_3: `PROVED — 8 hops, 689 frames, 273 expansions`.
+- `tools/diverge.sh` — the prover's simulation and the **real booted game** now
+  agree frame for frame on every tape:
+  ```
+  jungle_2  agrees for all 783 frames
+  jungle_1  agrees for all 750 frames
+  jungle_3  agrees for all 689 frames
+  jungle_5  agrees for all 823 frames
+  jungle_4  agrees for all 1040 frames
+  ```
+- `tools/itest.sh` — **`t_replay_jungle_3` now passes** in the real game. It was
+  one of the three cases that were red when I started.
 
-**4. A staleness guard.** `test_the_numbers_this_file_trusts_are_still_the_ones_
-the_game_uses` reads `src/hub/hub_player.gd` and `src/hub/overworld.gd` and
-fails if the box (`Vector2(10, 10)`), the spawn offset (`Vector2(3, 5)`), the
-return offset (`Vector2(3, 20)`), the gateway reach (`grow(6.0)`),
-`HubDoor.SIZE` or the walk speed change. If someone edits the hub player, this
-proof stops quoting a stale result and says so. I confirmed it finds all four
-strings today; I did not fire it in the failing direction, because doing so
-means editing `src/hub/`, which I do not own.
+---
 
-`tools/build_hub.py` runs the same flood in Python before it writes anything,
-so a bad map never reaches `levels/`.
+## Defect 2 — jungle_5's route ended at a waypoint that does not exist
 
-### The gate was fired on purpose
+`src/world/level.gd:130` returns `null` for `boss_exit`; `on_boss_defeated()`
+places it. So during play the tile is empty, and the prover — which treated it as
+ordinary scenery — walked there, found it in its own simulation, and reported a
+level it had not finished.
 
-Five defects injected — three through `build_hub.py`, two straight into
-`levels/hub_v2.json` — plus the control that lives in the suite:
+ADR 005 already draws the line: section 2 gives the prover traversal, section 4
+gives the boss gate the fight, including check 5, *"it ends — `boss_exit` is
+reachable from the arena floor after defeat"*. So the prover now stops at the
+arena and says so, loudly, in three places.
 
-| Injected | Caught by |
-|---|---|
-| `jungle_2` moved onto a tree | python: *gateway tile (3,21) cannot be walked to* |
-| a solid tile under `jungle_2` | python and GDScript: *the tile the game returns you to, (11,22), is not walkable* |
-| both crossings into Thermal Heights bricked up | python: 15 problems across all five `heights_*` gateways |
-| ditto, in the JSON | GDScript: all three checks fail for all five, incl. *no position you can walk to lights its prompt* |
-| the walled-in gateway control | passes, i.e. sealing a gateway in does break the flood |
+### What `tools/prove.sh jungle_5` prints now
 
-Commands to reproduce the injections are in *Verifying it* below.
+```
+  note   jungle_5: the route ends at 'boss_exit'. Proving traversal to 'arena_floor' only;
+         the last 1 hop(s) are the boss gate's, not the prover's.
+  hop 1/6  spawn > vine_foot ... hop 6/6  ledge_b > arena_floor
+PARTIAL jungle_5 — 6 hops, 823 frames (13.7s of play), 8925 expansions, 55281 ms -> jungle_5.tape.json
+       NOT a full proof: traversal is proved to 'arena_floor'; 1 hop(s) to 'boss_exit'
+       are the boss gate's (ADR 005 section 4). The tape is stamped partial.
 
-## Verifying it
+prove: 1 level(s) are NOT fully proved. Traversal is proved; the rest is not.
+  jungle_5 — proved 6 of 7 hops, up to 'arena_floor'
+      NOT proved: arena_floor > boss_exit
+                  'boss_exit' is placed by Level.on_boss_defeated(), so it is not in the world during play
+                  owner: the boss gate (ADR 005 section 4, check 5: ...)
+```
+
+The verdict word is `PARTIAL`, not `PROVED`. The run ends with a summary of every
+partial level. `--verify-tapes` reports a partial tape as `partial`, never `ok`.
+
+### What the tape carries
+
+`proofs/jungle_5.tape.json` gained four top-level fields, so nothing downstream
+can read it as a finished level by accident:
+
+```json
+"partial": true,
+"proves": "traversal",
+"ends_at": "arena_floor",
+"unproved": [{"from": "arena_floor", "to": "boss_exit",
+              "why":   "'boss_exit' is placed by Level.on_boss_defeated(), so it is not in the world during play",
+              "owner": "the boss gate (ADR 005 section 4, check 5: boss_exit is reachable from the arena floor after defeat)"}]
+```
+
+Read them with `ProverTape.is_partial(path)` and `ProverTape.unproved_hops(path)`.
+
+### Decisions I made, and why
+
+- **A partial level exits 0.** The prover has discharged its whole obligation
+  when it reaches the arena; a gate that is permanently red is a gate everyone
+  learns to ignore. `tools/prove.sh --require-full` turns a partial into exit 1
+  for anyone who wants the stricter contract (CI, a release gate).
+- **The prover does not search the last hop in its own simulation.** It could:
+  `boss_exit` exists as an entity in `ProverSim` from frame zero. That would be
+  proving a level the player never sees, which is the modelling mistake ADR 005
+  exists to stop. The verdict says the hop was *not* attempted, not that it
+  failed.
+- **A `boss_exit` with no boss in the level is a hard FAIL**, not a partial:
+  `on_boss_defeated()` is what places the gate, so nothing ever will and the
+  level cannot be finished by anyone.
+- **A route whose *first* hop walks to `boss_exit` is `NOROUTE`**: there would be
+  nothing left for the prover to prove.
+- **No level file was edited.** The seam works off the existing
+  `levels/jungle_5.json` route as authored.
+
+---
+
+## Exactly how to verify all of this
 
 ```bash
-tools/env.sh          # must point PROJECT_ROOT at THIS worktree, see Assumptions
-$PYVENV tools/build_hub.py        # regenerates levels/hub_v2.json; prints the proof
-tools/test.sh                     # tests/test_hub_layout.gd + tests/test_hub_walkable.gd
-tools/validate.sh
-tools/itest.sh
+tools/test.sh          # 226 tests, 19387 assertions, 0 failed
+tools/validate.sh      # validate: OK
+tools/prove.sh         # 5 PROVED + 1 PARTIAL (jungle_5), exit 0
+tools/diverge.sh       # all five tapes agree with the real game, every frame
+tools/itest.sh         # 301 passed, 2 FAILED (both below), exit 1
+
+tools/prove.sh jungle_3 --diff-hops   # the instrument that found defect 1
+tools/prove.sh --require-full         # exit 1, because jungle_5 is partial
+tools/prove.sh --verify-tapes         # jungle_5 reports `partial`, not `ok`
 ```
 
-Results, run on this worktree:
+Timings on this machine, single-threaded, with four other agents sharing it:
+jungle_1 334 s (hop 5 alone is 36,619 expansions), jungle_5 55 s, jungle_2 9 s,
+jungle_4 8 s, jungle_3 1.6 s, test_arena 0.4 s. `tools/test.sh` ~9 min, most of
+it `test_prover_fixtures.gd`'s twelve child processes.
 
-| Gate | As committed (`hub_v2.json` beside `hub.json`) | As merged (`hub_v2.json` → `hub.json`) |
-|---|---|---|
-| `tools/test.sh` | 155 tests, 8962 assertions, **1 failed** | 155 tests, **1 failed** |
-| `tools/validate.sh` | `validate: OK` | `validate: OK` |
-| `tools/itest.sh` | `273 checks, ALL PASSED` | `273 checks, ALL PASSED` |
+---
 
-All 26 of my own assertions' test methods pass in both states. The single
-failure is in `tests/test_level_validity.gd`, which I do not own — see
-*Two things the merge has to fix*.
+## What is still red, and whose it is
 
-To re-run the defect injections:
+`tools/itest.sh` — **301 passed, 2 failed.** Three were red when I started; one
+of them (`t_replay_jungle_3`) is now green.
 
-```bash
-# python-side gate
-$PYVENV - <<'PY'
-import importlib.util
-spec = importlib.util.spec_from_file_location("bh", "tools/build_hub.py")
-bh = importlib.util.module_from_spec(spec); spec.loader.exec_module(bh)
-bh.DOORS[1] = ("jungle_2", "ROOT HOLLOW", "jungle_1", (3, 21), "canopy")   # onto a tree
-m = bh.build(); seen, stride, _w, _h = bh.prove_walkable(m)
-for p in bh.check_doors(m, seen, stride): print("FAIL", p)
-PY
+### 1. `t_replay_jungle_5` — red on purpose, needs the integration tier to learn about `partial`
 
-# gdscript-side gate: brick up both crossings into Thermal Heights, then restore
-python3 - <<'PY'
-import json
-d = json.load(open('levels/hub_v2.json')); fg = [list(r) for r in d['fg']]
-for x, y, ch in [(42,8,'s'),(43,8,'s'),(42,15,'W'),(43,15,'W'),
-                 (24,12,'d'),(25,12,'d'),(24,13,'d'),(25,13,'d')]:
-    fg[y][x] = ch
-d['fg'] = [''.join(r) for r in fg]; json.dump(d, open('levels/hub_v2.json','w'), indent=1)
-PY
-tools/test.sh            # expect test_hub_walkable failures for all five heights_*
-$PYVENV tools/build_hub.py   # regenerate the good map
+```
+FAIL t_replay_jungle_5 :: tape did not finish the level —
+     hop 5 (ledge_b -> arena_floor as human) step 8 | 823 sim frames |
+     ended at tile (38, 26) | goal tile (46, 26) | closest 135.2 px
 ```
 
-## Evidence
+That is the correct outcome and an honest message: the tape ends on the arena
+floor, tile (38, 26), which is exactly where the prover says it stops. The case
+asserts `completed` for every level with a tape, and jungle_5's tape no longer
+claims to complete one.
 
-Screenshots were taken by temporarily copying `levels/hub_v2.json` over
-`levels/hub.json` (the `hub` capture scenario hardcodes `HUB_ID = "hub"`), then
-restoring `levels/hub.json` from git. It is byte-identical to `HEAD` now.
+**I did not change it: `tests/integration/**` is not mine.** What it needs, in
+`integration_tests.gd::run_replays()`:
 
-- `shots/m6_hub_regions.png` — contact sheet, one screen per region. The HUD
-  reads **CLEARED 0/25**, and the gateway prompts show **UPDRAFT / LOCKED**,
-  **THE LIGHTLESS / LOCKED**, **BLACK GLASS / LOCKED** — the `requires` chain
-  doing its job in the running game, not in a test.
-- `shots/m6_hub_region_{canopy,ruins,heights,deeps,nest}.png` — the five
-  clusters. These five were captured with the spawn moved into each region (a
-  scratch copy of the map, never written to `levels/`) purely to point the
-  camera; the geometry is the shipped geometry, and each variant was re-proved
-  before capture.
-- `shots/m6_hub_walk_{1_spawn,2_seam,3_ruins}.png` — one continuous capture,
-  **real input only, no teleports**: from the spawn, right, up, and right
-  across the col-24/25 crossing, with the screen flipping into Sunken Ruins.
+```gdscript
+if ProverTape.is_partial(TAPE.tape_path(id)):
+    # or read d["partial"] in replay_tape.gd and expose it on the loaded tape
+    check(not bool(r["completed"]), "%s's tape is partial and must not complete it" % id)
+    check_eq(r["end_tile"], <arena_floor tile>, "it reaches the arena floor")
+    check(level().boss != null and not level().boss.defeated, "and the boss is still alive")
+    continue
+```
+
+The rest of jungle_5 — the fight and the gate opening — is ADR 005 §4's, and
+`tests/integration/boss_gate_*.gd` already exists to hold it. My added tape
+fields are additive: `replay_tape.gd` ignores unknown top-level keys, so the
+partial tape loads and replays today without any change to that file.
+
+### 2. `t_the_replay_plays_a_tape_split_across_several_hops` — pre-existing, now diagnosed
+
+```
+FAIL :: three hops play as one continuous run — hop 2 (mid_b -> exit as human)
+        step 4 | 181 sim frames | ended at tile (19, 10) | goal tile (22, 11)
+```
+
+**Not caused by anything I did, and not a replay-continuity bug.** The fixture
+re-cuts `test_arena`'s tape into three hops with:
+
+```gdscript
+var frames: Array = ((d["hops"] as Array)[0] as Dictionary)["frames"]
+```
+
+It takes **hop 0 only**. `test_arena`'s tape has two hops — `spawn > spike_lip`
+(181 frames) and `spike_lip > exit` (38 frames) — so the re-cut tape is the first
+181 frames with the last 38 thrown away, and the level cannot complete. That
+matches the failure exactly: 181 sim frames, stopped 56.7 px short of the exit.
+It was written when `test_arena`'s tape was a single hop.
+
+`proofs/test_arena.tape.json` is byte-identical before and after my change
+(`git diff` touches only `jungle_3` and `jungle_5`), so this failure predates me.
+The fix is one line in a file I do not own — flatten every hop's steps:
+
+```gdscript
+var frames: Array = []
+for h: Dictionary in (d["hops"] as Array):
+    frames.append_array(h["frames"] as Array)
+```
+
+### Noise I observed but did not touch
+
+`tools/itest.sh`'s log carries two `SCRIPT ERROR`s that fail no check and are in
+files I do not own — `integration_tests.gd:378` (`invuln` on a Nil player in
+`t_spikes_hurt_and_knock_back`) and `boomerang_blade.gd:8` (`filter` lambda
+argument conversion). Both are pre-existing. Flagging, not fixing.
+
+---
 
 ## What I could NOT verify
 
-- **That the twenty new levels exist.** They do not. Every `ruins_*`,
-  `heights_*`, `deeps_*` and `nest_*` gateway points at a file that is not on
-  disk. My tests tolerate this deliberately: `test_hub_layout.gd` checks that
-  every `requires` names another *gateway on this map*, never that the target
-  *file* exists. Nothing here proves those levels load, are finishable, or have
-  the ids the level authors will actually use. If a level author picks
-  different ids, `DOORS` in `tools/build_hub.py` is the one place to change.
-- **That a human enjoys walking it.** The proof says every gateway is
-  reachable and that a simulated walk arrives. It says nothing about whether
-  the routes are pleasant, whether 25 doors on one map is legible, or whether
-  the Nest band spanning two screens is confusing in the hand. That is a
-  playtest, and this project's history says the playtest is where the real
-  answers come from.
-- **On-device cost.** The rest of M6 (difficulty curve, VRAM and frame cost on
-  a real iPhone) is not in this branch. The hub is two screens' worth of the
-  same tileset the levels use, so I expect nothing new, but I did not measure
-  it.
-- **The `_relax`/`_walk` route follower is my code, not the game's.** The
-  physics inside it (`_step`) is the real constants and the real
-  `TileCollision` calls in the real order, but the *controller* that decides
-  which direction to hold is mine — a player might hold different directions.
-  It proves a route can be walked; it does not prove every route can.
-- **Screen-flip behaviour during the walk** is only covered by the one real-
-  input capture above; the simulated walk in `test_hub_walkable.gd` has no
-  camera and therefore no screen flip, and `overworld.gd` does not freeze the
-  sim on a flip the way a level does, so I do not believe there is a gap —
-  but I did not prove it.
+- **That `boss_exit` is reachable from the arena floor after the boss dies.**
+  That is the point of the seam — it is ADR 005 §4 check 5, it belongs to the
+  boss gate, and nothing on this branch tests it. `tools/prove.sh` now says so
+  in the verdict instead of implying otherwise.
+- **That a tape survives contact with enemies.** Unchanged and still true:
+  `tape_replay.gd` runs Kaya unhittable, because `player.gd` clears input for
+  `hurt_t` and one hit desynchronises a whole tape. The replay proves the buttons
+  drive the real level through real doors, pads and screen flips. It does not
+  prove survival.
+- **That the search finds the *best* route, or that any level is fun or fair.**
+  Out of scope, as ADR 005 says.
+- **jungle_1 hop 5 costs 36,619 expansions** — within the 50,000 budget, but ADR
+  005's own rule says a hop that expensive is a hop that is too coarse. It proves
+  today. I did not re-cut it; the route belongs to the levels/routes work, not to
+  the prover.
+- **`tools/smoke_build.sh` was not run.** Nothing here ships in a build.
 
-## Two things the merge has to fix
+---
 
-Both are in `tests/test_level_validity.gd`, which another agent owns. I did not
-touch it. Neither is caused by the map being wrong.
+## Assumptions about other agents' work
 
-1. **`test_every_playable_level_has_a_way_out` fails on `hub_v2`.** It skips
-   `id == "hub"` and demands an `exit` or `boss_exit` from everything else. An
-   overworld has neither. This is the one failing assertion in the committed
-   state. Fix: `if id == "hub" or def.topdown: continue` — or just rename
-   `hub_v2.json` to `hub.json`, which is the plan anyway.
-2. **`test_every_level_a_hub_gateway_points_at_actually_exists` fails once the
-   map becomes `hub.json`** — 20 gateways, 39 assertions, all "points at
-   missing level 'ruins_1'" and friends. It will keep failing until the twenty
-   levels land. Fix while the worlds are being built: skip a target whose file
-   is absent, or keep a list of ids that are allowed to be pending.
+1. **`tests/integration/**` is someone else's.** I assume the owner of
+   `integration_tests.gd` / `tape_replay.gd` will teach `run_replays()` about
+   `"partial"` as sketched above. Until they do, `t_replay_jungle_5` stays red,
+   and the message it prints is accurate about why.
+2. **`levels/jungle_5.json`'s route is correct as authored** — `arena_floor` is a
+   real mark at tile (38, 26) and the last hop to `boss_exit` is deliberate. The
+   seam reads that route unchanged. If the routes agent re-cuts jungle_5 so it
+   ends at `arena_floor` with no `boss_exit` hop at all, the prover will simply
+   print `PROVED` and the partial machinery will go quiet — that is fine, but the
+   level would then declare no intent to reach the gate, which I think is worse.
+3. **`src/world/level.gd`'s `boss_exit` behaviour stays as it is** — placed only
+   by `on_boss_defeated()`. If someone makes the gate exist from the start (as a
+   closed door, say), the seam should be deleted, not kept.
+4. **`data/forms/*.json` tuning is stable.** `tests/test_prover_snapshot.gd`
+   avoids hard-coded frame counts where it can (it loops until the body lands
+   rather than guessing the arc length), but two of its rooms are sized against
+   the human's 2.78-tile apex.
+5. **Nobody else regenerates `proofs/*.tape.json` from an older prover.** The
+   tapes on this branch were written by the fixed prover; `jungle_3.tape.json`
+   and `jungle_5.tape.json` changed, the other four are byte-identical.
 
-I could have made the first one go away by putting a fake `exit` entity in the
-overworld. I did not, because a hub with an exit in it is exactly the kind of
-data that makes a later test lie.
+---
 
-## Assumptions I made about other agents' work
+## Files changed
 
-1. **`levels/hub_v2.json` will be renamed to `levels/hub.json` at merge.**
-   Nothing loads `hub_v2`: `Overworld.HUB_ID` is the literal `"hub"` and I did
-   not edit `src/`. Until the rename, the new map is data nobody reads.
-   My two test files call `_hub_id()`, which returns `"hub_v2"` if that file
-   exists and `"hub"` otherwise, so they follow the map through the rename with
-   no edit — and if `hub_v2.json` is deleted without the rename they fail
-   loudly against the old five-door hub rather than silently passing.
-2. **`src/hub/hub_player.gd` and `src/hub/overworld.gd` stay as they are.** The
-   proof depends on four literals in them; the staleness guard above fails if
-   any of them moves. It is a string match on the source, so a purely cosmetic
-   reformat of those lines would also fail it. That is the intended trade.
-3. **`data/tiles.json` and `data/level_legend.json` keep their current tile
-   ids and characters.** `build_hub.py` reads both and derives solidity from
-   them rather than hardcoding it, so a *new* tile is fine; changing which
-   character maps to which id is not.
-4. **`HubDoor.unlocked()` keeps its current `requires` semantics.** If someone
-   changes `requires_all` to mean "the levels this door's world contains", the
-   chain still works — it just becomes one of two valid ways to express it.
-5. **The world order is jungle → ruins → heights → deeps → nest**, taken from
-   `docs/plan-20-levels.md` (World 2 Sunken Ruins, 3 Thermal Heights, 4 Termite
-   Deeps, 5 The Obsidian Nest). The level *labels* I invented for the twenty
-   pending gateways (`DROWNED GATE`, `THE CISTERN`, …) are placeholders; the
-   boss levels are named after the bosses the plan names (`THE TIDE MAW`, `THE
-   STORMCREST`, `THE BROOD QUEEN`, `THE OBSIDIAN HEART`). Whoever builds a
-   world should overwrite its labels in `DOORS`.
-6. **`CHANGELOG.md` is not mine**, so it does not mention this. It needs a line
-   at merge.
-7. **`tools/env.sh` is gitignored and was pointing `PROJECT_ROOT` at the main
-   checkout**, not this worktree, so every tool script would have run against
-   the wrong tree. I repointed it locally. Nothing is committed — but every
-   agent in a worktree has this, and a first `tools/import.sh` is also needed
-   or the whole suite reports "parse error" on files that are fine.
+Mine, as assigned:
+
+| File | Change |
+|---|---|
+| `tools/solver/search.gd` | `run(..., held)`: the hop's search tree is rooted at the buttons already down |
+| `tools/solver/prove.gd` | carries `held` across hops; the boss seam (`_boss_seam`); `PARTIAL` verdict + run summary; `_signature_diff`; `_selfcheck` returns `{error, checked}`; `--diff-hops`, `--require-full` |
+| `tools/solver/sim.gd` | `_tile_bits`/`_set_tile_bits` in snapshot/restore; `replay_signature()`; `describe_state()`; `boss_count`; `waypoint_is_boss_gate()` |
+| `tools/solver/tape.gd` | `write(..., extra)`; `is_partial()`; `unproved_hops()` |
+| `tools/prove.sh` | header documents the two verdicts and the new flags |
+| `tests/test_prover_snapshot.gd` | **new**, 9 cases (see below) |
+
+Outside my list, deliberately, and each is the prover's own output rather than
+another agent's source:
+
+| File | Why |
+|---|---|
+| `proofs/jungle_3.tape.json`, `proofs/jungle_5.tape.json` | regenerated by the fixed prover; this is what `tools/prove.sh` writes. The other four tapes are unchanged, byte for byte. |
+| `shots/70..72_proverfix_*.png` | the definition of done asks for a screenshot (see the caveat below) |
+| `REPORT.md` | this file; it overwrote wave 1's leftover hub report, see the note at the top |
+| `CHANGELOG.md` | the definition of done asks for an entry. Appended at the end only, to keep the conflict surface with the other four agents to one hunk. |
+
+I did not touch `tests/integration/**`, `src/**`, `data/**`, `levels/**`,
+`tools/build_levels.py`, `tools/gen_levels.py` or `build/`.
+
+### About the screenshots
+
+They are **scene-setting, not proof**, and I would rather say that than let a
+picture carry weight it has not earned:
+
+- `shots/70_proverfix_jungle3_vine_foot.png` — where hop 8 begins, the
+  `pad_human` at the foot of the vine in column 45.
+- `shots/71_proverfix_jungle3_vine_top_exit.png` — where it ends: the top of the
+  vine, the cyan door and the exit.
+- `shots/72_proverfix_jungle5_arena_floor.png` — the arena floor with the Grove
+  Warden alive and **no gate anywhere on screen**, which is defect 2 in one
+  frame.
+
+The fix is to a verification tool and renders nothing of its own. The real
+evidence is `tools/diverge.sh` agreeing with the booted game for every frame of
+every tape, and `t_replay_jungle_3` going green.
+
+Reproduce the shots with `tools/shot.sh --seq=<file>` on:
+
+```json
+[
+ {"scenario": "level:jungle_3", "settle": 60},
+ {"teleport": [45, 19], "settle": 200},
+ {"shot": "shots/70_proverfix_jungle3_vine_foot.png"},
+ {"scenario": "level:jungle_3", "settle": 60},
+ {"teleport": [41, 7], "settle": 200},
+ {"shot": "shots/71_proverfix_jungle3_vine_top_exit.png"},
+ {"scenario": "level:jungle_5", "settle": 60},
+ {"teleport": [38, 26], "settle": 200},
+ {"shot": "shots/72_proverfix_jungle5_arena_floor.png"}
+]
+```
+
+---
+
+## `tests/test_prover_snapshot.gd`
+
+Nine cases, and none of them inspects a field to see whether somebody remembered
+to copy it — that is the mechanism, and checking the mechanism is what shipped
+six broken levels. Each takes a running simulation, saves it, disturbs it as far
+as it can, restores it, and asks the **simulation** whether the future it
+produces is the same one.
+
+- `test_restore_reproduces_a_running_jump_frame_for_frame`
+- `test_restore_does_not_leave_phantom_coyote_time_behind` — the original bug's
+  exact shape
+- `test_restore_reproduces_a_vine_climb`
+- `test_restore_puts_a_transform_pad_and_its_cooldown_back`
+- `test_a_snapshot_restores_the_same_way_from_any_other_state` — the search
+  restores siblings in any order, so round-tripping against its own past is not
+  enough
+- `test_a_hop_that_begins_with_jump_already_held_reproduces` — defect 1
+- `test_jump_held_across_a_join_cannot_buy_a_fresh_jump` — the edge rule itself
+- `test_every_variable_actor_declares_is_classified` — a new `Actor` variable
+  fails this until somebody decides whether a tick can write it
+- `test_the_form_snapshot_sees_the_timers_that_caused_the_original_bug`
+
+One note on the sixth, because it nearly shipped as a test that proved nothing.
+My first draft ran the hop in a plain room with a step in it, and it **passed
+either way** — rooted at `held` and rooted at `0`. Measured: both tapes end at
+(169, 74), because a wrong first macro costs a few pixels and the next jump lands
+on the same platform anyway. The difference has to be kept from washing out, so
+the room now has a transform pad under the step: a phantom jump changes whether
+the body crosses the pad, and a frog is not a human. Rooted at `held` the tape
+reproduces; rooted at `0` the search ends at (166, 85) and its own tape replays
+to (194, 74). The test asserts **both** halves, so if the room ever stops
+discriminating it says so rather than passing quietly.

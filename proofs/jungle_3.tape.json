@@ -32,7 +32,7 @@
      "n": 16
     },
     {
-     "a": "jump",
+     "a": "right+jump",
      "n": 4
     },
     {
@@ -52,12 +52,16 @@
      "n": 4
     },
     {
+     "a": "right",
+     "n": 8
+    },
+    {
      "a": "right+up",
      "n": 4
     },
     {
      "a": "right",
-     "n": 48
+     "n": 44
     },
     {
      "a": "up",
@@ -70,10 +74,6 @@
     {
      "a": "right",
      "n": 40
-    },
-    {
-     "a": "none",
-     "n": 2
     }
    ],
    "from": "pad_fish",
@@ -84,19 +84,31 @@
    "frames": [
     {
      "a": "right+down",
-     "n": 44
+     "n": 40
     },
     {
      "a": "down",
      "n": 12
     },
     {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "down",
+     "n": 4
+    },
+    {
      "a": "right+down",
-     "n": 12
+     "n": 8
     },
     {
      "a": "right",
      "n": 28
+    },
+    {
+     "a": "none",
+     "n": 2
     }
    ],
    "from": "over_one",
@@ -107,15 +119,11 @@
    "frames": [
     {
      "a": "right+up",
-     "n": 60
+     "n": 56
     },
     {
      "a": "right",
-     "n": 40
-    },
-    {
-     "a": "none",
-     "n": 1
+     "n": 44
     }
    ],
    "from": "under_two",
@@ -126,15 +134,15 @@
    "frames": [
     {
      "a": "right+down",
-     "n": 40
+     "n": 36
     },
     {
      "a": "right",
-     "n": 32
+     "n": 36
     },
     {
-     "a": "none",
-     "n": 3
+     "a": "down",
+     "n": 2
     }
    ],
    "from": "over_three",
@@ -144,12 +152,20 @@
    "form": "fish",
    "frames": [
     {
+     "a": "right",
+     "n": 4
+    },
+    {
      "a": "right+up",
      "n": 52
     },
     {
      "a": "right",
-     "n": 16
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
     }
    ],
    "from": "under_four",
@@ -171,12 +187,12 @@
      "n": 4
     },
     {
-     "a": "none",
-     "n": 4
+     "a": "right",
+     "n": 28
     },
     {
-     "a": "right",
-     "n": 31
+     "a": "jump",
+     "n": 4
     }
    ],
    "from": "bank_foot",
@@ -187,15 +203,7 @@
    "frames": [
     {
      "a": "right+jump",
-     "n": 4
-    },
-    {
-     "a": "none",
-     "n": 4
-    },
-    {
-     "a": "right+jump",
-     "n": 4
+     "n": 8
     },
     {
      "a": "right+up",
@@ -203,22 +211,38 @@
     },
     {
      "a": "right+jump",
+     "n": 8
+    },
+    {
+     "a": "jump",
      "n": 4
     },
     {
-     "a": "none",
+     "a": "up",
      "n": 4
     },
     {
-     "a": "left+jump",
+     "a": "left+up",
      "n": 4
     },
     {
-     "a": "none",
+     "a": "jump",
+     "n": 16
+    },
+    {
+     "a": "left+up+jump",
      "n": 4
     },
     {
-     "a": "right+jump",
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 8
+    },
+    {
+     "a": "left+up",
      "n": 4
     },
     {
@@ -227,18 +251,6 @@
     },
     {
      "a": "right+jump",
-     "n": 4
-    },
-    {
-     "a": "none",
-     "n": 4
-    },
-    {
-     "a": "left+jump",
-     "n": 4
-    },
-    {
-     "a": "up",
      "n": 4
     },
     {
@@ -250,11 +262,7 @@
      "n": 4
     },
     {
-     "a": "right+jump",
-     "n": 4
-    },
-    {
-     "a": "right",
+     "a": "right+up",
      "n": 4
     },
     {

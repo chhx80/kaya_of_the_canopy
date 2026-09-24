@@ -9,8 +9,20 @@
 #   tools/prove.sh --verify-tapes           fail if any tape is stale
 #   tools/prove.sh --waypoints              list the ids a route may name
 #   tools/prove.sh --mark foot:14,25        try a waypoint before writing the DSL
+#   tools/prove.sh --diff-hops jungle_3     name the state that differs at each hop
+#                                           boundary between the search and a replay
+#   tools/prove.sh --require-full           make a PARTIAL verdict fail the run
+#
+# Two verdicts, and they are not the same claim:
+#   PROVED   the whole route was played, and the tape reproduces it.
+#   PARTIAL  the route ends at a `boss_exit`, which Level.on_boss_defeated()
+#            places and nothing else does. Traversal is proved as far as the
+#            arena; the rest is the boss gate's (ADR 005 section 4). The tape is
+#            stamped "partial": true and lists the hops it does not prove.
 #
 # Exit codes: 0 every hop proved, 1 a hop failed, 2 a level declared no route.
+# A PARTIAL level exits 0 -- the prover HAS finished its job -- unless
+# --require-full is given. The run ends with a summary naming every partial.
 set -uo pipefail
 source "$(dirname "$0")/env.sh"
 cd "$PROJECT_ROOT"

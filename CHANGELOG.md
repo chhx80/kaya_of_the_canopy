@@ -730,3 +730,69 @@ part. It found all of the above.
   seam ADR 005 already draws: traversal is the prover's, the fight is the boss
   gate's. The route and the replay need to meet at the arena floor.
 - **one synthetic fixture** hand-authored before real tapes existed.
+
+## Wave 2 — the prover's two remaining proof-correctness defects
+
+Both were the same shape as everything else this project has had to learn:
+verification that checked the mechanism and reported it as the outcome.
+
+**jungle_3's last hop did not reproduce.** The self-check replayed the tape to
+(743, 164) where the search had left the body at (727, 105), sixty pixels lower
+and a tile to the right. `snapshot()`/`restore()` were not to blame this time —
+the join between hops was. A tape is one continuous stream of button presses, so
+the first frame of hop N+1 follows the last frame of hop N with no gap for a
+thumb to lift in. The search rooted every hop at *no button held*, so its first
+macro read a rising edge the replay could never see. jungle_3's hop 7 ends
+holding jump and hop 8 starts standing on a transform pad: the search spent that
+phantom press on a jump, the replay's jump was already down and did nothing.
+
+The fix carries the last frame's action across the join (`ProverSearch.run(...,
+held)`), and `tools/diverge.sh` now reports that the prover's simulation and the
+real booted game **agree for every frame of all five tapes** — 750, 783, 689,
+1040 and 823 frames. `t_replay_jungle_3` passes in the real game.
+
+Three things were tightened at the same time, because the bug got through a gate
+that was watching:
+
+- **`restore()` really does restore.** `last_floor_tile` and `last_wall_tile`
+  were never snapshotted. Nothing in the movement path reads them, which is
+  exactly the argument that was wrong the last two times; they are packed into
+  the snapshot now.
+- **The self-check compares the whole outcome, not the position.** Landing on
+  the right pixel with the wrong velocity is somewhere else a frame later, and
+  landing there without having taken the key walks the next hop through a door
+  the search found open. Velocity, form, grounded/climbing state, keys, doors and
+  switches are all compared now.
+- **A self-check that does not finish is not a self-check that passed.** A type
+  error inside its loop aborted it halfway and the level still printed PROVED,
+  because "no error string" was read as "checked". It now reports how many hops
+  it got through, and the prover requires that to be all of them.
+
+**jungle_5's route ended at a waypoint that does not exist during play.**
+`Level.spawn_entity()` returns null for `boss_exit`; `on_boss_defeated()` places
+it. The prover treated it as ordinary scenery, walked to the tile, and claimed a
+level it had not finished.
+
+ADR 005 already draws the seam — section 2 gives the prover traversal, section 4
+gives the boss gate the fight and its check 5, "boss_exit is reachable from the
+arena floor after defeat" — so the prover now stops at the arena and says so:
+
+```
+PARTIAL jungle_5 — 6 hops, 823 frames (13.7s of play), 8925 expansions
+       NOT a full proof: traversal is proved to 'arena_floor'; 1 hop(s) to
+       'boss_exit' are the boss gate's (ADR 005 section 4).
+```
+
+The tape carries `"partial": true`, `"ends_at"` and an `"unproved"` list naming
+the hops and their owner, the run ends with a summary of every partial level, and
+`--verify-tapes` reports a partial tape as `partial`, never as `ok`.
+`--require-full` turns a partial into a failure for anyone who wants that.
+The prover deliberately does **not** search its own simulation for the last hop:
+the gate exists there and not in the game, and proving a level the player never
+sees is the modelling mistake ADR 005 exists to stop.
+
+New: `tests/test_prover_snapshot.gd` (9 cases) asserts restore-fidelity as an
+outcome — save, disturb, restore, and require the same frames — plus the hop
+join, and a classification test that fails when `Actor` gains a variable nobody
+has decided about. `tools/prove.sh --diff-hops` names the state that differs on
+either side of a hop boundary; it is what found this one.
