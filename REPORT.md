@@ -1,6 +1,8 @@
 # wave2/legend — a per-world level legend
 
-Branch `wave2/legend`, one commit: `74a4362`.
+Branch `wave2/legend`, three commits, head `e25c02b`.
+The work is `74a4362`; the other two are this report and the `.uid` Godot
+generates for the new test script.
 
 ## The problem, restated from the measurement
 
@@ -127,7 +129,7 @@ hand-off.**
 | `data/level_legend.json` | `shared` + five `tilesets` + `default_tileset` + the derived `legend` view |
 | `src/world/level_loader.gd` | `legend_doc()`, `default_tileset()`, `tileset_names()`, `legend_for(name)`; `legend()` kept meaning the default; `LevelDef.tileset`; per-world resolution and the null-world rejection in `from_dict()` |
 | `tools/gen_levels.py` | `legend_for()` / `tileset_names()`; `Grid(w, h, tileset=...)`; `_check_characters()`; `"tileset"` serialised only when non-default; `_tile_flags()` now per-world |
-| `tests/test_level_format.gd` | **new**, 24 cases |
+| `tests/test_level_format.gd` (+`.uid`) | **new**, 24 cases |
 | `tests/test_level_validity.gd` | +2 cases: every level names a world that exists; no level uses a character its own world does not define |
 | `docs/adr/002-level-format.md` | amendment: *the legend is per-world, not global* |
 
