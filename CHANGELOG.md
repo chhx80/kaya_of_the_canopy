@@ -796,3 +796,60 @@ outcome — save, disturb, restore, and require the same frames — plus the hop
 join, and a classification test that fails when `Actor` gains a variable nobody
 has decided about. `tools/prove.sh --diff-hops` names the state that differs on
 either side of a hop boundary; it is what found this one.
+
+## Wave 2 — the gates are green and the four new worlds are reachable
+
+All four gates pass. Three of them for the first time together.
+
+```
+tools/test.sh      260 tests, 37,897 assertions, 0 failed
+tools/validate.sh  OK
+tools/itest.sh     304 checks, ALL PASSED
+tools/prove.sh     5 PROVED, 1 PARTIAL (jungle_5, honestly)
+```
+
+### The three proof defects are closed
+
+**jungle_3's last hop reproduces.** It was the same class as the previous one —
+state that snapshot/restore did not round-trip — and the prover's own self-check
+caught it rather than a human playing the level.
+
+**jungle_5 no longer claims what it cannot prove.** `boss_exit` does not exist
+during play: `level.gd` returns `null` for it and places it only in
+`on_boss_defeated()`. The prover cannot fight a boss, so it now reports
+
+```
+PARTIAL jungle_5 — 6 hops, 823 frames
+        NOT a full proof: traversal is proved to 'arena_floor'; 1 hop(s) to
+        'boss_exit' are the boss gate's (ADR 005 section 4).
+```
+
+and stamps the tape partial. The replay tier asserts arrival at the arena floor
+instead of a level completion a traversal tape can never reach. That is the seam
+ADR 005 drew; both sides now sit on it honestly.
+
+**The stale synthetic fixture is gone**, deleted rather than repaired, because
+six real tapes cover the same ground and a test kept alive by being mended is
+worse than no test.
+
+### The four new worlds can now be built
+
+**Per-world legends.** A level declares a `tileset` and the same twelve role
+characters bind to that world's art — `#` is always this world's ground, `|`
+always its ladder. Verbs (currents, updrafts, cracked and luminous walls) are
+shared across all five. Before this, `data/level_legend.json` mapped 28
+characters to ids 0-27 and every one of the 64 new world tiles was unreachable:
+painted, tested, and impossible to place.
+
+Proved end to end rather than assumed: `tests/fixtures/ruins_probe.json`
+declares `"tileset": "ruins"`, is built from Sunken Ruins tiles, and
+`tools/prove.sh` plays it — three hops, 226 frames. It is the only thing that
+demonstrates a non-jungle world is playable, so it stays.
+
+**The three new enemies can be placed.** `charger`, `dropper` and `flyer` were
+finished, tunable and tested, and no level could contain one because
+`level.gd` dispatched four hard-coded ids.
+
+**`tools/world_kit.py`** — 37 helpers for flooded chambers, colonnades, current
+channels, updraft shafts, tunnels and switch lattices, each checking its own
+geometry against the measured jump envelope rather than the modelled one.
