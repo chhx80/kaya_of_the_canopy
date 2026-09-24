@@ -42,3 +42,6 @@ __pycache__/
 shots/_review*.png
 shots/_art_proto.png
 shots/*_x3.png
+
+# Agent hand-off notes: written per worktree, never part of the game.
+REPORT.md
