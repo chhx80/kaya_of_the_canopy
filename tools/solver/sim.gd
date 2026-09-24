@@ -57,6 +57,11 @@ var _switch_box: PackedFloat32Array = PackedFloat32Array()
 var _switch_group: PackedInt32Array = PackedInt32Array()
 var _switch_slot: PackedInt32Array = PackedInt32Array()
 
+## How many live bosses the level places. Not simulated -- the prover cannot
+## fight -- but a `boss_exit` is only ever placed BY one dying, so whether the
+## level has one decides whether that gate can exist at all.
+var boss_count := 0
+
 ## Prover policy, not game rules — see prove.gd for why each exists.
 var allow_hazard := false
 var drown_fish := true
@@ -157,6 +162,11 @@ func _build_entities(def: LevelLoader.LevelDef) -> void:
 			ents.append(_record(type, Kind.MARKER, Rect2(p + Vector2(2, 2), Pickup.SIZE), 0.0, {}))
 		elif type == "exit" or type == "boss_exit":
 			ents.append(_record(type, Kind.EXIT, Rect2(p, LevelExit.SIZE), 0.0, {}))
+		elif type.begins_with("boss_"):
+			# The fight is not the prover's (ADR 005 section 4). What matters here
+			# is only that the boss exists, because `boss_exit` is placed by
+			# `Level.on_boss_defeated()` and by nothing else.
+			boss_count += 1
 		elif type == "marker":
 			ents.append(_record(String(e.get("name", "marker")), Kind.MARKER,
 				Rect2(p, Vector2(TileData4.TILE_SIZE, TileData4.TILE_SIZE)), 0.0, {}))
@@ -388,6 +398,7 @@ func snapshot() -> Array:
 		actor.pos.x, actor.pos.y, actor.vel.x, actor.vel.y,
 		_actor_bits(), FORM_IDS.find(form_id), _form_diff(),
 		key_counts, taken, opened, switch_bits, cooldowns.duplicate(),
+		_tile_bits(),
 	]
 
 
@@ -408,6 +419,7 @@ func restore(s: Array) -> void:
 	var was_opened := opened
 	opened = int(s[9])
 	cooldowns = (s[11] as PackedFloat32Array).duplicate()
+	_set_tile_bits(int(s[12]))
 	var bits := int(s[10])
 	if bits != switch_bits:
 		_set_switch(1, bits & 1 != 0)
@@ -420,6 +432,78 @@ func restore(s: Array) -> void:
 			var want := opened & (1 << n) != 0
 			for t: Vector2i in (ents[doors[n]]["tiles"] as Array):
 				world.set_fg(t.x, t.y, 0 if want else _DOOR_TILE)
+
+
+## What the tape has to reproduce at the end of a hop.
+##
+## The self-check used to compare position alone, and position alone is not the
+## claim: "the search left the body here" also means moving like this, in this
+## shape, with this key spent and this switch thrown. A replay that lands on the
+## right pixel with the wrong velocity carries on differently one frame later, and
+## a replay that lands there without having picked the key up walks the next hop
+## through a door the search found open. Both are tapes that do not reproduce the
+## proof, and both used to pass.
+func replay_signature() -> Dictionary:
+	return {
+		"pos": actor.pos,
+		"vel": actor.vel,
+		"form": form_id,
+		"on_floor": actor.on_floor,
+		"climbing": bool(form.climbing),
+		"keys": key_counts,
+		"taken": taken,
+		"opened": opened,
+		"switches": switch_bits,
+	}
+
+
+## Every mutable piece of simulation state, named, for diagnostics.
+## Not used by the search — `tools/prove.sh --diff-hops` prints this on both
+## sides of a hop boundary so a divergence can be named rather than guessed at.
+func describe_state() -> Dictionary:
+	var d := {
+		"pos": actor.pos, "vel": actor.vel, "box": actor.box,
+		"on_floor": actor.on_floor, "was_on_floor": actor.was_on_floor,
+		"on_ceiling": actor.on_ceiling, "against_wall": actor.against_wall,
+		"facing": actor.facing, "drop_through": actor.drop_through,
+		"last_floor_tile": actor.last_floor_tile, "last_wall_tile": actor.last_wall_tile,
+		"form_id": form_id, "key_counts": key_counts, "taken": taken,
+		"opened": opened, "switch_bits": switch_bits,
+		"cooldowns": Array(cooldowns),
+	}
+	var names: Array[StringName] = _form_props[form_id]
+	for n: StringName in names:
+		if n == &"cfg":
+			continue
+		d["form." + String(n)] = form.get(n)
+	return d
+
+
+## `last_floor_tile` and `last_wall_tile`, packed.
+##
+## Nothing in the movement path reads either of them today -- they exist for
+## enemy AI and for debugging. They are restored anyway, because the last two
+## times this project decided a piece of state could not matter it was wrong
+## both times: `_reset_form()` skipped the timers `form.update()` writes, and the
+## search then found jumps that phantom coyote time had paid for. "restore()"
+## either puts the state back or it does not; a restore with exceptions in it is
+## the bug, not the exceptions.
+func _tile_bits() -> int:
+	return (_tile15(actor.last_floor_tile.x) << 45) \
+		| (_tile15(actor.last_floor_tile.y) << 30) \
+		| (_tile15(actor.last_wall_tile.x) << 15) \
+		| _tile15(actor.last_wall_tile.y)
+
+
+## One tile coordinate in 15 bits, offset so the (-1, -1) "no tile" sentinel
+## packs as zero. Levels are 50x30; the clamp is a guard, not a range.
+static func _tile15(v: int) -> int:
+	return clampi(v + 1, 0, 32767)
+
+
+func _set_tile_bits(b: int) -> void:
+	actor.last_floor_tile = Vector2i(((b >> 45) & 32767) - 1, ((b >> 30) & 32767) - 1)
+	actor.last_wall_tile = Vector2i(((b >> 15) & 32767) - 1, (b & 32767) - 1)
 
 
 func _actor_bits() -> int:
@@ -560,6 +644,14 @@ func waypoint_satisfied(i: int) -> bool:
 			var dn := doors.find(i)
 			return dn >= 0 and (opened & (1 << dn)) != 0
 	return false
+
+
+## True when this waypoint is a gate that does not exist while the level is
+## played. `Level.spawn_entity()` returns null for `boss_exit` and
+## `Level.on_boss_defeated()` places it, so walking to its tile during play finds
+## nothing there. The prover must not treat it as ordinary scenery it can reach.
+func waypoint_is_boss_gate(i: int) -> bool:
+	return String((ents[i])["type"]) == "boss_exit"
 
 
 ## True when this waypoint is one the simulation has to fire, rather than one

@@ -30,6 +30,11 @@ const EXIT_OK := 0
 const EXIT_HOP_FAILED := 1
 const EXIT_NO_ROUTE := 2
 
+## Levels proved only as far as a boss arena, so the run can end with a summary
+## no reader can mistake for six full proofs. One entry per level:
+## {"id", "ends_at", "proved", "total", "unproved": Array}
+var _partials: Array[Dictionary] = []
+
 var _budget := DEFAULT_BUDGET
 var _route_override := ""
 var _level_files: Array[String] = []
@@ -40,6 +45,12 @@ var _cli_marks: Array[String] = []
 var _write_tapes := true
 var _allow_hazard := false
 var _quiet := false
+var _diff_hops := false
+## Turns a partial proof into a failure. Off by default: the prover HAS discharged
+## its whole obligation when it reaches a boss arena (ADR 005 section 4 hands the
+## rest to the boss gate), and a gate that is permanently red is a gate everyone
+## learns to ignore. On for anything that wants "full proofs only".
+var _require_full := false
 
 
 func _ready() -> void:
@@ -86,6 +97,10 @@ func _parse_args(args: PackedStringArray) -> void:
 			_allow_hazard = true
 		elif a == "--quiet":
 			_quiet = true
+		elif a == "--diff-hops":
+			_diff_hops = true
+		elif a == "--require-full":
+			_require_full = true
 		elif not a.begins_with("--"):
 			_level_ids.append(a)
 
@@ -123,6 +138,16 @@ func _run_verify() -> int:
 		if err != "":
 			print("STALE  %s — %s" % [tape_path.get_file(), err])
 			bad += 1
+		elif ProverTape.is_partial(tape_path):
+			# Fresh, but not a full proof. Saying "ok" here would let a partial tape
+			# pass for a finished level every time anyone checked.
+			var u := ProverTape.unproved_hops(tape_path)
+			print("partial %s — fresh, but proves traversal only; %d hop(s) unproved"
+				% [tape_path.get_file(), u.size()])
+			for item: Variant in u:
+				var ud: Dictionary = item
+				print("        NOT proved: %s > %s (owner: %s)"
+					% [ud.get("from", "?"), ud.get("to", "?"), ud.get("owner", "?")])
 		else:
 			_say("ok     %s" % tape_path.get_file())
 	if bad > 0:
@@ -204,7 +229,32 @@ func _run_prove() -> int:
 		# A missing route outranks a failed hop: it means the level was never
 		# even claimed to be finishable.
 		worst = maxi(worst, code)
+	if not _partials.is_empty():
+		worst = maxi(worst, _report_partials())
 	return worst
+
+
+## The last thing printed, and deliberately loud. A partial proof is a real
+## result -- the traversal IS proved -- but it is not the result the word PROVED
+## means, and the whole history of this project is verification that checked the
+## mechanism and reported it as the outcome.
+func _report_partials() -> int:
+	print("")
+	print("prove: %d level(s) are NOT fully proved. Traversal is proved; the rest is not."
+		% _partials.size())
+	for p: Dictionary in _partials:
+		print("  %s — proved %d of %d hops, up to '%s'"
+			% [p["id"], p["proved"], p["total"], p["ends_at"]])
+		for u: Dictionary in (p["unproved"] as Array):
+			print("      NOT proved: %s > %s" % [u["from"], u["to"]])
+			print("                  %s" % u["why"])
+			print("                  owner: %s" % u["owner"])
+	print("  Their tapes are stamped \"partial\": true and carry the unproved hops,")
+	print("  so nothing downstream can read them as a finished level.")
+	if _require_full:
+		print("  --require-full was given, so this run fails.")
+		return EXIT_HOP_FAILED
+	return EXIT_OK
 
 
 func _prove_level(path: String) -> int:
@@ -241,13 +291,28 @@ func _prove_level(path: String) -> int:
 		print("NOROUTE %s — %s" % [def.id, chain_err])
 		return EXIT_NO_ROUTE
 
+	# The boss seam. Everything from the first hop that walks to `boss_exit`
+	# onwards is the boss gate's to prove, and the prover stops there rather than
+	# walking to a tile that is empty during play.
+	var seam := _boss_seam(sim, route, def.id)
+	if String(seam["error"]) != "":
+		print("%s %s — %s" % [seam["verdict"], def.id, seam["error"]])
+		return int(seam["code"])
+	var unproved: Array = seam["unproved"]
+	route = seam["route"]
+
 	var started := Time.get_ticks_msec()
 	var searcher := ProverSearch.new()
 	var hops: Array = []
 	var hop_actions: Array = []
-	var hop_end: Array = []
+	var hop_end: Array[Dictionary] = []
+	var hop_start: Array = []
 	var total_frames := 0
 	var total_expansions := 0
+	# What the controller is holding as each hop begins. The tape is one
+	# continuous stream, so hop N+1's first frame follows hop N's last frame with
+	# no gap for a thumb to lift in -- see ProverSearch.run()'s `held`.
+	var held := 0
 
 	for i in route.size():
 		var hop: Dictionary = route[i]
@@ -268,15 +333,20 @@ func _prove_level(path: String) -> int:
 			return EXIT_NO_ROUTE
 
 		var start: Array = sim.snapshot()
-		var res := searcher.run(sim, start, goals, _budget)
+		if _diff_hops:
+			sim.restore(start)
+			hop_start.append(sim.describe_state())
+		var res := searcher.run(sim, start, goals, _budget, held)
 		total_expansions += res.expansions
 		if not res.found:
 			_report_failure(def.id, i, route, res, sim)
 			return EXIT_HOP_FAILED
 
 		sim.restore(res.end_state)
+		if res.actions.size() > 0:
+			held = res.actions[res.actions.size() - 1]
 		hop_actions.append(res.actions)
-		hop_end.append(sim.actor.pos)
+		hop_end.append(sim.replay_signature())
 		total_frames += res.actions.size()
 		hops.append({
 			"from": from_id, "to": to_id, "form": want_form if want_form != "" else sim.form_id,
@@ -303,26 +373,130 @@ func _prove_level(path: String) -> int:
 	# A tape that does not reproduce the search is not a proof, it is a story
 	# about one. Replay it here, in a fresh simulation, before anyone is told
 	# the level is playable.
-	var sc := _selfcheck(def, raw, hop_actions, hop_end, route)
-	if sc != "":
+	var sc := _selfcheck(def, raw, hop_actions, hop_end, route, hop_start)
+	if String(sc["error"]) != "":
 		print("FAIL   %s — the tape does not reproduce the proof" % def.id)
-		print("       %s" % sc)
+		print("       %s" % sc["error"])
+		return EXIT_HOP_FAILED
+	# A self-check that did not finish is not a self-check that passed. It has
+	# already happened once: a type error inside the loop aborted it mid-way and
+	# the level printed PROVED, because "no error string" was read as "checked".
+	# The count is the outcome; the empty string was only the mechanism.
+	if int(sc["checked"]) != hop_actions.size():
+		print("FAIL   %s — the self-check only got through %d of %d hops; it did not run to the end"
+			% [def.id, int(sc["checked"]), hop_actions.size()])
 		return EXIT_HOP_FAILED
 
 	var ms := Time.get_ticks_msec() - started
+
+	# The verdict. PROVED means the route was played end to end; PARTIAL means it
+	# was not, and says where it stopped. Two words, because one word that
+	# sometimes means the other is how a level nobody can finish gets a green tick.
+	var partial := not unproved.is_empty()
+	var ends_at := String(seam["ends_at"])
+	var verdict := "PARTIAL" if partial else "PROVED"
+	var extra := {}
+	if partial:
+		extra = {
+			"partial": true,
+			"proves": "traversal",
+			"ends_at": ends_at,
+			"unproved": unproved,
+		}
+		_partials.append({"id": def.id, "ends_at": ends_at, "proved": hops.size(),
+			"total": hops.size() + unproved.size(), "unproved": unproved})
+
 	if _write_tapes:
 		var tape_path := ProverTape.tape_path_for(path)
-		var err := ProverTape.write(tape_path, def.id, path, hops)
+		var err := ProverTape.write(tape_path, def.id, path, hops, extra)
 		if err != "":
 			print("FAIL   %s — could not write the tape: %s" % [def.id, err])
 			return EXIT_HOP_FAILED
-		_say("PROVED %s — %d hops, %d frames (%.1fs of play), %d expansions, %d ms -> %s"
-			% [def.id, hops.size(), total_frames, total_frames / 60.0, total_expansions, ms,
-			   tape_path.get_file()])
+		_say("%s %s — %d hops, %d frames (%.1fs of play), %d expansions, %d ms -> %s"
+			% [verdict, def.id, hops.size(), total_frames, total_frames / 60.0,
+			   total_expansions, ms, tape_path.get_file()])
 	else:
-		_say("PROVED %s — %d hops, %d frames, %d expansions, %d ms"
-			% [def.id, hops.size(), total_frames, total_expansions, ms])
+		_say("%s %s — %d hops, %d frames, %d expansions, %d ms"
+			% [verdict, def.id, hops.size(), total_frames, total_expansions, ms])
+	if partial:
+		# Said here as well as in the run summary, because a reader who greps one
+		# level out of a long log must not have to trust that they saw the footer.
+		_say("       NOT a full proof: traversal is proved to '%s'; %d hop(s) to 'boss_exit'"
+			% [ends_at, unproved.size()])
+		_say("       are the boss gate's (ADR 005 section 4). The tape is stamped partial.")
 	return EXIT_OK
+
+
+## Where the prover's job stops and the boss gate's begins.
+##
+## `boss_exit` is not an entity the player can walk to. `Level.spawn_entity()`
+## returns null for it and `Level.on_boss_defeated()` places it once the fight is
+## won -- so during play the tile is empty, and a prover that treats it as
+## ordinary scenery writes a tape that walks to nothing and a level that never
+## completes. That is exactly how jungle_5 failed: the route ended at a waypoint
+## that does not exist yet.
+##
+## ADR 005 already draws this line. Section 2 gives the prover traversal; section
+## 4 gives the boss gate the fight, including check 5, "it ends -- boss_exit is
+## reachable from the arena floor after defeat". So the honest model is not to
+## teach the prover to fake the gate, and not to let it search its own simulation
+## where the gate does happen to exist -- that is proving a level the player never
+## sees, which is the modelling mistake ADR 005 exists to stop. It is to prove the
+## route as far as the arena and say, in the verdict and in the tape, that the
+## rest is not proved and who owns it.
+##
+## Returns {route, unproved, ends_at, error, verdict, code}.
+func _boss_seam(sim: ProverSim, route: Array, level_id: String) -> Dictionary:
+	var out := {"route": route, "unproved": [] as Array, "ends_at": "",
+		"error": "", "verdict": "FAIL", "code": EXIT_HOP_FAILED}
+	var cut := -1
+	for i in route.size():
+		var to_id := String((route[i] as Dictionary)["to"])
+		var idxs := sim.waypoint_indices(to_id)
+		var is_gate := not idxs.is_empty()
+		for g: int in idxs:
+			if not sim.waypoint_is_boss_gate(g):
+				is_gate = false
+		if is_gate:
+			cut = i
+			break
+	if cut < 0:
+		return out
+
+	# A gate nothing can ever open. No boss means on_boss_defeated() is never
+	# called, so `boss_exit` is placed by nothing and the level cannot be
+	# finished by anyone. This is a real failure, not a seam.
+	if sim.boss_count == 0:
+		out["error"] = ("the route ends at 'boss_exit', but the level places no boss. "
+			+ "Level.on_boss_defeated() is what puts that gate in the world, so "
+			+ "nothing ever will: this level cannot be finished.")
+		return out
+
+	# Nothing left to prove. A route straight from spawn to the gate asks the
+	# prover to certify a level it never plays a frame of.
+	if cut == 0:
+		out["verdict"] = "NOROUTE"
+		out["code"] = EXIT_NO_ROUTE
+		out["error"] = ("the route's first hop walks to 'boss_exit', which does not exist "
+			+ "until the boss dies. Give the route a waypoint on the arena floor and "
+			+ "end it there; ADR 005 section 4 check 5 proves the gate.")
+		return out
+
+	var unproved: Array = []
+	for i in range(cut, route.size()):
+		var h: Dictionary = route[i]
+		unproved.append({
+			"from": String(h["from"]), "to": String(h["to"]),
+			"why": "'boss_exit' is placed by Level.on_boss_defeated(), so it is not in the world during play",
+			"owner": "the boss gate (ADR 005 section 4, check 5: boss_exit is reachable from the arena floor after defeat)",
+		})
+	out["route"] = route.slice(0, cut)
+	out["unproved"] = unproved
+	out["ends_at"] = String((route[cut] as Dictionary)["from"])
+	_say("  note   %s: the route ends at 'boss_exit'. Proving traversal to '%s' only;"
+		% [level_id, out["ends_at"]])
+	_say("         the last %d hop(s) are the boss gate's, not the prover's." % unproved.size())
+	return out
 
 
 ## The failure report is the product here. Naming the hop, how close it got and
@@ -449,7 +623,7 @@ static func _settle(sim: ProverSim) -> void:
 ## anything it changes outside the button stream silently stops being true the
 ## moment the buttons are replayed end to end.
 func _selfcheck(def: LevelLoader.LevelDef, raw: Dictionary, hop_actions: Array,
-		hop_end: Array, route: Array) -> String:
+		hop_end: Array[Dictionary], route: Array, hop_start: Array = []) -> Dictionary:
 	var sim := ProverSim.new()
 	sim.setup(def)
 	_settle(sim)
@@ -458,18 +632,57 @@ func _selfcheck(def: LevelLoader.LevelDef, raw: Dictionary, hop_actions: Array,
 		sim.add_marker(String(m["name"]), int(m["x"]), int(m["y"]))
 	var inp := InputState.new()
 	var prev := 0
+	var checked := 0
 	for i in hop_actions.size():
+		if _diff_hops and i < hop_start.size():
+			var want_s: Dictionary = hop_start[i]
+			var got_s: Dictionary = sim.describe_state()
+			var diffs: Array[String] = []
+			for k: String in want_s.keys():
+				if want_s[k] != got_s.get(k):
+					diffs.append("%s: search=%s replay=%s" % [k, want_s[k], got_s.get(k)])
+			print("  [hop %d start] prev_action=%d  %s" % [i + 1, prev,
+				"identical" if diffs.is_empty() else ""])
+			for d: String in diffs:
+				print("        %s" % d)
 		var acts: PackedInt32Array = hop_actions[i]
 		for a: int in acts:
 			_tape_input(inp, a, prev)
 			sim.step(inp)
 			prev = a
-		var want: Vector2 = hop_end[i]
-		var got := sim.actor.pos
-		if got.distance_to(want) > 1.0:
+		var want: Dictionary = hop_end[i]
+		var got := sim.replay_signature()
+		var why := _signature_diff(want, got)
+		if why != "":
 			var h: Dictionary = route[i]
-			return ("hop %d/%d  %s > %s replayed to %v, but the search left it at %v"
-				% [i + 1, route.size(), h["from"], h["to"], got.round(), want.round()])
+			return {"error": "hop %d/%d  %s > %s: %s"
+				% [i + 1, route.size(), h["from"], h["to"], why], "checked": checked}
+		checked += 1
+	return {"error": "", "checked": checked}
+
+
+## How the replay differs from the search, in the terms the reader needs, or ""
+## when it does not. Position first, because it is the one a human can picture.
+##
+## Position alone was not enough. "The search left the body here" also means
+## moving like this, in this shape, with this key spent and this switch thrown --
+## a replay that lands on the right pixel with the wrong velocity is somewhere
+## else one frame later, and one that lands there without having taken the key
+## walks the next hop through a door the search found open.
+static func _signature_diff(want: Dictionary, got: Dictionary) -> String:
+	var wp: Vector2 = want["pos"]
+	var gp: Vector2 = got["pos"]
+	if gp.distance_to(wp) > 1.0:
+		return "replayed to %v, but the search left it at %v" % [gp.round(), wp.round()]
+	var wv: Vector2 = want["vel"]
+	var gv: Vector2 = got["vel"]
+	if gv.distance_to(wv) > 1.0:
+		return ("replayed to the right pixel but moving at %v, where the search left it at %v"
+			% [gv.round(), wv.round()])
+	for k: String in ["form", "on_floor", "climbing", "keys", "taken", "opened", "switches"]:
+		if want[k] != got[k]:
+			return "replayed with %s = %s, where the search left it %s" \
+				% [k, str(got[k]), str(want[k])]
 	return ""
 
 

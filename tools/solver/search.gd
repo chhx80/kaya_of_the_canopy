@@ -56,7 +56,18 @@ static func action_name(a: int) -> String:
 
 ## `goals` are entity indices; reaching any of them ends the hop.
 ## Returns a Result whose `actions` is a per-frame action list from `start`.
-func run(sim: ProverSim, start: Array, goals: PackedInt32Array, budget: int) -> Result:
+##
+## `held` is the action bitmask that was on the controller on the frame BEFORE
+## this hop begins -- the last frame of the previous hop, or 0 at spawn. It is not
+## a convenience: a tape is one continuous stream of button presses, so the first
+## macro of hop N+1 is a *held* button if hop N ended holding it, and a fresh
+## press only if it did not. Rooting the search at `held = 0` instead made the
+## search read a rising edge the replay could never see, and on jungle_3 that
+## bought a vine jump out of thin air -- the search left the body at (727, 105)
+## and the same buttons replayed to (743, 164), sixty pixels lower, because the
+## replay's jump was still held from hop 7 and did nothing.
+func run(sim: ProverSim, start: Array, goals: PackedInt32Array, budget: int,
+		held: int = 0) -> Result:
 	var res := Result.new()
 	var goal_rects: Array[Rect2] = []
 	for g: int in goals:
@@ -71,7 +82,9 @@ func run(sim: ProverSim, start: Array, goals: PackedInt32Array, budget: int) -> 
 	# Parallel node arrays. Packed where the type allows it; a hop can hold
 	# several hundred thousand of these and an Array of Dictionaries does not.
 	var n_parent := PackedInt32Array([-1])
-	var n_action := PackedInt32Array([0])
+	# The root's "action" is what the controller was already holding, so the edges
+	# of the first macro are derived against the previous hop, not against silence.
+	var n_action := PackedInt32Array([held])
 	var n_frames := PackedInt32Array([0])
 	var n_state: Array = [start]
 
