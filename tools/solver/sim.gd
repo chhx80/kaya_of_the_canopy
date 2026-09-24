@@ -460,16 +460,26 @@ func _form_diff() -> Array:
 	return out
 
 
+## Put every form property back to its baseline.
+##
+## This used to reset only the properties `_apply_form_diff` had touched, on the
+## theory that nothing else could have changed them. But the FORM changes them:
+## `form.update()` writes `coyote`, `buffer`, `_drop_timer`, `_land_t`, `_air_vy`
+## every tick, and nothing marks those dirty. So a restore left the last
+## simulated timer values in place, and the search explored from states carrying
+## phantom coyote time -- finding jumps that continuous play cannot make.
+##
+## That is why the emitted tape did not reproduce its own proof. It is the
+## quietest possible version of this project's recurring bug: the mechanism
+## (restore was called) was right, the outcome (the state actually came back)
+## was not.
 func _reset_form(fid: String) -> void:
-	var dirty: Array = _form_dirty[fid]
-	if dirty.is_empty():
-		return
 	var f: FormBase = _form_pool[fid]
 	var names: Array[StringName] = _form_props[fid]
 	var base: Array = _form_baseline[fid]
-	for i: int in dirty:
+	for i in names.size():
 		f.set(names[i], base[i])
-	dirty.clear()
+	(_form_dirty[fid] as Array).clear()
 
 
 func _apply_form_diff(fid: String, diff: Array) -> void:
@@ -524,6 +534,43 @@ func spawn_rect() -> Rect2:
 
 ## The effect standing on a waypoint has, applied between hops exactly as the
 ## trigger would apply it in play. Returns "" or the reason it could not.
+## Has this waypoint actually been USED, by the simulation itself?
+##
+## Overlapping a door's waypoint rect is not opening the door. The rect is the
+## entity's tile grown by two pixels; the door opens in _touch_triggers() only
+## when the body overlaps the door's own box with a key in hand. A hop that
+## ended on the rect without firing the trigger used to be finished off by
+## apply_waypoint_effect(), which opened the door OUT OF BAND -- so the next hop
+## searched a world with an open doorway that its own buttons had never opened.
+## Replay the tape and the door is still shut. Measured on jungle_2: the tape
+## ended hop 2 four pixels short of the door and hop 3 twenty-five pixels short
+## of the vine, and Kaya walked off the bottom of the world.
+##
+## So arrival at an entity means the entity fired. That is the outcome, not the
+## mechanism, and it is the same lesson this project keeps relearning.
+func waypoint_satisfied(i: int) -> bool:
+	var e: Dictionary = ents[i]
+	match int(e["kind"]):
+		Kind.PAD:
+			return form_id == String(e["form"])
+		Kind.KEY:
+			var kn := keys.find(i)
+			return kn >= 0 and (taken & (1 << kn)) != 0
+		Kind.DOOR:
+			var dn := doors.find(i)
+			return dn >= 0 and (opened & (1 << dn)) != 0
+	return false
+
+
+## True when this waypoint is one the simulation has to fire, rather than one
+## the body merely has to stand on.
+func waypoint_is_triggered(i: int) -> bool:
+	match int((ents[i])["kind"]):
+		Kind.PAD, Kind.KEY, Kind.DOOR:
+			return true
+	return false
+
+
 func apply_waypoint_effect(i: int) -> String:
 	var e: Dictionary = ents[i]
 	match int(e["kind"]):

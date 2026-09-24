@@ -682,3 +682,51 @@ Two causes are known. The first is fixed, the second is not:
 
 `jungle_4` replays cleanly, all sixteen hops, which is why this reads as a
 specific divergence rather than a broken harness.
+
+## The proofs and the game now agree — mostly, and for a findable reason
+
+The divergence ran down to a single bug, in the one place nobody looks: the
+prover's own snapshot/restore.
+
+`_reset_form()` put back only the properties `_apply_form_diff` had touched, on
+the theory that nothing else could have changed them. But **the form changes
+them**: `form.update()` writes `coyote`, `buffer`, `_drop_timer`, `_land_t` and
+`_air_vy` every tick, and nothing marked those dirty. So every `restore()` left
+the previous state's timers in place, and the search explored from bodies
+carrying **phantom coyote time** — finding jumps that continuous play cannot
+make. The proof was real; the tape recording it was not.
+
+It is the quietest possible version of the bug this project keeps meeting. The
+mechanism was right — `restore()` was called, every time. The outcome was not —
+the state did not actually come back.
+
+Three fixes, each measured:
+
+1. **Restore puts everything back.** jungle_1, jungle_2 and jungle_4 now replay
+   in the real game, start to finish.
+2. **Arrival at an entity means the entity fired.** Overlapping a door's
+   waypoint rect is not opening the door; the rect is the tile grown by two
+   pixels, and the door opens only on contact with a key in hand. The prover
+   used to finish the job itself with `apply_waypoint_effect()` — opening the
+   door *out of band* — so the next hop searched a world its own buttons had
+   never produced. Replay the tape and the door is still shut.
+3. **The prover replays its own tape before claiming a proof.** A tape that
+   does not reproduce the search is not a proof, it is a story about one. This
+   is what caught jungle_3, below, and it is now a permanent gate.
+
+`tools/diverge.sh` is the instrument: it steps the prover's simulation and the
+real booted game through the same tape and names the first frame where they
+part. It found all of the above.
+
+### What is still red, and why
+
+- **jungle_3** — its last hop, a vine climb, still does not reproduce: the tape
+  replays to (743,164) where the search left the body at (727,105). The prover
+  refuses to emit the tape, which is the gate working.
+- **jungle_5** — `boss_exit` does not exist during play. `level.gd` returns
+  `null` for it and places it only in `on_boss_defeated()`, so the tape walks to
+  the right tile and finds nothing there. The route ends at a waypoint that is
+  not in the world until the boss dies, and the prover cannot fight. This is the
+  seam ADR 005 already draws: traversal is the prover's, the fight is the boss
+  gate's. The route and the replay need to meet at the arena floor.
+- **one synthetic fixture** hand-authored before real tapes existed.

@@ -5,16 +5,16 @@
    "form": "human",
    "frames": [
     {
-     "a": "right",
-     "n": 24
-    },
-    {
      "a": "left+down+jump",
      "n": 4
     },
     {
      "a": "right",
-     "n": 8
+     "n": 24
+    },
+    {
+     "a": "none",
+     "n": 2
     }
    ],
    "from": "spawn",
@@ -24,7 +24,7 @@
    "form": "fish",
    "frames": [
     {
-     "a": "jump",
+     "a": "left+jump",
      "n": 4
     },
     {
@@ -38,22 +38,42 @@
     {
      "a": "none",
      "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 8
     },
     {
      "a": "right+jump",
      "n": 4
     },
     {
-     "a": "right",
-     "n": 16
+     "a": "right+up",
+     "n": 4
     },
     {
-     "a": "right+down",
+     "a": "right",
+     "n": 48
+    },
+    {
+     "a": "up",
+     "n": 8
+    },
+    {
+     "a": "right+up",
      "n": 8
     },
     {
      "a": "right",
-     "n": 72
+     "n": 40
+    },
+    {
+     "a": "none",
+     "n": 2
     }
    ],
    "from": "pad_fish",
@@ -64,19 +84,11 @@
    "frames": [
     {
      "a": "right+down",
-     "n": 40
+     "n": 44
     },
     {
      "a": "down",
      "n": 12
-    },
-    {
-     "a": "none",
-     "n": 4
-    },
-    {
-     "a": "down",
-     "n": 4
     },
     {
      "a": "right+down",
@@ -133,15 +145,11 @@
    "frames": [
     {
      "a": "right+up",
-     "n": 56
+     "n": 52
     },
     {
      "a": "right",
-     "n": 12
-    },
-    {
-     "a": "none",
-     "n": 2
+     "n": 16
     }
    ],
    "from": "under_four",
@@ -156,7 +164,7 @@
     },
     {
      "a": "up",
-     "n": 16
+     "n": 20
     },
     {
      "a": "jump",

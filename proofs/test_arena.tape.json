@@ -5,10 +5,6 @@
    "form": "human",
    "frames": [
     {
-     "a": "right",
-     "n": 24
-    },
-    {
      "a": "left+down+jump",
      "n": 4
     },
@@ -30,14 +26,30 @@
     },
     {
      "a": "right",
-     "n": 40
+     "n": 36
     },
     {
-     "a": "right+jump",
+     "a": "left+down+jump",
      "n": 4
     },
     {
      "a": "right",
+     "n": 28
+    },
+    {
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "right+up+jump",
+     "n": 4
+    },
+    {
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "right+down+jump",
      "n": 4
     },
     {
@@ -46,19 +58,11 @@
     },
     {
      "a": "right",
-     "n": 4
+     "n": 8
     },
     {
-     "a": "none",
-     "n": 4
-    },
-    {
-     "a": "left+down+jump",
-     "n": 4
-    },
-    {
-     "a": "none",
-     "n": 9
+     "a": "down+jump",
+     "n": 1
     }
    ],
    "from": "spawn",
@@ -68,164 +72,20 @@
    "form": "human",
    "frames": [
     {
-     "a": "down+jump",
-     "n": 4
-    },
-    {
-     "a": "right",
-     "n": 4
-    },
-    {
-     "a": "left",
-     "n": 4
-    },
-    {
-     "a": "right",
-     "n": 4
-    },
-    {
-     "a": "left",
-     "n": 4
-    },
-    {
-     "a": "jump",
-     "n": 4
-    },
-    {
-     "a": "right",
-     "n": 4
-    },
-    {
-     "a": "none",
-     "n": 4
-    },
-    {
-     "a": "left",
-     "n": 8
-    },
-    {
-     "a": "right",
-     "n": 4
-    },
-    {
-     "a": "right+up+jump",
-     "n": 4
-    },
-    {
-     "a": "left",
-     "n": 4
-    },
-    {
-     "a": "none",
-     "n": 4
-    },
-    {
-     "a": "left",
-     "n": 4
-    },
-    {
      "a": "right",
      "n": 8
-    },
-    {
-     "a": "left+up+jump",
-     "n": 4
-    },
-    {
-     "a": "right",
-     "n": 4
-    },
-    {
-     "a": "left",
-     "n": 8
-    },
-    {
-     "a": "right",
-     "n": 8
-    },
-    {
-     "a": "left+up+jump",
-     "n": 4
-    },
-    {
-     "a": "right",
-     "n": 4
-    },
-    {
-     "a": "none",
-     "n": 4
-    },
-    {
-     "a": "left",
-     "n": 4
-    },
-    {
-     "a": "none",
-     "n": 4
-    },
-    {
-     "a": "right",
-     "n": 4
     },
     {
      "a": "right+jump",
      "n": 4
     },
     {
-     "a": "none",
-     "n": 4
-    },
-    {
-     "a": "left",
+     "a": "right",
      "n": 12
     },
     {
-     "a": "right",
-     "n": 4
-    },
-    {
-     "a": "right+up+jump",
-     "n": 4
-    },
-    {
      "a": "none",
-     "n": 16
-    },
-    {
-     "a": "jump",
-     "n": 4
-    },
-    {
-     "a": "none",
-     "n": 4
-    },
-    {
-     "a": "left",
-     "n": 4
-    },
-    {
-     "a": "none",
-     "n": 4
-    },
-    {
-     "a": "right",
-     "n": 4
-    },
-    {
-     "a": "right+up+jump",
-     "n": 4
-    },
-    {
-     "a": "right+jump",
-     "n": 4
-    },
-    {
-     "a": "right",
-     "n": 20
-    },
-    {
-     "a": "none",
-     "n": 3
+     "n": 14
     }
    ],
    "from": "spike_lip",

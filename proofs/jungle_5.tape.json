@@ -5,10 +5,6 @@
    "form": "human",
    "frames": [
     {
-     "a": "right",
-     "n": 24
-    },
-    {
      "a": "left+down+jump",
      "n": 4
     },
@@ -22,7 +18,7 @@
     },
     {
      "a": "right",
-     "n": 40
+     "n": 20
     },
     {
      "a": "left+down+jump",
@@ -30,7 +26,7 @@
     },
     {
      "a": "right",
-     "n": 12
+     "n": 52
     },
     {
      "a": "left+down+jump",
@@ -90,15 +86,11 @@
     },
     {
      "a": "right",
-     "n": 28
-    },
-    {
-     "a": "none",
-     "n": 8
+     "n": 32
     },
     {
      "a": "down",
-     "n": 1
+     "n": 2
     }
    ],
    "from": "spawn",
@@ -109,14 +101,26 @@
    "frames": [
     {
      "a": "left+jump",
+     "n": 8
+    },
+    {
+     "a": "right+jump",
+     "n": 12
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "up",
      "n": 4
     },
     {
-     "a": "none",
+     "a": "right",
      "n": 4
     },
     {
-     "a": "left+jump",
+     "a": "left+up+jump",
      "n": 4
     },
     {
@@ -125,7 +129,11 @@
     },
     {
      "a": "right+jump",
-     "n": 12
+     "n": 16
+    },
+    {
+     "a": "up",
+     "n": 4
     },
     {
      "a": "right+up",
@@ -142,14 +150,6 @@
     {
      "a": "right+jump",
      "n": 12
-    },
-    {
-     "a": "right",
-     "n": 4
-    },
-    {
-     "a": "up",
-     "n": 4
     },
     {
      "a": "right",
@@ -180,19 +180,19 @@
      "n": 4
     },
     {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
      "a": "left+jump",
      "n": 4
     },
     {
-     "a": "right+jump",
-     "n": 8
-    },
-    {
-     "a": "right",
-     "n": 8
-    },
-    {
-     "a": "up",
+     "a": "right+up",
      "n": 4
     },
     {
@@ -204,47 +204,15 @@
      "n": 4
     },
     {
-     "a": "none",
-     "n": 4
-    },
-    {
-     "a": "right+up+jump",
-     "n": 4
-    },
-    {
-     "a": "down",
-     "n": 4
-    },
-    {
-     "a": "right+up+jump",
-     "n": 4
-    },
-    {
-     "a": "up",
-     "n": 4
-    },
-    {
-     "a": "right+jump",
-     "n": 4
-    },
-    {
-     "a": "right",
-     "n": 4
-    },
-    {
-     "a": "right+jump",
-     "n": 4
-    },
-    {
-     "a": "right+up",
-     "n": 4
-    },
-    {
      "a": "left+jump",
      "n": 4
     },
     {
-     "a": "none",
+     "a": "jump",
+     "n": 8
+    },
+    {
+     "a": "left+up",
      "n": 4
     },
     {
@@ -256,12 +224,8 @@
      "n": 4
     },
     {
-     "a": "left+jump",
-     "n": 4
-    },
-    {
      "a": "left",
-     "n": 8
+     "n": 4
     },
     {
      "a": "none",
@@ -273,7 +237,7 @@
     },
     {
      "a": "none",
-     "n": 3
+     "n": 6
     }
    ],
    "from": "vine_foot",
@@ -288,10 +252,10 @@
     },
     {
      "a": "right",
-     "n": 8
+     "n": 12
     },
     {
-     "a": "left+jump",
+     "a": "right+up+jump",
      "n": 4
     },
     {
@@ -300,18 +264,6 @@
     },
     {
      "a": "none",
-     "n": 4
-    },
-    {
-     "a": "left",
-     "n": 8
-    },
-    {
-     "a": "right",
-     "n": 4
-    },
-    {
-     "a": "right+jump",
      "n": 4
     },
     {
@@ -319,8 +271,16 @@
      "n": 16
     },
     {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 12
+    },
+    {
      "a": "none",
-     "n": 6
+     "n": 10
     }
    ],
    "from": "canopy_ledge",
@@ -343,7 +303,31 @@
     },
     {
      "a": "right",
-     "n": 24
+     "n": 20
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 8
+    },
+    {
+     "a": "left+jump",
+     "n": 4
     },
     {
      "a": "right+jump",
@@ -351,19 +335,11 @@
     },
     {
      "a": "right",
-     "n": 8
-    },
-    {
-     "a": "jump",
-     "n": 4
-    },
-    {
-     "a": "right",
-     "n": 4
+     "n": 16
     },
     {
      "a": "none",
-     "n": 19
+     "n": 4
     }
    ],
    "from": "east_ledge",
@@ -378,27 +354,15 @@
     },
     {
      "a": "right",
-     "n": 12
-    },
-    {
-     "a": "left",
-     "n": 8
-    },
-    {
-     "a": "left+jump",
-     "n": 4
+     "n": 20
     },
     {
      "a": "right+jump",
-     "n": 4
+     "n": 12
     },
     {
      "a": "right",
      "n": 20
-    },
-    {
-     "a": "left",
-     "n": 4
     }
    ],
    "from": "branch",
@@ -429,11 +393,19 @@
     },
     {
      "a": "right",
-     "n": 8
+     "n": 4
+    },
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
     },
     {
      "a": "none",
-     "n": 64
+     "n": 61
     }
    ],
    "from": "ledge_b",

@@ -231,6 +231,7 @@ func _prove_level(path: String) -> int:
 
 	var sim := ProverSim.new()
 	sim.setup(def)
+	_settle(sim)
 	sim.allow_hazard = _allow_hazard
 	for m: Dictionary in _markers(raw):
 		sim.add_marker(String(m["name"]), int(m["x"]), int(m["y"]))
@@ -243,6 +244,8 @@ func _prove_level(path: String) -> int:
 	var started := Time.get_ticks_msec()
 	var searcher := ProverSearch.new()
 	var hops: Array = []
+	var hop_actions: Array = []
+	var hop_end: Array = []
 	var total_frames := 0
 	var total_expansions := 0
 
@@ -272,17 +275,23 @@ func _prove_level(path: String) -> int:
 			return EXIT_HOP_FAILED
 
 		sim.restore(res.end_state)
+		hop_actions.append(res.actions)
+		hop_end.append(sim.actor.pos)
 		total_frames += res.actions.size()
 		hops.append({
 			"from": from_id, "to": to_id, "form": want_form if want_form != "" else sim.form_id,
 			"frames": ProverTape.run_length(res.actions),
 		})
 		# Standing on the waypoint is not the same as having used it: the pad
-		# transforms you, the key goes in your pocket, the door eats it.
+		# transforms you, the key goes in your pocket, the door eats it. Those
+		# now happen inside the simulation, where the tape can reproduce them --
+		# the search will not call a triggered waypoint reached until they have.
+		# All that is left here is to refuse a hop that somehow ended without
+		# them, rather than papering over it by applying the effect by hand.
 		for g: int in goals:
-			if sim.waypoint_rect(g).intersects(sim.actor.aabb()):
-				var eff := sim.apply_waypoint_effect(g)
-				if eff != "":
+			if sim.waypoint_is_triggered(g) and not sim.waypoint_satisfied(g):
+				var eff := "arrived at '%s' without using it" % to_id
+				if true:
 					print("FAIL   %s hop %d/%d  %s > %s" % [def.id, i + 1, route.size(), from_id, to_id])
 					print("       reached '%s' but could not use it: %s" % [to_id, eff])
 					return EXIT_HOP_FAILED
@@ -290,6 +299,15 @@ func _prove_level(path: String) -> int:
 		_say("  hop %d/%d  %-14s > %-14s  %-5s  %4d frames  %6d expansions"
 			% [i + 1, route.size(), from_id, to_id, hop.get("form", "-"),
 			   res.actions.size(), res.expansions])
+
+	# A tape that does not reproduce the search is not a proof, it is a story
+	# about one. Replay it here, in a fresh simulation, before anyone is told
+	# the level is playable.
+	var sc := _selfcheck(def, raw, hop_actions, hop_end, route)
+	if sc != "":
+		print("FAIL   %s — the tape does not reproduce the proof" % def.id)
+		print("       %s" % sc)
+		return EXIT_HOP_FAILED
 
 	var ms := Time.get_ticks_msec() - started
 	if _write_tapes:
@@ -407,6 +425,72 @@ func _check_chain(route: Array) -> String:
 ## should not silently become unprovable.
 ## `--mark shaft_top:14,25` adds one from the command line, which is how you try
 ## a waypoint out before committing it to the DSL.
+## The game builds the level and gives it SETTLE_FRAMES before a tape's first
+## button lands; in them Kaya falls the last few pixels onto the floor. The
+## prover used to start searching from the raw spawn instead, one frame before
+## she was standing -- so the very first jump in a tape was swallowed, and every
+## frame after it was recorded against a body in a different place.
+##
+## It is small and it compounds: measured on jungle_2, the tape ended hop 2 four
+## pixels short of the door it claimed to reach, and hop 3 twenty-five pixels
+## short of the vine. The prover proved a run that started somewhere the game
+## never starts.
+const SETTLE_FRAMES := 4
+
+static func _settle(sim: ProverSim) -> void:
+	var neutral := InputState.new()
+	for _i in SETTLE_FRAMES:
+		sim.step(neutral)
+
+
+## Replay every hop's recorded buttons in a fresh simulation and require the
+## body to arrive where the search left it. Without this the prover can emit a
+## tape it never actually played: the search explores by snapshot/restore, and
+## anything it changes outside the button stream silently stops being true the
+## moment the buttons are replayed end to end.
+func _selfcheck(def: LevelLoader.LevelDef, raw: Dictionary, hop_actions: Array,
+		hop_end: Array, route: Array) -> String:
+	var sim := ProverSim.new()
+	sim.setup(def)
+	_settle(sim)
+	sim.allow_hazard = _allow_hazard
+	for m: Dictionary in _markers(raw):
+		sim.add_marker(String(m["name"]), int(m["x"]), int(m["y"]))
+	var inp := InputState.new()
+	var prev := 0
+	for i in hop_actions.size():
+		var acts: PackedInt32Array = hop_actions[i]
+		for a: int in acts:
+			_tape_input(inp, a, prev)
+			sim.step(inp)
+			prev = a
+		var want: Vector2 = hop_end[i]
+		var got := sim.actor.pos
+		if got.distance_to(want) > 1.0:
+			var h: Dictionary = route[i]
+			return ("hop %d/%d  %s > %s replayed to %v, but the search left it at %v"
+				% [i + 1, route.size(), h["from"], h["to"], got.round(), want.round()])
+	return ""
+
+
+## The edge rules a replayed tape sees: a press is a frame whose predecessor did
+## not hold the button. Must match ProverSearch._set_input and the integration
+## tier's replay, or the three disagree about what a tape means.
+static func _tape_input(inp: InputState, a: int, prev: int) -> void:
+	inp.left = (a & ProverSearch.LEFT) != 0
+	inp.right = (a & ProverSearch.RIGHT) != 0
+	inp.up = (a & ProverSearch.UP) != 0
+	inp.down = (a & ProverSearch.DOWN) != 0
+	var was := (prev & ProverSearch.JUMP) != 0
+	inp.jump = (a & ProverSearch.JUMP) != 0
+	inp.jump_pressed = inp.jump and not was
+	inp.jump_released = was and not inp.jump
+	inp._prev_jump = was
+	var wasa := (prev & ProverSearch.ATTACK) != 0
+	inp.attack = (a & ProverSearch.ATTACK) != 0
+	inp.attack_pressed = inp.attack and not wasa
+
+
 func _markers(raw: Dictionary) -> Array:
 	var out: Array = []
 	for m: String in _cli_marks:

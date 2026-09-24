@@ -117,7 +117,7 @@ func run(sim: ProverSim, start: Array, goals: PackedInt32Array, budget: int) -> 
 				bad = sim.rejection()
 				if bad != "":
 					break
-				if _reached(sim, goal_rects):
+				if _reached_goal(sim, goal_rects, goals):
 					hit = true
 					break
 			if bad != "":
@@ -195,6 +195,19 @@ func _set_input(input: InputState, a: int, prev: int) -> void:
 ##
 ## Arriving means standing, or hanging on a vine, or swimming, or being the bird
 ## -- the four ways Kaya can actually be somewhere and stay there.
+static func _reached_goal(sim: ProverSim, goals: Array[Rect2],
+		idxs: PackedInt32Array) -> bool:
+	# An entity waypoint counts as reached only once the simulation has actually
+	# fired it -- the key is in hand, the door is open, the form has changed.
+	for gi: int in idxs:
+		if sim.waypoint_is_triggered(gi):
+			if sim.waypoint_satisfied(gi):
+				return true
+		elif _reached(sim, goals):
+			return true
+	return false
+
+
 static func _reached(sim: ProverSim, goals: Array[Rect2]) -> bool:
 	var box := sim.actor.aabb()
 	var hit := false
