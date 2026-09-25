@@ -1017,3 +1017,56 @@ be fought from, and no tile in the arena safe from everything.
 - Also fixed here: `TileRenderer` resolves a tile's atlas cell once at setup, so
   a tile whose id changes underneath it kept drawing its authored art. The arena
   flooded, every check passed, and the screenshot showed dry stone.
+
+## M2 — SUNKEN RUINS, the first new world
+
+Five levels, authored in parallel, every one proved against the shipping
+movement code and replayed in the real booted game.
+
+```
+ruins_1  DROWNED STEPS   15 hops    902 frames    PROVED
+ruins_2  THE COLONNADE   18 hops  1,811 frames    PROVED
+ruins_3  TIDE GALLERY    12 hops    742 frames    PROVED
+ruins_4  THE CISTERN     27 hops  1,982 frames    PROVED
+ruins_5  THE TIDE MAW     9 hops    645 frames    PARTIAL, by design
+```
+
+`ruins_5` is PARTIAL for the same honest reason `jungle_5` is: `boss_exit` does
+not exist until the boss dies, the prover cannot fight, so it proves traversal
+to the arena floor and hands the fight to the boss gate. The tape is stamped
+partial and nothing claims otherwise.
+
+### THE TIDE MAW passes the gate the Grove Warden does not
+
+```
+boss gate: 23 checks, ALL PASSED
+  refuges: 17 reachable from the arena floor, 0 not
+  strategy tape 1,891 frames -> boss health 0, hearts 3, low 3
+```
+
+The Grove Warden's slam misses only six tiles, all on platforms 96 px above a
+46 px jump, and from up there the blade flies over its hitbox — a dodge window
+Kaya cannot reach. **Every one of the Tide Maw's 17 refuges is reachable from
+the arena floor**, and its strategy tape kills it without losing a single heart.
+That is the standard the fairness sweep was built to enforce, met rather than
+argued around.
+
+### The world
+
+Each level is authored in its own module under `tools/worlds/`, so five authors
+worked in parallel without queueing behind `tools/build_levels.py`. Each module
+also runs standalone, which is how each author iterated before anything merged.
+
+DROWNED STEPS teaches the current where getting it wrong is free, then once
+where it matters. THE COLONNADE makes the flow decide the order you do things
+in — the key is easy one way, the door is past a current you have to beat. TIDE
+GALLERY makes air the resource and the currents make pocket-to-pocket distance
+asymmetric. THE CISTERN sets each stage's water level with switch blocks.
+
+### Still open, and not caused by this work
+
+`tools/bossgate.sh` fails its `defeatable` check for the Grove Warden: there is
+no strategy tape at `tools/bossgate/tapes/boss_grove.json`. The machinery has
+never actually proved the first boss can be beaten. The Tide Maw has one; the
+Warden needs one, and it needs a reachable dodge window before a tape is worth
+writing.

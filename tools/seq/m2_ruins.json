@@ -1,0 +1,75 @@
+[
+ {
+  "_": "World 2, SUNKEN RUINS: framed on the water in each level."
+ },
+ {
+  "scenario": "level:ruins_1",
+  "settle": 60
+ },
+ {
+  "teleport": [
+   28,
+   24
+  ],
+  "settle": 90
+ },
+ {
+  "shot": "shots/70_ruins_1.png"
+ },
+ {
+  "scenario": "level:ruins_2",
+  "settle": 60
+ },
+ {
+  "teleport": [
+   24,
+   22
+  ],
+  "settle": 90
+ },
+ {
+  "shot": "shots/71_ruins_2.png"
+ },
+ {
+  "scenario": "level:ruins_3",
+  "settle": 60
+ },
+ {
+  "teleport": [
+   24,
+   22
+  ],
+  "settle": 90
+ },
+ {
+  "shot": "shots/72_ruins_3.png"
+ },
+ {
+  "scenario": "level:ruins_4",
+  "settle": 60
+ },
+ {
+  "teleport": [
+   24,
+   18
+  ],
+  "settle": 90
+ },
+ {
+  "shot": "shots/73_ruins_4.png"
+ },
+ {
+  "scenario": "level:ruins_5",
+  "settle": 60
+ },
+ {
+  "teleport": [
+   16,
+   20
+  ],
+  "settle": 90
+ },
+ {
+  "shot": "shots/74_ruins_5.png"
+ }
+]
