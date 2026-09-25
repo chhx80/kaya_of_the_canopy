@@ -1,0 +1,289 @@
+{
+ "id": "ruins_3",
+ "name": "TIDE GALLERY",
+ "music": "world2",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "##################################################",
+  "##########################################......##",
+  "#........#################################......##",
+  "#........#################################......##",
+  "#........#################################.....|##",
+  "#........######################################|##",
+  "#........######################################|##",
+  "######..#######################################|##",
+  "######..###################################....|##",
+  "#.........#################################....|##",
+  "#.........#####################################|##",
+  "#.........#####################################|##",
+  "#.........#####################################|##",
+  "#.........#####################################|##",
+  "########..#####################################|##",
+  "########....................#########..........|##",
+  "########....................#########..........|##",
+  "##########............###...#########....#########",
+  "##########~~~~~~~~~~~~ddd~~~}}}}}}}}}~~~~ddddddd##",
+  "##########w>>>>>>>>>wwdddwww}}}}}}}}}wwwwddddddd##",
+  "##########w>>>>>>>>>wwdddwww#########wwwuddddddd##",
+  "##########w>>>>>>>>>wwdddwwww##wwwwwwwwwuddddddd##",
+  "##########w>>>>>>>>>wwdddwwww##wwwwwwwwwuddddddd##",
+  "##########wwwwwwwwwwwwdddwwww##wwwwwwwwwuddddddd##",
+  "##########wwwwwwwwwwwwdddwwwwwwwwwwwwwwwuddddddd##",
+  "##########wwwwwwwwwwwwdddwwwwwwww##wwwwwuddddddd##",
+  "##########wwwwwwwwwwwwdddwwwwwwww##wwwwwuddddddd##",
+  "##########wwwwwwwwwwwwdddwwwwwwww##wwwwwwddddddd##",
+  "##########dddddddddddddddddddddddddddddddddddddd##",
+  "##########dddddddddddddddddddddddddddddddddddddd##"
+ ],
+ "bg": [
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLTLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTLLLLL",
+  "LLLTLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTLLLLL",
+  "LLLTLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTLLLLL",
+  "LLLTLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTLLLLL",
+  "LLLTLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLTLLLLLLLLLLLLTLLLLLLLLLLLLTLLLLLLLLLL",
+  "LLLLLLLLLLLLLTLLLLLLLLLLLLTLLLLLLLLLLLLTLLLLLLLLLL",
+  "LLLLLLLLLLLLLTLLLLLLLLLLLLTLLLLLLLLLLLLTLLLLLLLLLL",
+  "LLLLLLLLLLXXXTXXXXXXXXXXXXTXXXXXXXXXXXXTXLLLLLLLLL",
+  "LLLLLLLLLLXXXTXXXXXXXXXXXXTXXXXXXXXXXXXTXLLLLLLLLL",
+  "LLLLLLLLLLXXXTXXXXXXXXXXXXTXXXXXXXXXXXXTXLLLLLLLLL",
+  "LLLLLLLLLLXXXTXXXXXXXXXXXXTXXXXXXXXXXXXTXLLLLLLLLL",
+  "LLLLLLLLLLXXXTXXXXXXXXXXXXTXXXXXXXXXXXXTXLLLLLLLLL",
+  "LLLLLLLLLLXXXTXXXXXXXXXXXXTXXXXXXXXXXXXTXLLLLLLLLL",
+  "LLLLLLLLLLXXXTXXXXXXXXXXXXTXXXXXXXXXXXXTXLLLLLLLLL",
+  "LLLLLLLLLLXXXTXXXXXXXXXXXXTXXXXXXXXXXXXTXLLLLLLLLL",
+  "LLLLLLLLLLXXXTXXXXXXXXXXXXTXXXXXXXXXXXXTXLLLLLLLLL",
+  "LLLLLLLLLLXXXTXXXXXXXXXXXXTXXXXXXXXXXXXTXLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 2,
+   "y": 6
+  },
+  {
+   "type": "pad_fish",
+   "x": 8,
+   "y": 16
+  },
+  {
+   "type": "pad_human",
+   "x": 45,
+   "y": 16
+  },
+  {
+   "type": "exit",
+   "x": 43,
+   "y": 4
+  },
+  {
+   "type": "enemy_swimmer",
+   "x": 17,
+   "y": 24
+  },
+  {
+   "type": "enemy_swimmer",
+   "x": 26,
+   "y": 22
+  },
+  {
+   "type": "enemy_swimmer",
+   "x": 34,
+   "y": 23
+  },
+  {
+   "type": "heart",
+   "x": 45,
+   "y": 9
+  },
+  {
+   "type": "gem",
+   "x": 5,
+   "y": 6
+  },
+  {
+   "type": "gem",
+   "x": 3,
+   "y": 13
+  },
+  {
+   "type": "gem",
+   "x": 15,
+   "y": 25
+  },
+  {
+   "type": "gem",
+   "x": 16,
+   "y": 25
+  },
+  {
+   "type": "gem",
+   "x": 26,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 31,
+   "y": 25
+  },
+  {
+   "type": "gem",
+   "x": 32,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 35,
+   "y": 22
+  },
+  {
+   "type": "gem",
+   "x": 36,
+   "y": 23
+  },
+  {
+   "type": "gem",
+   "x": 44,
+   "y": 16
+  },
+  {
+   "type": "gem",
+   "x": 46,
+   "y": 4
+  }
+ ],
+ "marks": {
+  "cell_two": {
+   "x": 7,
+   "y": 13
+  },
+  "tide_in": {
+   "x": 12,
+   "y": 20
+  },
+  "pocket_two": {
+   "x": 20,
+   "y": 20
+  },
+  "bank_one": {
+   "x": 24,
+   "y": 16
+  },
+  "chute_in": {
+   "x": 29,
+   "y": 19
+  },
+  "chute_out": {
+   "x": 38,
+   "y": 19
+  },
+  "portage_west": {
+   "x": 41,
+   "y": 16
+  },
+  "kelp_foot": {
+   "x": 47,
+   "y": 16
+  },
+  "kelp_top": {
+   "x": 46,
+   "y": 4
+  },
+  "slow_west": {
+   "x": 27,
+   "y": 25
+  },
+  "slow_under": {
+   "x": 31,
+   "y": 26
+  },
+  "slow_over": {
+   "x": 35,
+   "y": 22
+  },
+  "slow_east": {
+   "x": 37,
+   "y": 25
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "cell_two",
+   "form": "human"
+  },
+  {
+   "from": "cell_two",
+   "to": "pad_fish",
+   "form": "human"
+  },
+  {
+   "from": "pad_fish",
+   "to": "tide_in",
+   "form": "fish"
+  },
+  {
+   "from": "tide_in",
+   "to": "pocket_two",
+   "form": "fish"
+  },
+  {
+   "from": "pocket_two",
+   "to": "bank_one",
+   "form": "fish"
+  },
+  {
+   "from": "bank_one",
+   "to": "chute_in",
+   "form": "fish"
+  },
+  {
+   "from": "chute_in",
+   "to": "chute_out",
+   "form": "fish"
+  },
+  {
+   "from": "chute_out",
+   "to": "portage_west",
+   "form": "fish"
+  },
+  {
+   "from": "portage_west",
+   "to": "pad_human",
+   "form": "fish"
+  },
+  {
+   "from": "pad_human",
+   "to": "kelp_foot",
+   "form": "human"
+  },
+  {
+   "from": "kelp_foot",
+   "to": "kelp_top",
+   "form": "human"
+  },
+  {
+   "from": "kelp_top",
+   "to": "exit",
+   "form": "human"
+  }
+ ],
+ "tileset": "ruins"
+}
