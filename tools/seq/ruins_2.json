@@ -1,0 +1,62 @@
+[
+ {
+  "_": "THE COLONNADE. Re-run with: tools/shot.sh --seq=tools/seq/ruins_2.json"
+ },
+ {
+  "scenario": "level:ruins_2",
+  "settle": 50
+ },
+ {
+  "shot": "shots/ruins_2_gallery.png"
+ },
+ {
+  "_": "Stand on pad_fish long enough for the pad to fire, then swim the hall."
+ },
+ {
+  "teleport": [
+   10,
+   7
+  ],
+  "settle": 20
+ },
+ {
+  "teleport": [
+   18,
+   21
+  ],
+  "settle": 30
+ },
+ {
+  "shot": "shots/ruins_2_colonnade_west.png"
+ },
+ {
+  "teleport": [
+   30,
+   21
+  ],
+  "settle": 30
+ },
+ {
+  "shot": "shots/ruins_2_colonnade_east.png"
+ },
+ {
+  "teleport": [
+   41,
+   19
+  ],
+  "settle": 30
+ },
+ {
+  "shot": "shots/ruins_2_key_slab.png"
+ },
+ {
+  "teleport": [
+   4,
+   19
+  ],
+  "settle": 30
+ },
+ {
+  "shot": "shots/ruins_2_exit_chamber.png"
+ }
+]

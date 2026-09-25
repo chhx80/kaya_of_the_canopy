@@ -1,0 +1,309 @@
+{
+ "id": "ruins_2",
+ "name": "THE COLONNADE",
+ "music": "world2",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "dddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "dddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "dd...........ddddddddddddddddddddddddddddddddddddd",
+  "dd...........ddddddddddddddddddddddddddddddddddddd",
+  "dd...........ddddddddddddddddddddddddddddddddddddd",
+  "dd...........ddddddddddddddddddddddddddddddddddddd",
+  "dd...........ddddddddddddddddddddddddddddddddddddd",
+  "dd.........|.ddddddddddddddddddddddddddddddddddddd",
+  "dd#########|.ddddddddddddddddddddddddddddddddddddd",
+  "ddddddddddd|.ddddddddddddddddddddddddddddddddddddd",
+  "ddddddddddd|.ddddddddddddddddddddddddddddddddddddd",
+  "ddddddddddd|.ddddddddddddddddddddddddddddddddddddd",
+  "ddddddddddd|.ddddddddddddddddddddddddddddddddddddd",
+  "ddddddddddd|.ddddddddddddddddddddddddddddddddddddd",
+  "ddddddddddd|.ddddddddddddddddddddddddddddddddddddd",
+  "ddddddddddd|.ddddddddddddddddddddddddddddddddddddd",
+  "dddddd###dd|.dddddd####dd####dddddddd####ddddddddd",
+  "dd.......dd|.dddddd....dd....dddddddd........ddddd",
+  "dd.......dd|.dddddd....dd....dddddddd........ddddd",
+  "dd.......dd|.dddddd....dd....dddddddd........ddddd",
+  "dd####~~~.w~~wwwwww>>>>##uuuuww>>>>##uuuu####ddddd",
+  "dddddd#ww.wwwwwwwww>>>>##uuuuww>>>>##uuuuddddddddd",
+  "ddddddd#wdwwwwwww##>>>>##uuuu##>>>>##uuuuddddddddd",
+  "dddddddd#dwwwwwww##>>>>##uuuu##>>>>##uuuuddddddddd",
+  "ddddddddddwwwwwww##>>>>##uuuu##>>>>##uuuuddddddddd",
+  "ddddddddddwwwwwww##>>>>wwuuuu##>>>>wwuuuuddddddddd",
+  "ddddddddddwwwwwww##>>>>wwuuuu##>>>>wwuuuuddddddddd",
+  "dddddddddd###############################ddddddddd",
+  "dddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "dddddddddddddddddddddddddddddddddddddddddddddddddd"
+ ],
+ "bg": [
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLLLTLLLLLLTLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXLL",
+  "LLXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXLL"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 4,
+   "y": 7
+  },
+  {
+   "type": "pad_fish",
+   "x": 10,
+   "y": 7
+  },
+  {
+   "type": "door_cyan",
+   "x": 9,
+   "y": 21
+  },
+  {
+   "type": "key_cyan",
+   "x": 42,
+   "y": 19
+  },
+  {
+   "type": "pad_human",
+   "x": 4,
+   "y": 19
+  },
+  {
+   "type": "pad_fish",
+   "x": 43,
+   "y": 19
+  },
+  {
+   "type": "exit",
+   "x": 2,
+   "y": 19
+  },
+  {
+   "type": "enemy_swimmer",
+   "x": 21,
+   "y": 24
+  },
+  {
+   "type": "enemy_swimmer",
+   "x": 33,
+   "y": 24
+  },
+  {
+   "type": "heart",
+   "x": 27,
+   "y": 18
+  },
+  {
+   "type": "gem",
+   "x": 18,
+   "y": 21
+  },
+  {
+   "type": "gem",
+   "x": 22,
+   "y": 25
+  },
+  {
+   "type": "gem",
+   "x": 26,
+   "y": 18
+  },
+  {
+   "type": "gem",
+   "x": 30,
+   "y": 21
+  },
+  {
+   "type": "gem",
+   "x": 34,
+   "y": 25
+  },
+  {
+   "type": "gem",
+   "x": 38,
+   "y": 18
+  },
+  {
+   "type": "gem",
+   "x": 43,
+   "y": 19
+  },
+  {
+   "type": "gem",
+   "x": 44,
+   "y": 19
+  },
+  {
+   "type": "gem",
+   "x": 6,
+   "y": 7
+  },
+  {
+   "type": "gem",
+   "x": 8,
+   "y": 7
+  },
+  {
+   "type": "gem",
+   "x": 7,
+   "y": 18
+  }
+ ],
+ "marks": {
+  "font": {
+   "x": 10,
+   "y": 7
+  },
+  "sill": {
+   "x": 14,
+   "y": 26
+  },
+  "pool": {
+   "x": 12,
+   "y": 26
+  },
+  "col_1": {
+   "x": 18,
+   "y": 21
+  },
+  "col_2": {
+   "x": 24,
+   "y": 26
+  },
+  "col_3": {
+   "x": 30,
+   "y": 21
+  },
+  "col_4": {
+   "x": 36,
+   "y": 26
+  },
+  "slab": {
+   "x": 41,
+   "y": 19
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "font",
+   "form": "human"
+  },
+  {
+   "from": "font",
+   "to": "pool",
+   "form": "fish"
+  },
+  {
+   "from": "pool",
+   "to": "sill",
+   "form": "fish"
+  },
+  {
+   "from": "sill",
+   "to": "col_1",
+   "form": "fish"
+  },
+  {
+   "from": "col_1",
+   "to": "col_2",
+   "form": "fish"
+  },
+  {
+   "from": "col_2",
+   "to": "col_3",
+   "form": "fish"
+  },
+  {
+   "from": "col_3",
+   "to": "col_4",
+   "form": "fish"
+  },
+  {
+   "from": "col_4",
+   "to": "slab",
+   "form": "fish"
+  },
+  {
+   "from": "slab",
+   "to": "key_cyan",
+   "form": "fish"
+  },
+  {
+   "from": "key_cyan",
+   "to": "col_4",
+   "form": "fish"
+  },
+  {
+   "from": "col_4",
+   "to": "col_3",
+   "form": "fish"
+  },
+  {
+   "from": "col_3",
+   "to": "col_2",
+   "form": "fish"
+  },
+  {
+   "from": "col_2",
+   "to": "col_1",
+   "form": "fish"
+  },
+  {
+   "from": "col_1",
+   "to": "sill",
+   "form": "fish"
+  },
+  {
+   "from": "sill",
+   "to": "pool",
+   "form": "fish"
+  },
+  {
+   "from": "pool",
+   "to": "door_cyan",
+   "form": "fish"
+  },
+  {
+   "from": "door_cyan",
+   "to": "pad_human",
+   "form": "fish"
+  },
+  {
+   "from": "pad_human",
+   "to": "exit",
+   "form": "human"
+  }
+ ],
+ "tileset": "ruins"
+}

@@ -888,3 +888,33 @@ The level's own module is `tools/worlds/ruins_1.py`; it runs standalone and
 declares its own ruins palette, because `world_kit.Palette` resolves roles
 through the flat jungle `legend` key and a ruins palette naming `ruin_stone`
 silently emits `ruin_grate`.
+## M2 — SUNKEN RUINS: `ruins_2`, THE COLONNADE
+
+The first level that asks you to work *with* a current instead of being shown
+one. A drowned hall of four submerged columns — two rising from the bed, two
+hanging from the roof — forces a serpentine, and the four gaps between them
+carry the water: east, up, east, up. Eastbound every one pushes the way the
+weave already wants to go; westbound every one is against you. The fish swims
+92 px/s, so a 68 px/s current is 160 px/s with it and 24 px/s against it.
+Nothing in the hall is a wall; everything in it is slow.
+
+The key is downstream of all of it, on a dry slab one tile above the waterline
+that costs 0.53 s of the fish's 2.6 s air budget — the budget only runs *out*
+of the water, which is what makes an air pocket mean anything in this engine.
+The cyan door is a submerged gate at the far west end, upstream of everything,
+and `pad_human` and `exit` sit behind it so no player can turn human in a
+sealed chamber. No fast current (120 px/s) is used anywhere: every gap is on
+the only path through the hall, so one valve would seal the route to its own
+door.
+
+PROVED: 18 hops, 1811 frames, 483 expansions; the tape replays in `itest.sh`
+and finishes the level. The same three stretches of water take 85/73/82 frames
+outbound and 215/213/211 frames home, which is the design, measured.
+
+Two defects the gate cannot see were found by driving the real game and fixed
+before the level shipped: a human who jumps the transform pad lands in the
+water and walks at 67 px/s against a 68 px/s current (a kelp column and a
+recovery `pad_fish` answer it), and the first layout ran its air band along the
+row-14/15 screen seam (the band moved to rows 17-19 under a solid roof, and the
+colonnade moved so the vertical seam falls inside a solid column — 3 camera
+flips in 1811 frames). See `REPORT.md`.
