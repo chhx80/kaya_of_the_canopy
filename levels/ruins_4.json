@@ -1,0 +1,458 @@
+{
+ "id": "ruins_4",
+ "name": "THE CISTERN",
+ "music": "world2",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "##################################################",
+  "#d.......................................ddddddd##",
+  "#d..b....................................ddddddd##",
+  "#d..b....====............................ddddddd##",
+  "#d..b....................................ddddddd##",
+  "#d..b====................................#dddddd##",
+  "#d..b....................................#dddddd##",
+  "#ddd~~~~~~~~~~ddddddd~~~~~==============.#dddddd##",
+  "#dddwwwwwwwwwwdddddddwwwwwddd#...........#dddddd##",
+  "#dddwwwwwwwwww{{{{>>>www##ddd#.====......#dddddd##",
+  "#dddwwwwwwwwww{{{{>>>www##ddd#...........#dddddd##",
+  "##############################......====.#########",
+  "#.............................A....ddddddddd....##",
+  "#.............................A====ddddddddd....##",
+  "#.............................A....ddddddddd....##",
+  "#########~.~################################~~~~##",
+  "#dwwwwwwww#wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww##",
+  "#dwwwwwwww#wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww##",
+  "#dwwwwwwww#wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww##",
+  "#############################################uu###",
+  "#dddddddddddddddddddddddddddddddddddddddddddduud##",
+  "#.......................ddddddddddddd........uu.##",
+  "#.......................ddddddddddddd........uu.##",
+  "#..........AaAaAaAaA....ddddddddddddd........uu.##",
+  "#.......................ddddddddddddd........uu.##",
+  "##########~~~~~~~~~~##~~ddddddddddddd~~~~~~~~~~~##",
+  "#dddddddddwwwwwwwwwwwwwwwww<<<}}}}}}}wwwwwwwwwww##",
+  "#ddddddddd##w##wwwwwwwwwwww<<<}}}}}}}wwwwwwwwwww##",
+  "#ddddddddd##############ddddddddddddd#############",
+  "#ddddddddd########################################"
+ ],
+ "bg": [
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLTLLLLLLLLLLLTLLLLLLLLTLLLLLLTLLLLLLLLLLLLLLLL",
+  "LLLLLTLLLLLLLLLLLTLLLLLLLLTLLLLLLTLLLLLLLLLLLLLLLL",
+  "LLLLLTLLLLLLLLLLLTLLLLLLLLTLLLLLLTLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXLLLLLL",
+  "LLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXLLLLLL",
+  "LLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLTLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLTLLLLLLLLLL",
+  "LLLLLLLTLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLTLLLLLLLLLL",
+  "LLLLLLLTLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLTLLLLLLLLLL",
+  "LLLLLLLTLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLTLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 2,
+   "y": 24
+  },
+  {
+   "type": "pad_fish",
+   "x": 9,
+   "y": 24
+  },
+  {
+   "type": "pad_human",
+   "x": 6,
+   "y": 14
+  },
+  {
+   "type": "switch_a",
+   "x": 3,
+   "y": 14
+  },
+  {
+   "type": "pad_fish",
+   "x": 26,
+   "y": 6
+  },
+  {
+   "type": "switch_b",
+   "x": 8,
+   "y": 10
+  },
+  {
+   "type": "pad_human",
+   "x": 3,
+   "y": 6
+  },
+  {
+   "type": "exit",
+   "x": 11,
+   "y": 2
+  },
+  {
+   "type": "enemy_swimmer",
+   "x": 16,
+   "y": 26
+  },
+  {
+   "type": "enemy_swimmer",
+   "x": 40,
+   "y": 26
+  },
+  {
+   "type": "enemy_swimmer",
+   "x": 11,
+   "y": 9
+  },
+  {
+   "type": "enemy_walker",
+   "x": 38,
+   "y": 6
+  },
+  {
+   "type": "enemy_walker",
+   "x": 22,
+   "y": 14
+  },
+  {
+   "type": "gem",
+   "x": 12,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 18,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 39,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 46,
+   "y": 16
+  },
+  {
+   "type": "gem",
+   "x": 33,
+   "y": 17
+  },
+  {
+   "type": "gem",
+   "x": 17,
+   "y": 17
+  },
+  {
+   "type": "gem",
+   "x": 4,
+   "y": 13
+  },
+  {
+   "type": "gem",
+   "x": 33,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 37,
+   "y": 10
+  },
+  {
+   "type": "gem",
+   "x": 33,
+   "y": 8
+  },
+  {
+   "type": "gem",
+   "x": 23,
+   "y": 8
+  },
+  {
+   "type": "gem",
+   "x": 12,
+   "y": 8
+  },
+  {
+   "type": "gem",
+   "x": 7,
+   "y": 4
+  },
+  {
+   "type": "gem",
+   "x": 28,
+   "y": 6
+  },
+  {
+   "type": "heart",
+   "x": 34,
+   "y": 6
+  },
+  {
+   "type": "heart",
+   "x": 4,
+   "y": 17
+  }
+ ],
+ "marks": {
+  "sump_lip": {
+   "x": 9,
+   "y": 24
+  },
+  "sump_bar": {
+   "x": 17,
+   "y": 26
+  },
+  "sump_pier": {
+   "x": 23,
+   "y": 27
+  },
+  "tube_mouth": {
+   "x": 25,
+   "y": 27
+  },
+  "intake": {
+   "x": 29,
+   "y": 27
+  },
+  "flume_out": {
+   "x": 38,
+   "y": 26
+  },
+  "riser_foot": {
+   "x": 45,
+   "y": 25
+  },
+  "cistern_e": {
+   "x": 45,
+   "y": 17
+  },
+  "weir_e": {
+   "x": 40,
+   "y": 17
+  },
+  "weir_m": {
+   "x": 27,
+   "y": 17
+  },
+  "weir_w": {
+   "x": 14,
+   "y": 17
+  },
+  "bank_foot": {
+   "x": 9,
+   "y": 16
+  },
+  "bank_top": {
+   "x": 6,
+   "y": 14
+  },
+  "bay_stone": {
+   "x": 10,
+   "y": 15
+  },
+  "gallery_e": {
+   "x": 28,
+   "y": 14
+  },
+  "stair_1": {
+   "x": 32,
+   "y": 12
+  },
+  "stair_2": {
+   "x": 37,
+   "y": 10
+  },
+  "stair_3": {
+   "x": 32,
+   "y": 8
+  },
+  "tank_lip": {
+   "x": 26,
+   "y": 6
+  },
+  "tank_bed": {
+   "x": 23,
+   "y": 10
+  },
+  "tube_in": {
+   "x": 21,
+   "y": 10
+  },
+  "tube_out": {
+   "x": 13,
+   "y": 10
+  },
+  "tank_shelf": {
+   "x": 5,
+   "y": 7
+  },
+  "tank_top": {
+   "x": 3,
+   "y": 6
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "sump_lip",
+   "form": "human"
+  },
+  {
+   "from": "sump_lip",
+   "to": "sump_bar",
+   "form": "fish"
+  },
+  {
+   "from": "sump_bar",
+   "to": "sump_pier",
+   "form": "fish"
+  },
+  {
+   "from": "sump_pier",
+   "to": "tube_mouth",
+   "form": "fish"
+  },
+  {
+   "from": "tube_mouth",
+   "to": "intake",
+   "form": "fish"
+  },
+  {
+   "from": "intake",
+   "to": "flume_out",
+   "form": "fish"
+  },
+  {
+   "from": "flume_out",
+   "to": "riser_foot",
+   "form": "fish"
+  },
+  {
+   "from": "riser_foot",
+   "to": "cistern_e",
+   "form": "fish"
+  },
+  {
+   "from": "cistern_e",
+   "to": "weir_e",
+   "form": "fish"
+  },
+  {
+   "from": "weir_e",
+   "to": "weir_m",
+   "form": "fish"
+  },
+  {
+   "from": "weir_m",
+   "to": "weir_w",
+   "form": "fish"
+  },
+  {
+   "from": "weir_w",
+   "to": "bank_foot",
+   "form": "fish"
+  },
+  {
+   "from": "bank_foot",
+   "to": "bank_top",
+   "form": "fish"
+  },
+  {
+   "from": "bank_top",
+   "to": "switch_a",
+   "form": "human"
+  },
+  {
+   "from": "switch_a",
+   "to": "bay_stone",
+   "form": "human"
+  },
+  {
+   "from": "bay_stone",
+   "to": "gallery_e",
+   "form": "human"
+  },
+  {
+   "from": "gallery_e",
+   "to": "stair_1",
+   "form": "human"
+  },
+  {
+   "from": "stair_1",
+   "to": "stair_2",
+   "form": "human"
+  },
+  {
+   "from": "stair_2",
+   "to": "stair_3",
+   "form": "human"
+  },
+  {
+   "from": "stair_3",
+   "to": "tank_lip",
+   "form": "human"
+  },
+  {
+   "from": "tank_lip",
+   "to": "tank_bed",
+   "form": "fish"
+  },
+  {
+   "from": "tank_bed",
+   "to": "tube_in",
+   "form": "fish"
+  },
+  {
+   "from": "tube_in",
+   "to": "tube_out",
+   "form": "fish"
+  },
+  {
+   "from": "tube_out",
+   "to": "switch_b",
+   "form": "fish"
+  },
+  {
+   "from": "switch_b",
+   "to": "tank_shelf",
+   "form": "fish"
+  },
+  {
+   "from": "tank_shelf",
+   "to": "tank_top",
+   "form": "fish"
+  },
+  {
+   "from": "tank_top",
+   "to": "exit",
+   "form": "human"
+  }
+ ],
+ "tileset": "ruins"
+}

@@ -1,0 +1,724 @@
+{
+ "fps": 60,
+ "hops": [
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "spawn",
+   "to": "sump_lip"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "left",
+     "n": 12
+    },
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "right+down",
+     "n": 20
+    },
+    {
+     "a": "right",
+     "n": 52
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "sump_lip",
+   "to": "sump_bar"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right+down",
+     "n": 12
+    },
+    {
+     "a": "right",
+     "n": 52
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "sump_bar",
+   "to": "sump_pier"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right",
+     "n": 20
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "sump_pier",
+   "to": "tube_mouth"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "right+down",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 52
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "tube_mouth",
+   "to": "intake"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right",
+     "n": 84
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "intake",
+   "to": "flume_out"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right+up",
+     "n": 8
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 52
+    },
+    {
+     "a": "none",
+     "n": 4
+    }
+   ],
+   "from": "flume_out",
+   "to": "riser_foot"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right+up",
+     "n": 8
+    },
+    {
+     "a": "up",
+     "n": 32
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "up",
+     "n": 20
+    },
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    }
+   ],
+   "from": "riser_foot",
+   "to": "cistern_e"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 40
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "cistern_e",
+   "to": "weir_e"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "left",
+     "n": 136
+    }
+   ],
+   "from": "weir_e",
+   "to": "weir_m"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "left",
+     "n": 132
+    },
+    {
+     "a": "none",
+     "n": 4
+    }
+   ],
+   "from": "weir_m",
+   "to": "weir_w"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "left+up",
+     "n": 8
+    },
+    {
+     "a": "left",
+     "n": 36
+    },
+    {
+     "a": "up",
+     "n": 12
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "down",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 8
+    },
+    {
+     "a": "left+down",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 16
+    },
+    {
+     "a": "down",
+     "n": 4
+    }
+   ],
+   "from": "weir_w",
+   "to": "bank_foot"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "up",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 58
+    }
+   ],
+   "from": "bank_foot",
+   "to": "bank_top"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 28
+    }
+   ],
+   "from": "bank_top",
+   "to": "switch_a"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 32
+    },
+    {
+     "a": "down+jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 6
+    }
+   ],
+   "from": "switch_a",
+   "to": "bay_stone"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "bay_stone",
+   "to": "gallery_e"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 20
+    },
+    {
+     "a": "right+jump",
+     "n": 12
+    },
+    {
+     "a": "none",
+     "n": 11
+    }
+   ],
+   "from": "gallery_e",
+   "to": "stair_1"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "stair_1",
+   "to": "stair_2"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+jump",
+     "n": 8
+    },
+    {
+     "a": "left",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "left+jump",
+     "n": 12
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "stair_2",
+   "to": "stair_3"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 8
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "left+jump",
+     "n": 8
+    },
+    {
+     "a": "left",
+     "n": 20
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 13
+    }
+   ],
+   "from": "stair_3",
+   "to": "tank_lip"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "left",
+     "n": 32
+    },
+    {
+     "a": "left+down",
+     "n": 16
+    },
+    {
+     "a": "down",
+     "n": 8
+    },
+    {
+     "a": "left+down",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "left+down",
+     "n": 8
+    },
+    {
+     "a": "down",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "tank_lip",
+   "to": "tank_bed"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "left+down",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
+    }
+   ],
+   "from": "tank_bed",
+   "to": "tube_in"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "left",
+     "n": 12
+    },
+    {
+     "a": "left+down",
+     "n": 8
+    },
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 116
+    }
+   ],
+   "from": "tube_in",
+   "to": "tube_out"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 8
+    },
+    {
+     "a": "left+down",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 24
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "tube_out",
+   "to": "switch_b"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "left+up",
+     "n": 32
+    },
+    {
+     "a": "left",
+     "n": 8
+    }
+   ],
+   "from": "switch_b",
+   "to": "tank_shelf"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "left+up",
+     "n": 16
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 17
+    }
+   ],
+   "from": "tank_shelf",
+   "to": "tank_top"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right+jump",
+     "n": 16
+    },
+    {
+     "a": "right",
+     "n": 12
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 20
+    },
+    {
+     "a": "right+jump",
+     "n": 12
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
+    }
+   ],
+   "from": "tank_top",
+   "to": "exit"
+  }
+ ],
+ "level": "ruins_4",
+ "source_sha": "afd19aecb53f7d22f75eb5bbc50fc575fc21e5dcc79b4e999840204c1f85d429"
+}
