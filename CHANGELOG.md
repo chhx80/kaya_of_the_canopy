@@ -853,3 +853,220 @@ finished, tunable and tested, and no level could contain one because
 **`tools/world_kit.py`** — 37 helpers for flooded chambers, colonnades, current
 channels, updraft shafts, tunnels and switch lattices, each checking its own
 geometry against the measured jump envelope rather than the modelled one.
+
+## M2 — World 2, Sunken Ruins
+
+### ruins_1 — DROWNED STEPS
+
+The world opener, and the level that teaches the current. 50×30, `"tileset":
+"ruins"`, carved out of solid stone: a gallery you walk off, a trough flowing
+east that carries you where you were already going, a shallow pool with the fish
+pad standing *in* it, a drowned nave of fallen columns, and one tube flowing west
+that you have to cross going east. That tube is the only hard gate in the level
+and it is the verb itself — 92 px/s of swim against 68 of water is 24 px/s of
+headway, and a human's 66.96 against the same 68 is −1, so the fish is the answer
+rather than a convenience. Lose the crossing and the water puts you back under a
+bell of trapped air, which is the whole penalty.
+
+`tools/prove.sh ruins_1`: **PROVED**, 15 hops, 902 frames, 289 expansions against
+a budget of 50,000. The tape replays in the booted game — `ruins_1 COMPLETE in
+902 sim frames`.
+
+Two measurements came out of building it, both in `REPORT.md`:
+
+- **A human cannot climb out of deep water.** From the bed of a four-row pool her
+  feet top out roughly level with the water line; a probe fixture failed at
+  *closest approach 0.0 px*, touching a flush shore in mid-air with her feet
+  4.7 px below it. `tools/reachability.py` believes she can — it hands her the
+  full jump envelope from any water tile — so the filter will pass a pool that is
+  a trap. Water a human can fall into needs a shore she can walk out of.
+- **A `TransformPad`'s trigger box is its tile grown by three pixels**, which is
+  enough to reach across a tile boundary and fire while the player is still
+  airborne over the water. `pad_human` sits one column inland for that reason.
+
+The level's own module is `tools/worlds/ruins_1.py`; it runs standalone and
+declares its own ruins palette, because `world_kit.Palette` resolves roles
+through the flat jungle `legend` key and a ruins palette naming `ruin_stone`
+silently emits `ruin_grate`.
+## M2 — SUNKEN RUINS: `ruins_2`, THE COLONNADE
+
+The first level that asks you to work *with* a current instead of being shown
+one. A drowned hall of four submerged columns — two rising from the bed, two
+hanging from the roof — forces a serpentine, and the four gaps between them
+carry the water: east, up, east, up. Eastbound every one pushes the way the
+weave already wants to go; westbound every one is against you. The fish swims
+92 px/s, so a 68 px/s current is 160 px/s with it and 24 px/s against it.
+Nothing in the hall is a wall; everything in it is slow.
+
+The key is downstream of all of it, on a dry slab one tile above the waterline
+that costs 0.53 s of the fish's 2.6 s air budget — the budget only runs *out*
+of the water, which is what makes an air pocket mean anything in this engine.
+The cyan door is a submerged gate at the far west end, upstream of everything,
+and `pad_human` and `exit` sit behind it so no player can turn human in a
+sealed chamber. No fast current (120 px/s) is used anywhere: every gap is on
+the only path through the hall, so one valve would seal the route to its own
+door.
+
+PROVED: 18 hops, 1811 frames, 483 expansions; the tape replays in `itest.sh`
+and finishes the level. The same three stretches of water take 85/73/82 frames
+outbound and 215/213/211 frames home, which is the design, measured.
+
+Two defects the gate cannot see were found by driving the real game and fixed
+before the level shipped: a human who jumps the transform pad lands in the
+water and walks at 67 px/s against a 68 px/s current (a kelp column and a
+recovery `pad_fish` answer it), and the first layout ran its air band along the
+row-14/15 screen seam (the band moved to rows 17-19 under a solid roof, and the
+colonnade moved so the vertical seam falls inside a solid column — 3 camera
+flips in 1811 frames). See `REPORT.md`.
+### ruins_3 — TIDE GALLERY
+
+The level where air is the resource, and the one that had to read
+`src/player/forms/form_fish.gd` before it drew a tile. The code does the
+opposite of what "a submerged gallery" suggests: `air_left` is *refilled* every
+tick the fish is wet and drained every tick it is not. For a fish, water is
+breath. Nothing is ever charged for the length of a swim — only for the length
+of a dry crossing.
+
+So the hall is flooded and broken into four pools by courses of masonry standing
+exactly one tile proud of the waterline, and the fish crosses one by breaking the
+surface and flopping over the top at 40 px/s. `surface_hop` -210 against gravity
+900 is 24.5 px, so a course can be one tile and never two, which is what
+`world_kit.bank()` has refused since defect 4. Three dry crossings, at two, three
+and four tiles, and `ProverSim.rejection()` enforces every one: a crossing a tile
+too long fails the gate rather than the player.
+
+**The budget is measured, not chosen.** Detouring the fish along the eastern
+terrace with `--mark`: four, six and eight tiles of flop all prove; ten fails at
+*closest approach 18.8 px, frontier exhausted after 1,292 expansions* — the
+meter ended it, not the geometry and not the budget. The portage asks for four,
+about half the ceiling, on `tools/world_kit.py`'s own argument about the frog's
+4-tile step: the prover finds the one input that works, so a crossing it clears
+with a handful of frames to spare is provable and unplayable.
+
+**Currents make the distance between pools asymmetric.** `>` pushes 68 against
+the fish's 92 — 160 px/s downstream, 24 upstream — and a human's 108 ×
+`water_move_scale` 0.62 = 66.96 px/s cannot beat it at all, so every lane has
+still water beside it to swim home through and the level has no softlock. `}`
+pushes 120, which the fish cannot out-swim, so the covered aqueduct at the fork
+is a valve rather than a shortcut. The colonnade under it is current-free,
+two-way, 3.6 s slower, and holds the heart — the aqueduct buys time and costs
+you the room. Both halves are proved, forwards and back.
+
+`tools/prove.sh ruins_3`: **PROVED**, 12 hops, 742 frames, 248 expansions against
+a budget of 50,000. The tape replays in the booted game — `ruins_3 COMPLETE in
+742 sim frames`, full health at the totem.
+
+Two things the gate could not see, both found by looking at the game:
+
+- **A route that runs along a screen seam passes every check and plays badly.**
+  The first layout put the waterline at row 12 and every swim waypoint at row 14,
+  a pixel-wobble from the horizontal seam at y=240. `CameraController` picks the
+  screen from the player's *centre* and freezes the sim for each flip, so the
+  swim thrashed the camera. The prover has no camera and the replay correctly
+  skips paused ticks, so both reported success; a contact sheet of the four
+  screens is what caught it. All water now sits below the seam, as `jungle_3`'s
+  does, and the surface hop's apex clears it by eighteen pixels.
+- **A transform pad fires the instant the body overlaps it**, so a fish flopping
+  east along the terrace turns human at `pad_human` whether the route said so or
+  not. That is the design here — the hop's success condition is *reach the pad
+  before the meter empties* — but it means the terrace beyond the pad is not part
+  of the air budget, and moving the pad moves the pinch.
+
+The level's module is `tools/worlds/ruins_3.py`; it runs standalone and writes
+`levels/ruins_3.json`. It carries a small `RuinsLegend(Palette)` subclass because
+`world_kit.py`'s tile lookup still resolves role characters through the flat
+jungle legend — the hand-off ADR 002's amendment already names. With it the
+ruins palette substitutes nothing.
+## M2 — Sunken Ruins
+
+### `ruins_5` — THE TIDE MAW, World 2's boss
+
+**The arena floods and drains between phases, as a real tile change.**
+`src/enemies/tide_maw.gd` writes water, a surface row and two lanes of current
+into the level's own `TileWorld` and takes them out again, so being flooded is
+a fact about the world rather than a tint: the human wades in it,
+`FormBase.current_at()` pushes her, `TileCollision` answers the same questions
+it always did. It only writes inside the rectangle `data/enemies/tide_maw.json`
+names, and inside it only over tiles the level authored empty, so no tide can
+eat a floor or a refuge. Draining restores the captured ids exactly, which is
+what lets `levels/ruins_5.json` be authored drained and the prover and the tape
+replay see the geometry that is actually in the file.
+
+The flood carries **a pull along the bed, pointed at the Maw, and a
+counter-current under the surface flowing the other way**. Measured: holding one
+direction for 1.1 s off the bed covers 113 px drained and 18 px flooded. You
+ride the counter-current out; you do not outrun the pull.
+
+**Check 3 of the boss gate, meant this time.** `docs/plan-20-levels.md` records
+that the Grove Warden's only dodge windows are six tiles 96 px above a 46 px
+jump, and that the blade flies over its hitbox from up there. This arena has no
+high ledges at all: every standable tile is the floor or a one-way refuge slab
+two tiles above it, the slabs sit inside the Maw's own span so they cannot be
+camped, and the Maw is 46 px tall so the blade reaches it from one. The gate
+reports `refuges: 17 reachable from the arena floor, 0 not`, no refuge it cannot
+be fought from, and no tile in the arena safe from everything.
+
+- Route PARTIAL-proved to the arena floor — 9 hops, 645 frames, 194 expansions.
+  The last hop to `boss_exit` is the boss gate's, as jungle_5's is.
+- `tools/bossgate.sh --level=ruins_5 --boss=tide_maw`: 23 checks, all passed.
+  The strategy tape kills the Maw in 31.4 s from full health with 3 of 5 hearts.
+- `tests/integration/boss_tide_maw_tests.gd`: 28 checks on the tide itself —
+  the level on disk is the drained arena, the flood eats nothing, draining
+  restores it exactly, and the standable set does not move with the tide (which
+  the fairness sweep depends on).
+- Also fixed here: `TileRenderer` resolves a tile's atlas cell once at setup, so
+  a tile whose id changes underneath it kept drawing its authored art. The arena
+  flooded, every check passed, and the screenshot showed dry stone.
+
+## M2 — SUNKEN RUINS, the first new world
+
+Five levels, authored in parallel, every one proved against the shipping
+movement code and replayed in the real booted game.
+
+```
+ruins_1  DROWNED STEPS   15 hops    902 frames    PROVED
+ruins_2  THE COLONNADE   18 hops  1,811 frames    PROVED
+ruins_3  TIDE GALLERY    12 hops    742 frames    PROVED
+ruins_4  THE CISTERN     27 hops  1,982 frames    PROVED
+ruins_5  THE TIDE MAW     9 hops    645 frames    PARTIAL, by design
+```
+
+`ruins_5` is PARTIAL for the same honest reason `jungle_5` is: `boss_exit` does
+not exist until the boss dies, the prover cannot fight, so it proves traversal
+to the arena floor and hands the fight to the boss gate. The tape is stamped
+partial and nothing claims otherwise.
+
+### THE TIDE MAW passes the gate the Grove Warden does not
+
+```
+boss gate: 23 checks, ALL PASSED
+  refuges: 17 reachable from the arena floor, 0 not
+  strategy tape 1,891 frames -> boss health 0, hearts 3, low 3
+```
+
+The Grove Warden's slam misses only six tiles, all on platforms 96 px above a
+46 px jump, and from up there the blade flies over its hitbox — a dodge window
+Kaya cannot reach. **Every one of the Tide Maw's 17 refuges is reachable from
+the arena floor**, and its strategy tape kills it without losing a single heart.
+That is the standard the fairness sweep was built to enforce, met rather than
+argued around.
+
+### The world
+
+Each level is authored in its own module under `tools/worlds/`, so five authors
+worked in parallel without queueing behind `tools/build_levels.py`. Each module
+also runs standalone, which is how each author iterated before anything merged.
+
+DROWNED STEPS teaches the current where getting it wrong is free, then once
+where it matters. THE COLONNADE makes the flow decide the order you do things
+in — the key is easy one way, the door is past a current you have to beat. TIDE
+GALLERY makes air the resource and the currents make pocket-to-pocket distance
+asymmetric. THE CISTERN sets each stage's water level with switch blocks.
+
+### Still open, and not caused by this work
+
+`tools/bossgate.sh` fails its `defeatable` check for the Grove Warden: there is
+no strategy tape at `tools/bossgate/tapes/boss_grove.json`. The machinery has
+never actually proved the first boss can be beaten. The Tide Maw has one; the
+Warden needs one, and it needs a reachable dodge window before a tape is worth
+writing.

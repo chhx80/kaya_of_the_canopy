@@ -155,8 +155,18 @@ func _spawn_gameplay_entity(type: String, p: Vector2, e: Dictionary) -> Node:
 	if type.begins_with(ENEMY_PREFIX):
 		return _spawn_named_enemy(type.substr(ENEMY_PREFIX.length()), p, e)
 	match type:
+		# A boss is `boss_<id>` in the level and `src/enemies/<id>.gd` on disk.
+		# The prefix is load-bearing outside this file — tools/solver/sim.gd
+		# counts `boss_*` entities to decide whether a `boss_exit` can ever be
+		# opened, and tests/integration/integration_tests.gd uses it to tell a
+		# boss level's tape from an ordinary one — so a new boss is registered
+		# here by adding its type and mapping it to its script id, and nowhere
+		# else. `boss_grove` predates the convention and keeps its own name.
 		"boss_grove":
 			boss = _spawn_enemy(type, p, e)
+			return boss
+		"boss_tide_maw":
+			boss = _spawn_enemy("tide_maw", p, e)
 			return boss
 		"gem", "heart", "key_yellow", "key_red", "key_cyan":
 			var pu := Pickup.new()
@@ -235,7 +245,10 @@ func on_boss_defeated(fallen: Enemy) -> void:
 	cam.locked = false
 	AudioManager.play("boss_die")
 	if hud != null and hud.has_method("flash_message"):
-		hud.flash_message("THE WARDEN FALLS", 2.4)
+		# Named by the boss that fell, not by the first one this project had.
+		# There are two now and there will be five.
+		var who := String(fallen.cfg.get("display_name", "THE BOSS"))
+		hud.flash_message("%s FALLS" % who, 2.4)
 	for e: Dictionary in def.entities:
 		if String(e.get("type", "")) == "boss_exit":
 			var open_at := e.duplicate()

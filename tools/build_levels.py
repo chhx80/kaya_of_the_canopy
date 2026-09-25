@@ -659,4 +659,15 @@ if __name__ == "__main__":
     build("jungle_3", jungle_3(), "THE WATERWAY", music="world2")
     build("jungle_4", jungle_4(), "SKY BRANCH", music="world2")
     build("jungle_5", jungle_5(), "HEART OF THE GROVE", music="boss")
+    # World 2, SUNKEN RUINS. Each level is authored in its own module under
+    # tools/worlds/ so five authors could work in parallel without queueing
+    # behind this file; each module also runs standalone for iteration.
+    for _id, _name in [("ruins_1", "DROWNED STEPS"), ("ruins_2", "THE COLONNADE"),
+                       ("ruins_3", "TIDE GALLERY"), ("ruins_4", "THE CISTERN"),
+                       ("ruins_5", "THE TIDE MAW")]:
+        _mod = __import__("worlds.%s" % _id, fromlist=[_id, "build"])
+        # modules name their entry point after the level, or "build"
+        _fn = getattr(_mod, _id, None) or getattr(_mod, "build")
+        build(_id, _fn(), _name,
+              music="boss" if _id == "ruins_5" else "world2")
     build("test_arena", test_arena(), "TEST ARENA")

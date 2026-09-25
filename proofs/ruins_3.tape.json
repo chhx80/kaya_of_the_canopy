@@ -1,0 +1,315 @@
+{
+ "fps": 60,
+ "hops": [
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 32
+    },
+    {
+     "a": "down+jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 30
+    }
+   ],
+   "from": "spawn",
+   "to": "cell_two"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 15
+    }
+   ],
+   "from": "cell_two",
+   "to": "pad_fish"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 56
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 12
+    },
+    {
+     "a": "down",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "pad_fish",
+   "to": "tide_in"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right+down",
+     "n": 8
+    },
+    {
+     "a": "right",
+     "n": 40
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "tide_in",
+   "to": "pocket_two"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "right+up",
+     "n": 12
+    },
+    {
+     "a": "up",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 12
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 60
+    }
+   ],
+   "from": "pocket_two",
+   "to": "bank_one"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right",
+     "n": 84
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "bank_one",
+   "to": "chute_in"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "chute_in",
+   "to": "chute_out"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "up",
+     "n": 12
+    },
+    {
+     "a": "right+up",
+     "n": 8
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 19
+    }
+   ],
+   "from": "chute_out",
+   "to": "portage_west"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right",
+     "n": 84
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "portage_west",
+   "to": "pad_human"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right",
+     "n": 23
+    }
+   ],
+   "from": "pad_human",
+   "to": "kelp_foot"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 12
+    },
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 12
+    },
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 8
+    },
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "left+up+jump",
+     "n": 3
+    }
+   ],
+   "from": "kelp_foot",
+   "to": "kelp_top"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 8
+    },
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "kelp_top",
+   "to": "exit"
+  }
+ ],
+ "level": "ruins_3",
+ "source_sha": "b6f2cd3620a5032a31a0f9ce28a9c116aa119373a7dfb991908b43fa5d7d641b"
+}

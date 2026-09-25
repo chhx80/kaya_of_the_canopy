@@ -1,0 +1,54 @@
+[
+ {"_": "DROWNED STEPS — ruins_1. Re-run with: tools/shot.sh --seq=tools/seq/ruins_1.json"},
+ {"_": "One capture per screen, in route order, plus the two currents and both pads."},
+
+ {"scenario": "level:ruins_1", "settle": 60},
+ {"log": "spawn"},
+ {"shot": "shots/ruins_1_a_gallery.png"},
+
+ {"_": "Walk east off the gallery and fall into the hall: screen A -> C."},
+ {"hold": "move_right", "frames": 75},
+ {"release": "move_right"},
+ {"wait": 30},
+ {"log": "hall"},
+ {"shot": "shots/ruins_1_b_hall.png"},
+
+ {"_": "The current that helps. Arrows flowing east, Kaya carried along them."},
+ {"teleport": [12, 25], "settle": 24},
+ {"hold": "move_right", "frames": 30},
+ {"release": "move_right"},
+ {"log": "carried"},
+ {"shot": "shots/ruins_1_c_current_helps.png"},
+
+ {"_": "The steps out, the shallow pool, and the fish pad: screen C -> D."},
+ {"teleport": [24, 23], "settle": 12},
+ {"hold": "move_right", "frames": 70},
+ {"release": "move_right"},
+ {"wait": 24},
+ {"log": "fish"},
+ {"shot": "shots/ruins_1_d_fish_pad.png"},
+
+ {"_": "The drowned nave: three fallen columns, over/under/over, and the air bell."},
+ {"teleport": [33, 25], "settle": 24},
+ {"shot": "shots/ruins_1_e_colonnade.png"},
+
+ {"_": "The current that pushes back."},
+ {"teleport": [40, 24], "settle": 12},
+ {"hold": "move_right", "frames": 40},
+ {"release": "move_right"},
+ {"log": "upstream"},
+ {"shot": "shots/ruins_1_f_current_fights.png"},
+
+ {"_": "Out on the bank, human again at the foot of the kelp."},
+ {"teleport": [46, 18], "settle": 6},
+ {"hold": "move_right", "frames": 40},
+ {"release": "move_right"},
+ {"wait": 24},
+ {"log": "bank"},
+ {"shot": "shots/ruins_1_g_bank.png"},
+
+ {"_": "The gatehouse and the exit: screen D -> B."},
+ {"teleport": [35, 11], "settle": 24},
+ {"log": "gatehouse"},
+ {"shot": "shots/ruins_1_h_gatehouse.png"}
+]

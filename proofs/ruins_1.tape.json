@@ -1,0 +1,444 @@
+{
+ "fps": 60,
+ "hops": [
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 27
+    }
+   ],
+   "from": "spawn",
+   "to": "lip"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 46
+    }
+   ],
+   "from": "lip",
+   "to": "terrace"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 20
+    }
+   ],
+   "from": "terrace",
+   "to": "trough_in"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right",
+     "n": 20
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "trough_in",
+   "to": "trough_out"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 20
+    },
+    {
+     "a": "left+down+jump",
+     "n": 2
+    }
+   ],
+   "from": "trough_out",
+   "to": "steps_top"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 28
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 10
+    }
+   ],
+   "from": "steps_top",
+   "to": "pad_fish"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right+down",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 44
+    },
+    {
+     "a": "none",
+     "n": 4
+    }
+   ],
+   "from": "pad_fish",
+   "to": "col_1"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right+down",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "down",
+     "n": 12
+    },
+    {
+     "a": "right+down",
+     "n": 8
+    },
+    {
+     "a": "right",
+     "n": 8
+    }
+   ],
+   "from": "col_1",
+   "to": "col_2"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right+up",
+     "n": 16
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "up",
+     "n": 8
+    },
+    {
+     "a": "right+up",
+     "n": 8
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "col_2",
+   "to": "col_3"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right+down",
+     "n": 12
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "down",
+     "n": 4
+    }
+   ],
+   "from": "col_3",
+   "to": "tube_mouth"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "right+down",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 94
+    }
+   ],
+   "from": "tube_mouth",
+   "to": "tube_far"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right",
+     "n": 28
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "tube_far",
+   "to": "bank_foot"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right+up",
+     "n": 12
+    },
+    {
+     "a": "up",
+     "n": 16
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 28
+    },
+    {
+     "a": "jump",
+     "n": 4
+    }
+   ],
+   "from": "bank_foot",
+   "to": "pad_human"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 16
+    },
+    {
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 16
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "right+up+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "left+up+jump",
+     "n": 3
+    }
+   ],
+   "from": "pad_human",
+   "to": "sill"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 8
+    },
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 36
+    },
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 36
+    },
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 36
+    },
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "sill",
+   "to": "exit"
+  }
+ ],
+ "level": "ruins_1",
+ "source_sha": "2ffa0ca2019bae00a70f6ca68e20b8d7df9725771117c999cbb290e36e7be8dd"
+}

@@ -1,0 +1,237 @@
+{
+  "id": "tide_maw",
+  "display_name": "THE TIDE MAW",
+  "sprite": "res://assets/sprites/boss_tide_maw.png",
+  "frame_w": 48,
+  "frame_h": 48,
+  "hitbox": {
+    "w": 40,
+    "h": 46,
+    "ox": 4,
+    "oy": 2
+  },
+  "health": 18,
+  "contact_damage": 1,
+  "score": 3500,
+  "gravity": 800.0,
+  "speed": 0.0,
+  "boss": true,
+  "hitstop": "boss_kill",
+  "arena_inset": 96.0,
+  "tide": {
+    "x": 26,
+    "y": 21,
+    "w": 23,
+    "h": 6,
+    "pivot": 37,
+    "surface": 7,
+    "water": 8,
+    "cur_left": 201,
+    "cur_right": 200,
+    "lanes": [
+      {
+        "row": 22,
+        "flow": "out"
+      },
+      {
+        "row": 26,
+        "flow": "in"
+      }
+    ]
+  },
+  "phases": [
+    {
+      "name": "EBB",
+      "until_health": 12,
+      "tide": "drain",
+      "walk_speed": 44.0,
+      "slam_interval": 2.4,
+      "slam_jump": -250.0,
+      "bore_speed": 132.0,
+      "bore_life": 1.6,
+      "spray": 0
+    },
+    {
+      "name": "FLOOD",
+      "until_health": 6,
+      "tide": "flood",
+      "walk_speed": 58.0,
+      "slam_interval": 2.0,
+      "slam_jump": -300.0,
+      "bore_speed": 148.0,
+      "bore_life": 1.6,
+      "spray": 5,
+      "spray_interval": 2.6
+    },
+    {
+      "name": "UNDERTOW",
+      "until_health": 0,
+      "tide": "drain",
+      "walk_speed": 74.0,
+      "slam_interval": 1.5,
+      "slam_jump": -280.0,
+      "bore_speed": 166.0,
+      "bore_life": 1.6,
+      "spray": 5,
+      "spray_interval": 2.2
+    }
+  ],
+  "projectile": {
+    "speed": 104.0,
+    "damage": 1,
+    "frame": 0,
+    "life": 2.4,
+    "gravity": 150.0
+  },
+  "drops": {},
+  "anim": {
+    "idle_p1": {
+      "frames": [
+        0
+      ],
+      "fps": 1
+    },
+    "walk_p1": {
+      "frames": [
+        1,
+        2
+      ],
+      "fps": 5
+    },
+    "windup_p1": {
+      "frames": [
+        3
+      ],
+      "fps": 1
+    },
+    "air_p1": {
+      "frames": [
+        4
+      ],
+      "fps": 1
+    },
+    "land_p1": {
+      "frames": [
+        5
+      ],
+      "fps": 1
+    },
+    "hurt_p1": {
+      "frames": [
+        5
+      ],
+      "fps": 1
+    },
+    "idle_p2": {
+      "frames": [
+        6
+      ],
+      "fps": 1
+    },
+    "walk_p2": {
+      "frames": [
+        7,
+        8
+      ],
+      "fps": 5
+    },
+    "windup_p2": {
+      "frames": [
+        9
+      ],
+      "fps": 1
+    },
+    "air_p2": {
+      "frames": [
+        10
+      ],
+      "fps": 1
+    },
+    "land_p2": {
+      "frames": [
+        11
+      ],
+      "fps": 1
+    },
+    "hurt_p2": {
+      "frames": [
+        11
+      ],
+      "fps": 1
+    },
+    "idle_p3": {
+      "frames": [
+        12
+      ],
+      "fps": 1
+    },
+    "walk_p3": {
+      "frames": [
+        13,
+        14
+      ],
+      "fps": 5
+    },
+    "windup_p3": {
+      "frames": [
+        15
+      ],
+      "fps": 1
+    },
+    "air_p3": {
+      "frames": [
+        16
+      ],
+      "fps": 1
+    },
+    "land_p3": {
+      "frames": [
+        17
+      ],
+      "fps": 1
+    },
+    "hurt_p3": {
+      "frames": [
+        17
+      ],
+      "fps": 1
+    },
+    "idle": {
+      "frames": [
+        0
+      ],
+      "fps": 1
+    },
+    "walk": {
+      "frames": [
+        1,
+        2
+      ],
+      "fps": 5
+    },
+    "windup": {
+      "frames": [
+        3
+      ],
+      "fps": 1
+    },
+    "air": {
+      "frames": [
+        4
+      ],
+      "fps": 1
+    },
+    "land": {
+      "frames": [
+        5
+      ],
+      "fps": 1
+    },
+    "hurt": {
+      "frames": [
+        5
+      ],
+      "fps": 1
+    }
+  }
+}
