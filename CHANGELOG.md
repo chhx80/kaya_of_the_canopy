@@ -853,3 +853,65 @@ finished, tunable and tested, and no level could contain one because
 **`tools/world_kit.py`** — 37 helpers for flooded chambers, colonnades, current
 channels, updraft shafts, tunnels and switch lattices, each checking its own
 geometry against the measured jump envelope rather than the modelled one.
+
+## M2 — World 2, Sunken Ruins
+
+### ruins_3 — TIDE GALLERY
+
+The level where air is the resource, and the one that had to read
+`src/player/forms/form_fish.gd` before it drew a tile. The code does the
+opposite of what "a submerged gallery" suggests: `air_left` is *refilled* every
+tick the fish is wet and drained every tick it is not. For a fish, water is
+breath. Nothing is ever charged for the length of a swim — only for the length
+of a dry crossing.
+
+So the hall is flooded and broken into four pools by courses of masonry standing
+exactly one tile proud of the waterline, and the fish crosses one by breaking the
+surface and flopping over the top at 40 px/s. `surface_hop` -210 against gravity
+900 is 24.5 px, so a course can be one tile and never two, which is what
+`world_kit.bank()` has refused since defect 4. Three dry crossings, at two, three
+and four tiles, and `ProverSim.rejection()` enforces every one: a crossing a tile
+too long fails the gate rather than the player.
+
+**The budget is measured, not chosen.** Detouring the fish along the eastern
+terrace with `--mark`: four, six and eight tiles of flop all prove; ten fails at
+*closest approach 18.8 px, frontier exhausted after 1,292 expansions* — the
+meter ended it, not the geometry and not the budget. The portage asks for four,
+about half the ceiling, on `tools/world_kit.py`'s own argument about the frog's
+4-tile step: the prover finds the one input that works, so a crossing it clears
+with a handful of frames to spare is provable and unplayable.
+
+**Currents make the distance between pools asymmetric.** `>` pushes 68 against
+the fish's 92 — 160 px/s downstream, 24 upstream — and a human's 108 ×
+`water_move_scale` 0.62 = 66.96 px/s cannot beat it at all, so every lane has
+still water beside it to swim home through and the level has no softlock. `}`
+pushes 120, which the fish cannot out-swim, so the covered aqueduct at the fork
+is a valve rather than a shortcut. The colonnade under it is current-free,
+two-way, 3.6 s slower, and holds the heart — the aqueduct buys time and costs
+you the room. Both halves are proved, forwards and back.
+
+`tools/prove.sh ruins_3`: **PROVED**, 12 hops, 742 frames, 248 expansions against
+a budget of 50,000. The tape replays in the booted game — `ruins_3 COMPLETE in
+742 sim frames`, full health at the totem.
+
+Two things the gate could not see, both found by looking at the game:
+
+- **A route that runs along a screen seam passes every check and plays badly.**
+  The first layout put the waterline at row 12 and every swim waypoint at row 14,
+  a pixel-wobble from the horizontal seam at y=240. `CameraController` picks the
+  screen from the player's *centre* and freezes the sim for each flip, so the
+  swim thrashed the camera. The prover has no camera and the replay correctly
+  skips paused ticks, so both reported success; a contact sheet of the four
+  screens is what caught it. All water now sits below the seam, as `jungle_3`'s
+  does, and the surface hop's apex clears it by eighteen pixels.
+- **A transform pad fires the instant the body overlaps it**, so a fish flopping
+  east along the terrace turns human at `pad_human` whether the route said so or
+  not. That is the design here — the hop's success condition is *reach the pad
+  before the meter empties* — but it means the terrace beyond the pad is not part
+  of the air budget, and moving the pad moves the pinch.
+
+The level's module is `tools/worlds/ruins_3.py`; it runs standalone and writes
+`levels/ruins_3.json`. It carries a small `RuinsLegend(Palette)` subclass because
+`world_kit.py`'s tile lookup still resolves role characters through the flat
+jungle legend — the hand-off ADR 002's amendment already names. With it the
+ruins palette substitutes nothing.
