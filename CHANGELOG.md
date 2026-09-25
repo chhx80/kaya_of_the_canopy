@@ -853,3 +853,44 @@ finished, tunable and tested, and no level could contain one because
 **`tools/world_kit.py`** — 37 helpers for flooded chambers, colonnades, current
 channels, updraft shafts, tunnels and switch lattices, each checking its own
 geometry against the measured jump envelope rather than the modelled one.
+
+## M2 — Sunken Ruins
+
+### `ruins_5` — THE TIDE MAW, World 2's boss
+
+**The arena floods and drains between phases, as a real tile change.**
+`src/enemies/tide_maw.gd` writes water, a surface row and two lanes of current
+into the level's own `TileWorld` and takes them out again, so being flooded is
+a fact about the world rather than a tint: the human wades in it,
+`FormBase.current_at()` pushes her, `TileCollision` answers the same questions
+it always did. It only writes inside the rectangle `data/enemies/tide_maw.json`
+names, and inside it only over tiles the level authored empty, so no tide can
+eat a floor or a refuge. Draining restores the captured ids exactly, which is
+what lets `levels/ruins_5.json` be authored drained and the prover and the tape
+replay see the geometry that is actually in the file.
+
+The flood carries **a pull along the bed, pointed at the Maw, and a
+counter-current under the surface flowing the other way**. Measured: holding one
+direction for 1.1 s off the bed covers 113 px drained and 18 px flooded. You
+ride the counter-current out; you do not outrun the pull.
+
+**Check 3 of the boss gate, meant this time.** `docs/plan-20-levels.md` records
+that the Grove Warden's only dodge windows are six tiles 96 px above a 46 px
+jump, and that the blade flies over its hitbox from up there. This arena has no
+high ledges at all: every standable tile is the floor or a one-way refuge slab
+two tiles above it, the slabs sit inside the Maw's own span so they cannot be
+camped, and the Maw is 46 px tall so the blade reaches it from one. The gate
+reports `refuges: 17 reachable from the arena floor, 0 not`, no refuge it cannot
+be fought from, and no tile in the arena safe from everything.
+
+- Route PARTIAL-proved to the arena floor — 9 hops, 645 frames, 194 expansions.
+  The last hop to `boss_exit` is the boss gate's, as jungle_5's is.
+- `tools/bossgate.sh --level=ruins_5 --boss=tide_maw`: 23 checks, all passed.
+  The strategy tape kills the Maw in 31.4 s from full health with 3 of 5 hearts.
+- `tests/integration/boss_tide_maw_tests.gd`: 28 checks on the tide itself —
+  the level on disk is the drained arena, the flood eats nothing, draining
+  restores it exactly, and the standable set does not move with the tide (which
+  the fairness sweep depends on).
+- Also fixed here: `TileRenderer` resolves a tile's atlas cell once at setup, so
+  a tile whose id changes underneath it kept drawing its authored art. The arena
+  flooded, every check passed, and the screenshot showed dry stone.

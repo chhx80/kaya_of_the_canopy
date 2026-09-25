@@ -1,0 +1,253 @@
+{
+ "ends_at": "arena_floor",
+ "fps": 60,
+ "hops": [
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "spawn",
+   "to": "pad_fish"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 16
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "right+up",
+     "n": 12
+    },
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "up",
+     "n": 8
+    },
+    {
+     "a": "right+up",
+     "n": 8
+    },
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "pad_fish",
+   "to": "over_one"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right+down",
+     "n": 28
+    },
+    {
+     "a": "down",
+     "n": 8
+    },
+    {
+     "a": "right+down",
+     "n": 8
+    },
+    {
+     "a": "right",
+     "n": 28
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "over_one",
+   "to": "under_two"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right",
+     "n": 40
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "under_two",
+   "to": "flue_foot"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right+up",
+     "n": 12
+    },
+    {
+     "a": "up",
+     "n": 56
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "flue_foot",
+   "to": "flue_mid"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "up",
+     "n": 52
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "flue_mid",
+   "to": "pad_human"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 9
+    }
+   ],
+   "from": "pad_human",
+   "to": "flue_lip"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right",
+     "n": 28
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "flue_lip",
+   "to": "lip"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 12
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 69
+    }
+   ],
+   "from": "lip",
+   "to": "arena_floor"
+  }
+ ],
+ "level": "ruins_5",
+ "partial": true,
+ "proves": "traversal",
+ "source_sha": "4bb4bbbfb3dece193ea05de335b43e0b62aa1759c9dd53fbd1e2d7f8935fda21",
+ "unproved": [
+  {
+   "from": "arena_floor",
+   "owner": "the boss gate (ADR 005 section 4, check 5: boss_exit is reachable from the arena floor after defeat)",
+   "to": "boss_exit",
+   "why": "'boss_exit' is placed by Level.on_boss_defeated(), so it is not in the world during play"
+  }
+ ]
+}
