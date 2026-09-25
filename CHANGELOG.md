@@ -853,3 +853,38 @@ finished, tunable and tested, and no level could contain one because
 **`tools/world_kit.py`** — 37 helpers for flooded chambers, colonnades, current
 channels, updraft shafts, tunnels and switch lattices, each checking its own
 geometry against the measured jump envelope rather than the modelled one.
+
+## M2 — World 2, Sunken Ruins
+
+### ruins_1 — DROWNED STEPS
+
+The world opener, and the level that teaches the current. 50×30, `"tileset":
+"ruins"`, carved out of solid stone: a gallery you walk off, a trough flowing
+east that carries you where you were already going, a shallow pool with the fish
+pad standing *in* it, a drowned nave of fallen columns, and one tube flowing west
+that you have to cross going east. That tube is the only hard gate in the level
+and it is the verb itself — 92 px/s of swim against 68 of water is 24 px/s of
+headway, and a human's 66.96 against the same 68 is −1, so the fish is the answer
+rather than a convenience. Lose the crossing and the water puts you back under a
+bell of trapped air, which is the whole penalty.
+
+`tools/prove.sh ruins_1`: **PROVED**, 15 hops, 902 frames, 289 expansions against
+a budget of 50,000. The tape replays in the booted game — `ruins_1 COMPLETE in
+902 sim frames`.
+
+Two measurements came out of building it, both in `REPORT.md`:
+
+- **A human cannot climb out of deep water.** From the bed of a four-row pool her
+  feet top out roughly level with the water line; a probe fixture failed at
+  *closest approach 0.0 px*, touching a flush shore in mid-air with her feet
+  4.7 px below it. `tools/reachability.py` believes she can — it hands her the
+  full jump envelope from any water tile — so the filter will pass a pool that is
+  a trap. Water a human can fall into needs a shore she can walk out of.
+- **A `TransformPad`'s trigger box is its tile grown by three pixels**, which is
+  enough to reach across a tile boundary and fire while the player is still
+  airborne over the water. `pad_human` sits one column inland for that reason.
+
+The level's own module is `tools/worlds/ruins_1.py`; it runs standalone and
+declares its own ruins palette, because `world_kit.Palette` resolves roles
+through the flat jungle `legend` key and a ruins palette naming `ruin_stone`
+silently emits `ruin_grate`.

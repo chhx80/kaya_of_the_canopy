@@ -1,0 +1,315 @@
+{
+ "id": "ruins_1",
+ "name": "DROWNED STEPS",
+ "music": "world2",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "##################################################",
+  "##################################################",
+  "##################################################",
+  "##################################################",
+  "##################################################",
+  "##################################################",
+  "##################################################",
+  "##################################################",
+  "#.........####################...................#",
+  "#.........###.##.##.##.#######...................#",
+  "#.........###.##.##.##.#######...................#",
+  "#.........####################.................|.#",
+  "#######...#####################################|##",
+  "#dddddd...##################################...|##",
+  "#dddddd...##################################...|##",
+  "#dddddd...##################################...|##",
+  "#dddddd...##################################...|##",
+  "#dddddd...##################################...|##",
+  "#.............................##############...|##",
+  "S.............................S############S...|S#",
+  "S.............................S############S...|.S",
+  "S.............................S####S...S###S...|.S",
+  "S.............................S####S...S###S..SSS#",
+  "S.........................~~~~~~~~SS~~~~<<<~~~ddd#",
+  "#SSSSSSSSS~>>>>>>>>>~..SSSwwwwwwwwSSwwww<<<wwwddd#",
+  "#dddddddddw>>>>>>>>>w.SdddddddwSSwwwwSSw<<<wwwddd#",
+  "#dddddddddw>>>>>>>>>wSdddd###SwSSwwwwS#SSSSSwwddd#",
+  "#ddddddddddddddddddddddddd####ddddddddd#####ddddd#",
+  "#ddddddddd###########ddddd####################ddd#",
+  "#ddddddddd###########ddddd####################ddd#"
+ ],
+ "bg": [
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLTLTLLLLLLLLLLLLLLLLLLLLLLLLLLLLTLLLTLLLTLLLTLLL",
+  "LLLTLTLLLLLLLTLLTLLTLLTLLLLLLLLLLLTLLLTLLLTLLLTLLL",
+  "LrrrrrrrrrLLLTLLTLLTLLTLLLLLLLrrrrrrrrrrrrrrrrrrrL",
+  "LLLTLTLLLLLLLLLLLLLLLLLLLLLLLLLLLLTLLLTLLLTLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLTLLLTLLLLLTLLLTLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLTLLLTLLLLLTLLLTLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLTLLLTLLLLLTLLLTLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLTLLLTLLLLLTLLLTLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLL",
+  "LrrrrrrrrrrrrrrrrrrrrLLLLLrrrrLLLLLLLLLLLLLLLLLLLL",
+  "LLLTLLLTLLrrrrrrrrrrrLLLLLLTLLXXXXXXXXXrrrrrXXLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 2,
+   "y": 11
+  },
+  {
+   "type": "enemy_walker",
+   "x": 7,
+   "y": 23
+  },
+  {
+   "type": "pad_fish",
+   "x": 27,
+   "y": 24
+  },
+  {
+   "type": "enemy_swimmer",
+   "x": 33,
+   "y": 25
+  },
+  {
+   "type": "enemy_swimmer",
+   "x": 36,
+   "y": 25
+  },
+  {
+   "type": "pad_human",
+   "x": 47,
+   "y": 21
+  },
+  {
+   "type": "exit",
+   "x": 32,
+   "y": 11
+  },
+  {
+   "type": "gem",
+   "x": 3,
+   "y": 11
+  },
+  {
+   "type": "gem",
+   "x": 4,
+   "y": 11
+  },
+  {
+   "type": "gem",
+   "x": 4,
+   "y": 23
+  },
+  {
+   "type": "gem",
+   "x": 5,
+   "y": 23
+  },
+  {
+   "type": "gem",
+   "x": 14,
+   "y": 25
+  },
+  {
+   "type": "gem",
+   "x": 16,
+   "y": 25
+  },
+  {
+   "type": "gem",
+   "x": 26,
+   "y": 24
+  },
+  {
+   "type": "gem",
+   "x": 31,
+   "y": 24
+  },
+  {
+   "type": "gem",
+   "x": 34,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 41,
+   "y": 25
+  },
+  {
+   "type": "gem",
+   "x": 44,
+   "y": 24
+  },
+  {
+   "type": "gem",
+   "x": 35,
+   "y": 11
+  },
+  {
+   "type": "gem",
+   "x": 36,
+   "y": 11
+  },
+  {
+   "type": "gem",
+   "x": 44,
+   "y": 11
+  },
+  {
+   "type": "heart",
+   "x": 37,
+   "y": 22
+  }
+ ],
+ "marks": {
+  "lip": {
+   "x": 6,
+   "y": 11
+  },
+  "terrace": {
+   "x": 8,
+   "y": 23
+  },
+  "trough_in": {
+   "x": 11,
+   "y": 26
+  },
+  "trough_out": {
+   "x": 20,
+   "y": 26
+  },
+  "steps_top": {
+   "x": 23,
+   "y": 23
+  },
+  "col_1": {
+   "x": 32,
+   "y": 24
+  },
+  "col_2": {
+   "x": 35,
+   "y": 26
+  },
+  "col_3": {
+   "x": 38,
+   "y": 24
+  },
+  "tube_mouth": {
+   "x": 39,
+   "y": 25
+  },
+  "tube_far": {
+   "x": 43,
+   "y": 25
+  },
+  "bank_foot": {
+   "x": 45,
+   "y": 24
+  },
+  "sill": {
+   "x": 46,
+   "y": 11
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "lip",
+   "form": "human"
+  },
+  {
+   "from": "lip",
+   "to": "terrace",
+   "form": "human"
+  },
+  {
+   "from": "terrace",
+   "to": "trough_in",
+   "form": "human"
+  },
+  {
+   "from": "trough_in",
+   "to": "trough_out",
+   "form": "human"
+  },
+  {
+   "from": "trough_out",
+   "to": "steps_top",
+   "form": "human"
+  },
+  {
+   "from": "steps_top",
+   "to": "pad_fish",
+   "form": "human"
+  },
+  {
+   "from": "pad_fish",
+   "to": "col_1",
+   "form": "fish"
+  },
+  {
+   "from": "col_1",
+   "to": "col_2",
+   "form": "fish"
+  },
+  {
+   "from": "col_2",
+   "to": "col_3",
+   "form": "fish"
+  },
+  {
+   "from": "col_3",
+   "to": "tube_mouth",
+   "form": "fish"
+  },
+  {
+   "from": "tube_mouth",
+   "to": "tube_far",
+   "form": "fish"
+  },
+  {
+   "from": "tube_far",
+   "to": "bank_foot",
+   "form": "fish"
+  },
+  {
+   "from": "bank_foot",
+   "to": "pad_human",
+   "form": "fish"
+  },
+  {
+   "from": "pad_human",
+   "to": "sill",
+   "form": "human"
+  },
+  {
+   "from": "sill",
+   "to": "exit",
+   "form": "human"
+  }
+ ],
+ "tileset": "ruins"
+}
