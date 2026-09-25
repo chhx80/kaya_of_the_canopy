@@ -438,11 +438,19 @@ func t_heart_pickup_restores_health() -> void:
 	check_eq(Game.health, 3, "a heart heals one")
 
 func t_spikes_hurt_and_knock_back() -> void:
-	var before := Game.health
+	# Sample at the first hit: the player stands on the spikes, so a fixed
+	# 30-frame wait lets hits accumulate until she dies and player() goes nil.
 	await place(20, 10)
-	await frames(30)
-	check(Game.health < before, "spikes hurt")
-	check(player().invuln > 0.0, "and grant brief invulnerability")
+	var before := Game.health
+	var hurt := false
+	for _i in 30:
+		await frames(1)
+		if Game.health < before:
+			hurt = true
+			break
+	check(hurt, "spikes hurt")
+	var p := player()
+	check(p != null and p.invuln > 0.0, "and grant brief invulnerability")
 
 func t_blade_flies_out_and_comes_back_and_is_caught() -> void:
 	await place(3, 10)

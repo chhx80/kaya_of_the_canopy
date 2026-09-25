@@ -1061,7 +1061,10 @@ DROWNED STEPS teaches the current where getting it wrong is free, then once
 where it matters. THE COLONNADE makes the flow decide the order you do things
 in — the key is easy one way, the door is past a current you have to beat. TIDE
 GALLERY makes air the resource and the currents make pocket-to-pocket distance
-asymmetric. THE CISTERN sets each stage's water level with switch blocks.
+asymmetric. THE CISTERN makes every lane one-way with current speed and shuts
+its doors with switch gates — not, as first drafted, switch blocks that set
+the water level; reachability resolves a switch tile as never solid, so a
+switch block may be a wall but never a floor (see `tools/worlds/ruins_4.py`).
 
 ### Still open, and not caused by this work
 
@@ -1070,3 +1073,60 @@ no strategy tape at `tools/bossgate/tapes/boss_grove.json`. The machinery has
 never actually proved the first boss can be beaten. The Tide Maw has one; the
 Warden needs one, and it needs a reachable dodge window before a tape is worth
 writing.
+
+## M2 — ruins_4 verified after its author crashed
+
+THE CISTERN was committed on its author's behalf (002f965) with no hand-off
+notes, so nothing about it had been verified in the running game. This pass
+verified the artifacts and filled in the missing deliverables:
+
+- The tape replays in the real booted game — `ruins_4 COMPLETE in 1982 sim
+  frames`, full health, both switches thrown — and `tools/diverge.sh ruins_4`
+  agrees for all 1982 frames. Re-searched from scratch, `tools/prove.sh`
+  reproduces the committed tape hop for hop: 27 hops, 1982 frames, 9,506
+  expansions against a budget of 50,000.
+- `tools/worlds/ruins_4.py` regenerates `levels/ruins_4.json` byte-identically;
+  the kit audit is clean and all 25 palette roles land on their ruins tiles
+  with zero substitutions.
+- Captures at last: `tools/seq/ruins_4.json`, 23 room shots
+  `shots/ruins_4_*.png` and the sheet `shots/ruins_4_sheet.png` — the per-room
+  set every sibling level already had.
+- The module's header described its abandoned first draft: a stage-2 weir
+  `switch_lattice` that was never drawn. Rewritten to describe the level that
+  shipped, and the world summary above now tells the truth about what the
+  switch blocks do.
+
+Fixed along the way, none of it in ruins_4's own artifacts:
+
+- `TileRenderer` picked switch-pair art by swapping on non-solid, which
+  inverts the `_off` half — its authored art IS the ghost, so a
+  `switch_block_*_off` drew as a ghost while solid and as a solid block while
+  open. Art is now picked by solidity (`_solid_of`/`_ghost_of`). Visible in
+  `shots/ruins_4_b_sump_stones.png` against `..._o_sump_stones_flipped.png`.
+- `boomerang_blade.gd` filtered `_in_flight` with a `Node`-typed lambda; a
+  freed blade cannot be converted, so the whole `filter()` call errored and
+  returned unfiltered. The parameter is Variant now, which is what
+  `is_instance_valid` asks for anyway.
+- `t_spikes_hurt_and_knock_back` waited a fixed 30 frames with the player on
+  the spikes; hits accumulate until she can die, and `player().invuln` then
+  errors on nil — silently skipping the assertion. It now samples at the
+  first hit, while she is guaranteed alive and freshly invulnerable.
+- The staged hub's ruins door labels predated the authored levels — ruins_2's
+  door said THE CISTERN and ruins_4's THE FLOODED HALL. `tools/build_hub.py`
+  now carries the shipped names and `staging/hub_v2.json` is rebuilt (labels
+  are the only change).
+
+Found by the captures and still open — THE CISTERN needs rework:
+
+- A fish leaving the stage-3 flume along row 9 can beach at the human pad
+  without ever crossing `switch_b`'s trigger box, which spans row 10 only.
+  That human is sealed in the west tank while the group-B sluice is shut —
+  her jump apex is 31 px short of the shelf — and the swimmer kills her. The
+  proof tape never enters this state; a player can.
+- The stage-2 gallery's floor is row 15, y=240: the horizontal screen seam.
+  From the upper screen the floor is never drawn, so Kaya walks the frame's
+  last pixel from col 12 to 34, and the bay-stone hop crosses the seam twice
+  with sim-pausing flips and a blind jump in both directions. The stage-3
+  tank lip repeats the pattern on the vertical seam at col 25.
+- Route marks `weir_e`/`weir_m`/`weir_w` are named for the weir that was
+  never built.

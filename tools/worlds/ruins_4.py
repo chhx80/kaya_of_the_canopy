@@ -13,8 +13,8 @@ audits the kit before it writes anything.
 THE SHAPE OF THE LEVEL
 ----------------------
 Three stages of a drowned cistern, climbed bottom to top.  Every stage is
-entered as one form and left as the other, and the two weirs decide, per
-stage, which lane the water runs down and which door is shut.
+entered as one form and left as the other; current speed decides which way
+each lane can be swum, and the two switch gates decide which door is shut.
 
   STAGE 1  THE INTAKE (rows 21-28).  A dry gallery, a sump, and the intake:
            three tiles of `water_current_left` at 68 px/s.  That number is
@@ -25,12 +25,11 @@ stage, which lane the water runs down and which door is shut.
            neither form can beat: stage 1 is a one-way door.  Nothing the rest
            of the level needs is on the gallery side of it.
 
-  STAGE 2  THE CISTERN (rows 12-18).  A dry gallery over a drowned half, and
-           the weir grating between them -- a `switch_lattice` on group A
-           whose open course is row 17 while group 1 is ON and rows 16 and 18
-           once it is thrown.  A course is one tile, 16 px.  The fish is 9 px
-           tall and goes through; Kaya is 22 px and does not, in either
-           configuration.  Throwing switch_a on the west bank also opens the
+  STAGE 2  THE CISTERN (rows 12-18).  A dry gallery over a drowned half of
+           plain water; the gallery's floor is the drowned half's roof, so
+           the swim beneath it surfaces only at its two ends.  The west end
+           is the bay with the stepping stone, the only place the two halves
+           trade forms.  Throwing switch_a on the west bank opens the
            `switch_gate` that seals the stair into stage 3.
 
   STAGE 3  THE HEADER TANK (rows 1-10).  The same one-way in miniature: three
@@ -74,7 +73,7 @@ something to jump off:
     cols  2-3  rows  7-10  the stage-3 west tank
 
 Neither switch can be left in a state that seals you away from a switch;
-`check()` below runs `reconfig_check` over all four configurations from seven
+`check()` below runs `reconfig_check` over all four configurations from eight
 entries, one for each side of each one-way.
 
 THE PALETTE
@@ -165,7 +164,7 @@ def ruins_4():
     # THE SUMP STONES -- the level's only `switch_lattice`, and the one thing
     # in it that is optional. A row of switch blocks suspended in the sump's
     # air: with group 1 ON the odd columns are solid and you hop east along
-    # them for the gems, and throwing switch_a two stages later shifts every
+    # them, and throwing switch_a two stages later shifts every
     # stone one tile. They lead nowhere -- cols 24-36 are thirteen tiles of
     # rock -- so nothing depends on them, which is the point:
     #

@@ -1,0 +1,127 @@
+[
+ {"_": "THE CISTERN — ruins_4. Re-run with: tools/shot.sh --seq=tools/seq/ruins_4.json"},
+ {"_": "One capture per screen and per room, in route order, plus both switch levers,",
+  "__": "both weir blocks in both states, the two slow currents, and the exit stair."},
+
+ {"_": "STAGE 1 — THE INTAKE. Spawn on the dry gallery, screen (0,1)."},
+ {"_": "settle 210, not 90: the level-title card is still up at 90 and covers the room."},
+ {"scenario": "level:ruins_4", "settle": 210},
+ {"log": "spawn"},
+ {"shot": "shots/ruins_4_a_gallery.png"},
+
+ {"_": "The sump stones: the switch_lattice on group A, phase as the level starts."},
+ {"teleport": [11, 21], "settle": 45},
+ {"log": "sump_stones"},
+ {"shot": "shots/ruins_4_b_sump_stones.png"},
+
+ {"_": "The gallery lip and the fish pad — the shore the fish has to beach on."},
+ {"teleport": [9, 24], "settle": 30},
+ {"log": "sump_lip_fish"},
+ {"shot": "shots/ruins_4_c_sump_lip.png"},
+
+ {"_": "The intake: 3 tiles of water_current_left at 68 px/s, pushing east against it."},
+ {"teleport": [28, 27], "settle": 14},
+ {"hold": "move_right", "frames": 45},
+ {"release": "move_right"},
+ {"log": "intake_push_east"},
+ {"shot": "shots/ruins_4_d_intake_current.png"},
+
+ {"_": "Past the 120 px/s flume, in stage 1's east bay: screen (1,1)."},
+ {"teleport": [40, 26], "settle": 30},
+ {"log": "east_bay"},
+ {"shot": "shots/ruins_4_e_east_bay.png"},
+
+ {"_": "The riser, water_current_up, lifting the fish into stage 2."},
+ {"teleport": [45, 22], "settle": 20},
+ {"log": "riser"},
+ {"shot": "shots/ruins_4_f_riser.png"},
+
+ {"_": "STAGE 2 — THE CISTERN. The drowned half, east end, where the riser arrives."},
+ {"teleport": [45, 17], "settle": 24},
+ {"log": "cistern_e"},
+ {"shot": "shots/ruins_4_g_cistern_east.png"},
+
+ {"_": "The middle of the swim west — where the weir grating is supposed to be."},
+ {"teleport": [32, 18], "settle": 24},
+ {"log": "weir_m"},
+ {"shot": "shots/ruins_4_h_weir_mid.png"},
+
+ {"_": "The west end of the drowned half, the col-10 divider and the silt trap."},
+ {"teleport": [14, 17], "settle": 24},
+ {"log": "weir_w"},
+ {"shot": "shots/ruins_4_i_weir_west.png"},
+
+ {"_": "The bank the fish beaches on, and the human pad above it: screen (0,0)."},
+ {"teleport": [6, 14], "settle": 30},
+ {"log": "bank_top_human"},
+ {"shot": "shots/ruins_4_j_west_bank.png"},
+
+ {"_": "The bay stepping stone — the route tile that sits below the y=240 screen seam."},
+ {"teleport": [10, 15], "settle": 30},
+ {"log": "bay_stone"},
+ {"shot": "shots/ruins_4_k_bay_stone.png"},
+
+ {"_": "The gallery east end and the stair gate, group A still ON: the gate is shut."},
+ {"teleport": [28, 14], "settle": 30},
+ {"log": "gate_a_shut"},
+ {"shot": "shots/ruins_4_l_gate_shut.png"},
+
+ {"_": "Throw switch_a on the west bank (touching the lever toggles it)."},
+ {"teleport": [3, 14], "settle": 6},
+ {"log": "switch_a"},
+ {"shot": "shots/ruins_4_m_switch_a.png"},
+
+ {"_": "Same view as l, group A now OFF: the stair alcove is open."},
+ {"teleport": [28, 14], "settle": 30},
+ {"log": "gate_a_open"},
+ {"shot": "shots/ruins_4_n_gate_open.png"},
+
+ {"_": "And the sump stones have shifted one tile — the mechanic, seen twice."},
+ {"teleport": [12, 21], "settle": 45},
+ {"log": "sump_stones_flipped"},
+ {"shot": "shots/ruins_4_o_sump_stones_flipped.png"},
+
+ {"_": "STAGE 3 — the shaft stair, all one-way treads: screen (1,0).",
+  "__": "Dropped in a row high so she lands ON the tread; a teleport level with it falls through."},
+ {"teleport": [32, 11], "settle": 30},
+ {"log": "stair_1"},
+ {"shot": "shots/ruins_4_p_stair.png"},
+
+ {"_": "The header tank's lip and its fish pad, on the stage-3 floor."},
+ {"teleport": [26, 5], "settle": 30},
+ {"log": "tank_lip_fish"},
+ {"shot": "shots/ruins_4_q_tank_lip.png"},
+
+ {"_": "The east tank and its submerged step: screen (0,0)."},
+ {"teleport": [23, 10], "settle": 24},
+ {"log": "tank_bed"},
+ {"shot": "shots/ruins_4_r_east_tank.png"},
+
+ {"_": "The upper tube: 3 tiles of water_current_right at 68 px/s, pushing west."},
+ {"teleport": [19, 10], "settle": 14},
+ {"hold": "move_left", "frames": 45},
+ {"release": "move_left"},
+ {"log": "tube_push_west"},
+ {"shot": "shots/ruins_4_s_upper_current.png"},
+
+ {"_": "switch_b, on the west tank's bed, which opens the sluice."},
+ {"teleport": [8, 10], "settle": 6},
+ {"log": "switch_b"},
+ {"shot": "shots/ruins_4_t_switch_b.png"},
+
+ {"_": "The shelf the fish beaches on, at the west tank's surface."},
+ {"teleport": [5, 7], "settle": 24},
+ {"log": "tank_shelf"},
+ {"shot": "shots/ruins_4_u_tank_shelf.png"},
+
+ {"_": "Human again on the tank top, with the sluice gate thrown open."},
+ {"teleport": [3, 6], "settle": 30},
+ {"log": "tank_top_human"},
+ {"shot": "shots/ruins_4_v_tank_top.png"},
+
+ {"_": "The exit, at the top of the two one-way treads. Stand one tread west of it:",
+  "__": "teleporting onto the exit tile ends the level and the capture lands on the hub."},
+ {"teleport": [9, 1], "settle": 30},
+ {"log": "exit"},
+ {"shot": "shots/ruins_4_w_exit.png"}
+]
