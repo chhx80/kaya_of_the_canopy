@@ -1,0 +1,12 @@
+[
+  {"_": "TIDE GALLERY (ruins_3). One capture per screen, plus the fork close up.",
+   "_re": "tools/shot.sh --seq=tools/seq/ruins_3.json"},
+  {"scenario": "level:ruins_3", "settle": 90},
+  {"shot": "shots/ruins_3_a_entrance.png"},
+  {"teleport": [14, 22], "settle": 40},
+  {"shot": "shots/ruins_3_b_gallery.png"},
+  {"teleport": [32, 22], "settle": 40},
+  {"shot": "shots/ruins_3_c_fork.png"},
+  {"teleport": [44, 4], "settle": 40},
+  {"shot": "shots/ruins_3_d_exit.png"}
+]
