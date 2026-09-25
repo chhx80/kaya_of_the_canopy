@@ -1,0 +1,290 @@
+{
+ "id": "ruins_5",
+ "name": "THE TIDE MAW",
+ "music": "boss",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "ssssssssssssssssssssssssssssssssssssssssssssssssss",
+  "sdddddddddddddddddddddddddddddddddddddddddddddddds",
+  "sdddddddddddddddddddddddddddddddddddddddddddddddds",
+  "sdddddddddddddddddddddddddddddddddddddddddddddddds",
+  "s................................................s",
+  "s................................................s",
+  "s....................~~..........................s",
+  "s####################uu###################.......s",
+  "sdddddddddddddddddddduuddddddddddddddddddd.......s",
+  "sdddddddddddddddddddduuddddddddddddddddddd.......s",
+  "sdddddddddddddddddddduuddddddddddddddddddd.......s",
+  "sdddddddddddddddddddduuddddddddddddddddddd.......s",
+  "sdddddddddddddddddddduuddddddddddddddddddd.......s",
+  "sdddddddddddddddddddduuddddddddddddddddddd.......s",
+  "sdddddddddddddddddddduuddddddddddddddddddd.......s",
+  "sdddddddddddddddddddduudds.......................s",
+  "sdddddddddddddddddddduudds.......................s",
+  "s...................suusss.......................s",
+  "s...................suusss.......................s",
+  "s...................suusss.......................s",
+  "s...................suusss.......................s",
+  "s...................suusss.......................s",
+  "s......~~~~~~~SS~~~~suusss.......................s",
+  "s......wwwwwwwSSwwwwsuusss.......................s",
+  "s......wwwSSwwSSwwwwsuusss.......................s",
+  "s......wwwSSwwwwwwwwwuusss.....====..====........s",
+  "s######wwwSSwwwwwwwwwuusss.......................s",
+  "sdddddd################sss#######################s",
+  "sddddddddddddddddddddddsssddddddddddddddddddddddds",
+  "ssssssssssssssssssssssssssssssssssssssssssssssssss"
+ ],
+ "bg": [
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LLLLTLLLLLLLTLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLTLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLTLLLLLLLTLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLTLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLTLLLLLLTLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLrrTrrrrrTrrrrrrTrrrrTrrL",
+  "LLrrrrrrrrrrrrrrrrrrLLLLLLrrTrrrrrTrrrrrrTrrrrTrrL",
+  "LLrrrrrrrrrrrrrrrrrrLLLLLLrrTrrrrrTrrrrrrTrrrrTrrL",
+  "LLrrrrrrrrrrrrrrrrrrLLLLLLrrTrrrrrTrrrrrrTrrrrTrrL",
+  "LLrrrrrrrrrrrrrrrrrrLLLLLLrrTrrrrrTrrrrrrTrrrrTrrL",
+  "LLrrrrrrrrrrrrrrrrrrLLLLLLXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLrrTrrrrrTrrrrrrTrrrrTrrL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLrrTrrrrrTrrrrrrTrrrrTrrL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLrrTrrrrrTrrrrrrTrrrrTrrL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLTLLLLLLTLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLTLLLLLLTLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 2,
+   "y": 25
+  },
+  {
+   "type": "pad_fish",
+   "x": 5,
+   "y": 25
+  },
+  {
+   "type": "pad_human",
+   "x": 21,
+   "y": 6
+  },
+  {
+   "type": "boss_tide_maw",
+   "x": 37,
+   "y": 26
+  },
+  {
+   "type": "boss_exit",
+   "x": 36,
+   "y": 26
+  },
+  {
+   "type": "enemy_swimmer",
+   "x": 12,
+   "y": 25
+  },
+  {
+   "type": "enemy_swimmer",
+   "x": 17,
+   "y": 24
+  },
+  {
+   "type": "enemy_walker",
+   "x": 30,
+   "y": 6
+  },
+  {
+   "type": "enemy_shooter",
+   "x": 37,
+   "y": 6
+  },
+  {
+   "type": "heart",
+   "x": 3,
+   "y": 24
+  },
+  {
+   "type": "heart",
+   "x": 31,
+   "y": 24
+  },
+  {
+   "type": "heart",
+   "x": 40,
+   "y": 24
+  },
+  {
+   "type": "gem",
+   "x": 8,
+   "y": 23
+  },
+  {
+   "type": "gem",
+   "x": 9,
+   "y": 23
+  },
+  {
+   "type": "gem",
+   "x": 13,
+   "y": 25
+  },
+  {
+   "type": "gem",
+   "x": 18,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 21,
+   "y": 20
+  },
+  {
+   "type": "gem",
+   "x": 22,
+   "y": 20
+  },
+  {
+   "type": "gem",
+   "x": 21,
+   "y": 11
+  },
+  {
+   "type": "gem",
+   "x": 22,
+   "y": 11
+  },
+  {
+   "type": "gem",
+   "x": 16,
+   "y": 6
+  },
+  {
+   "type": "gem",
+   "x": 27,
+   "y": 6
+  },
+  {
+   "type": "gem",
+   "x": 34,
+   "y": 6
+  },
+  {
+   "type": "gem",
+   "x": 40,
+   "y": 6
+  },
+  {
+   "type": "gem",
+   "x": 34,
+   "y": 24
+  },
+  {
+   "type": "gem",
+   "x": 38,
+   "y": 24
+  }
+ ],
+ "marks": {
+  "over_one": {
+   "x": 12,
+   "y": 23
+  },
+  "under_two": {
+   "x": 17,
+   "y": 26
+  },
+  "flue_foot": {
+   "x": 21,
+   "y": 26
+  },
+  "flue_mid": {
+   "x": 21,
+   "y": 15
+  },
+  "flue_lip": {
+   "x": 23,
+   "y": 6
+  },
+  "lip": {
+   "x": 41,
+   "y": 6
+  },
+  "arena_floor": {
+   "x": 42,
+   "y": 26
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "pad_fish",
+   "form": "human"
+  },
+  {
+   "from": "pad_fish",
+   "to": "over_one",
+   "form": "fish"
+  },
+  {
+   "from": "over_one",
+   "to": "under_two",
+   "form": "fish"
+  },
+  {
+   "from": "under_two",
+   "to": "flue_foot",
+   "form": "fish"
+  },
+  {
+   "from": "flue_foot",
+   "to": "flue_mid",
+   "form": "fish"
+  },
+  {
+   "from": "flue_mid",
+   "to": "pad_human",
+   "form": "fish"
+  },
+  {
+   "from": "pad_human",
+   "to": "flue_lip",
+   "form": "human"
+  },
+  {
+   "from": "flue_lip",
+   "to": "lip",
+   "form": "human"
+  },
+  {
+   "from": "lip",
+   "to": "arena_floor",
+   "form": "human"
+  },
+  {
+   "from": "arena_floor",
+   "to": "boss_exit",
+   "form": "human"
+  }
+ ],
+ "tileset": "ruins"
+}
