@@ -1,0 +1,60 @@
+{
+  "_comment": "THERMAL HEIGHTS tileset probe. Not a level -- it lives in tests/fixtures/ so LevelLoader.list_levels() never sees it, and it is deliberately one screen. Its job is to be the smallest artefact that exercises every role character data/level_legend.json binds for the 'heights' world (ids 240-251) plus the two shared drafts ('U' 206 updraft, '*' 207 updraft_strong), so tests/test_tileset_probes.gd can prove the tileset resolves, its flags survive a level round-trip and the updraft vectors arrive intact. The ruins probe (tests/fixtures/ruins_probe.json) is the same idea for World 2.",
+  "_comment_layout": "The declared route walks the floor and climbs the chain, and tools/prove.sh plays it. Everything that is a wall to the prover is kept off that line on purpose, which is also the note for the level authors: the shell ('c') is a wall because the prover carries no weapon, the vents ('^') prune every state that touches them, and a one-tile updraft column standing on the floor is a wall too -- the human cannot walk through 400 px/s of lift any more than she can walk into a current (MEMORY: 'a current is a wall for the human'). The shaft here therefore rises out of a vent in the right-hand corner, past the end of the route, and the shell is set in the ledge overhead.",
+  "id": "heights_probe",
+  "name": "HEIGHTS PROBE",
+  "tileset": "heights",
+  "music": "world3",
+  "next_level": "",
+  "topdown": false,
+  "screens": [1, 1],
+  "fg": [
+    ".........................",
+    ".........................",
+    ".........................",
+    ".........................",
+    ".........................",
+    ".......................*.",
+    ".......................*.",
+    "....................|..*.",
+    ".................sss|..U.",
+    "....................|..U.",
+    "...ScS........===...|..U.",
+    "....................|..U.",
+    "....................|.^^.",
+    "#########################",
+    "ddddddddddddddddddddddddd"
+  ],
+  "bg": [
+    "rrrrrrrrrrrrrrrrrrrrrrrrr",
+    "..rrrrrrrrrrrrrrrrrrrrr..",
+    ".........................",
+    ".........................",
+    ".........................",
+    ".T.....................T.",
+    ".T.....................T.",
+    ".T.....................T.",
+    ".T.....................T.",
+    "LT.....................TL",
+    "LL.....................LL",
+    "LLLL.................LLLL",
+    "LLLL.................LLLL",
+    "XXXXXXXXXXXXXXXXXXXXXXXXX",
+    "XXXXXXXXXXXXXXXXXXXXXXXXX"
+  ],
+  "entities": [
+    {"type": "player_spawn", "x": 2, "y": 12},
+    {"type": "exit", "x": 18, "y": 7}
+  ],
+  "marks": {
+    "chain_foot": {"x": 20, "y": 12},
+    "chain_top": {"x": 20, "y": 7},
+    "draft_foot": {"x": 23, "y": 11},
+    "draft_top": {"x": 23, "y": 5}
+  },
+  "route": [
+    {"from": "spawn", "to": "chain_foot", "form": "human"},
+    {"from": "chain_foot", "to": "chain_top", "form": "human"},
+    {"from": "chain_top", "to": "exit", "form": "human"}
+  ]
+}

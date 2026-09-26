@@ -324,6 +324,42 @@ def build_music():
         {"voice": "triangle", "notes": parse(w2_bass), "vol": 0.2},
     ]))
 
+    # ---- WORLD 3: THERMAL HEIGHTS — airy and soaring (G lydian)
+    #
+    # World 2 is sunken: minor, thin duty, no percussion, everything pressing
+    # down. World 3 has to read as the opposite without changing instrument, so
+    # the contrast is written into the notes rather than into the synth:
+    #   * G lydian (the raised 4th, C#) — major, but hollowed out, which is what
+    #     stops a wide major line sounding like a victory fanfare;
+    #   * the lead moves in fourths and fifths and climbs an octave and a half
+    #     across the eight bars, ending on the highest note in the game's music.
+    #     Steps feel like walking; leaps feel like lift;
+    #   * open fifths in the bass (root, then the fifth above) instead of roots
+    #     and thirds — no weight underneath the melody;
+    #   * a sparse rising flourish every other bar for the thermals, quiet and
+    #     high, and a noise voice on four-bar breaths for the wind. The wind is
+    #     the only percussion: a drum would give the altitude a floor.
+    w3_lead = ("G4 1, D5 1, E5 2, F#5 1, D5 1, B4 2, "
+               "C#5 1, E5 1, A5 2, G5 1, F#5 1, D5 2, "
+               "E5 1, B5 1, A5 2, F#5 1, D5 1, E5 2, "
+               "G5 1, A5 1, B5 1, C#6 1, D6 2, G5 2")
+    w3_bass = ("G2 2, D3 2, G2 2, B2 2, A2 2, E3 2, D3 2, D3 2, "
+               "E3 2, B2 2, G2 2, D3 2, A2 2, C#3 2, D3 2, G2 2")
+    # Four beats of nothing, then a gust up and back down. Placed on the second
+    # half of each pair of bars so it answers the lead instead of doubling it.
+    w3_air = "- 4, D5 0.5, G5 0.5, B5 0.5, D6 0.5, B5 0.5, G5 0.5, - 1, " * 4
+    # Eight-beat breaths: the noise voice sounds for half of each and rests for
+    # the other half, which is wind rather than a hi-hat.
+    w3_wind = "C2 8, " * 4
+    write(os.path.join(MUSIC, "world3.wav"), render_track(108, [
+        {"voice": "square", "notes": parse(w3_lead), "vol": 0.14, "duty": 0.5},
+        {"voice": "triangle", "notes": parse(w3_bass), "vol": 0.17},
+        {"voice": "square", "notes": parse(w3_air.rstrip(", ")), "vol": 0.05,
+         "duty": 0.125},
+        {"voice": "noise", "notes": parse(w3_wind.rstrip(", ")), "vol": 0.045,
+         "step": 11},
+    ]))
+
     # ---- BOSS: fast, low, relentless
     boss_lead = ("E4 0.5, E4 0.5, G4 0.5, E4 0.5, A#4 0.5, A4 0.5, G4 0.5, E4 0.5, "
                  "E4 0.5, E4 0.5, G4 0.5, A4 0.5, C5 0.5, B4 0.5, A4 0.5, G4 0.5, "
