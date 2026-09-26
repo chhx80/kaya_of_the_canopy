@@ -1130,3 +1130,82 @@ Found by the captures and still open — THE CISTERN needs rework:
   tank lip repeats the pattern on the vertical seam at col 25.
 - Route marks `weir_e`/`weir_m`/`weir_w` are named for the weir that was
   never built.
+
+All three are closed by the pass below. Nothing from that list is open.
+
+## M2 — THE CISTERN reworked: the three defects the captures found
+
+All of it in `tools/worlds/ruins_4.py`, which is the only place this level
+exists; `levels/ruins_4.json`, the proof tape and the 27 captures are
+regenerated from it.
+
+```
+ruins_4  THE CISTERN  27 hops  2,088 frames  39,092 expansions  PROVED
+         tape replay: ruins_4 COMPLETE in 2088 sim frames, 5 hearts
+```
+
+**The sealed shelf was worse than the note said, and the sluice's height was
+the bug.** Scripted play put Kaya on the shelf at (3,6) with group 2 OFF —
+the state the level starts in, and the state a fish beaching along row 9
+arrives in — and she could not reach the water at all, never mind the lever.
+`switch_trigger.gd` trips on body contact or the blade, so `switch_b` would
+have taken either; the geometry was what refused. The sluice was five tiles of
+`switch_block_b_off`, rows 2-6, and its bottom tile was the wall between the
+shelf and its own tank: standing on the shelf her head is in row 5, so east was
+rock at head height and there was nowhere else to go. A hard trap, not an
+obscure one.
+
+The sluice is three tiles now, rows 2-4, and rows 5-6 of col 4 are open water.
+Walking east off the shelf drops her back into the tank with the lever on its
+bed, in every configuration — which is what the module's header always claimed
+the level did. It still gates: above the plug is row 1 alone, 16 px against a
+22 px body, and the jump that reaches the first tread has to cross col 4 at
+rows 3-4, which the plug fills. The tank also grew the step it needed to let
+her out again, col 4 rows 9-10, because a human cannot climb a flush bank —
+from the tank's bed her water jump ends at y=111 against a shelf at y=112, and
+from the step at y=101, ten pixels clear. The tank's swimmer moved one column
+east, off the line between the shelf and the lever. `RECONFIG_ENTRIES` now stands the
+flood fill on the shelf itself; the old list had no entry in either room a shut
+gate makes, which is why nothing caught this.
+
+**Stage 2 moved off the horizontal seam.** Everything walked in the cistern now
+stands on row 13 over rock on row 14 — bank, stepping stone, gallery, alcove —
+so the floor is drawn on the same screen as the body standing on it and no hop
+changes screen. The bay was rebuilt around that: the stone's top is row 14 and
+open water runs under it, both wells hold an `oneway` slab two tiles under the
+surface for Kaya to jump off, and the silt trap, the wells and the whole
+drowned half are now one body of water. That last change is why the fish's swim
+west is a swim: the first attempt at this geometry made it hop the stone, and
+the prover spent its entire 50,000-expansion budget failing to find that hop.
+The stair gate is two tiles, the whole height of the gallery's air; the first
+tread moved to row 12. The stage-3 tank lip came off the vertical seam too —
+the east tank stops at col 23 and the fish pad sits at (24,6), centre x=392, so
+the pad and every tile of the water she dives into are on one screen.
+
+**And the marks tell the truth.** `weir_e`/`weir_m`/`weir_w` are
+`drowned_e`/`drowned_m`/`drowned_w`: waypoints in the drowned half, named for
+the drowned half.
+
+Verified, in this order, all green: the kit audit with nine `reconfig_check`
+entries over four switch configurations; `tools/prove.sh ruins_4` PROVED from
+scratch, worst hop 28,875 expansions against a budget of 50,000;
+`tools/validate.sh` and `tools/test.sh` (260 tests, 53,731 assertions, 0
+failed); and `ITEST_TIMEOUT=300 tools/itest.sh --only=t_replay_ruins_4`, which
+plays the new tape in the booted game and prints `ruins_4 COMPLETE in 2088 sim
+frames` with full health.
+
+The captures are the other half of the evidence, and four of them are new.
+`shots/ruins_4_k_bay_stone.png` is Kaya on the stepping stone with the floor
+row drawn under her feet and a well either side — the shot the old geometry
+could not take. `..._x_trap_shelf.png` is the shelf with the sluice shut and
+the drop east open; `..._y_trap_drain.png` is her in the tank two seconds
+later; `..._z_trap_lever.png` is the sluice standing open behind her after she
+swam to the lever; `..._za_trap_escaped.png` is her back on the shelf, off the
+tank's step, with the sluice still open. The logs behind them are in
+`tools/seq/ruins_4.json`: shelf (3,6) on_floor → water (5,7) → bed (13,10) past
+the lever → step (4,8) on_floor → shelf (2,6) on_floor.
+
+One honest wart survives, and it is a consequence of the fix rather than a
+leftover: `switch_b` is a toggle on the tank's bed, so crawling home along that
+bed brushes it a second time and shuts the sluice behind you. It costs a second
+lap, never the level — the shelf always drains back to the lever.

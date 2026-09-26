@@ -14,20 +14,20 @@
   "#d..b....................................ddddddd##",
   "#d..b....====............................ddddddd##",
   "#d..b....................................ddddddd##",
-  "#d..b====................................#dddddd##",
-  "#d..b....................................#dddddd##",
-  "#ddd~~~~~~~~~~ddddddd~~~~~==============.#dddddd##",
-  "#dddwwwwwwwwwwdddddddwwwwwddd#...........#dddddd##",
-  "#dddwwwwwwwwww{{{{>>>www##ddd#.====......#dddddd##",
-  "#dddwwwwwwwwww{{{{>>>www##ddd#...........#dddddd##",
+  "#d...====................................#dddddd##",
+  "#d.......................................#dddddd##",
+  "#ddd~~~~~~~~~~ddddddd~~~================.#dddddd##",
+  "#dddwwwwwwwwwwdddddddwwwddddd#...........#dddddd##",
+  "#ddd#wwwwwwwww{{{{>>>ww#ddddd#.====......#dddddd##",
+  "#ddd#wwwwwwwww{{{{>>>ww#ddddd#...........#dddddd##",
   "##############################......====.#########",
-  "#.............................A....ddddddddd....##",
   "#.............................A====ddddddddd....##",
   "#.............................A....ddddddddd....##",
-  "#########~.~################################~~~~##",
+  "#########~#~################################~~~~##",
   "#dwwwwwwww#wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww##",
-  "#dwwwwwwww#wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww##",
-  "#dwwwwwwww#wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww##",
+  "#dwwwwwww=w=wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww##",
+  "#dwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww##",
+  "#dwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww##",
   "#############################################uu###",
   "#dddddddddddddddddddddddddddddddddddddddddddduud##",
   "#.......................ddddddddddddd........uu.##",
@@ -55,8 +55,8 @@
   "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
   "LLLLLTLLLLLLLLLLLTLLLLLLLLTLLLLLLTLLLLLLLLLLLLLLLL",
   "LLLLLTLLLLLLLLLLLTLLLLLLLLTLLLLLLTLLLLLLLLLLLLLLLL",
-  "LLLLLTLLLLLLLLLLLTLLLLLLLLTLLLLLLTLLLLLLLLLLLLLLLL",
   "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXLLLLLL",
   "LLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXLLLLLL",
   "LLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXLLLLLL",
   "LLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXLLLLLL",
@@ -85,17 +85,17 @@
   },
   {
    "type": "pad_human",
-   "x": 6,
-   "y": 14
+   "x": 8,
+   "y": 13
   },
   {
    "type": "switch_a",
    "x": 3,
-   "y": 14
+   "y": 13
   },
   {
    "type": "pad_fish",
-   "x": 26,
+   "x": 24,
    "y": 6
   },
   {
@@ -125,7 +125,7 @@
   },
   {
    "type": "enemy_swimmer",
-   "x": 11,
+   "x": 12,
    "y": 9
   },
   {
@@ -136,7 +136,7 @@
   {
    "type": "enemy_walker",
    "x": 22,
-   "y": 14
+   "y": 13
   },
   {
    "type": "gem",
@@ -190,7 +190,7 @@
   },
   {
    "type": "gem",
-   "x": 23,
+   "x": 22,
    "y": 8
   },
   {
@@ -252,37 +252,37 @@
    "x": 45,
    "y": 17
   },
-  "weir_e": {
+  "drowned_e": {
    "x": 40,
    "y": 17
   },
-  "weir_m": {
+  "drowned_m": {
    "x": 27,
    "y": 17
   },
-  "weir_w": {
+  "drowned_w": {
    "x": 14,
    "y": 17
   },
   "bank_foot": {
    "x": 9,
-   "y": 16
+   "y": 15
   },
   "bank_top": {
-   "x": 6,
-   "y": 14
+   "x": 8,
+   "y": 13
   },
   "bay_stone": {
    "x": 10,
-   "y": 15
+   "y": 13
   },
   "gallery_e": {
    "x": 28,
-   "y": 14
+   "y": 13
   },
   "stair_1": {
    "x": 32,
-   "y": 12
+   "y": 11
   },
   "stair_2": {
    "x": 37,
@@ -293,11 +293,11 @@
    "y": 8
   },
   "tank_lip": {
-   "x": 26,
+   "x": 24,
    "y": 6
   },
   "tank_bed": {
-   "x": 23,
+   "x": 22,
    "y": 10
   },
   "tube_in": {
@@ -360,21 +360,21 @@
   },
   {
    "from": "cistern_e",
-   "to": "weir_e",
+   "to": "drowned_e",
    "form": "fish"
   },
   {
-   "from": "weir_e",
-   "to": "weir_m",
+   "from": "drowned_e",
+   "to": "drowned_m",
    "form": "fish"
   },
   {
-   "from": "weir_m",
-   "to": "weir_w",
+   "from": "drowned_m",
+   "to": "drowned_w",
    "form": "fish"
   },
   {
-   "from": "weir_w",
+   "from": "drowned_w",
    "to": "bank_foot",
    "form": "fish"
   },
