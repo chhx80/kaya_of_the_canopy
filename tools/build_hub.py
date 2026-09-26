@@ -154,10 +154,10 @@ DOORS = [
     ("jungle_4", "SKY BRANCH",         "jungle_3",  (20, 20), "canopy"),
     ("jungle_5", "HEART OF THE GROVE", "jungle_4",  (13, 17), "canopy"),
     # --- World 2, Sunken Ruins. Opens when World 1's boss is down.
-    ("ruins_1",  "DROWNED GATE",       "jungle_5",  (29, 24), "ruins"),
-    ("ruins_2",  "THE CISTERN",        "ruins_1",   (34, 21), "ruins"),
-    ("ruins_3",  "UNDERTOW",           "ruins_2",   (39, 24), "ruins"),
-    ("ruins_4",  "THE FLOODED HALL",   "ruins_3",   (44, 20), "ruins"),
+    ("ruins_1",  "DROWNED STEPS",      "jungle_5",  (29, 24), "ruins"),
+    ("ruins_2",  "THE COLONNADE",      "ruins_1",   (34, 21), "ruins"),
+    ("ruins_3",  "TIDE GALLERY",       "ruins_2",   (39, 24), "ruins"),
+    ("ruins_4",  "THE CISTERN",        "ruins_3",   (44, 20), "ruins"),
     ("ruins_5",  "THE TIDE MAW",       "ruins_4",   (36, 17), "ruins"),
     # --- World 3, Thermal Heights.
     ("heights_1", "UPDRAFT",           "ruins_5",   (29, 12), "heights"),

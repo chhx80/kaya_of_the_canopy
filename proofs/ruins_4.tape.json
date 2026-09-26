@@ -202,7 +202,7 @@
     }
    ],
    "from": "cistern_e",
-   "to": "weir_e"
+   "to": "drowned_e"
   },
   {
    "form": "fish",
@@ -212,8 +212,8 @@
      "n": 136
     }
    ],
-   "from": "weir_e",
-   "to": "weir_m"
+   "from": "drowned_e",
+   "to": "drowned_m"
   },
   {
    "form": "fish",
@@ -227,30 +227,38 @@
      "n": 4
     }
    ],
-   "from": "weir_m",
-   "to": "weir_w"
+   "from": "drowned_m",
+   "to": "drowned_w"
   },
   {
    "form": "fish",
    "frames": [
     {
      "a": "left+up",
-     "n": 8
+     "n": 20
     },
     {
      "a": "left",
-     "n": 36
+     "n": 28
     },
     {
      "a": "up",
-     "n": 12
+     "n": 4
     },
     {
      "a": "none",
      "n": 4
     },
     {
-     "a": "down",
+     "a": "left+down",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "left+jump",
      "n": 4
     },
     {
@@ -258,30 +266,50 @@
      "n": 8
     },
     {
-     "a": "left+down",
+     "a": "none",
      "n": 4
     },
     {
      "a": "left",
-     "n": 16
+     "n": 8
     },
     {
-     "a": "down",
+     "a": "left+up",
      "n": 4
     }
    ],
-   "from": "weir_w",
+   "from": "drowned_w",
    "to": "bank_foot"
   },
   {
    "form": "fish",
    "frames": [
     {
+     "a": "left+up",
+     "n": 4
+    },
+    {
      "a": "up",
      "n": 8
     },
     {
-     "a": "none",
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "left+up",
      "n": 4
     },
     {
@@ -290,7 +318,47 @@
     },
     {
      "a": "left",
-     "n": 58
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 12
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 12
+    },
+    {
+     "a": "jump",
+     "n": 12
+    },
+    {
+     "a": "none",
+     "n": 12
+    },
+    {
+     "a": "jump",
+     "n": 12
+    },
+    {
+     "a": "none",
+     "n": 24
+    },
+    {
+     "a": "jump",
+     "n": 12
+    },
+    {
+     "a": "none",
+     "n": 8
+    },
+    {
+     "a": "left",
+     "n": 2
     }
    ],
    "from": "bank_foot",
@@ -299,6 +367,10 @@
   {
    "form": "human",
    "frames": [
+    {
+     "a": "left",
+     "n": 20
+    },
     {
      "a": "right+down+jump",
      "n": 4
@@ -331,12 +403,12 @@
      "n": 32
     },
     {
-     "a": "down+jump",
+     "a": "right+jump",
      "n": 4
     },
     {
      "a": "none",
-     "n": 6
+     "n": 8
     }
    ],
    "from": "switch_a",
@@ -347,7 +419,7 @@
    "frames": [
     {
      "a": "right",
-     "n": 4
+     "n": 8
     },
     {
      "a": "right+jump",
@@ -355,7 +427,7 @@
     },
     {
      "a": "right",
-     "n": 24
+     "n": 16
     },
     {
      "a": "left+down+jump",
@@ -406,14 +478,30 @@
     },
     {
      "a": "right",
-     "n": 20
+     "n": 8
     },
     {
      "a": "right+jump",
-     "n": 12
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
     },
     {
      "a": "none",
+     "n": 12
+    },
+    {
+     "a": "jump",
      "n": 11
     }
    ],
@@ -424,12 +512,8 @@
    "form": "human",
    "frames": [
     {
-     "a": "right+jump",
-     "n": 4
-    },
-    {
      "a": "right",
-     "n": 24
+     "n": 28
     },
     {
      "a": "left+down+jump",
@@ -456,23 +540,7 @@
     },
     {
      "a": "left",
-     "n": 8
-    },
-    {
-     "a": "none",
-     "n": 4
-    },
-    {
-     "a": "left",
-     "n": 4
-    },
-    {
-     "a": "none",
-     "n": 4
-    },
-    {
-     "a": "jump",
-     "n": 4
+     "n": 20
     },
     {
      "a": "left+jump",
@@ -480,7 +548,7 @@
     },
     {
      "a": "jump",
-     "n": 4
+     "n": 8
     },
     {
      "a": "none",
@@ -503,14 +571,10 @@
     },
     {
      "a": "right",
-     "n": 4
+     "n": 12
     },
     {
-     "a": "none",
-     "n": 4
-    },
-    {
-     "a": "right",
+     "a": "right+jump",
      "n": 4
     },
     {
@@ -519,15 +583,11 @@
     },
     {
      "a": "left",
-     "n": 20
-    },
-    {
-     "a": "jump",
-     "n": 4
+     "n": 48
     },
     {
      "a": "none",
-     "n": 13
+     "n": 2
     }
    ],
    "from": "stair_3",
@@ -538,15 +598,15 @@
    "frames": [
     {
      "a": "left",
-     "n": 32
+     "n": 40
     },
     {
      "a": "left+down",
-     "n": 16
+     "n": 8
     },
     {
      "a": "down",
-     "n": 8
+     "n": 16
     },
     {
      "a": "left+down",
@@ -557,10 +617,6 @@
      "n": 4
     },
     {
-     "a": "none",
-     "n": 4
-    },
-    {
      "a": "left+down",
      "n": 8
     },
@@ -570,7 +626,7 @@
     },
     {
      "a": "none",
-     "n": 2
+     "n": 1
     }
    ],
    "from": "tank_lip",
@@ -580,12 +636,8 @@
    "form": "fish",
    "frames": [
     {
-     "a": "left+down",
-     "n": 8
-    },
-    {
      "a": "none",
-     "n": 4
+     "n": 1
     }
    ],
    "from": "tank_bed",
@@ -595,20 +647,28 @@
    "form": "fish",
    "frames": [
     {
-     "a": "left",
-     "n": 12
-    },
-    {
      "a": "left+down",
      "n": 8
+    },
+    {
+     "a": "left",
+     "n": 4
     },
     {
      "a": "left+up",
      "n": 4
     },
     {
+     "a": "left+down",
+     "n": 4
+    },
+    {
      "a": "left",
      "n": 116
+    },
+    {
+     "a": "none",
+     "n": 3
     }
    ],
    "from": "tube_in",
@@ -618,12 +678,8 @@
    "form": "fish",
    "frames": [
     {
-     "a": "left+up",
-     "n": 4
-    },
-    {
      "a": "none",
-     "n": 8
+     "n": 12
     },
     {
      "a": "left+down",
@@ -631,11 +687,7 @@
     },
     {
      "a": "left",
-     "n": 24
-    },
-    {
-     "a": "none",
-     "n": 3
+     "n": 28
     }
    ],
    "from": "tube_out",
@@ -646,11 +698,15 @@
    "frames": [
     {
      "a": "left+up",
-     "n": 32
+     "n": 36
     },
     {
      "a": "left",
-     "n": 8
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 2
     }
    ],
    "from": "switch_b",
@@ -672,12 +728,12 @@
      "n": 4
     },
     {
-     "a": "left+jump",
+     "a": "left",
      "n": 4
     },
     {
      "a": "none",
-     "n": 17
+     "n": 1
     }
    ],
    "from": "tank_shelf",
@@ -708,11 +764,11 @@
     },
     {
      "a": "right",
-     "n": 8
+     "n": 12
     },
     {
      "a": "none",
-     "n": 4
+     "n": 1
     }
    ],
    "from": "tank_top",
@@ -720,5 +776,5 @@
   }
  ],
  "level": "ruins_4",
- "source_sha": "afd19aecb53f7d22f75eb5bbc50fc575fc21e5dcc79b4e999840204c1f85d429"
+ "source_sha": "808a8ea46f7eaf9c6bcdc38a49037809272e31f4877c09d3b39b7f08c8245e08"
 }

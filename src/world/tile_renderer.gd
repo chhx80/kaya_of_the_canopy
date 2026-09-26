@@ -113,8 +113,9 @@ func _draw() -> void:
 				art = _cells[vi]
 			if layer == "fg" and world.flags_at(tx, ty) & TileData4.Flag.SWITCHED:
 				# Ghost the inactive half of a switch pair instead of hiding it.
-				if not world.is_solid(tx, ty):
-					art = _ghost_of(id)
+				# The authored id may be either half (the `_off` tiles' art is
+				# the ghost), so pick art by solidity rather than swapping.
+				art = _solid_of(id) if world.is_solid(tx, ty) else _ghost_of(id)
 			var tex := atlas
 			var src := Rect2(float((art % cols) * TS), float((art / cols) * TS), TS, TS)
 			var dst := Vector2(tx * TS, ty * TS)
@@ -138,7 +139,11 @@ func live_animated_ids() -> PackedInt32Array:
 func _ghost_of(id: int) -> int:
 	match id:
 		11: return 26
-		26: return 11
 		12: return 27
+	return id
+
+func _solid_of(id: int) -> int:
+	match id:
+		26: return 11
 		27: return 12
 	return id
