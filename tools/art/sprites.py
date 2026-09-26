@@ -1263,8 +1263,14 @@ def build_boss():
     names them <anim>_p1/_p2/_p3 and src/enemies/boss_grove.gd picks the suffix
     for the phase it is in.
 
-    The hitbox is 26x26 at (11, 20) in the frame — the body core — so the feet
-    land on row 46 and the crown is free to overhang the top of the box.
+    The hitbox is 26x42 at (11, 4) in the frame: the feet still land on row 46,
+    the crown still overhangs the top of the box, but the box is now as tall as
+    the animal that is drawn (rows 2..47 of every frame, measured) rather than
+    the 26 px body core it used to be. That is a fight decision and it is
+    recorded here because it is a fact about this art: jungle_5's refuge slabs
+    sit two tiles over the arena floor, the blade leaves Kaya's chest at
+    y=383..395 from up there, and a 26 px box topping out at y=406 could be
+    dodged from but never hit from. See tools/build_levels.py's jungle_5().
     """
     W = H = 48
     FLOOR = 46

@@ -1074,6 +1074,9 @@ never actually proved the first boss can be beaten. The Tide Maw has one; the
 Warden needs one, and it needs a reachable dodge window before a tape is worth
 writing.
 
+Closed by the pass at the end of this file. The Warden now passes the same gate,
+and there is a tape.
+
 ## M2 — ruins_4 verified after its author crashed
 
 THE CISTERN was committed on its author's behalf (002f965) with no hand-off
@@ -1209,3 +1212,141 @@ One honest wart survives, and it is a consequence of the fix rather than a
 leftover: `switch_b` is a toggle on the tank's bed, so crawling home along that
 bed brushes it a second time and shuts the sluice behind you. It costs a second
 lap, never the level — the shelf always drains back to the lever.
+
+## M2 — THE GROVE WARDEN passes its gate
+
+The last open item above. The first boss had never been proved beatable, and the
+reason it had not was not the tape: it was the fight. Measured before any of
+this, `tools/bossgate.sh --quick` on jungle_5 said
+
+```
+refuges: 2 reachable from the arena floor, 2 not
+  NOTE  unreachable refuge tiles: (30,21) (43,21)
+  NOTE  they sit up to 96 px above the arena floor; Kaya's measured
+  NOTE  apex as human is 46 px, so once she is down she cannot return.
+  NOTE  refuge (30,21): six seconds of blade throws never damaged
+  NOTE  the boss from there — safe, but not a place to fight from.
+```
+
+Two ledges out of reach, and useless if you got there. THE TIDE MAW's arena is
+the rule this arena now follows, stated in `tools/worlds/ruins_5.py` and applied
+here: every standable tile is the floor or a one-way refuge slab **two** tiles
+above it, the slabs sit inside the span the boss walks so they cannot be camped,
+and the boss is tall enough that the blade reaches it from a slab.
+
+```
+boss gate: 21 checks, ALL PASSED
+  phase 0 STOMP  AIR>LAND     56 instances over 28 tiles | hit 22, missed 6, never fired 0 | reach 134 px
+      did not connect on: (31,25) (32,25) (33,25) (41,25) (42,25) (43,25)
+  phase 1 LEAP   AIR>LAND     56 instances over 28 tiles | hit 22, missed 6, never fired 0 | reach 168 px
+      did not connect on: (31,25) (32,25) (33,25) (41,25) (42,25) (43,25)
+  phase 2 FURY   AIR>LAND     84 instances over 28 tiles | hit 22, missed 6, never fired 0 | reach 183 px
+      did not connect on: (31,25) (32,25) (33,25) (41,25) (42,25) (43,25)
+  phase 2 FURY   SPRAY>WALK   56 instances over 28 tiles | hit 25, missed 3, never fired 0 | reach 113 px
+      did not connect on: (41,27) (42,27) (43,27)
+  refuges: 9 reachable from the arena floor, 0 not
+  the boss body reached 19 of the 28 swept tiles
+  strategy tape: 2416 frames (40.3 s)
+  replay: 2406 frames (40.1 s), boss health 0, phase 2, hearts 2 (low 2)
+  it ends: walked out through the gate after 174 frames (2.9 s)
+```
+
+Every attack in every phase now misses at least one tile a player can actually
+stand on, none of the nine refuges is out of reach, and the gate prints no
+"not a place to fight from" note about any of them. Four things had to change,
+and each is a number rather than an opinion:
+
+**The refuges came down four tiles.** `tools/build_levels.py`'s `jungle_5()`
+draws the two slabs at row 25 instead of row 21 — 32 px over the floor against a
+measured 46 px jump. Row 25 is the row that works in both directions: the slam's
+shockwave leaves the Warden's feet 4 px up and is 6 px tall, so it runs the band
+y=425..431, and a body standing on row 25 occupies y=378..400 with the wave
+passing 25 px under her boots. The one-way art is drawn in the top four pixels of
+its tile, so walking the floor underneath clips nothing.
+
+**The Warden's hurtbox is the animal its art draws.** 26×26 became 26×42 in
+`data/enemies/boss_grove.json` — `oy` 20 → 4, so the box bottom, its width and
+every pixel of the sprite stay exactly where they were and only the top moves.
+That is what makes a slab a place to fight from: the blade leaves Kaya's chest at
+y=383..395 up there, and a box topping out at y=406 could be hidden from but
+never hit from. It also means the Warden can no longer be jumped over — 46 px of
+jump against a crown at y=390 — which is the second change.
+
+**The arena got ends the Warden cannot reach**, the mechanism
+`src/enemies/tide_maw.gd` already had: `arena_inset: 96.0` clamps its body to
+x=496..704, cols 31 to 43, so cols 26-30 and 44-47 are floor it never stands on.
+Without that, a boss you cannot jump over in a sealed arena has no counter at
+all. Measured with `KAYA_BOSSGATE_TRACE=1` before the inset: of the five hearts a
+losing run spent, four went to its body at |dx| < 20 px with the nearest shot 999
+px away. The pen also gained the rule that goes with it — inside 40 px, with her
+body level with its body, run.
+
+**The beetles are a garrison, not a flood.** `KAYA_BOSSGATE_MODE=probe
+KAYA_BOSSGATE_PROBE=adds`, uncapped:
+
+```
+phase 1 LEAP   slam every 1.7s, 2 add(s) per slam | live beetles 5s:2, 10s:4, 15s:8, 20s:10, 25s:14, 30s:16
+phase 2 FURY   slam every 1.2s, 1 add(s) per slam | 30s:7
+```
+
+Sixteen beetles in an arena twenty-two tiles wide, and nothing in the fight ever
+takes one away. The blade needs two hits to clear a beetle and lands about one a
+second, so past four of them the fight is decided by arithmetic. `max_adds: 4`
+caps the live count inside the arena screen; it still calls for help on every
+slam. Both phases now sit at 4 from 15 s on.
+
+**The tape.** `tools/bossgate/tapes/boss_grove.json`, 2,416 frames — it kills the
+Warden in **40.3 s from full health with 3 of 5 hearts**, and replays in the gate
+at 2 to 4 depending on whether a beetle drops one (`walker`'s drop table is
+`heart: 0.06`, and `rng.randomize()` means that is luck, not state). The bar is 1.
+
+Recording it needed two fixes to the pen, `tests/integration/boss_gate_strategy.gd`:
+
+- **It aims now.** `FormBase.run_axis()` writes `p.facing` from the movement axis
+  and `Blade.setup()` reads it, so the blade flies the way Kaya last *walked* —
+  and holding a standoff means stepping away from the thing she is aiming at. The
+  pen threw the blade backwards for most of every fight. This is the defect
+  `tests/integration/boss_tide_maw_strategy.gd` was written around rather than
+  into; it is fixed at the source now, and an attack press is preceded by three
+  frames of held movement toward the target.
+- **It stops at a win worth showing.** ADR 005's check 2 passes at one heart, and
+  the first win the search stumbled into kept exactly one of five. The descent
+  now keeps looking until a run keeps three, and writes the best win it saw if
+  none does. `tools/bossgate.sh --record` also tries the pen's plain defaults
+  first, and `KAYA_BOSSGATE_KNOBS='{"use_under": false}'` runs one named setting
+  with no search, which is how the traces above were taken.
+
+And one real bug the inset exposed: `boss_grove.gd` clamped `pos.x` inside
+`think()`, which runs *before* `step_motion()`, so the position was clamped and
+then moved. While the arena was the whole screen its walls stopped the Warden two
+tiles short of its own clamp and it never showed; with the inset the clamp is
+what stops it, and the first full run after the change reported `the boss left
+arena_min/arena_max or its home screen on 4502 frame(s)`. The clamp bites on the
+velocity now, before the move that would use it — `_hold_the_arena()`, the same
+function and the same reason as the Maw's, whose comment names this file as the
+one that had not needed it yet.
+
+Verified, in this order, all green: `tools/bossgate.sh` (full, 21 checks, quoted
+above); `tools/prove.sh jungle_5` — PARTIAL, 6 hops, 823 frames, 8,925
+expansions, traversal proved to `arena_floor` with the last hop to `boss_exit`
+the gate's, as it always was; `tools/validate.sh`; `tools/test.sh` (260 tests,
+53,731 assertions, 0 failed); and `ITEST_TIMEOUT=900 tools/itest.sh` — 322
+checks, all passed, which is the jungle_5 tape replay and the three Warden cases
+included.
+
+The captures are in `tools/seq/m6_boss.json`, four of them new.
+`shots/24_boss_arena.png` is Kaya on the west refuge with the Warden between the
+slabs and its horns over the slab line; `shots/jungle_5_refuge_east.png` and
+`..._refuge_dodge.png` are the east refuge with the slam running the floor
+underneath her; `..._west_corner.png` is the floor at the west end, where the
+inset means it cannot follow. The first arena teleport in that sequence needs a
+settle of 120: crossing onto the boss screen freezes the sim for the title card,
+and a capture taken inside the freeze drew her at her last synced position, two
+screens away.
+
+Not fixed, and worth knowing: `tools/bossgate.sh --quick` reports FURY's
+`SPRAY>WALK` as connecting everywhere. Quick mode sweeps every fourth standable
+tile — seven of twenty-eight — and the spray's window is three floor tiles at the
+east end, none of which that subsample visits. The full run is the gate and the
+quick run has always been "smoke, not proof"; this is the first time the
+difference has been visible.

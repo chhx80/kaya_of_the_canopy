@@ -1,10 +1,12 @@
 [
+  {"_": "HEART OF THE GROVE and THE GROVE WARDEN. Re-run with: tools/shot.sh --seq=tools/seq/m6_boss.json"},
   {"scenario": "level:jungle_5", "settle": 150},
   {"teleport": [5, 24], "settle": 60},
   {"shot": "shots/22_shooter_and_pool.png"},
   {"teleport": [13, 25], "settle": 40},
   {"shot": "shots/23_swimmers.png"},
-  {"teleport": [31, 24], "settle": 30},
+  {"_": "The arena, from the west refuge slab: two tiles over the floor, inside the span the Warden walks, so it strolls underneath you."},
+  {"teleport": [31, 23], "settle": 120, "_": "teleport takes the tile's top-left, so aim one tile high and let her drop the 10 px onto the one-way slab at row 25. The first arena teleport also needs a long settle: crossing into the boss screen freezes the sim for the Warden's title card, and a capture taken inside that freeze draws her at her last synced position, which is two screens away"},
   {"shot": "shots/24_boss_arena.png"},
   {"press": "attack", "frames": 4},
   {"wait": 20},
@@ -12,5 +14,16 @@
   {"wait": 100},
   {"shot": "shots/26_boss_slam.png"},
   {"wait": 60},
-  {"shot": "shots/27_boss_shockwave.png"}
+  {"shot": "shots/27_boss_shockwave.png"},
+  {"_": "The east refuge, and the slam running the floor underneath it -- the dodge window ADR 005's check 3 asks for, 25 px under her boots."},
+  {"teleport": [42, 23], "settle": 40},
+  {"wait": 50},
+  {"shot": "shots/jungle_5_refuge_east.png"},
+  {"wait": 40},
+  {"shot": "shots/jungle_5_refuge_dodge.png"},
+  {"wait": 40},
+  {"shot": "shots/jungle_5_refuge_dodge2.png"},
+  {"_": "And the floor at the west end, which the 96 px arena inset puts out of the Warden's reach entirely."},
+  {"teleport": [27, 25], "settle": 40},
+  {"shot": "shots/jungle_5_west_corner.png"}
 ]

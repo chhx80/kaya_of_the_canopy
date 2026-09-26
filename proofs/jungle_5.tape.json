@@ -416,7 +416,7 @@
  "level": "jungle_5",
  "partial": true,
  "proves": "traversal",
- "source_sha": "51be63cdb3f70ee896c21814fcd558eb54f6203a3f6469253e13092451723629",
+ "source_sha": "17544770fedc7d5bc4253d21dff09f6f538f4f575a938bfb6c00b75234af8898",
  "unproved": [
   {
    "from": "arena_floor",
