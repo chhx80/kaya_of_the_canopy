@@ -6,9 +6,9 @@
   "frame_h": 48,
   "hitbox": {
     "w": 26,
-    "h": 26,
+    "h": 42,
     "ox": 11,
-    "oy": 20
+    "oy": 4
   },
   "health": 18,
   "contact_damage": 1,
@@ -17,6 +17,8 @@
   "speed": 0.0,
   "boss": true,
   "hitstop": "boss_kill",
+  "arena_inset": 96.0,
+  "max_adds": 4,
   "phases": [
     {
       "name": "STOMP",

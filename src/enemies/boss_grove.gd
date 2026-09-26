@@ -25,10 +25,19 @@ func on_configured() -> void:
 func _ready() -> void:
 	super._ready()
 	add_to_group(&"bosses")
-	# Lock the boss to the screen it spawned on.
+	# Lock the Warden to a span inside the screen it spawned on, not to the screen.
+	# It used to inset by a flat 8 px, which is to say it could put its body on
+	# every tile of the arena floor including both corners — and since Kaya can no
+	# longer jump over it (42 px of hurtbox against a 46 px jump) that left her
+	# nowhere at all to retreat to. Measured with KAYA_BOSSGATE_TRACE=1: of five
+	# hearts spent in a losing run, four went to its body while the nearest shot
+	# was 999 px away. `arena_inset` is src/enemies/tide_maw.gd's mechanism and
+	# this is the same use of it — the ends of the floor become somewhere it
+	# cannot reach, so distance is an answer the arena actually offers.
 	var origin := Screen.origin(home_screen)
-	arena_min = origin.x + 8.0
-	arena_max = origin.x + Screen.W - 8.0 - box.x
+	var inset := float(cfg.get("arena_inset", 8.0))
+	arena_min = origin.x + inset
+	arena_max = origin.x + Screen.W - inset - box.x
 	t = 0.9
 
 func on_respawn() -> void:
@@ -67,6 +76,13 @@ func hurt(amount: int, from: Vector2 = Vector2.ZERO) -> void:
 				AudioManager.play("boss_phase")
 
 func think(delta: float) -> void:
+	# The refuge slabs in jungle_5's arena are one-way platforms inside the span
+	# the Warden walks, and its slam clears 39 px against their 32 — so without
+	# this it lands ON a refuge and stands there, which is both absurd and the end
+	# of the dodge window that slab exists to be. `drop_through` is Actor's own
+	# switch for "one-ways are not floors this tick"; the Warden is never anywhere
+	# but the arena floor. Same reason, same line, as src/enemies/tide_maw.gd.
+	drop_through = true
 	apply_gravity(delta)
 	t = maxf(0.0, t - delta)
 	var p := player()
@@ -122,7 +138,28 @@ func think(delta: float) -> void:
 				_spray()
 				st = St.WALK
 				t = float(phase_cfg.get("slam_interval", 2.4))
+	_hold_the_arena(delta)
+
+## Check 4 of the boss gate is "the boss stays inside arena_min/arena_max", and it
+## is measured at the END of the physics frame — after `step_motion()`, which runs
+## after `think()`. This used to be a bare `pos.x = clampf(...)` here, and it got
+## away with it only because the Warden's arena was the whole screen and the
+## screen has walls that stopped it two tiles short of its own clamp. With
+## `arena_inset` the clamp is what stops it, and clamping the position and then
+## moving put it outside its arena on 4,502 frames of the fairness sweep — which
+## is a failure, not a rounding error. So the clamp bites on the VELOCITY, before
+## the move that would use it, and the position clamp stays as the backstop.
+## src/enemies/tide_maw.gd's `_hold_the_arena()` is this, for the same reason; its
+## comment names this file as the one that had not needed it yet.
+func _hold_the_arena(delta: float) -> void:
 	pos.x = clampf(pos.x, arena_min, arena_max)
+	if delta <= 0.0:
+		return
+	var next_x := pos.x + vel.x * delta
+	if next_x < arena_min:
+		vel.x = (arena_min - pos.x) / delta
+	elif next_x > arena_max:
+		vel.x = (arena_max - pos.x) / delta
 
 func _maybe_spray(delta: float) -> void:
 	if int(phase_cfg.get("spray", 0)) <= 0:
@@ -158,17 +195,48 @@ func _land() -> void:
 		var shot := Projectile.new()
 		shot.setup(pj, Vector2(center().x, pos.y + box.y - 4.0), dir, world, level)
 		level.entities.add_child(shot)
-	# Reinforcements.
-	var adds := int(phase_cfg.get("spawn_adds", 0))
-	for i in adds:
-		if level == null:
+	# Reinforcements, up to a garrison size and no further. Measured with
+	# `KAYA_BOSSGATE_MODE=probe KAYA_BOSSGATE_PROBE=adds` while this was uncapped:
+	#
+	#   phase 1 LEAP   slam every 1.7s, 2 add(s) per slam | live beetles
+	#                  5s:2, 10s:4, 15s:8, 20s:10, 25s:14, 30s:16
+	#   phase 2 FURY   slam every 1.2s, 1 add(s) per slam | 30s:7
+	#
+	# Sixteen beetles in an arena twenty-two tiles wide, and nothing in the fight
+	# ever takes one away. The blade needs two hits to clear a beetle and lands
+	# about one hit a second, so past about four of them the player cannot spend
+	# them as fast as the Warden mints them and the fight stops being decided by
+	# play. It still calls for help on every slam; the arena just holds a fixed
+	# garrison now.
+	var live := live_adds()
+	var cap := int(cfg.get("max_adds", 4))
+	for i in int(phase_cfg.get("spawn_adds", 0)):
+		if level == null or live >= cap:
 			continue
+		live += 1
 		var origin := Screen.origin(home_screen)
 		level.spawn_entity({
 			"type": "enemy_walker",
 			"px": origin.x + 40.0 + float(i) * (Screen.W - 96.0),
 			"py": pos.y - 8.0,
 		})
+
+## How many hostile bodies are standing in the arena. Counted from the live scene
+## rather than tallied on spawn, so a beetle that walks into the blade comes off
+## the books — and counted *by screen*, because every other enemy in the level is
+## in the same `enemies` group: jungle_5 authors eight of them across its other
+## three screens, and counting those would mean the garrison was full before the
+## fight started and the Warden never called anyone.
+func live_adds() -> int:
+	var n := 0
+	for node in get_tree().get_nodes_in_group(&"enemies"):
+		var e := node as Enemy
+		if e == null or e == self or not is_instance_valid(e) or e.level != level:
+			continue
+		if Screen.index_of(e.center(), Vector2i(999, 999)) != home_screen:
+			continue
+		n += 1
+	return n
 
 func die(from: Vector2 = Vector2.ZERO) -> void:
 	if defeated:

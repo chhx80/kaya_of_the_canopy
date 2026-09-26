@@ -548,8 +548,54 @@ def jungle_5():
     g.ground(26, 27, 22)
     g.mark("arena_floor", 38, 26)       # 21 tiles straight down off ledge_b
     g.rect(48, 15, 1, 13, "s")
-    g.platform(30, 21, 3)
-    g.platform(42, 21, 3)
+
+    # ---- the refuges, two tiles over the floor and not six
+    # These slabs used to sit at row 21, and measured (tools/bossgate.sh --quick)
+    # that was two defects in one line:
+    #
+    #     refuges: 2 reachable from the arena floor, 2 not
+    #     NOTE  unreachable refuge tiles: (30,21) (43,21)
+    #     NOTE  they sit up to 96 px above the arena floor; Kaya's measured
+    #     NOTE  apex as human is 46 px, so once she is down she cannot return.
+    #     NOTE  refuge (30,21): six seconds of blade throws never damaged
+    #     NOTE  the boss from there -- safe, but not a place to fight from.
+    #
+    # and the shockwave -- the one attack that covers the whole floor -- missed
+    # nothing else, so the Warden's only dodge window was a ledge Kaya cannot
+    # reach and cannot shoot from. THE TIDE MAW's arena is the rule this now
+    # follows (tools/worlds/ruins_5.py): every standable tile is the floor or a
+    # one-way slab TWO tiles above it -- 32 px against a measured 46 px jump --
+    # the slabs sit inside the boss's own span so they cannot be camped, and the
+    # floor stays unbroken wall to wall so there is always somewhere to run.
+    #
+    # Row 25 is the row that makes them work, in both directions at once. The
+    # shockwave leaves the Warden's feet 4 px up and is 6 px tall, so it runs the
+    # band y=425..431; a body standing on row 25 occupies y=378..400 and the
+    # wave passes 25 px beneath her boots. From up there the blade leaves her
+    # chest at y=383..395, which is why data/enemies/boss_grove.json now gives
+    # the Warden the 42 px hurtbox its art always had: 390..432, so the throw
+    # lands. One tile lower would put her head inside the slab she is standing
+    # under; one tile higher is out of reach.
+    #
+    # Columns 31-33 and 41-43, which is INSIDE the span the Warden now walks:
+    # data/enemies/boss_grove.json insets its clamp by 96 px, so its body covers
+    # x=496..704, cols 31 to 43. It therefore strolls underneath both slabs and
+    # its body -- now 42 px of it -- reaches a body standing on one. A refuge the
+    # boss can never stand under is a corner to camp in, so neither of these is.
+    #
+    # The inset is also why the fight has anywhere to retreat TO. Kaya cannot
+    # jump over 42 px of Warden, and with the old 8 px inset it could put its body
+    # on both corners of the floor: cols 26-30 and 44-47 are now floor it cannot
+    # reach, out at the ends, and the shockwave still covers them. Somewhere safe
+    # from the body, nowhere safe from everything.
+    #
+    # Col 38 and its neighbours are deliberately slab-free: that is the column
+    # Kaya falls down off ledge_b, and a slab under the drop would catch her
+    # before the floor does. Cols 27 and 46 are clear for a related reason --
+    # boss_grove.gd spawns its beetles there, and a beetle that lands on a refuge
+    # owns it.
+    g.platform(31, 25, 3)
+    g.platform(41, 25, 3)
 
     # Drawn after the upper ledge on purpose: written before it, the ledge
     # overwrote the top and the climb dead-ended.

@@ -107,6 +107,7 @@ const KNOBS := [
 	["hop_mode", [true, false]],
 	["hop_period", [30, 38, 44, 52]],
 	["throw_airborne", [true, false]],
+	["flee_gap", [26.0, 34.0, 40.0, 48.0]],
 ]
 const PASSES := 3
 
@@ -125,10 +126,41 @@ func _score(t: Dictionary) -> float:
 		s -= 40.0
 	return s
 
+## ADR 005's check 2 passes at one heart left, and one heart is a bad thing to
+## aim at: the first win this descent stumbled into once the pen learned to aim
+## kept exactly one of five, which is a coin flip dressed up as a proof. So the
+## search does not stop at a win, it stops at a win worth showing — and if it
+## never finds one it writes the best win it did see rather than nothing, saying
+## so. THE TIDE MAW's tape keeps three of five; that is the bar.
+const WANT_HEARTS := 3
+
+## Good enough to stop searching.
 func _won(t: Dictionary) -> bool:
+	return _acceptable(t) \
+		and int((t["outcome"] as Dictionary)["hearts_left"]) >= WANT_HEARTS
+
+## Good enough to write down: exactly what the gate will accept, no more.
+func _acceptable(t: Dictionary) -> bool:
 	var o: Dictionary = t["outcome"]
 	return bool(o["boss_defeated"]) and not bool(o["kaya_dead"]) \
 		and int(o["hearts_left"]) >= 1
+
+## Fewer hearts lost first, then a shorter fight: a tape is a demonstration, and
+## one that dawdles demonstrates the wrong thing.
+func _better_win(t: Dictionary, than: Dictionary) -> bool:
+	if than.is_empty():
+		return true
+	var a: Dictionary = t["outcome"]
+	var b: Dictionary = than["outcome"]
+	if int(a["hearts_left"]) != int(b["hearts_left"]):
+		return int(a["hearts_left"]) > int(b["hearts_left"])
+	return int(t["recorded_frames"]) < int(than["recorded_frames"])
+
+## Every win goes through here, so the search can carry on looking for a better
+## one without losing the one it already has.
+func _keep(t: Dictionary) -> void:
+	if _acceptable(t) and _better_win(t, _best_win):
+		_best_win = t
 
 ## Four structurally different openings, because a single greedy descent locks
 ## onto whichever knob it improved first and never looks at the others again:
@@ -144,6 +176,8 @@ const SEEDS := [
 var _tries := 0
 var _best: Dictionary = {}
 var _best_score := -1e9
+## The best tape seen so far that the gate would actually accept.
+var _best_win: Dictionary = {}
 
 func _record(checks: Node) -> int:
 	var ok: bool = await checks.boot()
@@ -154,10 +188,56 @@ func _record(checks: Node) -> int:
 	rec.name = "BossGateStrategy"
 	add_child(rec)
 
+	# The pen's own defaults, first and on their own. The descent below never
+	# tries them — its first trial is already the first value of its first knob —
+	# and since the pen learned to aim (see the note at the top of
+	# tests/integration/boss_gate_strategy.gd) the defaults are a real candidate
+	# rather than a starting point. A tape recorded from them is also the tape
+	# that is cheapest to reproduce by hand.
+	# One named setting, no search: KAYA_BOSSGATE_KNOBS='{"use_under": false}'.
+	# The search below is thorough and slow, and when the question is "what does
+	# THIS policy do", running it seven hundred times is not the way to ask. Pair it
+	# with KAYA_BOSSGATE_TRACE=1.
+	var fixed := _env("KAYA_BOSSGATE_KNOBS", "")
+	if fixed != "":
+		var parsed: Variant = JSON.parse_string(fixed)
+		if typeof(parsed) != TYPE_DICTIONARY:
+			print("  FAIL  KAYA_BOSSGATE_KNOBS is not a JSON object: %s" % fixed)
+			return 1
+		rec.configure(parsed as Dictionary)
+		var one: Dictionary = await rec.record(checks)
+		_tries = 1
+		_keep(one)
+		var o1: Dictionary = one["outcome"]
+		print("      knobs %s  ->  warden %2d hp, kaya %d hearts%s"
+			% [fixed, int(o1["boss_health"]), int(o1["hearts_left"]), _win_tag(one)])
+		if _best_win.is_empty():
+			print("  No tape written: a tape that does not win is not a proof.")
+			return 1
+		return _write(checks, _best_win, _tries)
+
+	rec.configure({})
+	var plain: Dictionary = await rec.record(checks)
+	_tries += 1
+	_best = plain
+	_best_score = _score(plain)
+	var o0: Dictionary = plain["outcome"]
+	_keep(plain)
+	print("      try   1  %-14s = %-6s  ->  warden %2d hp, kaya %d hearts%s"
+		% ["(defaults)", "-", int(o0["boss_health"]), int(o0["hearts_left"]),
+			_win_tag(plain)])
+	if _won(plain):
+		return _write(checks, _best_win, _tries)
+
 	for seed_i in SEEDS.size():
 		var won: bool = await _descend(checks, rec, SEEDS[seed_i], seed_i)
 		if won:
-			return _write(checks, _best, _tries)
+			return _write(checks, _best_win, _tries)
+	if not _best_win.is_empty():
+		print("  %d strategies tried and none of them kept %d hearts, so what is"
+			% [_tries, WANT_HEARTS])
+		print("  written is the best win any of them managed:")
+		return _write(checks, _best_win, _tries)
 	var o: Dictionary = _best["outcome"] if _best.has("outcome") else {}
 	print("  %d strategies tried; the best left the Warden on %s health with Kaya on %s."
 		% [_tries, str(o.get("boss_health", "?")), str(o.get("hearts_left", "?"))])
@@ -189,22 +269,33 @@ func _descend(checks: Node, rec: Node, seed: Dictionary, seed_i: int) -> bool:
 					return false
 				var t: Dictionary = await rec.record(checks)
 				_tries += 1
+				var held: Dictionary = _best_win
+				_keep(t)
 				var sc := _score(t)
 				if sc > local:
 					local = sc
 					params = trial
-				if sc > _best_score:
-					_best_score = sc
-					_best = t
+				# Printed when the run is the best yet by score OR when it is the best
+				# win yet, because those are no longer the same thing: a run that trades
+				# two hearts for the same kill scores barely higher and is the one worth
+				# writing down.
+				if sc > _best_score or _best_win != held:
+					if sc > _best_score:
+						_best_score = sc
+						_best = t
 					print("      try %3d  %-14s = %-6s  ->  warden %2d hp, kaya %d hearts%s"
 						% [_tries, key, str(v),
 							int((t["outcome"] as Dictionary)["boss_health"]),
 							int((t["outcome"] as Dictionary)["hearts_left"]),
-							"  WIN" if _won(t) else ""])
+							_win_tag(t)])
 				if _won(t):
-					_best = t
 					return true
 	return false
+
+func _win_tag(t: Dictionary) -> String:
+	if _won(t):
+		return "  WIN"
+	return "  win, but thin" if _acceptable(t) else ""
 
 func _write(checks: Node, tape: Dictionary, tries: int) -> int:
 	var outcome: Dictionary = tape["outcome"]

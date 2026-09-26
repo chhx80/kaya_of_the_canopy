@@ -10,6 +10,23 @@ extends Node
 ##
 ## Re-record with:  tools/bossgate.sh --record
 ## Trace what the policy is doing with:  KAYA_BOSSGATE_TRACE=1
+##
+## IT AIMS NOW, AND THAT IS THE WHOLE FIX
+## --------------------------------------
+## For a long time this pen could not beat the Warden at all, and the reason was
+## not the tuning it has thirteen knobs for. `FormBase.run_axis()` writes
+## `p.facing` from the movement axis and `Blade.setup()` reads `p.facing`, so the
+## blade flies the way Kaya last *walked* — and holding a standoff means stepping
+## AWAY from the thing she is aiming at. The pen threw the blade backwards for
+## most of every fight. Measured against THE TIDE MAW, which is where this was
+## finally diagnosed (see tests/integration/boss_tide_maw_strategy.gd): a hundred
+## and more knob settings across two searches, best result six damage of
+## eighteen in ninety seconds, while `KAYA_BOSSGATE_MODE=probe` showed a standing
+## throw landing nine damage in TEN seconds at any gap from 40 to 104 px.
+##
+## So an attack press is now preceded by `aim_frames` of held movement *toward*
+## the target, and the press only happens on a frame where she is already facing
+## it. Everything else here is unchanged.
 
 const Tape := preload("res://tests/integration/boss_gate_tape.gd")
 
@@ -51,6 +68,14 @@ var add_mode := 0
 var hop_mode := false
 var hop_period := 44         ## frames per hop: held for all but the last four
 var throw_airborne := false  ## let her throw while off the ground
+## Frames of held movement toward the target before the attack press. Three,
+## because `Player._physics_process` polls input, then steps the form (which is
+## where `facing` is written), then calls `try_attack` — so one frame of aim is
+## read a tick late and two is the first that is certainly enough.
+var aim_frames := 3
+## Inside this many pixels of the Warden's body, with her own body level with it,
+## distance is the only move there is. See the note in `_decide`.
+var flee_gap := 40.0
 
 func configure(d: Dictionary) -> void:
 	for k: String in d.keys():
@@ -72,6 +97,7 @@ var _last_health := 5
 var _vault := 0
 var _vault_dir := 0
 var _frame := 0
+var _aim := 0
 
 var _amin := 0.0
 var _amax := 0.0
@@ -100,6 +126,7 @@ func record(checks: Node) -> Dictionary:
 	_vault = 0
 	_vault_dir = 0
 	_frame = 0
+	_aim = 0
 	_last_health = Game.health
 
 	var per_frame: Array = []
@@ -203,12 +230,41 @@ func _decide(pl: Player, boss: Enemy) -> Array:
 	if Game.health < _last_health:
 		_panic = panic_hold
 		_under = 0
+		_aim = 0
 	_last_health = Game.health
 	if _panic > 0:
 		_panic -= 1
 		var nearest := _nearest_body(pl)
 		if nearest != 0:
 			held.append("right" if nearest < 0 else "left")
+		return held
+
+	# THE WARDEN IS NOT SOMETHING YOU CAN CROSS ANY MORE. Its hurtbox is the 42 px
+	# animal its art draws, so its crown stands at y=390 and the apex of a 46 px
+	# jump puts her boots at 386: four pixels, for one frame. Measured with
+	# KAYA_BOSSGATE_TRACE=1 before this rule existed, four of the five hearts a
+	# losing run spent went to its body, every one of them at |dx| < 20 px with the
+	# nearest shot 999 px away — she was flying into it, not being shot.
+	#
+	# So inside `flee_gap`, *while her body is level with its body*, the only move
+	# is away, and it outranks the aim, the standoff and the beetle vault. The
+	# vertical test is what keeps the under-pass below: while the Warden is at the
+	# top of its leap its feet are 39 px up and her head is 22, so the two boxes
+	# share nothing and running underneath is still the one way to change sides.
+	var boss_dx := boss.center().x - pc.x
+	var br := boss.aabb()
+	var pr := pl.aabb()
+	var level_with_it: bool = br.position.y < pr.end.y and br.end.y > pr.position.y
+	if level_with_it and absf(boss_dx) < flee_gap:
+		_under = 0
+		_vault = 0
+		_aim = 0
+		# A jump already in the air stays held: cutting it drops her faster, and
+		# there is nothing down there but the shockwave she left for.
+		if _jump_latch > 0:
+			_jump_latch -= 1
+			held.append("jump")
+		held.append("left" if boss_dx > 0.0 else "right")
 		return held
 
 	# The pass is triggered on the Warden's *takeoff*, not on where its feet
@@ -261,23 +317,48 @@ func _decide(pl: Player, boss: Enemy) -> Array:
 			step = _vault_dir
 		elif (not on_boss or st != ST_AIR) and absf(dx) < 30.0 and pl.on_floor:
 			# It is on the floor and on top of her, and the pass is not on.
-			# Over it is all that is left.
-			held.append("jump")
-			step = toward
+			# This used to jump *over* it, and that stopped being possible when
+			# the Warden's hurtbox grew to the 42 px animal its art draws: her
+			# jump is 46 px, so the apex clears its crown by four pixels and every
+			# frame either side of the apex is a body hit. At point blank the only
+			# answer left is distance, and she runs 108 to its 46-78.
+			step = away
 
 	if step > 0:
 		held.append("right")
 	elif step < 0:
 		held.append("left")
 
-	# try_attack is cooldown- and in-flight-gated, so holding attack simply
-	# throws as often as the blade allows. Measured (KAYA_BOSSGATE_MODE=probe):
-	# from the floor, at any gap from 40 to 104 px, this lands about one hit a
-	# second — 18 health in twenty-odd seconds, well inside the time bound.
-	if (pl.on_floor or throw_airborne) and absf(dx) > throw_min \
-			and absf(dx) <= throw_max:
-		held.append("attack")
+	# AIM, then throw. `facing` comes from the movement axis (see the note at the
+	# top of this file), so the press is worth nothing unless she spent the last
+	# few frames walking at the thing. try_attack is cooldown- and in-flight-
+	# gated, so a press that is too early simply does nothing. Measured
+	# (KAYA_BOSSGATE_MODE=probe): from the floor, at any gap from 40 to 104 px, an
+	# aimed throw lands about one hit a second — 18 health in twenty-odd seconds,
+	# well inside the time bound.
+	var want_throw: bool = (pl.on_floor or throw_airborne) \
+		and absf(dx) > throw_min and absf(dx) <= throw_max
+	if _under <= 0 and _vault <= 0:
+		if _aim <= 0 and want_throw and _blade_is_home():
+			_aim = aim_frames
+		if _aim > 0:
+			_aim -= 1
+			# Override the standoff's step for the length of the aim: this is the
+			# one thing in the policy allowed to walk her the "wrong" way.
+			held.erase("left")
+			held.erase("right")
+			held.append("right" if toward > 0 else "left")
+			if _aim == 0 and want_throw:
+				held.append("attack")
 	return held
+
+## The blade is a single-shot weapon (`max_in_flight: 1`), so there is nothing to
+## aim at all while the last throw is still out.
+func _blade_is_home() -> bool:
+	for n: Node in gate.entity_children():
+		if n is Blade and is_instance_valid(n):
+			return false
+	return true
 
 ## Which way the nearest beetle lies: vault that way.
 func _add_side(pl: Player) -> int:
@@ -428,8 +509,9 @@ func probe_adds(checks: Node) -> void:
 	for phase in phases.size():
 		var pcfg: Dictionary = phases[phase]
 		gate.reset_arena(phase)
-		# Park her on a ledge the Warden cannot reach, so the only thing
-		# driving the count is the boss's own slam cycle.
+		# Park her on the west refuge slab and hold her there, so the only thing
+		# driving the count is the boss's own slam cycle. It used to be tile
+		# (30,21), the 96 px ledge this arena no longer has.
 		pl.control_enabled = false
 		pl.dead = false
 		pl.invuln = 999.0
@@ -439,7 +521,7 @@ func probe_adds(checks: Node) -> void:
 			pl.invuln = 999.0
 			pl.hurt_t = 0.0
 			pl.vel = Vector2.ZERO
-			pl.pos = gate.stand_pos(Vector2i(30, 21))
+			pl.pos = gate.stand_pos(Vector2i(30, 25))
 			Game.health = Game.max_health
 			await get_tree().physics_frame
 			if (f + 1) % 300 == 0:
