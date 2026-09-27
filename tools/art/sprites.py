@@ -1168,6 +1168,14 @@ BOSS = {'p': ("purple", 2.0), 'r': ("ember", 3.0), 'n': ("water", 2.0),
         'o': ("gold", 3.2), 'd': ("purple", 0.6), 'w': ("metal", 6.0),
         'y': ("gold", 4.8), 'A': ("metal", 4.2), 'a': ("metal", 2.2)}
 
+#: THE STORMCREST. Stone plumage so the bird is not a second purple animal, and
+#: three plume characters rather than three maps: the crest and the wing bars
+#: are what change colour between phases, and they are a *character* choice in
+#: `build_boss_stormcrest()`, which keeps one mapping honest for all 18 frames.
+STORM = {'a': ("stone", 2.2), 'A': ("stone", 4.8), 'd': ("stone", 0.5),
+         'w': ("metal", 6.0), 'y': ("gold", 4.8), 'o': ("gold", 3.2),
+         'r': ("ember", 3.0)}
+
 BLADE = {'A': ("metal", 1.8), 'w': ("metal", 5.8)}
 GEM = {'c': ("water", 5.2), 'b': ("water", 3.4), 'w': ("metal", 6.0)}
 HEART = {'r': ("ember", 2.8), 'w': ("metal", 6.0)}
@@ -1428,3 +1436,223 @@ def build_boss():
     cells = [make(ph, pose) for ph in PHASES for pose in POSES]
     sheet("boss_grove", lit(cells, BOSS), 48, 48)
     print("boss_grove.png  %d frames" % len(cells))
+
+
+def build_boss_stormcrest():
+    """THE STORMCREST — 48x48, six frames per fight phase, heights_5.
+
+    A hook-beaked ridge raptor. It is drawn **facing left**, which is the
+    convention the fish sheet already set for an asymmetric animal, and
+    `Enemy.draw()` mirrors it for the other direction.
+
+    Frame order is the contract with data/enemies/stormcrest.json, which names
+    the six poses `<pose>_p1/_p2/_p3`, and src/enemies/stormcrest.gd picks the
+    suffix for the phase it is in:
+
+        0 idle (perched)  1-2 the stalk  3 windup  4 airborne  5 landing splay
+
+    The fight's one idea is that it is only vulnerable while it is *roosting*,
+    so the art has one job above all others: the player must be able to tell,
+    across the width of a screen and in a fifth of a second, whether the animal
+    is up or down. Everything below serves that.
+
+      * **Airborne is a diagonal.** Frame 4 is the whole body rotated nose-down
+        through 34 degrees with the legs tucked away. No other frame is off the
+        horizontal, so the silhouette alone answers the question.
+      * **Roosting is legs.** Frames 0, 1, 2, 3 and 5 are the only ones that
+        draw legs and talons standing on the floor row.
+
+    Phases differ in silhouette as well as in value, the rule
+    jungle-platformer-plan.md set for the Grove Warden ("visually distinct
+    phases rather than a colour swap"): the crest lengthens and fans wider, the
+    wing span grows and the tail draws out, phase by phase. Value carries the
+    rest — stone-grey plumage lit white in EYRIE, bleached with a gold crest in
+    SQUALL, storm-dark with an ember crest and a red eye in TEMPEST — and it
+    is what the screenshots read at 400x240.
+    """
+    import math
+
+    W = H = 48
+    FLOOR = 46
+    CX, CY = 24, 24
+
+    # ---- per phase: how the bird is built, and which character its plumage is
+    # drawn in. `body`/`belly` are the two plumage masses, `plume` the crest and
+    # the wing bars, `eye` the one pixel the player looks for.
+    PHASES = [
+        dict(name="EYRIE", body='a', belly='A', plume='w', eye='y',
+             crest=7, fan=5, span=16, tail=11, ember=0),
+        dict(name="SQUALL", body='A', belly='w', plume='y', eye='y',
+             crest=9, fan=6, span=18, tail=13, ember=0),
+        dict(name="TEMPEST", body='d', belly='a', plume='o', eye='r',
+             crest=11, fan=7, span=20, tail=15, ember=1),
+    ]
+    # dy      how far the mass sits off its perched height
+    # ang     nose-down rotation of the whole animal, in degrees
+    # open    how far the wing is held off the body, 0 folded .. 1 spread
+    # step    the stalking leg slide
+    # fanned  extra spread on the crest
+    # legs    whether feet are on the floor at all
+    POSES = [
+        dict(dy=0, ang=0, open=0.0, step=0, fanned=0.0, legs=1),   # idle
+        dict(dy=1, ang=0, open=0.2, step=3, fanned=0.2, legs=1),   # stalk A
+        dict(dy=0, ang=0, open=0.3, step=-3, fanned=0.0, legs=1),  # stalk B
+        dict(dy=4, ang=0, open=0.5, step=0, fanned=1.0, legs=1),   # windup
+        dict(dy=-8, ang=34, open=1.0, step=0, fanned=0.6, legs=0),  # airborne
+        dict(dy=2, ang=0, open=1.0, step=5, fanned=0.8, legs=1),   # landing
+    ]
+
+    def make(ph, pose):
+        px = [['.'] * W for _ in range(H)]
+        rad = math.radians(pose["ang"])
+        ca, sa = math.cos(rad), math.sin(rad)
+
+        def put(x, y, c):
+            """Plot in body space: rotated about the mass, then to the grid."""
+            dx, dy = x - CX, y - CY
+            gx = int(round(CX + dx * ca - dy * sa))
+            gy = int(round(CY + dx * sa + dy * ca))
+            if 0 <= gx < W and 0 <= gy < H:
+                px[gy][gx] = c
+
+        def raw(x, y, c):
+            """Plot straight to the grid — for the legs, which do not rotate."""
+            if 0 <= int(x) < W and 0 <= int(y) < H:
+                px[int(y)][int(x)] = c
+
+        def ellipse(cx, cy, rx, ry, c):
+            # Half-pixel steps: a rotated forward-mapped fill drops pixels at
+            # the diagonal otherwise, and frame 4 is nothing but diagonal.
+            n = int(max(rx, ry) * 4) + 4
+            for j in range(-n, n + 1):
+                for i in range(-n, n + 1):
+                    x, y = cx + i * 0.5, cy + j * 0.5
+                    if ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1.0:
+                        put(x, y, c)
+
+        def line(x0, y0, x1, y1, c, thick=1):
+            n = int(max(abs(x1 - x0), abs(y1 - y0), 1) * 2)
+            for i in range(n + 1):
+                x = x0 + (x1 - x0) * i / n
+                y = y0 + (y1 - y0) * i / n
+                for t in range(thick):
+                    put(x, y + t, c)
+
+        def stroke(x0, y0, x1, y1, w0, w1, c):
+            """A limb: a line with a width that tapers from end to end.
+
+            Everything on a bird that is not a ball is one of these — the wing,
+            the tail wedge, the legs — and drawing them as tapered masses
+            rather than as lines is the difference between a raptor and a hen.
+            """
+            dx, dy = x1 - x0, y1 - y0
+            ln = max(math.hypot(dx, dy), 0.001)
+            nx, ny = -dy / ln, dx / ln              # the perpendicular
+            n = int(ln * 2) + 1
+            for i in range(n + 1):
+                t = i / n
+                x, y = x0 + dx * t, y0 + dy * t
+                wd = w0 + (w1 - w0) * t
+                m = int(wd * 2) + 1
+                for s in range(-m, m + 1):
+                    if abs(s * 0.5) <= wd:
+                        put(x + nx * s * 0.5, y + ny * s * 0.5, c)
+
+        body, belly, plume = ph["body"], ph["belly"], ph["plume"]
+        base = FLOOR - 8 + pose["dy"]               # underside of the breast
+        bx, by = CX + 2, base - 7                   # the mass
+        hx, hy = CX - 9, by - 9                     # the head
+        openness = pose["open"]
+
+        # ---- tail: a solid wedge off the back, low, drawn first so the wing
+        # covers its root. It lengthens phase by phase and is the second thing
+        # that separates a TEMPEST silhouette from an EYRIE one.
+        tl = ph["tail"]
+        stroke(bx + 5, by + 3, bx + 5 + tl, by + 6, 2.0, 4.5, body)
+        for i in range(3):
+            line(bx + 7, by + 3 + i * 1.5, bx + 5 + tl, by + 4 + i * 2.6, plume)
+
+        # ---- the mass, and the pale breast the eye tracks in flight. The body
+        # is an egg lying forward, not a sphere: the breast is the low left.
+        ellipse(bx, by, 11, 8, body)
+        ellipse(bx - 4, by + 2, 7, 6, belly)
+
+        # ---- wing. Folded it is a plate lying along the back; spread it swings
+        # up and back, and a rank of primaries runs off the tip. This is the
+        # whole read of frames 4 and 5, and the bars are the plume colour, so
+        # the phase is legible on a bird that is nothing but wing.
+        span = ph["span"] * (0.55 + 0.45 * openness)
+        wx, wy = bx - 2, by - 5
+        ang = -0.10 - 0.85 * openness               # radians, up and back
+        tipx = wx + math.cos(ang) * span
+        tipy = wy + math.sin(ang) * span
+        stroke(wx, wy, tipx, tipy, 5.0, 2.2, body)
+        stroke(wx, wy + 1, wx + (tipx - wx) * 0.5, wy + (tipy - wy) * 0.5,
+               3.5, 2.0, belly)
+        for i in range(4):
+            t = 0.6 + i * 0.13
+            fx = wx + (tipx - wx) * t
+            fy = wy + (tipy - wy) * t
+            line(fx, fy, fx + (3 + i * 1.5) * (0.5 + openness),
+                 fy + 1 + i * 0.9, plume)
+
+        # ---- head, beak and eye. The beak is a hook — a gold wedge with the
+        # tip bent down — and it is the only part of the animal that points at
+        # the player.
+        ellipse(hx, hy, 6, 5, body)
+        ellipse(hx - 1, hy + 2, 4, 3, belly)
+        stroke(hx - 3, hy + 1, hx - 10, hy + 1, 3.0, 1.2, 'o')
+        stroke(hx - 9, hy + 1, hx - 8, hy + 4, 1.4, 0.6, 'o')
+        put(hx - 10, hy + 2, 'k')
+        for ex in (hx - 3, hx - 2):
+            put(ex, hy - 1, ph["eye"])
+        put(hx - 3, hy - 1, 'k')
+
+        # ---- the crest: a fan of feathers off the crown, swept back over the
+        # shoulders. This is the animal's name, so it is the largest thing on
+        # the head and it grows every phase.
+        cl = ph["crest"]
+        spread = 0.55 + 0.35 * pose["fanned"]
+        for i in range(ph["fan"]):
+            t = (i / max(1, ph["fan"] - 1)) - 0.5
+            line(hx - 1 + i * 0.6, hy - 4,
+                 hx - 1 + i * 0.6 + cl * spread * (0.5 + t),
+                 hy - 4 - cl * (1.0 - abs(t) * 0.5), plume)
+
+        # ---- ember showing through a storm-dark bird, so TEMPEST is not just
+        # a dark shape on a grey wall.
+        if ph["ember"]:
+            for (x0, y0, x1, y1) in ((-6, -2, -1, 2), (0, -5, 5, -2),
+                                     (-3, 4, 3, 6)):
+                line(bx + x0, by + y0, bx + x1, by + y1, 'r')
+
+        # ---- legs and talons, and only when it is down. Straight to the grid:
+        # a rotated bird still stands on level ground, and in the one frame
+        # where it does not, it has no legs out at all.
+        if pose["legs"]:
+            for side, off in ((-1, -5), (1, 1)):
+                fx = int(bx + off + side * pose["step"] * 0.5)
+                for y in range(int(base) + 2, FLOOR + 1):
+                    raw(fx, y, 'o')
+                    raw(fx + 1, y, 'o')
+                for t in range(-3, 4):              # the talons
+                    raw(fx + t, FLOOR + 1, 'o')
+                raw(fx - 4, FLOOR, 'o')
+                raw(fx + 4, FLOOR, 'o')
+
+        # ---- ink outline, the last pass, exactly as the Warden does it.
+        out = [row[:] for row in px]
+        for y in range(H):
+            for x in range(W):
+                if px[y][x] != '.':
+                    continue
+                for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    yy, xx = y + dy, x + dx
+                    if 0 <= yy < H and 0 <= xx < W and px[yy][xx] not in ('.', 'k'):
+                        out[y][x] = 'k'
+                        break
+        return ["".join(r) for r in out]
+
+    cells = [make(ph, pose) for ph in PHASES for pose in POSES]
+    sheet("boss_stormcrest", lit(cells, STORM), 48, 48)
+    print("boss_stormcrest.png  %d frames" % len(cells))

@@ -1,0 +1,167 @@
+{
+ "ends_at": "pad_human",
+ "fps": 60,
+ "hops": [
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "spawn",
+   "to": "pad_bird"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "pad_bird",
+   "to": "draft_foot"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 12
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 3
+    }
+   ],
+   "from": "draft_foot",
+   "to": "draft_mid"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 8
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 28
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 7
+    }
+   ],
+   "from": "draft_mid",
+   "to": "crest"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 32
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 44
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "crest",
+   "to": "ridge"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 164
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "ridge",
+   "to": "lip"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 90
+    }
+   ],
+   "from": "lip",
+   "to": "pad_human"
+  }
+ ],
+ "level": "heights_5",
+ "partial": true,
+ "proves": "traversal",
+ "source_sha": "a5c3dc06514d3a656327016bd0f6993953d72aa61aecb6fe11a1c8bb183b1f19",
+ "unproved": [
+  {
+   "from": "pad_human",
+   "owner": "the boss gate (ADR 005 section 4, check 5: boss_exit is reachable from the arena floor after defeat)",
+   "to": "boss_exit",
+   "why": "'boss_exit' is placed by Level.on_boss_defeated(), so it is not in the world during play"
+  }
+ ]
+}

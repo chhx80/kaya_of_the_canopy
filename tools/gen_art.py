@@ -432,6 +432,7 @@ def main():
     tiles.build_tileset()
     sprites.build_sprites()
     sprites.build_boss()
+    sprites.build_boss_stormcrest()
     backdrops.build_font()
     backdrops.build_logo()
     backdrops.build_title_bg()
