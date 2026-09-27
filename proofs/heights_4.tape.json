@@ -1,0 +1,410 @@
+{
+ "fps": 60,
+ "hops": [
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "spawn",
+   "to": "pad_frog"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "left+jump",
+     "n": 8
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 20
+    }
+   ],
+   "from": "pad_frog",
+   "to": "rung"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "jump",
+     "n": 7
+    }
+   ],
+   "from": "rung",
+   "to": "pad_bird"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 44
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "pad_bird",
+   "to": "shaft_foot"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 7
+    }
+   ],
+   "from": "shaft_foot",
+   "to": "shaft_mid"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 8
+    }
+   ],
+   "from": "shaft_mid",
+   "to": "shaft_lip"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "none",
+     "n": 18
+    }
+   ],
+   "from": "shaft_lip",
+   "to": "perch_1"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "none",
+     "n": 13
+    }
+   ],
+   "from": "perch_1",
+   "to": "step_off"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 28
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "step_off",
+   "to": "lane_w"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 64
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "lane_w",
+   "to": "lane_e"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "lane_e",
+   "to": "curtain_in"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 12
+    },
+    {
+     "a": "right+jump",
+     "n": 32
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "curtain_in",
+   "to": "crag_door"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "left",
+     "n": 16
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 12
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "crag_door",
+   "to": "draught_foot"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 12
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "draught_foot",
+   "to": "summit"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 20
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 20
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "summit",
+   "to": "launch"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "left",
+     "n": 8
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 8
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 28
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "left+jump",
+     "n": 20
+    },
+    {
+     "a": "jump",
+     "n": 8
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 8
+    },
+    {
+     "a": "right",
+     "n": 15
+    }
+   ],
+   "from": "launch",
+   "to": "mouth"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "left",
+     "n": 52
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "mouth",
+   "to": "exit"
+  }
+ ],
+ "level": "heights_4",
+ "source_sha": "332c18b6371097ad0d15dc3d40a20553d5756593f36ba6a87794bfd0ad9a20f8"
+}

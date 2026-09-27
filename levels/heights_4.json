@@ -1,0 +1,364 @@
+{
+ "id": "heights_4",
+ "name": "THE LONG GLIDE",
+ "music": "world3",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "##################################################",
+  "########..........dddd###########VVVVVVVV........#",
+  "#ddddddd..........##ddddd........VVVVVVVV........#",
+  "#ddddddd............ddddd........VVVVVVVV...UUU..#",
+  "#ddddddd#UUUU#===...##ddd........VVVVVVVV...UUU==#",
+  "#ddddddd#UUUU#........ddd........VVVVVVVV###UUUdd#",
+  "#ddddddd#UUUU#........ddd........VVVVVVVV###UUUdd#",
+  "#ddddddd#UUUU#........###########VVVVVVVV###UUUdd#",
+  "#ddddddd#UUUU#...................VVVVVVVV###UUUdd#",
+  "#ddddddd#UUUU#...................VVVVVVVV###UUUdd#",
+  "#ddddddd#UUUU####################VVVVVVVV###UUUdd#",
+  "#ddddddd#UUUU#dddddddddddddddddddVVVVVVVV...UUUdd#",
+  "#ddddddd#UUUU############........VVVVVVVV...UUUdd#",
+  "#ddddddd#UUUU#ddddddddddd........VVVVVVVV...UUUdd#",
+  "#ddddddd#UUUU#ddddddddddd........VVVVVVVV...UUUdd#",
+  "#ddddddd#UUUU#ddddddddddd........VVVVVVVV...UUUdd#",
+  "#ddddddd#UUUU#ddddddddddd........VVVVVVVV###...dd#",
+  "#ddddddd#UUUU#ddddddddddd........VVVVVVVVddd...dd#",
+  "#ddddddd#UUUU#ddddddddddd#########################",
+  "#.......#UUUU#ddddddddddddddddddddddddddddddddddd#",
+  "#........UUUU#ddddddddddddddddddddddddddddddddddd#",
+  "#........UUUU#ddddddddddddddddddddddddddddddddddd#",
+  "#.==.....####.ddddddddddddddddddddddddddddddddddd#",
+  "#.............ddddddddddddddddddddddddddddddddddd#",
+  "#.............ddddddddddddddddddddddddddddddddddd#",
+  "#.====........ddddddddddddddddddddddddddddddddddd#",
+  "#.............ddddddddddddddddddddddddddddddddddd#",
+  "#.............ddddddddddddddddddddddddddddddddddd#",
+  "##############ddddddddddddddddddddddddddddddddddd#",
+  "#ddddddddddddd###########dddddddddddddddddddddddd#"
+ ],
+ "bg": [
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrLLLLLLLLrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrLLLLLLLLLLLLLLLLrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrLLLLLLLLLLLLLLLLrrrLLLrrr",
+  "rrrrrrrrrLLLLrrrrrrrrrrrrLLLLLLLLLLLLLLLLrrrLLLrrr",
+  "rrrrrrrrrLLLLrrrrrrrrrrrrLLLLLLLLLLLLLLLLrrrLLLrrr",
+  "rrrrrrrrrLLLLrrrrrrrrrrrrLLLLLLLLLLLLLLLLrrrLLLrrr",
+  "rrrrrrrrrLLLLrrrrrrrrrrrrrrrrrrrrLLLLLLLLrrrLLLrrr",
+  "rrrrrrrrrLLLLrrrrrrrrrrrrrrrrrrrrLLLLLLLLrrrLLLrrr",
+  "rrrrrrrrrLLLLrrrrrrrrrrrrrrrrrrrrLLLLLLLLrrrLLLrrr",
+  "rrrrrrrrrLLLLrrrrrrrrrrrrrrrrrrrrLLLLLLLLrrrLLLrrr",
+  "rrrrrrrrrLLLLrrrrrrrrrrrrrrrrrrrrLLLLLLLLrrrLLLrrr",
+  "rrrrrrrrrLLLLrrrrrrrrrrrrrrrrrrTrLLLLLLLLrrrLLLrrr",
+  "rrrrrrrrrLLLLrrrrrrrrrrrrrrrrrrTrLLLLLLLLrrrLLLrrr",
+  "rrrrrrrrrLLLLrrrrrrrrrrrrrrrrrrTrLLLLLLLLrrrLLLrrr",
+  "rrrrrrrrrLLLLrrrrrrrrrrrrrrrrrrTrLLLLLLLLrrrLLLrrr",
+  "rrrrrrrrrLLLLrrrrrrrrrrrrrrrrrrTrLLLLLLLLrrrrrrrrr",
+  "rrrrrrrrrLLLLrrrrrrrrrrrrrrrrrrTrLLLLLLLLrrrrrrrrr",
+  "rrrrrrrrrLLLLrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rLLLLLLLLLLLLLrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rLTLLLLLLLLLLLrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rLTLLLLLLLLLLLrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rLTLLLLLLLLLLLrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rLTLLLLLLLLLLLrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rLTLLLLLLLLLLLrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rLTLLLLLLLLLLLrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rLTLLLLLLLLLLLrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rLTLLLLLLLLLLLrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+  "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 2,
+   "y": 27
+  },
+  {
+   "type": "pad_frog",
+   "x": 5,
+   "y": 27
+  },
+  {
+   "type": "pad_bird",
+   "x": 3,
+   "y": 21
+  },
+  {
+   "type": "exit",
+   "x": 27,
+   "y": 6
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 16,
+   "y": 9,
+   "axis": "x",
+   "range": 32
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 30,
+   "y": 16,
+   "axis": "x",
+   "range": 64
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 10,
+   "y": 24,
+   "axis": "y",
+   "range": 48
+  },
+  {
+   "type": "gem",
+   "x": 3,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 8,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 4,
+   "y": 24
+  },
+  {
+   "type": "gem",
+   "x": 11,
+   "y": 18
+  },
+  {
+   "type": "gem",
+   "x": 11,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 16,
+   "y": 3
+  },
+  {
+   "type": "gem",
+   "x": 20,
+   "y": 6
+  },
+  {
+   "type": "gem",
+   "x": 24,
+   "y": 9
+  },
+  {
+   "type": "gem",
+   "x": 30,
+   "y": 9
+  },
+  {
+   "type": "gem",
+   "x": 35,
+   "y": 4
+  },
+  {
+   "type": "gem",
+   "x": 38,
+   "y": 8
+  },
+  {
+   "type": "gem",
+   "x": 42,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 45,
+   "y": 8
+  },
+  {
+   "type": "gem",
+   "x": 48,
+   "y": 3
+  },
+  {
+   "type": "gem",
+   "x": 31,
+   "y": 6
+  },
+  {
+   "type": "gem",
+   "x": 34,
+   "y": 16
+  },
+  {
+   "type": "gem",
+   "x": 39,
+   "y": 17
+  },
+  {
+   "type": "heart",
+   "x": 2,
+   "y": 21
+  },
+  {
+   "type": "heart",
+   "x": 48,
+   "y": 3
+  },
+  {
+   "type": "heart",
+   "x": 30,
+   "y": 17
+  }
+ ],
+ "marks": {
+  "rung": {
+   "x": 3,
+   "y": 24
+  },
+  "shaft_foot": {
+   "x": 9,
+   "y": 21
+  },
+  "shaft_mid": {
+   "x": 10,
+   "y": 14
+  },
+  "shaft_lip": {
+   "x": 11,
+   "y": 5
+  },
+  "perch_1": {
+   "x": 15,
+   "y": 3
+  },
+  "step_off": {
+   "x": 19,
+   "y": 6
+  },
+  "lane_w": {
+   "x": 23,
+   "y": 9
+  },
+  "lane_e": {
+   "x": 30,
+   "y": 9
+  },
+  "curtain_in": {
+   "x": 34,
+   "y": 9
+  },
+  "crag_door": {
+   "x": 43,
+   "y": 12
+  },
+  "draught_foot": {
+   "x": 45,
+   "y": 13
+  },
+  "summit": {
+   "x": 47,
+   "y": 3
+  },
+  "launch": {
+   "x": 42,
+   "y": 2
+  },
+  "mouth": {
+   "x": 33,
+   "y": 3
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "pad_frog",
+   "form": "human"
+  },
+  {
+   "from": "pad_frog",
+   "to": "rung",
+   "form": "frog"
+  },
+  {
+   "from": "rung",
+   "to": "pad_bird",
+   "form": "frog"
+  },
+  {
+   "from": "pad_bird",
+   "to": "shaft_foot",
+   "form": "bird"
+  },
+  {
+   "from": "shaft_foot",
+   "to": "shaft_mid",
+   "form": "bird"
+  },
+  {
+   "from": "shaft_mid",
+   "to": "shaft_lip",
+   "form": "bird"
+  },
+  {
+   "from": "shaft_lip",
+   "to": "perch_1",
+   "form": "bird"
+  },
+  {
+   "from": "perch_1",
+   "to": "step_off",
+   "form": "bird"
+  },
+  {
+   "from": "step_off",
+   "to": "lane_w",
+   "form": "bird"
+  },
+  {
+   "from": "lane_w",
+   "to": "lane_e",
+   "form": "bird"
+  },
+  {
+   "from": "lane_e",
+   "to": "curtain_in",
+   "form": "bird"
+  },
+  {
+   "from": "curtain_in",
+   "to": "crag_door",
+   "form": "bird"
+  },
+  {
+   "from": "crag_door",
+   "to": "draught_foot",
+   "form": "bird"
+  },
+  {
+   "from": "draught_foot",
+   "to": "summit",
+   "form": "bird"
+  },
+  {
+   "from": "summit",
+   "to": "launch",
+   "form": "bird"
+  },
+  {
+   "from": "launch",
+   "to": "mouth",
+   "form": "bird"
+  },
+  {
+   "from": "mouth",
+   "to": "exit",
+   "form": "bird"
+  }
+ ],
+ "tileset": "heights"
+}
