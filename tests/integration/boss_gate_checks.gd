@@ -51,6 +51,11 @@ var tape_path := "res://tools/bossgate/tapes/boss_grove.json"
 ## Full sweep by default; tools/bossgate.sh --quick trims it for a smoke run.
 var quick := false
 
+## Diagnostics for the hop probe: KAYA_BOSSGATE_HOPTRACE=1 prints one line per
+## probe — where she jumped from, which way she was held, the run-up, whether she
+## ever left the ground, and what the verdict read.
+var hop_trace := OS.get_environment("KAYA_BOSSGATE_HOPTRACE") != ""
+
 var lvl: Node = null
 var boss: Enemy = null
 var pl: Player = null
@@ -131,6 +136,12 @@ func standable_tiles() -> Array:
 				continue
 			out.append(Vector2i(tx, ty))
 	return out
+
+## The tile Kaya is actually standing on right now, read off her hitbox rather
+## than off the last thing the collision code happened to resolve.
+func _tile_under_feet() -> Vector2i:
+	var f := pl.feet()
+	return Vector2i(int(floor(f.x / TS)), int(floor((f.y + 1.0) / TS)))
 
 func stand_pos(tile: Vector2i) -> Vector2:
 	return Vector2(float(tile.x) * TS + (TS - pl.box.x) * 0.5, float(tile.y) * TS - pl.box.y)
@@ -588,9 +599,25 @@ func _can_hop_onto(target: Vector2i, floor_tiles: Array) -> bool:
 				return true
 	return false
 
-## `hold_from` is how many frames of run-up to take before the jump: a standing
+## `run_up` is how many frames of run-up to take before the jump: a standing
 ## jump and a running jump are different jumps, and only trying one of them is
 ## how a reachability check ends up more optimistic than the game.
+##
+## The verdict is read off Kaya's own hitbox, not off `Actor.last_floor_tile`.
+## That field is written only on a frame where `TileCollision.move_y` *resolves*
+## a floor, and `on_floor` is also true on frames where it did not — she is
+## drifting over a ledge with `vel.y <= 0` and the one-line `is_on_floor()`
+## fallback catches her, or she is walking and the resolve names the leftmost
+## column of her footprint rather than the one under her feet. Both make
+## "on_floor and last_floor_tile == target" answer a question about an older
+## frame. Measured in this arena it is wrong on 20-26 of the ~50 grounded frames
+## of a single probe, in both directions: standing on the slab at (31,25) while
+## the field still said (31,27) (a refuge called unreachable when she was on it),
+## and standing on (42,25) while it said (40,25) (a refuge called reachable when
+## she had overshot it by two tiles).
+##
+## So: clear the carried-over value, require that she actually left the ground,
+## and ask where her feet are.
 func _try_hop(from: Vector2i, target: Vector2i, run_up: int) -> bool:
 	reset_arena(0)
 	boss.active = false            ## the hop question is geometry, not combat
@@ -602,9 +629,15 @@ func _try_hop(from: Vector2i, target: Vector2i, run_up: int) -> bool:
 	pl.pos = stand_pos(from)
 	lvl.cam.snap_to_target()
 	Tape.release_all()
+	# Nothing this probe reports may come from the previous probe's landing.
+	pl.last_floor_tile = Vector2i(-1, -1)
 	await frames(2)
 	var toward := "right" if target.x >= from.x else "left"
 	var got := false
+	var airborne := false
+	var hit_f := -1
+	var stale_frames := 0
+	var stale_examples: PackedStringArray = PackedStringArray()
 	for f in 110:
 		pl.invuln = 999.0
 		pl.hurt_t = 0.0
@@ -616,9 +649,27 @@ func _try_hop(from: Vector2i, target: Vector2i, run_up: int) -> bool:
 			held.append("jump")
 		Tape.apply(held)
 		await get_tree().physics_frame
-		if pl.on_floor and pl.last_floor_tile == target:
+		if not pl.on_floor:
+			airborne = true
+			continue
+		var feet := _tile_under_feet()
+		if hop_trace and pl.last_floor_tile != feet:
+			stale_frames += 1
+			if stale_examples.size() < 3:
+				stale_examples.append("f%d last_floor_tile(%d,%d) but her feet are on (%d,%d)"
+					% [f, pl.last_floor_tile.x, pl.last_floor_tile.y, feet.x, feet.y])
+		# `airborne`: a hop that never left the ground has not landed anywhere.
+		if airborne and feet == target:
 			got = true
+			hit_f = f
 			break
+	if hop_trace:
+		say("      hop (%d,%d)->(%d,%d) %-5s ru%-3d  %-3s f%-4d feet(%d,%d) air=%s stale_frames=%d"
+			% [from.x, from.y, target.x, target.y, toward, run_up,
+				"GOT" if got else "no", hit_f,
+				_tile_under_feet().x, _tile_under_feet().y, str(airborne), stale_frames])
+		for e: String in stale_examples:
+			say("          last_floor_tile was stale: %s" % e)
 	Tape.release_all()
 	pl.control_enabled = false
 	boss.active = true

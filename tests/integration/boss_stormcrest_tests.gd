@@ -28,22 +28,14 @@ extends Node
 ##
 ## Everything here is asserted on the outcome, never on the mechanism.
 ##
-## Standalone (this file owns its whole harness):
-##   $GODOT --headless --path . res://tests/integration/boss_stormcrest_runner.tscn
+## Part of tools/itest.sh: `t_boss_stormcrest` in
+## tests/integration/integration_tests.gd runs this as a child and adds its tally
+## to the suite's. `standalone = false` is what stops it printing its own report.
 ##
-## Not wired into tests/integration/integration_tests.gd: this branch does not own
-## that file. To wire it in, add to `run_all()`'s list:
-##     "t_boss_stormcrest",
-## and the method:
-##     func t_boss_stormcrest() -> void:
-##         var s: Node = (load("res://tests/integration/boss_stormcrest_tests.gd") as GDScript).new()
-##         s.standalone = false
-##         add_child(s)
-##         await s.run_all()
-##         passes += s.passes
-##         failures.append_array(s.failures)
-##         s.queue_free()
-## `standalone = false` is what stops it printing its own report.
+## Still runnable on its own — this file owns its whole harness — which is how you
+## get its report by itself:
+##   $GODOT --headless --path . res://tests/integration/boss_stormcrest_runner.tscn
+## or, in the suite: ITEST_TIMEOUT=900 tools/itest.sh --only=t_boss_stormcrest
 
 const LEVEL := "heights_5"
 const BOSS := "stormcrest"
