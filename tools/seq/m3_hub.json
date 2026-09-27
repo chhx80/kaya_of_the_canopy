@@ -1,0 +1,51 @@
+[
+  {"scenario": "hub", "settle": 30},
+
+  {"hold": "move_down", "frames": 70},
+  {"release": "move_down"},
+  {"hold": "move_left", "frames": 60},
+  {"release": "move_left"},
+
+  {"hold": "move_right", "frames": 81},
+  {"release": "move_right"},
+  {"hold": "move_up", "frames": 14},
+  {"release": "move_up"},
+  {"wait": 14},
+  {"shot": "shots/m3_hub_h1.png"},
+
+  {"hold": "move_down", "frames": 40},
+  {"release": "move_down"},
+  {"hold": "move_right", "frames": 117},
+  {"release": "move_right"},
+  {"hold": "move_up", "frames": 27},
+  {"release": "move_up"},
+  {"wait": 14},
+  {"shot": "shots/m3_hub_h2.png"},
+
+  {"hold": "move_down", "frames": 50},
+  {"release": "move_down"},
+  {"hold": "move_right", "frames": 91},
+  {"release": "move_right"},
+  {"hold": "move_up", "frames": 14},
+  {"release": "move_up"},
+  {"wait": 14},
+  {"shot": "shots/m3_hub_h3.png"},
+
+  {"hold": "move_up", "frames": 150},
+  {"release": "move_up"},
+  {"hold": "move_right", "frames": 130},
+  {"release": "move_right"},
+  {"hold": "move_down", "frames": 108},
+  {"release": "move_down"},
+  {"wait": 14},
+  {"shot": "shots/m3_hub_h4.png"},
+
+  {"hold": "move_down", "frames": 40},
+  {"release": "move_down"},
+  {"hold": "move_right", "frames": 104},
+  {"release": "move_right"},
+  {"hold": "move_up", "frames": 14},
+  {"release": "move_up"},
+  {"wait": 14},
+  {"shot": "shots/m3_hub_h5.png"}
+]

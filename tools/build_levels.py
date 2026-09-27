@@ -173,7 +173,14 @@ def hub(doors):
 
     # the main path, drawn on the background layer (walkable)
     g.rect(3, 7, 44, 2, "p", "bg")
-    for (x, y0, y1) in [(5, 6, 8), (14, 4, 8), (23, 8, 10), (33, 4, 8), (43, 7, 10)]:
+    # Spurs off it, one per gateway: (column, y0, y1), drawn two tiles wide so
+    # the 10px walker has a lane. Three bands, one per world: World 1's five sit
+    # on and around the road itself, World 2 climbs to the top band (rows 2-3),
+    # World 3 drops to the bottom band (rows 10-11). The lake at cols 26-32
+    # splits the bottom band, so World 3's spurs stop either side of the water.
+    for (x, y0, y1) in [(5, 6, 8), (14, 4, 8), (23, 8, 10), (33, 4, 8), (43, 7, 10),
+                        (10, 3, 7), (16, 2, 7), (25, 3, 7), (35, 2, 7), (45, 3, 7),
+                        (8, 8, 11), (17, 8, 10), (24, 8, 11), (34, 8, 10), (42, 8, 11)]:
         lo, hi = min(y0, y1), max(y0, y1)
         g.rect(x, lo, 1, hi - lo + 1, "p", "bg")
         g.rect(x + 1, lo, 1, hi - lo + 1, "p", "bg")
@@ -676,7 +683,42 @@ HUB_DOORS = [
     {"level": "jungle_3", "label": "THE WATERWAY", "x": 23, "y": 9, "requires": "jungle_2"},
     {"level": "jungle_4", "label": "SKY BRANCH", "x": 33, "y": 4, "requires": "jungle_3"},
     {"level": "jungle_5", "label": "HEART OF THE GROVE", "x": 43, "y": 7,
-     "requires": "jungle_4", "requires_all": True},
+     "requires": "jungle_4"},
+    # jungle_5 used to carry requires_all, which HubDoor.unlocked() reads as
+    # "every file in levels/ is flagged" -- not "World 1 is done". That counted
+    # levels the hub had no gateway for, so from the day World 2 shipped, HEART
+    # OF THE GROVE could not be opened at all: nine of ten doors cleared and the
+    # tenth still grey. It gates on jungle_4 like every other door now, which is
+    # what staging/hub_v2.json does and what
+    # tests/test_hub_layout.gd::test_no_gateway_uses_the_requires_all_shortcut
+    # has been asking for.
+    # --- World 2, SUNKEN RUINS. The top band, rows 2-3, opening on World 1's
+    # boss. These were missing entirely until M3: M2 authored, proved and
+    # shipped five levels and left their gateways in staging/hub_v2.json, so
+    # nothing in the running game could reach them.
+    {"level": "ruins_1", "label": "DROWNED STEPS", "x": 10, "y": 3,
+     "requires": "jungle_5"},
+    {"level": "ruins_2", "label": "THE COLONNADE", "x": 16, "y": 2,
+     "requires": "ruins_1"},
+    {"level": "ruins_3", "label": "TIDE GALLERY", "x": 25, "y": 3,
+     "requires": "ruins_2"},
+    {"level": "ruins_4", "label": "THE CISTERN", "x": 35, "y": 2,
+     "requires": "ruins_3"},
+    {"level": "ruins_5", "label": "THE TIDE MAW", "x": 45, "y": 3,
+     "requires": "ruins_4"},
+    # --- World 3, THERMAL HEIGHTS. The bottom band, zig-zagging east under the
+    # road, each gateway on the previous one. heights_1 opens on ruins_5, which
+    # is the World 2 -> World 3 gate tools/build_hub.py uses too.
+    {"level": "heights_1", "label": "UPDRAFT", "x": 8, "y": 11,
+     "requires": "ruins_5"},
+    {"level": "heights_2", "label": "THE THERMALS", "x": 17, "y": 10,
+     "requires": "heights_1"},
+    {"level": "heights_3", "label": "ASH COLUMN", "x": 24, "y": 11,
+     "requires": "heights_2"},
+    {"level": "heights_4", "label": "THE LONG GLIDE", "x": 34, "y": 10,
+     "requires": "heights_3"},
+    {"level": "heights_5", "label": "THE STORMCREST", "x": 42, "y": 11,
+     "requires": "heights_4"},
 ]
 
 def build(level_id, built, name, **kw):
@@ -716,4 +758,13 @@ if __name__ == "__main__":
         _fn = getattr(_mod, _id, None) or getattr(_mod, "build")
         build(_id, _fn(), _name,
               music="boss" if _id == "ruins_5" else "world2")
+    # World 3, THERMAL HEIGHTS. Same arrangement as World 2 above: one module
+    # per level under tools/worlds/, each runnable standalone, registered here.
+    for _id, _name in [("heights_1", "UPDRAFT"), ("heights_2", "THE THERMALS"),
+                       ("heights_3", "ASH COLUMN"), ("heights_4", "THE LONG GLIDE"),
+                       ("heights_5", "THE STORMCREST")]:
+        _mod = __import__("worlds.%s" % _id, fromlist=[_id, "build"])
+        _fn = getattr(_mod, _id, None) or getattr(_mod, "build")
+        build(_id, _fn(), _name,
+              music="boss" if _id == "heights_5" else "world3")
     build("test_arena", test_arena(), "TEST ARENA")

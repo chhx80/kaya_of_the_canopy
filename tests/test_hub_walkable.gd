@@ -1,5 +1,6 @@
 extends TestCase
-## Proof that every gateway on staging/hub_v2.json can actually be reached.
+## Proof that every gateway on every overworld map can actually be reached —
+## the shipped `levels/hub.json` AND the staged `staging/hub_v2.json`.
 ##
 ## The overworld is top-down with no gravity, so none of the platformer
 ## reachability rules apply — but "the door is on the map" is exactly the kind
@@ -23,6 +24,12 @@ extends TestCase
 ##
 ## Plus a negative control: seal a gateway in and confirm the flood fill
 ## reports it. A prover that cannot fail proves nothing.
+##
+## BOTH maps, every test. This file used to prove whichever hub was "current" —
+## staging/hub_v2.json while it existed, levels/hub.json otherwise — which meant
+## the map the game actually loads went a whole milestone with no proof at all
+## while every new gateway landed in the staged one. A hub is proved when it is
+## proved, not when its replacement is.
 
 const TS := TileData4.TILE_SIZE
 
@@ -43,39 +50,82 @@ const ARRIVE := 2.0                      ## px; a waypoint is "reached" inside t
 ## down the middle of a path; the flood fill does not care where it walks.
 const SLIDE := 12
 
+## id -> where it lives. A hub that is not on disk is skipped, not failed:
+## hub_v2 disappears the day it is promoted over levels/hub.json.
+const HUB_PATHS := {
+	"hub": "res://levels/hub.json",
+	"hub_v2": "res://staging/hub_v2.json",
+}
+
+# --- whichever hub _use() last selected
+var _hub := ""
 var def: LevelLoader.LevelDef = null
 var doors: Array = []
-
-# --- the flood, computed once for the file
 var _free: PackedByteArray = PackedByteArray()
 var _seen: PackedByteArray = PackedByteArray()
 var _from: PackedInt32Array = PackedInt32Array()
 var _stride := 0
 var _pw := 0
 var _ph := 0
-var _flooded := false
 
-## tools/build_hub.py writes staging/hub_v2.json; the merge that adopts it
-## renames that to levels/hub.json. Follow the file, so this proof does not
-## quietly stop running on the day it becomes the real overworld.
-func _hub_id() -> String:
-	return "hub_v2" if FileAccess.file_exists("res://staging/hub_v2.json") else "hub"
-
-
-func _load_hub() -> LevelLoader.LevelDef:
-	if FileAccess.file_exists("res://staging/hub_v2.json"):
-		return LevelLoader.load_path("res://staging/hub_v2.json", "hub_v2")
-	return LevelLoader.load_level("hub")
+# --- one flood per hub, computed once for the file and kept
+var _defs := {}          ## id -> LevelLoader.LevelDef
+var _doors_of := {}      ## id -> Array
+var _free_of := {}       ## id -> PackedByteArray
+var _seen_of := {}       ## id -> PackedByteArray
+var _from_of := {}       ## id -> PackedInt32Array
+var _geom_of := {}       ## id -> Vector3i(stride, pw, ph)
 
 func before_each() -> void:
-	if def == null:
-		def = _load_hub()
-		if def.ok():
-			doors = def.entities_of("hub_door")
-	if not _flooded and def.ok():
-		_flooded = true
-		_free = _free_mask(def.world)
-		_flood(def.spawn + SPAWN_OFFSET)
+	if not _defs.is_empty():
+		return
+	for id: String in HUB_PATHS:
+		var path := String(HUB_PATHS[id])
+		if not FileAccess.file_exists(path):
+			continue
+		var d := LevelLoader.load_path(path, id)
+		_defs[id] = d
+		_doors_of[id] = d.entities_of("hub_door") if d.ok() else []
+		if not d.ok():
+			continue
+		_free = _free_mask(d.world)           # sets _stride/_pw/_ph
+		_flood(d.spawn + SPAWN_OFFSET)
+		_keep(id)
+
+## Store the current flood under `id`.
+func _keep(id: String) -> void:
+	_free_of[id] = _free
+	_seen_of[id] = _seen
+	_from_of[id] = _from
+	_geom_of[id] = Vector3i(_stride, _pw, _ph)
+
+## Which hubs there are to prove, in a stable order.
+func _hub_ids() -> Array:
+	var out: Array = _defs.keys()
+	out.sort()
+	return out
+
+## Point the whole file at one hub. Returns false if it did not load, so a
+## caller can skip rather than assert against a null world.
+func _use(id: String) -> bool:
+	_hub = id
+	var d: LevelLoader.LevelDef = _defs[id]
+	def = d
+	var dd: Array = _doors_of[id]
+	doors = dd
+	if not d.ok():
+		return false
+	var f: PackedByteArray = _free_of[id]
+	var s: PackedByteArray = _seen_of[id]
+	var fr: PackedInt32Array = _from_of[id]
+	var g: Vector3i = _geom_of[id]
+	_free = f
+	_seen = s
+	_from = fr
+	_stride = g.x
+	_pw = g.y
+	_ph = g.z
+	return true
 
 # ---------------------------------------------------------------- free space
 ## One byte per top-left position the box could take. The tile span is worked
@@ -183,79 +233,101 @@ func _prompt_rect(d: Dictionary) -> Rect2:
 	return Rect2(Vector2(float(d["px"]), float(d["py"])), HubDoor.SIZE).grow(DOOR_GROW)
 
 func _label(d: Dictionary) -> String:
-	return String(d.get("level", "?"))
+	return "%s/%s" % [_hub, String(d.get("level", "?"))]
 
 # -------------------------------------------------------------------- checks
-func test_the_map_and_the_spawn_load() -> void:
-	ok(def.ok(), "%s: %s" % [_hub_id(), ", ".join(def.errors)])
-	gt(float(doors.size()), 0.0, "the hub needs gateways")
-	ok(_is_free(def.spawn + SPAWN_OFFSET), "the spawn is inside a wall")
+func test_every_map_and_its_spawn_load() -> void:
+	gt(float(_defs.size()), 0.0, "no hub JSON was found at all")
+	ok(_defs.has("hub"), "levels/hub.json is the map the game loads; it has to exist")
+	for id: String in _hub_ids():
+		var loaded := _use(id)
+		ok(loaded, "%s: %s" % [id, ", ".join(def.errors)])
+		if not loaded:
+			continue
+		gt(float(doors.size()), 0.0, "%s needs gateways" % id)
+		ok(_is_free(def.spawn + SPAWN_OFFSET), "%s: the spawn is inside a wall" % id)
 
 func test_the_flood_actually_covers_ground() -> void:
-	var n := 0
-	for b in _seen:
-		n += b
-	gt(float(n), 10000.0, "the flood reached %d positions — it did not run" % n)
+	for id: String in _hub_ids():
+		if not _use(id):
+			continue
+		var n := 0
+		for b in _seen:
+			n += b
+		gt(float(n), 10000.0, "%s: the flood reached %d positions — it did not run" % [id, n])
 
 func test_every_gateway_can_be_walked_to_from_the_spawn() -> void:
-	for d: Dictionary in doors:
-		ok(_reached(_stand_on(d)),
-			"'%s' at tile (%d,%d): nothing you can walk to from the spawn puts "
-			% [_label(d), int(d["x"]), int(d["y"])]
-			+ "the player on the gateway")
+	for id: String in _hub_ids():
+		if not _use(id):
+			continue
+		for d: Dictionary in doors:
+			ok(_reached(_stand_on(d)),
+				"'%s' at tile (%d,%d): nothing you can walk to from the spawn puts "
+				% [_label(d), int(d["x"]), int(d["y"])]
+				+ "the player on the gateway")
 
 func test_every_gateway_returns_you_somewhere_you_can_stand() -> void:
 	# overworld.gd drops you one tile below the gateway when you come back out
 	# of a level. If that tile is solid you return inside a wall.
-	for d: Dictionary in doors:
-		ok(_reached(_return_to(d)),
-			"'%s': the tile the game returns you to, (%d,%d), is not walkable"
-			% [_label(d), int(d["x"]), int(d["y"]) + 1])
+	for id: String in _hub_ids():
+		if not _use(id):
+			continue
+		for d: Dictionary in doors:
+			ok(_reached(_return_to(d)),
+				"'%s': the tile the game returns you to, (%d,%d), is not walkable"
+				% [_label(d), int(d["x"]), int(d["y"]) + 1])
 
 func test_every_gateway_can_be_stood_close_enough_to_open() -> void:
 	# Reaching the tile is the mechanism. Lighting the prompt is the outcome.
-	for d: Dictionary in doors:
-		var r := _prompt_rect(d)
-		var opens := false
-		var y := maxi(0, int(r.position.y - BOX.y))
-		while y <= int(r.end.y) and not opens:
-			var x := maxi(0, int(r.position.x - BOX.x))
-			while x <= int(r.end.x):
-				var p := Vector2(x, y)
-				if _reached(p) and r.intersects(Rect2(p, BOX)):
-					opens = true
-					break
-				x += 1
-			y += 1
-		ok(opens, "'%s': no position you can walk to lights its prompt" % _label(d))
+	for id: String in _hub_ids():
+		if not _use(id):
+			continue
+		for d: Dictionary in doors:
+			var r := _prompt_rect(d)
+			var opens := false
+			var y := maxi(0, int(r.position.y - BOX.y))
+			while y <= int(r.end.y) and not opens:
+				var x := maxi(0, int(r.position.x - BOX.x))
+				while x <= int(r.end.x):
+					var p := Vector2(x, y)
+					if _reached(p) and r.intersects(Rect2(p, BOX)):
+						opens = true
+						break
+					x += 1
+				y += 1
+			ok(opens, "'%s': no position you can walk to lights its prompt" % _label(d))
 
 ## Negative control. Wall the gateway in and the flood has to notice — if this
 ## passes while the checks above also pass, they are checking something real.
 func test_a_walled_in_gateway_is_reported() -> void:
-	var d: Dictionary = doors[0]
-	var tx := int(d["x"])
-	var ty := int(d["y"])
-	var world := def.world
-	var was: Array[int] = []
-	var ring: Array[Vector2i] = []
-	for dy in range(-1, 3):
-		for dx in range(-1, 2):
-			if dx == 0 and (dy == 0 or dy == 1):
-				continue     # leave the gateway tile and its return tile open
-			ring.append(Vector2i(tx + dx, ty + dy))
-	for t in ring:
-		was.append(world.get_fg(t.x, t.y))
-		world.set_fg(t.x, t.y, 3)        # stone: solid in every switch state
-	_free = _free_mask(world)
-	_flood(def.spawn + SPAWN_OFFSET)
-	var still := _reached(_stand_on(d))
-	for i in ring.size():
-		world.set_fg(ring[i].x, ring[i].y, was[i])
-	_free = _free_mask(world)
-	_flood(def.spawn + SPAWN_OFFSET)
-	not_ok(still, "sealing '%s' in did not make the flood fill fail — the "
-		% _label(d) + "walkability check is not checking anything")
-	ok(_reached(_stand_on(d)), "unsealing did not restore the route")
+	for id: String in _hub_ids():
+		if not _use(id) or doors.is_empty():
+			continue
+		var d: Dictionary = doors[0]
+		var tx := int(d["x"])
+		var ty := int(d["y"])
+		var world := def.world
+		var was: Array[int] = []
+		var ring: Array[Vector2i] = []
+		for dy in range(-1, 3):
+			for dx in range(-1, 2):
+				if dx == 0 and (dy == 0 or dy == 1):
+					continue     # leave the gateway tile and its return tile open
+				ring.append(Vector2i(tx + dx, ty + dy))
+		for t in ring:
+			was.append(world.get_fg(t.x, t.y))
+			world.set_fg(t.x, t.y, 3)        # stone: solid in every switch state
+		_free = _free_mask(world)
+		_flood(def.spawn + SPAWN_OFFSET)
+		var still := _reached(_stand_on(d))
+		for i in ring.size():
+			world.set_fg(ring[i].x, ring[i].y, was[i])
+		_free = _free_mask(world)
+		_flood(def.spawn + SPAWN_OFFSET)
+		_keep(id)                            # the cache must hold the RESTORED map
+		not_ok(still, "sealing '%s' in did not make the flood fill fail — the "
+			% _label(d) + "walkability check is not checking anything")
+		ok(_reached(_stand_on(d)), "%s: unsealing did not restore the route" % id)
 
 # ------------------------------------------------------------------ the walk
 ## Read the route back out of the flood, as a list of positions where the
@@ -416,18 +488,21 @@ func _walk(route: Array[Vector2], target: Vector2, world: TileWorld) -> Dictiona
 	return {"closest": closest, "pos": pos, "leg": n, "legs": route.size(), "frames": frames}
 
 func test_a_walk_arrives_at_every_gateway() -> void:
-	for d: Dictionary in doors:
-		var target := _stand_on(d)
-		var route := _relax(_simplify(_route_to(target)))
-		gt(float(route.size()), 1.0, "'%s': the flood found no route" % _label(d))
-		if route.size() < 2:
+	for id: String in _hub_ids():
+		if not _use(id):
 			continue
-		var w := _walk(route, target, def.world)
-		# Arriving means the prompt would light, not landing on a pixel.
-		ok(float(w["closest"]) <= DOOR_GROW + BOX.x,
-			"'%s': a walk from the spawn stalled on leg %d of %d at %s, %.1f px "
-			% [_label(d), int(w["leg"]), int(w["legs"]), str(w["pos"]), float(w["closest"])]
-			+ "from the gateway, after %d frames (route %s)" % [int(w["frames"]), str(route)])
+		for d: Dictionary in doors:
+			var target := _stand_on(d)
+			var route := _relax(_simplify(_route_to(target)))
+			gt(float(route.size()), 1.0, "'%s': the flood found no route" % _label(d))
+			if route.size() < 2:
+				continue
+			var w := _walk(route, target, def.world)
+			# Arriving means the prompt would light, not landing on a pixel.
+			ok(float(w["closest"]) <= DOOR_GROW + BOX.x,
+				"'%s': a walk from the spawn stalled on leg %d of %d at %s, %.1f px "
+				% [_label(d), int(w["leg"]), int(w["legs"]), str(w["pos"]), float(w["closest"])]
+				+ "from the gateway, after %d frames (route %s)" % [int(w["frames"]), str(route)])
 
 ## Everything above trusts four numbers that live in src/hub/. If one of them
 ## moves, this proof is measuring a player who no longer exists — so fail here,
