@@ -1350,3 +1350,292 @@ tile — seven of twenty-eight — and the spray's window is three floor tiles a
 east end, none of which that subsample visits. The full run is the gate and the
 quick run has always been "smoke, not proof"; this is the first time the
 difference has been visible.
+
+## M3 — THERMAL HEIGHTS: the world's music and its tileset probe
+
+Two foundation pieces the five World 3 level authors build on top of.
+
+`world3.wav`. `tools/gen_audio.py` gains a fourth track. World 2 is sunken —
+minor, thin duty, no percussion, everything pressing down — so World 3 had to
+read as its opposite without changing instrument, and the contrast is written
+into the notes rather than into the synth: G lydian (the raised fourth is what
+stops a wide major line sounding like a victory fanfare), a lead that moves in
+fourths and fifths and climbs an octave and a half across eight bars, open
+fifths in the bass instead of roots and thirds, a sparse high flourish every
+other bar for the thermals, and a noise voice on four-bar breaths for the wind.
+The wind is the only percussion: a drum would give the altitude a floor. 17.8 s,
+peak 11,472 and RMS 3,403 — within a hundred of `world1` and `world2`, so no
+level changes volume when it changes world. `AudioManager.music()` resolves a
+level's `"music"` field straight to `assets/audio/music/<id>.wav`, so a level
+asking for `"world3"` needs nothing else. The generator is deterministic and the
+other six tracks came back byte-identical; only `world3.wav` is new.
+
+`tests/fixtures/heights_probe.json` + `tests/test_tileset_probes.gd`. ADR 002
+amended gives every world its own legend, and every way that arrangement can be
+wrong is quiet: a role a tileset forgets to bind only shows up in a level that
+happens to use it, and a role bound to the wrong id loads, plays and renders as
+a jungle understudy nobody catches in a screenshot. So World 3 gets the same
+treatment World 2 got — one screen, in `tests/fixtures/` so
+`LevelLoader.list_levels()` can never see it, built from all twelve `heights`
+roles (240-251) plus both shared drafts.
+
+The test file registers the probes in one dictionary and asserts, per probe,
+that it loads with no errors against the tileset it declares, that every tile it
+holds is either that world's or shared, and that every atlas cell it resolves to
+is on the sheet and has paint on it. Then, for World 3 specifically: the twelve
+role bindings by id, the flags those roles promise, the same answers again
+through the `TileWorld` the loader actually built, and the updraft vectors —
+206 at `(0,-400)`, 207 at `(0,-560)` — surviving the round trip from
+`data/tiles.json` through a level file to `FormBase.current_at()`, which is the
+call the player and the prover both make. The velocity lives in the tile table
+and the level only names the character, so it is the one thing a level cannot
+state for itself; losing it would break five levels at once with nothing
+pointing at the cause. One test compares pixels rather than ids: each heights
+role must be painted differently from the jungle role it stands in for.
+
+The probe's declared route is proved, and making it provable is the note for the
+level authors. The first layout walked the floor past a breakable and under a
+one-tile updraft column, and the prover spent its whole budget 246 px short: the
+shell is a wall because the prover carries no weapon, the vents prune every state
+that touches them, and a column of 400 px/s lift standing on the floor is a wall
+to the human for the same reason a current is. Moved the shaft into the
+right-hand corner, out of a vent, past the end of the route, and set the shell in
+the ledge overhead — `tools/prove.sh --level-file=res://tests/fixtures/heights_probe.json`
+now returns PROVED, 3 hops, 230 frames, 62 expansions.
+
+`shots/world_heights_probe.png` is the probe through the two shipping
+`TileRenderer`s over the three `bg_heights_*` parallax planes: basalt and scree,
+the sunlit ledge with the shell set into it, the chain, the plank, and the vents
+burning in the corner under their column of rising air. `tools/shot.sh` cannot
+reach it — `level:<id>` resolves through `LevelLoader.load_level()` to
+`levels/<id>.json`, and a probe must never live there — so the capture was taken
+with a throwaway script, `tools/_probe_shot_heights.gd`, left in the tree for
+whoever wants to re-shoot it or delete it.
+
+Not done, and worth knowing: `data/tile_anim.json` has no entry for any tile
+above id 24. Nothing in Thermal Heights moves — and the updraft is the one that
+is felt, because the world is built on a verb whose tile is a few static dashes.
+`TileAnim` already supports `sway` on axis `y` with a `row_phase`, so a column of
+updraft tiles could ripple upward for one dictionary entry and no new art; a
+proper four-frame scroll would need a third row in `tile_anim.png`, which
+`tools/gen_fx.py` does not currently write. `heights_cloud` (250) not drifting
+while the jungle's `bg_leaves` sways, and `heights_chain` (248) hanging dead
+still while the vine sways, are the same shape of gap. All of it is a shared-art
+change, so it was reported rather than made.
+
+## M3 — heights_5, THE STORMCREST
+
+World 3's boss level and the game's third boss. The plan's line for this fight
+is "fought as the bird", and `data/forms/bird.json` is `can_attack: false`, so
+that fight is one Kaya cannot win. What ships instead keeps the sentence where
+it can be kept and is honest about the rest: the *approach* is the bird — a
+sixteen-tile updraft chimney, the crest, and a light-shaft in the arena roof
+that is the only way in — and a `pad_human` on the landing tile puts the blade
+back in her hand for the fight. The roost comes down to the blade instead of
+the blade going up to the roost.
+
+**The one idea.** It is invulnerable in the air. `hurt()` refuses damage on any
+frame it is not roosting and rings the blade off, so the fight is a wait for the
+stoop and a punish: three roost windows in fifteen seconds in EYRIE, two in
+SQUALL and TEMPEST, 6.2/5.3/4.9 s vulnerable, measured by the suite rather than
+asserted here. Two attacks, each with tiles the other covers — the bore runs the
+floor wall to wall and is dodged on the two one-way refuge slabs, the feather
+volley is thrown down out of the sky and is dodged under the two buttresses —
+so no tile in the arena is safe from everything and eight are always safe from
+something.
+
+**The gale.** The boss writes gust tiles into the arena's two lowest rows and
+takes them out again, under the Tide Maw's three rules: an authored snapshot
+taken before anything moves, writes only over tiles the level authored empty,
+and the level on disk as the only reference for "calm". Horizontal only. A
+downdraft would change jump height and could silently make a refuge slab
+unreachable in a phase `tools/bossgate.sh` only measures in phase 1.
+
+**Two defects this found, both in the fight's own code.** The volley restarted
+the dive timer, so with `volley_interval < dive_interval` the Stormcrest stooped
+twice and then circled for ever — a boss with no vulnerable window at all.
+And the killing blow escalated a corpse: `Enemy.hurt()` calls `die()` and then
+walks the phase thresholds, so health at 0 satisfied every one of them, TEMPEST
+was set on a dead animal, and its lanes were written into an arena nothing would
+ever clear again. The suite missed the second one because it killed the boss
+from phase 3, where that escalation is a no-op; it kills from phase 1 now. The
+symptom was a screenshot — Kaya walking west at a steady 80 px/s across an empty
+arena — which is the second time on this branch that a capture has caught what a
+test tier could not.
+
+`tools/prove.sh heights_5` is PARTIAL by design: the last hop is the fight, and
+a reachability search cannot walk through a boss. `tools/bossgate.sh
+--level=heights_5 --boss=stormcrest` answers that hop instead, all 23 checks,
+and `tests/integration/boss_stormcrest_tests.gd` (78 checks, its own runner)
+covers the two things the gate cannot see — a boss that refuses damage, and a
+boss that writes to the level while it is being played.
+
+**Art.** `build_boss_stormcrest()` in `tools/art/sprites.py`, wired into
+`tools/gen_art.py`, so `tools/genart.sh` reproduces `boss_stormcrest.png` like
+every other asset in the game: eighteen 48x48 frames, six poses over three
+phases, drawn procedurally and lit through the `stone`/`gold`/`metal`/`ember`
+ramps. Airborne is the only frame off the horizontal and roosting is the only
+state with legs on the floor, because at 400x240 the player has to read "can I
+hit it" in a fifth of a second. Phases differ in silhouette as well as value —
+the crest lengthens and fans, the wing span grows, the tail draws out.
+
+## M3 integration — the boss gate stops reading a stale tile
+
+The Boss Gate measured its refuge verdicts against `Actor.last_floor_tile`, and
+that field is written only on a frame where `TileCollision.move_y` *resolves* a
+floor. `on_floor` is true on plenty of frames where it did not resolve one — she
+is drifting over a ledge with `vel.y <= 0` and the `is_on_floor()` fallback at
+the end of `Actor.step_motion` catches her — and when it does resolve, it names
+the leftmost column of her 12 px footprint rather than the one under her feet.
+So `boss_gate_checks.gd::_try_hop`'s "she is on the floor and her last floor
+tile is the target" was a question about an older frame, and nothing cleared the
+value between probes either.
+
+Instrumented (`KAYA_BOSSGATE_HOPTRACE=1`) it is wrong on 20-26 of the ~50
+grounded frames of a single probe in the heights_5 arena, in both directions: she
+stands on the refuge slab at (31,25) while the field still says (31,27), and she
+stands on (42,25) while it says (40,25). The first is a refuge called unreachable
+while she is standing on it; the second is a refuge called reachable when she has
+overshot it by two tiles.
+
+The verdict now clears the carried-over value, requires that she actually left
+the ground, and reads the tile under her hitbox. The honest measurement is
+cheaper as well as truer: the refuge directly overhead is now landed on from the
+floor column directly below it on frame 8 with no run-up, where the old read
+needed twenty-six probes from three tiles away to notice the same jump. All
+three gates still pass — grove 21 checks, Tide Maw 23, Stormcrest 23 — and every
+refuge in all three arenas is reachable.
+
+The same read was live in `boss_tide_maw_tests.gd::_hop`, matching on row and a
+column *range* (`t.y == SHELF_ROW and t.x >= x0`), which is why it passed: the
+leftmost-column bias landed inside the slab's four columns by luck. Honestly
+measured, "the east refuge: reached col 40" was always col **41** — her feet were
+a tile east of what the field named, and had she come down one tile further east
+again the old read would have called a landing *off* the slab a landing on it.
+Fixed the same way, and the failure path now reports the last tile she was
+actually standing on instead of a stale one.
+
+**All three self-harnessed suites are in `tools/itest.sh` now.**
+`enemies_v2_tests.gd` (179), `boss_tide_maw_tests.gd` (28) and
+`boss_stormcrest_tests.gd` (78) each shipped with its own runner and a four-line
+patch in its docstring, waiting for someone who owned
+`tests/integration/integration_tests.gd`. That patch is now one `_fold_in()`
+helper called three times, and the suite is **624 checks, ALL PASSED** — up from
+339. Their runners still work and are still the way to get one suite's report on
+its own; the docstrings say so instead of saying they are unwired.
+
+## M3 — THERMAL HEIGHTS: the four levels
+
+### heights_1 — UPDRAFT
+
+The world's teacher, in four beats: a flat ledge that asks nothing; a tame
+thermal standing on the floor you walked in on, leavable at any height with
+the same floor under every exit; the same verb over a real chasm, where the
+fall costs the climb back and never a life; and a walled summit hollow the
+returned human cannot walk out of. The module measures the load-bearing
+fact — a hovering bird's feet sit in the draft's top row, so every perch
+plank is one row below its column's top — and declines `updraft_shaft()`
+on the record, because walls on a teaching thermal would break its promise.
+A self-check fails the build if any flat walked hop crosses moving air, and
+it was proven to fire. PROVED, 6 hops, 427 frames, 147 expansions.
+
+### heights_2 — THE THERMALS
+
+The bird was measured through the shipping movement loop before a tile was
+drawn, and the measurement rewrote the brief: level flight is nearly free
+(196 tiles on one bar), so climbing is the budget — 21 tiles empties a
+mashed bar, and that number is the level's unit, stated by a 14-tile cold
+chimney at 75% of a bar before anything is at stake. A thermal is free
+height, a downdraft is a one-way door (a flap inside one nets −2 px/s), a
+gust lane is 1.12 s east and 7.35 s west over the same ten tiles, and the
+cellar's only exits are the flue you cannot climb and the thermal that is
+free. Reading the shots set the world's visual grammar: every landable
+solid has a bright cap, moving air never does. PROVED, 21 hops, 940
+frames, 534 expansions.
+
+### heights_3 — ASH COLUMN
+
+One chimney, climbed bottom to top through four verbs: an ash floor under
+ceiling vents, a thermal core with downdraft shoulders that return a
+drifter to the floor, a frog flue, and a crown where a headwind seals the
+high line and a tailwind pays for the low one. The flue is frog-only by
+arithmetic rather than by squeeze: each shelf hop needs 48 px of rise —
+frog 82.6, human 44.5, bird first-flap 35.2 with the second flap starting
+inside a band at −2 px/s. Two facts recorded for future authors: a route
+hop whose goal is *below* the frontier can drown the search down the
+shaft it just climbed (split at the doorway, 22 + 10 expansions instead
+of a burned budget), and a downdraft speeds the frog's wall slide
+(204 px/s in-band against 34 still) as well as killing jumps. PROVED,
+15 hops, 1018 frames, 40,035 expansions — the flue hops are the world's
+most expensive, and the module says so.
+
+### heights_4 — THE LONG GLIDE
+
+Measured first, and the measurement overturned the premise: holding jump
+is not gliding — the form flaps whenever jump is held with stamina to pay,
+gaining 31.5 tiles of *height* over 15 s — so "trade altitude for
+distance" had to be built from ceilings, curtains and funnels rather than
+assumed from physics. A forgiving 26-tile funnel whose every undershoot
+lands on a shelf, then the exam: eight tiles of sinking curtain into a
+five-row eyrie mouth — full tank arrives at row 2, empty tank scrapes the
+lip, a released button is 30 rows down into a pocket whose failure loop
+costs twenty seconds and no life. A four-tile gap the frog cannot cross is
+what stops it riding the tower and stranding: ADR 004 by arithmetic.
+Recorded for the project: the prover's search key omits stamina, so no
+route hop may require waiting on a perch — every proved climb here is an
+updraught, and the tank discrimination is player-facing by design.
+PROVED, 17 hops, 770 frames, 1,187 expansions.
+
+## M3 — THERMAL HEIGHTS, the third world
+
+Five levels, authored in parallel by five authors against a measured
+physics vocabulary, every one proved against the shipping movement code
+and replayed in the real booted game:
+
+```
+heights_1  UPDRAFT         6 hops    427 frames    PROVED
+heights_2  THE THERMALS   21 hops    940 frames    PROVED
+heights_3  ASH COLUMN     15 hops  1,018 frames    PROVED
+heights_4  THE LONG GLIDE 17 hops    770 frames    PROVED
+heights_5  THE STORMCREST  7 hops    508 frames    PARTIAL, by design
+```
+
+THE STORMCREST is the first boss in the project to pass its gate on the
+day it was born — 23 checks, 26 refuges reachable, none unfightable, a
+tape that wins without losing a heart — rather than retroactively.
+
+### The overworld catches up with the game
+
+Integration found two progression breaks that predate this world. M2
+never wired the ruins into the shipped hub — its doors existed only in
+`staging/hub_v2.json`, so nothing in the running game could reach World 2,
+and the heights chain gated on `ruins_5` would have been born dead. And
+`jungle_5` still carried `requires_all`, which since M2 meant "clear every
+level in `levels/`", including the ones you could not reach: HEART OF THE
+GROVE has been unopenable in the shipped game for a milestone. The hub now
+carries all fifteen gateways in three bands, `jungle_5` requires
+`jungle_4`, and both hub test files were rewritten to prove *both* maps
+every run — with falsifiability demonstrated by restoring the broken M2
+state and watching seven guards fail naming the real defects.
+
+### The world's weather, and a whole art pipeline
+
+`data/ambience.json` gains its ten missing `heights_*`/`ruins_*` entries.
+The fallback-to-jungle was real at the data level and invisible in
+practice — measured, no screen in either world has a cell with both
+layers empty, so no parallax plane was ever on screen — but the entries
+carry art direction that is visible: cold water light deepening through
+World 2, pale gold over the glides, ash-red in the column, storm grey
+over the boss. `data/tile_anim.json` animates the new world's verb — a
+sway whose phase runs *up* an updraft column, measured at 2,603 differing
+pixels between captures against a 675-pixel control — and every sprite in
+the game is now generator-born: `sprites_enemies_v2` is called from
+`gen_art.py` (all three sheets byte-identical), and the Tide Maw, which
+shipped in M2 from a one-off script nobody kept, has a real
+`build_boss_tide_maw()` authored from a per-frame census of the committed
+PNG. A full `genart.sh` run reproduces every tracked asset.
+
+The integration suite ends the milestone at **624 checks** — the three
+self-harnessed boss/enemy suites folded in — with 279 unit tests,
+validate OK over sixteen levels, and all three boss gates passing under
+the honest landing measurement.
