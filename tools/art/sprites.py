@@ -1176,6 +1176,19 @@ STORM = {'a': ("stone", 2.2), 'A': ("stone", 4.8), 'd': ("stone", 0.5),
          'w': ("metal", 6.0), 'y': ("gold", 4.8), 'o': ("gold", 3.2),
          'r': ("ember", 3.0)}
 
+#: THE TIDE MAW. One mapping for all 18 frames, as the Stormcrest does, with the
+#: *character* carrying the phase: 'b' is the drowned blue of EBB, 'c' the lit
+#: cyan of FLOOD, 'r' the ember of UNDERTOW. The lure and the eye move up the
+#: same three ramps the tide tiles are drawn on, because this animal is meant to
+#: read as being made of the water it is standing in.
+#:
+#: Whole-numbered bases, which is unusual in this file and deliberate: see the
+#: note over the sheet() call in build_boss_tide_maw().
+TIDE = {'b': ("water", 4.0), 'c': ("water", 5.0), 'r': ("ember", 3.0),
+        'n': ("water", 1.0), 'l': ("water", 6.0),
+        'y': ("gold", 5.0), 'o': ("gold", 4.0),
+        'w': ("metal", 6.0), 'a': ("metal", 5.0)}
+
 BLADE = {'A': ("metal", 1.8), 'w': ("metal", 5.8)}
 GEM = {'c': ("water", 5.2), 'b': ("water", 3.4), 'w': ("metal", 6.0)}
 HEART = {'r': ("ember", 2.8), 'w': ("metal", 6.0)}
@@ -1656,3 +1669,223 @@ def build_boss_stormcrest():
     cells = [make(ph, pose) for ph in PHASES for pose in POSES]
     sheet("boss_stormcrest", lit(cells, STORM), 48, 48)
     print("boss_stormcrest.png  %d frames" % len(cells))
+
+
+def build_boss_tide_maw():
+    """THE TIDE MAW — 48x48, six frames per fight phase, ruins_5.
+
+    An anglerfish beached in a flooded cistern: a heavy trunk running off the
+    bottom-left corner of the frame, a blunt skull, a lure on a stalk arcing up
+    over the head, and a gape that is half the animal. It is drawn **facing
+    right**, which is the sheet convention `Enemy.draw()` assumes (`flip_h` when
+    `facing < 0`), and unlike the Stormcrest it needs no rotation: every pose is
+    the same animal with the jaw hinged open by a different amount.
+
+    Frame order is the contract with data/enemies/tide_maw.json, which names the
+    six poses `<pose>_p1/_p2/_p3`, and src/enemies/tide_maw.gd picks the suffix
+    for the phase it is in:
+
+        0 idle  1-2 the walk  3 windup  4 airborne  5 landing
+
+    The fight's one idea is the tide: the arena floods and drains under the
+    player, and the boss is the thing that is doing it. So the art has two jobs.
+
+      * **The gape is the telegraph.** `gape` is the half-height of the mouth at
+        its tip, and it runs 4 px at rest to 13 px airborne. That is the widest
+        silhouette change in the sheet and it is on the half of the animal the
+        player is standing in front of, so a slam reads before it lands.
+      * **The lure is the phase.** The bulb is the brightest pixel in the frame
+        and the only one that changes hue between phases — cyan in EBB, gold in
+        FLOOD, ember-orange in UNDERTOW — so the fight state is legible from a
+        single 3x3 blob at the top of the frame even when the body is in shadow.
+
+    Phases differ in silhouette as well as in value, the rule the plan set for
+    the Grove Warden: the jaw lengthens, the resting gape opens, gill rakers cut
+    into the cheek and UNDERTOW grows barbels off the chin. Value carries the
+    rest, up the water ramp and then off it: drowned blue, lit cyan, ember.
+    """
+    import math
+
+    W = H = 48
+    FLOOR = 47
+    # The head sits left of centre and low, because the mouth is what has to
+    # have room. Everything below is measured off this one point.
+    HX = 16
+
+    PHASES = [
+        dict(name="EBB", body='b', lure='l', eye='l',
+             jaw=20, gape=0, gills=0, barb=0),
+        dict(name="FLOOD", body='c', lure='y', eye='w',
+             jaw=22, gape=1, gills=3, barb=0),
+        dict(name="UNDERTOW", body='r', lure='o', eye='y',
+             jaw=24, gape=2, gills=4, barb=1),
+    ]
+    # dy     how far the whole animal sits off its resting height
+    # gape   half-height of the mouth at the tip, before the phase's own bonus
+    # tilt   where the tip of the mouth points, + is down
+    # stalk  how much of the lure's arc is extended, 0 folded .. 1 full
+    # swing  sideways drift of the bulb, so the lure is never quite still
+    POSES = [
+        dict(dy=0, gape=5, tilt=0, stalk=1.0, swing=0),     # idle
+        dict(dy=-1, gape=5, tilt=0, stalk=1.0, swing=1),    # walk A
+        dict(dy=0, gape=4, tilt=1, stalk=0.95, swing=-1),   # walk B
+        dict(dy=-4, gape=4, tilt=1, stalk=0.28, swing=0),   # windup
+        dict(dy=-3, gape=13, tilt=-3, stalk=1.0, swing=2),  # airborne
+        dict(dy=3, gape=10, tilt=4, stalk=0.9, swing=-2),   # landing
+    ]
+
+    def make(ph, pose):
+        px = [['.'] * W for _ in range(H)]
+
+        def put(x, y, c):
+            x, y = int(round(x)), int(round(y))
+            if 0 <= x < W and 0 <= y < H:
+                px[y][x] = c
+
+        def ellipse(cx, cy, rx, ry, c):
+            for y in range(int(cy - ry) - 1, int(cy + ry) + 2):
+                for x in range(int(cx - rx) - 1, int(cx + rx) + 2):
+                    if ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1.0:
+                        put(x, y, c)
+
+        def stroke(x0, y0, x1, y1, w0, w1, c):
+            """A tapered mass — the trunk and the two jaws are all one of these.
+
+            Same helper the Stormcrest's wing uses, and for the same reason: a
+            fish drawn out of lines is a skeleton, a fish drawn out of tapered
+            masses is an animal.
+            """
+            dx, dy = x1 - x0, y1 - y0
+            ln = max(math.hypot(dx, dy), 0.001)
+            nx, ny = -dy / ln, dx / ln          # the unit perpendicular
+            n = int(ln * 2) + 1
+            for i in range(n + 1):
+                t = i / n
+                x, y = x0 + dx * t, y0 + dy * t
+                wd = w0 + (w1 - w0) * t
+                m = int(wd * 2) + 1
+                for s in range(-m, m + 1):
+                    if abs(s * 0.5) <= wd:
+                        put(x + nx * s * 0.5, y + ny * s * 0.5, c)
+
+        def wedge(ax, ay, bx, by, cx, cy, c):
+            """The mouth cavity: the triangle hinge -> upper tip -> lower tip,
+            filled in ink so it cuts back through the skull rather than sitting
+            on top of it."""
+            lo_y, hi_y = int(min(ay, by, cy)), int(max(ay, by, cy))
+            lo_x, hi_x = int(min(ax, bx, cx)), int(max(ax, bx, cx))
+            for y in range(lo_y - 1, hi_y + 2):
+                for x in range(lo_x - 1, hi_x + 2):
+                    d1 = (bx - ax) * (y - ay) - (by - ay) * (x - ax)
+                    d2 = (cx - bx) * (y - by) - (cy - by) * (x - bx)
+                    d3 = (ax - cx) * (y - cy) - (ay - cy) * (x - cx)
+                    if not ((d1 < 0 or d2 < 0 or d3 < 0)
+                            and (d1 > 0 or d2 > 0 or d3 > 0)):
+                        put(x, y, c)
+
+        body, lure, eye = ph["body"], ph["lure"], ph["eye"]
+        hy = 18 + pose["dy"]                        # the skull
+        jx, jy = HX + 4, hy + 2                     # the jaw hinge
+        length = ph["jaw"]
+        gape = pose["gape"] + ph["gape"]
+        tipx = min(W - 3, jx + length)
+        tipy = jy + pose["tilt"]
+
+        # ---- the trunk, first and behind everything: one tapered mass leaving
+        # the frame at the bottom-left, so the animal is always bigger than the
+        # 48x48 it is drawn in and the arena never contains all of it.
+        stroke(HX + 2, hy + 3, 1, FLOOR + 9, 7.5, 10.0, body)
+
+        # ---- the skull. Blunt, wider than it is tall, and sitting forward of
+        # the trunk so the two masses do not read as one sausage.
+        ellipse(HX, hy, 9, 8, body)
+        ellipse(HX + 3, hy - 1, 7, 7, body)
+
+        # ---- the operculum: an ink break down the back of the cheek. Two
+        # masses in one material have no edge between them for auto_shade() to
+        # light, so the head is separated by hand or it is not separated.
+        for i in range(11):
+            t = i / 10.0
+            put(HX - 8 + t * 2.0, hy - 6 + i, 'k')
+
+        # ---- the mouth. Cavity first, then the two jaws over its edges, so the
+        # jaws stay solid however far the gape opens.
+        wedge(jx - 3, jy, tipx, tipy - gape, tipx, tipy + gape, 'k')
+        stroke(jx - 4, jy - 4, tipx, tipy - gape - 1, 2.6, 1.2, body)
+        stroke(jx - 4, jy + 4, tipx, tipy + gape + 1, 3.0, 1.6, body)
+
+        # ---- teeth. Two staggered ranks per jaw, spaced so that the mouth
+        # reads as a comb rather than as a hole even at a fifth of a second.
+        for i in range(6):
+            t = 0.18 + i * 0.15
+            ux = jx + (tipx - jx) * t
+            uy = jy + (tipy - gape - jy) * t
+            ly = jy + (tipy + gape - jy) * t
+            put(ux, uy + 1, 'w')
+            put(ux, uy + 2, 'a')
+            put(ux, ly - 1, 'w')
+            put(ux, ly - 2, 'a')
+
+        # ---- gill rakers, cut into the cheek. FLOOD grows them, UNDERTOW grows
+        # one more: the animal is opening up as the fight goes on.
+        for i in range(ph["gills"]):
+            x = HX - 6 + i * 2
+            for y in range(hy - 3, hy + 3):
+                put(x, y, 'k')
+
+        # ---- barbels, UNDERTOW only: two feelers off the chin that trail back
+        # under the trunk and make the last phase unmistakable in silhouette.
+        if ph["barb"]:
+            for i in range(2):
+                stroke(jx - 5 + i * 3, jy + 7, jx - 13 + i * 2,
+                       jy + 13 + i * 3, 1.2, 0.5, body)
+
+        # ---- the eye: a block in an ink socket, with a white catchlight and no
+        # pupil. It is the second-brightest thing in the frame and it never
+        # blinks, which is most of why the animal reads as dead-eyed.
+        ex, ey = HX + 2, hy - 5
+        ellipse(ex, ey, 3, 3, 'k')
+        ellipse(ex, ey, 2, 2, eye)
+        put(ex + 1, ey - 1, 'w')
+
+        # ---- the illicium: a thin stalk off the crown arcing up and forward,
+        # with the bulb hanging over the mouth where the prey is meant to look.
+        s = pose["stalk"]
+        arc = ((0, -2), (1, -4), (3, -6), (6, -7), (10, -7))
+        bx, by = HX - 4, hy - 9
+        prev = (bx, by)
+        for i, (ox, oy) in enumerate(arc):
+            if (i + 1) / len(arc) > s:
+                break
+            nxt = (bx + ox * s + pose["swing"] * (i / len(arc)), by + oy * s)
+            stroke(prev[0], prev[1], nxt[0], nxt[1], 0.9, 0.9, body)
+            prev = nxt
+        # The bulb is the brightest thing in the frame and the one the player
+        # tracks, so it is drawn twice: the lure colour over a ring of it, which
+        # at 48x48 is the difference between a lamp and a stray pixel.
+        ellipse(prev[0] + 2, prev[1] - 1, 3.2, 3.0, lure)
+        ellipse(prev[0] + 2, prev[1] - 1, 1.0, 1.0, 'w' if lure != 'w' else 'y')
+        put(prev[0] + 3, prev[1] - 2, 'w')
+
+        # ---- ink outline, the last pass, exactly as the other two bosses.
+        out = [row[:] for row in px]
+        for y in range(H):
+            for x in range(W):
+                if px[y][x] != '.':
+                    continue
+                for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    yy, xx = y + dy, x + dx
+                    if 0 <= yy < H and 0 <= xx < W and px[yy][xx] not in ('.', 'k'):
+                        out[y][x] = 'k'
+                        break
+        return ["".join(r) for r in out]
+
+    cells = [make(ph, pose) for ph in PHASES for pose in POSES]
+    # depth/rate/lit/dark all whole numbers, which is the one place this animal
+    # differs from the other two bosses: its masses are large and flat, and a
+    # fractional ramp level is drawn as a dither, so the default 0.7/1.1/0.95
+    # puts a checkerboard across half the frame. Whole steps give the four flat
+    # tones the rest of the ruins art is drawn in.
+    sheet("boss_tide_maw",
+          lit(cells, TIDE, depth=2, rate=1.0, lit=1.0, dark=1.0), 48, 48)
+    print("boss_tide_maw.png  %d frames" % len(cells))

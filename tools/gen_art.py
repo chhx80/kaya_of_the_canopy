@@ -12,6 +12,8 @@ This file is only the running order. The generators themselves live in
     art.palette    ramps, dither(), blob(), crack(), auto_shade()
     art.tiles      the tileset
     art.sprites    player forms, enemies, boss, pickups, props, projectiles
+    art.sprites_enemies_v2
+                   the charger, the dropper and the flyer
     art.backdrops  title bg, parallax planes, lighting art, logo, font, icons
 
 Two flags, neither of which generates anything:
@@ -32,6 +34,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from art import backdrops, palette, sprites, tiles     # noqa: E402
+from art import sprites_enemies_v2                     # noqa: E402
 
 ROOT = palette.ROOT
 
@@ -431,8 +434,14 @@ def main():
     palette.write_manifest()
     tiles.build_tileset()
     sprites.build_sprites()
+    # The charger, the dropper and the flyer. A second module rather than more
+    # of art.sprites because they arrived with the twenty-level plan, but they
+    # are built the same way and they belong in the same run: a generator the
+    # running order does not call is not a generator, it is a note.
+    sprites_enemies_v2.build()
     sprites.build_boss()
     sprites.build_boss_stormcrest()
+    sprites.build_boss_tide_maw()
     backdrops.build_font()
     backdrops.build_logo()
     backdrops.build_title_bg()
