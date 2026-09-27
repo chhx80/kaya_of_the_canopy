@@ -29,22 +29,14 @@ extends Node
 ##     player, and "the Maw cannot follow" by running the fight and watching
 ##     where its body actually goes
 ##
-## Standalone (this file owns its whole harness):
-##   $GODOT --headless --path . res://tests/integration/boss_tide_maw_runner.tscn
+## Part of tools/itest.sh: `t_boss_tide_maw` in
+## tests/integration/integration_tests.gd runs this as a child and adds its tally
+## to the suite's. `standalone = false` is what stops it printing its own report.
 ##
-## Not wired into tests/integration/integration_tests.gd: this branch does not
-## own that file. To wire it in, add to `run_all()`'s list:
-##     "t_boss_tide_maw",
-## and the method:
-##     func t_boss_tide_maw() -> void:
-##         var s: Node = (load("res://tests/integration/boss_tide_maw_tests.gd") as GDScript).new()
-##         s.standalone = false
-##         add_child(s)
-##         await s.run_all()
-##         passes += s.passes
-##         failures.append_array(s.failures)
-##         s.queue_free()
-## `standalone = false` is what stops it printing its own report. See REPORT.md.
+## Still runnable on its own — this file owns its whole harness — which is how you
+## get its report by itself:
+##   $GODOT --headless --path . res://tests/integration/boss_tide_maw_runner.tscn
+## or, in the suite: ITEST_TIMEOUT=900 tools/itest.sh --only=t_boss_tide_maw
 
 const LEVEL := "ruins_5"
 const BOSS := "tide_maw"
@@ -73,6 +65,11 @@ var failures: PackedStringArray = PackedStringArray()
 var passes := 0
 var standalone := true
 var _current := ""
+
+## Diagnostics for the refuge probe: KAYA_TIDE_HOPTRACE=1 prints one line per
+## probe, and every frame on which `Actor.last_floor_tile` disagreed with where
+## her feet actually were. See the note on `_hop`.
+var hop_trace := OS.get_environment("KAYA_TIDE_HOPTRACE") != ""
 
 var lvl: Node = null
 var boss: Enemy = null
@@ -169,6 +166,13 @@ func standable_set() -> Dictionary:
 
 func stand_pos(tile: Vector2i) -> Vector2:
 	return Vector2(float(tile.x) * TS + (TS - pl.box.x) * 0.5, float(tile.y) * TS - pl.box.y)
+
+## The tile Kaya is actually standing on right now, read off her hitbox rather
+## than off the last thing the collision code happened to resolve. See the note
+## on `_hop`.
+func _tile_under_feet() -> Vector2i:
+	var f := pl.feet()
+	return Vector2i(int(floor(f.x / TS)), int(floor((f.y + 1.0) / TS)))
 
 func park(tile: Vector2i) -> void:
 	pl.control_enabled = true
@@ -380,13 +384,38 @@ func t_the_refuge_shelf_is_two_tiles_up_and_she_can_make_it() -> void:
 	boss.active = true
 
 ## Jump at the slab and report the tile she actually ended up standing on.
+##
+## "Actually" is the whole job, so the answer is read off her hitbox and not off
+## `Actor.last_floor_tile`. That field is written only on a frame where
+## `TileCollision.move_y` *resolves* a floor: `on_floor` is also true on frames
+## where the `is_on_floor()` fallback at the end of `Actor.step_motion` caught her
+## instead (drifting over a ledge with `vel.y <= 0` — what the top of a jump arc
+## onto a slab looks like), and when it does resolve it names the leftmost column
+## of her 12 px footprint rather than the column under her feet. Either way the
+## verdict was about an older frame, and nothing cleared the value between probes.
+## Measured here it disagreed with her feet on 20 of the ~50 grounded frames of a
+## single probe.
+##
+## `_tile_under_feet()` is not a second opinion: it is `floor((bottom + 1) / TS)`,
+## the same row `TileCollision.is_on_floor` itself used to decide she is standing,
+## taken at her centre column. Read on a frame where `on_floor` is true, after she
+## has actually left the ground, it is the landing. Same correction as
+## boss_gate_checks.gd::_try_hop and boss_stormcrest_tests.gd::_hop.
 func _hop(from: Vector2i, x0: int, x1: int) -> Vector2i:
 	var toward := "right" if x0 > from.x else "left"
+	var last := Vector2i(-1, -1)
 	for run_up in [0, 6, 12, 20, 30]:
 		park(from)
+		# Nothing this probe reports may come from the previous probe's landing.
+		pl.last_floor_tile = Vector2i(-1, -1)
 		lvl.cam.snap_to_target()
 		_hold([])
 		await frames(2)
+		var airborne := false
+		var hit_f := -1
+		var got := Vector2i(-1, -1)
+		var stale_frames := 0
+		var stale_examples: PackedStringArray = PackedStringArray()
 		for f in 110:
 			pl.invuln = 999.0
 			Game.health = Game.max_health
@@ -395,12 +424,34 @@ func _hop(from: Vector2i, x0: int, x1: int) -> Vector2i:
 				held.append("jump")
 			_hold(held)
 			await get_tree().physics_frame
-			var t: Vector2i = pl.last_floor_tile
-			if pl.on_floor and t.y == SHELF_ROW and t.x >= x0 and t.x <= x1:
-				_hold([])
-				return t
+			if not pl.on_floor:
+				airborne = true
+				continue
+			var feet := _tile_under_feet()
+			last = feet
+			if hop_trace and pl.last_floor_tile != feet:
+				stale_frames += 1
+				if stale_examples.size() < 3:
+					stale_examples.append("f%d last_floor_tile(%d,%d) but her feet are on (%d,%d)"
+						% [f, pl.last_floor_tile.x, pl.last_floor_tile.y, feet.x, feet.y])
+			# `airborne`: a hop that never left the ground has not landed anywhere.
+			if airborne and feet.y == SHELF_ROW and feet.x >= x0 and feet.x <= x1:
+				hit_f = f
+				got = feet
+				break
 		_hold([])
-	return pl.last_floor_tile
+		if hop_trace:
+			say("      hop (%d,%d)->cols %d-%d %-5s ru%-3d  %-3s f%-4d got(%d,%d) feet(%d,%d) air=%s stale_frames=%d"
+				% [from.x, from.y, x0, x1, toward, run_up,
+					"GOT" if got.x >= 0 else "no", hit_f, got.x, got.y,
+					_tile_under_feet().x, _tile_under_feet().y, str(airborne), stale_frames])
+			for e: String in stale_examples:
+				say("          last_floor_tile was stale: %s" % e)
+		if got.x >= 0:
+			return got
+	# Nothing landed on the slab: report the last tile she was actually standing
+	# on, so the failure message names where she ended up instead of a stale read.
+	return last
 
 ## 8. The Maw cannot follow her onto a shelf. This is the other half of what
 ## makes the refuge a refuge, and it is measured by letting the fight run in

@@ -1,0 +1,304 @@
+{
+ "id": "heights_3",
+ "name": "ASH COLUMN",
+ "music": "world3",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "##################################################",
+  "##..............))))))...#.......#################",
+  "##..............))))))...#.......#################",
+  "##..............))))))...........#################",
+  "##SSSSSUUU......))))))...........#################",
+  "##.....UUU......))))))...##VVSSSS#################",
+  "##.....UUU...............##VVVVVV#################",
+  "##.....UUU((((((.........##......#################",
+  "##.....UUU((((((.........##SSVVVV#################",
+  "##.....UUU((((((.........##VVVVVV#################",
+  "##.....UUU((((((.........##......#........########",
+  "##.....UUU...............##VVVVSS#........########",
+  "##.....UUU...............##VVVVVV.........########",
+  "##.....UUU...............##...............########",
+  "##################VVV###############UUUU##########",
+  "##################VVV##############VUUUUV#########",
+  "##################VVV##############VUUUUV#########",
+  "##################VVV##############VUUUUV#########",
+  "##################VVV##############VUUUUV#########",
+  "##################VVV##############VUUUUV#########",
+  "##################VVV#############.VUUUUV#########",
+  "######^####^######VVV#############.VUUUUV#########",
+  "#...................................UUUU.#########",
+  "#...................................UUUU.#########",
+  "#...................................UUUU.#########",
+  "#...................................UUUU.#########",
+  "#.......))))))......................UUUU.#########",
+  "#.......))))))......................UUUU.#########",
+  "##################################################",
+  "#dddddddddddddddddddddddddddddddddddddddd#########"
+ ],
+ "bg": [
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLrrrrrrrLLLLLLTLLLLrrrrrLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLrrrrLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLTLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLTLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLrrrrrLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLTLLLLLLLLLLLTLLLLLLLTLLLLLLTLLLLLLLLLLLLLLLLLL",
+  "LLLLTLLLLLLLLLLLTLLLLLLLTLLLLLLTLLLLLLLLLLLLLLLLLL",
+  "LLLLTLLLLLLLLLLLTLLLLLLLTLLLLLLTLLLLLLLLLLLLLLLLLL",
+  "LLLLTLLLLLLLLLLLTLLLLLLLTLLLLLLTLLLLLLLLLLLLLLLLLL",
+  "LLLLTLLLLLLLLLLLTLLLLLLLTLLLLLLTLLLLLLLLLLLLLLLLLL",
+  "LLLLTLLLLLLLLLLLTLLLLLLLTLLLLLLTLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 2,
+   "y": 27
+  },
+  {
+   "type": "pad_bird",
+   "x": 35,
+   "y": 27
+  },
+  {
+   "type": "pad_frog",
+   "x": 28,
+   "y": 13
+  },
+  {
+   "type": "pad_bird",
+   "x": 30,
+   "y": 4
+  },
+  {
+   "type": "exit",
+   "x": 3,
+   "y": 3
+  },
+  {
+   "type": "enemy_dropper",
+   "x": 8,
+   "y": 22
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 18,
+   "y": 3
+  },
+  {
+   "type": "heart",
+   "x": 40,
+   "y": 13
+  },
+  {
+   "type": "heart",
+   "x": 3,
+   "y": 13
+  },
+  {
+   "type": "gem",
+   "x": 4,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 12,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 20,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 33,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 32,
+   "y": 10
+  },
+  {
+   "type": "gem",
+   "x": 27,
+   "y": 7
+  },
+  {
+   "type": "gem",
+   "x": 32,
+   "y": 4
+  },
+  {
+   "type": "gem",
+   "x": 23,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 12,
+   "y": 8
+  },
+  {
+   "type": "gem",
+   "x": 5,
+   "y": 3
+  }
+ ],
+ "marks": {
+  "flue_1": {
+   "x": 31,
+   "y": 10
+  },
+  "flue_2": {
+   "x": 28,
+   "y": 7
+  },
+  "ash_mid": {
+   "x": 18,
+   "y": 27
+  },
+  "core_foot": {
+   "x": 35,
+   "y": 27
+  },
+  "core_ride": {
+   "x": 37,
+   "y": 20
+  },
+  "core_lip": {
+   "x": 38,
+   "y": 13
+  },
+  "chamber_west": {
+   "x": 35,
+   "y": 13
+  },
+  "wind_perch": {
+   "x": 30,
+   "y": 4
+  },
+  "wind_door": {
+   "x": 24,
+   "y": 4
+  },
+  "dive": {
+   "x": 22,
+   "y": 9
+  },
+  "tail_in": {
+   "x": 15,
+   "y": 9
+  },
+  "lift_foot": {
+   "x": 9,
+   "y": 9
+  },
+  "lift_lip": {
+   "x": 8,
+   "y": 4
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "ash_mid",
+   "form": "human"
+  },
+  {
+   "from": "ash_mid",
+   "to": "core_foot",
+   "form": "human"
+  },
+  {
+   "from": "core_foot",
+   "to": "core_ride",
+   "form": "bird"
+  },
+  {
+   "from": "core_ride",
+   "to": "core_lip",
+   "form": "bird"
+  },
+  {
+   "from": "core_lip",
+   "to": "chamber_west",
+   "form": "bird"
+  },
+  {
+   "from": "chamber_west",
+   "to": "pad_frog",
+   "form": "bird"
+  },
+  {
+   "from": "pad_frog",
+   "to": "flue_1",
+   "form": "frog"
+  },
+  {
+   "from": "flue_1",
+   "to": "flue_2",
+   "form": "frog"
+  },
+  {
+   "from": "flue_2",
+   "to": "wind_perch",
+   "form": "frog"
+  },
+  {
+   "from": "wind_perch",
+   "to": "wind_door",
+   "form": "bird"
+  },
+  {
+   "from": "wind_door",
+   "to": "dive",
+   "form": "bird"
+  },
+  {
+   "from": "dive",
+   "to": "tail_in",
+   "form": "bird"
+  },
+  {
+   "from": "tail_in",
+   "to": "lift_foot",
+   "form": "bird"
+  },
+  {
+   "from": "lift_foot",
+   "to": "lift_lip",
+   "form": "bird"
+  },
+  {
+   "from": "lift_lip",
+   "to": "exit",
+   "form": "bird"
+  }
+ ],
+ "tileset": "heights"
+}

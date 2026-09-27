@@ -163,6 +163,9 @@ func run_all() -> void:
 		"t_light_pools_follow_the_screen_and_only_exist_where_a_level_asked",
 		"t_a_tape_that_no_longer_matches_its_level_is_refused",
 		"t_a_tape_that_is_malformed_or_starts_anywhere_but_spawn_is_refused",
+		"t_enemies_v2",
+		"t_boss_tide_maw",
+		"t_boss_stormcrest",
 	]
 	for t in tests:
 		if _only != "" and not t.contains(_only):
@@ -172,6 +175,34 @@ func run_all() -> void:
 		await call(t)
 	await run_replays()
 	_report()
+
+# ------------------------------------------------- suites that own their harness
+## Three suites predate this file's ownership and each shipped with its own
+## runner and the four-line patch to fold it in; this is that patch, three times.
+## Each owns its whole harness — its own boot, its own arena, its own
+## `passes`/`failures` — so it is run as a child and its tally is added to this
+## one. `standalone = false` is what stops each printing a second report. See the
+## headers of the three files.
+func _fold_in(path: String) -> void:
+	var s: Node = (load(path) as GDScript).new()
+	s.standalone = false
+	add_child(s)
+	await s.run_all()
+	passes += s.passes
+	failures.append_array(s.failures)
+	s.queue_free()
+
+## The charger, the ceiling-dropper and the patrolling flyer.
+func t_enemies_v2() -> void:
+	await _fold_in("res://tests/integration/enemies_v2_tests.gd")
+
+## THE TIDE MAW's tide: a boss that writes to the level's tile grid mid-play.
+func t_boss_tide_maw() -> void:
+	await _fold_in("res://tests/integration/boss_tide_maw_tests.gd")
+
+## THE STORMCREST's roost window and gale.
+func t_boss_stormcrest() -> void:
+	await _fold_in("res://tests/integration/boss_stormcrest_tests.gd")
 
 # ---------------------------------------------------------------- the gate itself
 ## These two do to the tape gate what the rest of the suite does to the game:

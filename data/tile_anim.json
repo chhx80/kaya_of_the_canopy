@@ -31,6 +31,26 @@
       "frames": [4, 5, 6, 7],
       "fps": 7.0,
       "tint": { "hz": 3.1, "amount": 0.16 }
+    },
+    "206": {
+      "name": "updraft",
+      "_note": "THE UPDRAFT. World 3's core verb, and until now the only thing in the game that moved the player while standing perfectly still itself. A sway on the y axis with a row phase is a travelling wave rather than a bob: hold the phase constant and ty falls as t rises, so the ripple runs UP the column, which is the direction the tile pushes. 0.34 puts roughly three rows in a wavelength - a column four tiles tall shows a whole crest, which is the shortest one that is authored.",
+      "sway": { "axis": "y", "px": 1.0, "hz": 0.8, "row_phase": 0.34 }
+    },
+    "207": {
+      "name": "updraft_strong",
+      "_note": "updraft_strong, [0,-560] against the updraft's [0,-400]. Faster and one row shorter in the wave, so the two columns read as different strengths from across a screen without either of them needing its own artwork. Still 1 px: the cap is 2 and 2 px of vertical slide tears a streak away from the one above it.",
+      "sway": { "axis": "y", "px": 1.0, "hz": 1.25, "row_phase": 0.28 }
+    },
+    "248": {
+      "name": "heights_chain",
+      "_note": "heights_chain. A hang sway like the vine's, slower and with less phase between rows: a chain is stiffer than a creeper, so it swings closer to one piece.",
+      "sway": { "axis": "x", "px": 1.0, "hz": 0.24, "row_phase": 0.5 }
+    },
+    "250": {
+      "name": "heights_cloud",
+      "_note": "heights_cloud. The slowest thing in the table - half the rate of the jungle's bg_leaves, which is itself the slow one. It is a background fill rather than a prop, so the drift has to be under the threshold where the eye starts reading the tile grid instead of the weather.",
+      "sway": { "axis": "x", "px": 1.0, "hz": 0.11, "row_phase": 0.25 }
     }
   }
 }

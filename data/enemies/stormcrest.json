@@ -1,0 +1,265 @@
+{
+  "id": "stormcrest",
+  "display_name": "THE STORMCREST",
+  "sprite": "res://assets/sprites/boss_stormcrest.png",
+  "frame_w": 48,
+  "frame_h": 48,
+  "hitbox": {
+    "w": 40,
+    "h": 46,
+    "ox": 4,
+    "oy": 2
+  },
+  "health": 12,
+  "contact_damage": 1,
+  "score": 3800,
+  "gravity": 0.0,
+  "speed": 0.0,
+  "boss": true,
+  "hitstop": "boss_kill",
+  "arena_inset": 96.0,
+  "ceiling_inset": 20.0,
+  "roost_pads": [
+    32,
+    37,
+    42
+  ],
+  "climb_rate": 150.0,
+  "steer_gain": 4.0,
+  "windup_time": 0.55,
+  "gale": {
+    "x": 26,
+    "y": 25,
+    "w": 23,
+    "h": 2,
+    "gust_east": 209,
+    "gust_west": 210
+  },
+  "phases": [
+    {
+      "name": "EYRIE",
+      "until_health": 8,
+      "cruise_y": 108.0,
+      "cruise_speed": 58.0,
+      "bob": 8.0,
+      "dive_interval": 2.0,
+      "dive_speed": 300.0,
+      "roost_time": 2.4,
+      "bore_speed": 132.0,
+      "bore_life": 1.6,
+      "volley": 0,
+      "lanes": []
+    },
+    {
+      "name": "SQUALL",
+      "until_health": 4,
+      "cruise_y": 104.0,
+      "cruise_speed": 74.0,
+      "bob": 10.0,
+      "dive_interval": 2.4,
+      "dive_speed": 330.0,
+      "roost_time": 2.2,
+      "bore_speed": 148.0,
+      "bore_life": 1.6,
+      "volley": 4,
+      "volley_interval": 2.2,
+      "lanes": [
+        {
+          "x0": 26,
+          "x1": 29,
+          "flow": "east"
+        },
+        {
+          "x0": 45,
+          "x1": 48,
+          "flow": "west"
+        }
+      ]
+    },
+    {
+      "name": "TEMPEST",
+      "until_health": 0,
+      "cruise_y": 100.0,
+      "cruise_speed": 92.0,
+      "bob": 12.0,
+      "dive_interval": 2.2,
+      "dive_speed": 360.0,
+      "roost_time": 2.0,
+      "bore_speed": 166.0,
+      "bore_life": 1.6,
+      "volley": 5,
+      "volley_interval": 2.0,
+      "lanes": [
+        {
+          "x0": 26,
+          "x1": 35,
+          "flow": "east"
+        },
+        {
+          "x0": 39,
+          "x1": 48,
+          "flow": "west"
+        }
+      ]
+    }
+  ],
+  "projectile": {
+    "speed": 104.0,
+    "damage": 1,
+    "frame": 0,
+    "life": 2.4,
+    "gravity": 150.0
+  },
+  "volley_spread": 1.0,
+  "drops": {},
+  "anim": {
+    "idle_p1": {
+      "frames": [
+        0
+      ],
+      "fps": 1
+    },
+    "walk_p1": {
+      "frames": [
+        1,
+        2
+      ],
+      "fps": 6
+    },
+    "windup_p1": {
+      "frames": [
+        3
+      ],
+      "fps": 1
+    },
+    "air_p1": {
+      "frames": [
+        4
+      ],
+      "fps": 1
+    },
+    "land_p1": {
+      "frames": [
+        5
+      ],
+      "fps": 1
+    },
+    "hurt_p1": {
+      "frames": [
+        5
+      ],
+      "fps": 1
+    },
+    "idle_p2": {
+      "frames": [
+        6
+      ],
+      "fps": 1
+    },
+    "walk_p2": {
+      "frames": [
+        7,
+        8
+      ],
+      "fps": 8
+    },
+    "windup_p2": {
+      "frames": [
+        9
+      ],
+      "fps": 1
+    },
+    "air_p2": {
+      "frames": [
+        10
+      ],
+      "fps": 1
+    },
+    "land_p2": {
+      "frames": [
+        11
+      ],
+      "fps": 1
+    },
+    "hurt_p2": {
+      "frames": [
+        11
+      ],
+      "fps": 1
+    },
+    "idle_p3": {
+      "frames": [
+        12
+      ],
+      "fps": 1
+    },
+    "walk_p3": {
+      "frames": [
+        13,
+        14
+      ],
+      "fps": 10
+    },
+    "windup_p3": {
+      "frames": [
+        15
+      ],
+      "fps": 1
+    },
+    "air_p3": {
+      "frames": [
+        16
+      ],
+      "fps": 1
+    },
+    "land_p3": {
+      "frames": [
+        17
+      ],
+      "fps": 1
+    },
+    "hurt_p3": {
+      "frames": [
+        17
+      ],
+      "fps": 1
+    },
+    "idle": {
+      "frames": [
+        0
+      ],
+      "fps": 1
+    },
+    "walk": {
+      "frames": [
+        1,
+        2
+      ],
+      "fps": 6
+    },
+    "windup": {
+      "frames": [
+        3
+      ],
+      "fps": 1
+    },
+    "air": {
+      "frames": [
+        4
+      ],
+      "fps": 1
+    },
+    "land": {
+      "frames": [
+        5
+      ],
+      "fps": 1
+    },
+    "hurt": {
+      "frames": [
+        5
+      ],
+      "fps": 1
+    }
+  }
+}

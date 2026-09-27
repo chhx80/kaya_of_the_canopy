@@ -1,0 +1,287 @@
+{
+ "id": "heights_5",
+ "name": "THE STORMCREST",
+ "music": "boss",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "ssssssssssssssssssssssssssssssssssssssssssssssssss",
+  "s................................................s",
+  "s................................................s",
+  "s................................................s",
+  "s................................................s",
+  "s................................................s",
+  "s................................................s",
+  "s................................................s",
+  "s................................................s",
+  "s................................................s",
+  "s................................................s",
+  "s########UU####....######################...#####s",
+  "sddddddddUUdddd....dddddddddddddddddddddd...ddddds",
+  "sddddddddUUdddd....dddddddddddddddddddddd...ddddds",
+  "sddddddddUUdddd####dddddddddddddddddddddd...ddddds",
+  "sddddddddUUddddddddddddddssssssssssssssss...ssssss",
+  "sddddddddUUddddddddddddddsssss...............sssss",
+  "sddddddddUUddddddddddddddsssss...............sssss",
+  "sddddddddUUddddddddddddddsssss...............sssss",
+  "sddddddddUUddddddddddddddsssss...............sssss",
+  "sddddddddUUddddddddddddddsssss...............sssss",
+  "sddddddddUUddddddddddddddsssss...............sssss",
+  "sddddddddUUdddddddddddddds.......................s",
+  "sddddddddUUdddddddddddddds.......................s",
+  "s.......dUUdddddddddddddds.......................s",
+  "s........UUdddddddddddddds.....====..====........s",
+  "s........UUdddddddddddddds.......................s",
+  "s##########dddddddddddddds#####SSS##SSS##SSS#####s",
+  "sddddddddddddddddddddddddsddddddddddddddddddddddds",
+  "ssssssssssssssssssssssssssssssssssssssssssssssssss"
+ ],
+ "bg": [
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LXXXrrrXXXXXXrrrXXXXXXrrrXXXXrrrXXXXrrrXXXXXXrrrXL",
+  "LXXXrrrXXXXXXrrrXXXXXXrrrXXXXrrrXXXXrrrXXXXXXrrrXL",
+  "LXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LXXTXXXXXXXXXXXXXXXXTXXXXXXXXXXXXXTXXXXXXXXXXXXTXL",
+  "LXXTXXXXXXXXXXXXXXXXTXXXXXXXXXXXXXTXXXXXXXXXXXXTXL",
+  "LXXTXXXXXXXXXXXXXXXXTXXXXXXXXXXXXXTXXXXXXXXXXXXTXL",
+  "LXXTXXXXXXXXXXXXXXXXTXXXXXXXXXXXXXTXXXXXXXXXXXXTXL",
+  "LXXTXXXXXXXXXXXXXXXXTXXXXXXXXXXXXXTXXXXXXXXXXXXTXL",
+  "LXXTXXXXXXXXXXXXXXXXTXXXXXXXXXXXXXTXXXXXXXXXXXXTXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXTXXXXXXXXTXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXTXXXXXXXXTXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXTXXXXXXXXTXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXTXXXXXXXXTXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXTXXXXXXXXTXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXTXXXXXXXXTXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXTXXXXXXXXTXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXTXXXXXXXXTXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 2,
+   "y": 26
+  },
+  {
+   "type": "pad_bird",
+   "x": 5,
+   "y": 26
+  },
+  {
+   "type": "pad_human",
+   "x": 42,
+   "y": 26
+  },
+  {
+   "type": "boss_stormcrest",
+   "x": 37,
+   "y": 26
+  },
+  {
+   "type": "boss_exit",
+   "x": 36,
+   "y": 26
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 14,
+   "y": 5,
+   "axis": "x",
+   "range": 40
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 33,
+   "y": 4,
+   "axis": "x",
+   "range": 56
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 21,
+   "y": 7,
+   "axis": "y",
+   "range": 32
+  },
+  {
+   "type": "heart",
+   "x": 7,
+   "y": 26
+  },
+  {
+   "type": "heart",
+   "x": 31,
+   "y": 24
+  },
+  {
+   "type": "heart",
+   "x": 40,
+   "y": 24
+  },
+  {
+   "type": "gem",
+   "x": 3,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 6,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 9,
+   "y": 22
+  },
+  {
+   "type": "gem",
+   "x": 10,
+   "y": 18
+  },
+  {
+   "type": "gem",
+   "x": 9,
+   "y": 14
+  },
+  {
+   "type": "gem",
+   "x": 12,
+   "y": 10
+  },
+  {
+   "type": "gem",
+   "x": 16,
+   "y": 13
+  },
+  {
+   "type": "gem",
+   "x": 17,
+   "y": 13
+  },
+  {
+   "type": "gem",
+   "x": 24,
+   "y": 10
+  },
+  {
+   "type": "gem",
+   "x": 28,
+   "y": 10
+  },
+  {
+   "type": "gem",
+   "x": 35,
+   "y": 10
+  },
+  {
+   "type": "gem",
+   "x": 39,
+   "y": 10
+  },
+  {
+   "type": "gem",
+   "x": 27,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 47,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 34,
+   "y": 24
+  },
+  {
+   "type": "gem",
+   "x": 38,
+   "y": 24
+  }
+ ],
+ "marks": {
+  "draft_foot": {
+   "x": 9,
+   "y": 26
+  },
+  "draft_mid": {
+   "x": 9,
+   "y": 18
+  },
+  "crest": {
+   "x": 12,
+   "y": 10
+  },
+  "ridge": {
+   "x": 22,
+   "y": 10
+  },
+  "lip": {
+   "x": 40,
+   "y": 10
+  },
+  "arena_floor": {
+   "x": 42,
+   "y": 26
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "pad_bird",
+   "form": "human"
+  },
+  {
+   "from": "pad_bird",
+   "to": "draft_foot",
+   "form": "bird"
+  },
+  {
+   "from": "draft_foot",
+   "to": "draft_mid",
+   "form": "bird"
+  },
+  {
+   "from": "draft_mid",
+   "to": "crest",
+   "form": "bird"
+  },
+  {
+   "from": "crest",
+   "to": "ridge",
+   "form": "bird"
+  },
+  {
+   "from": "ridge",
+   "to": "lip",
+   "form": "bird"
+  },
+  {
+   "from": "lip",
+   "to": "pad_human",
+   "form": "bird"
+  },
+  {
+   "from": "pad_human",
+   "to": "boss_exit",
+   "form": "human"
+  }
+ ],
+ "tileset": "heights"
+}

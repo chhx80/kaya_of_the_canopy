@@ -1,0 +1,486 @@
+{
+ "fps": 60,
+ "hops": [
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "spawn",
+   "to": "scree_pad"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 12
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 8
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "scree_pad",
+   "to": "chim_low"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "none",
+     "n": 12
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 8
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 12
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "chim_low",
+   "to": "chim_high"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 12
+    },
+    {
+     "a": "right",
+     "n": 16
+    }
+   ],
+   "from": "chim_high",
+   "to": "pad_frog"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 56
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "pad_frog",
+   "to": "crev_foot"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "jump",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
+    }
+   ],
+   "from": "crev_foot",
+   "to": "tread_one"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "jump",
+     "n": 10
+    }
+   ],
+   "from": "tread_one",
+   "to": "tread_two"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 28
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "tread_two",
+   "to": "hall_pad"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "hall_pad",
+   "to": "lip"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 44
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "lip",
+   "to": "curtain_out"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "curtain_out",
+   "to": "thermal_lip"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 44
+    },
+    {
+     "a": "jump",
+     "n": 3
+    }
+   ],
+   "from": "thermal_lip",
+   "to": "lane_mid"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 18
+    }
+   ],
+   "from": "lane_mid",
+   "to": "island"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 32
+    },
+    {
+     "a": "none",
+     "n": 5
+    }
+   ],
+   "from": "island",
+   "to": "flue_mouth"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "none",
+     "n": 51
+    }
+   ],
+   "from": "flue_mouth",
+   "to": "cellar_east"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 32
+    },
+    {
+     "a": "none",
+     "n": 4
+    }
+   ],
+   "from": "cellar_east",
+   "to": "cellar_wind"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "left",
+     "n": 12
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 20
+    },
+    {
+     "a": "none",
+     "n": 4
+    }
+   ],
+   "from": "cellar_wind",
+   "to": "cellar_oasis"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 8
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
+    }
+   ],
+   "from": "cellar_oasis",
+   "to": "thermal_mid"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 12
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "thermal_mid",
+   "to": "thermal_top"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 32
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 48
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 30
+    }
+   ],
+   "from": "thermal_top",
+   "to": "sky_east"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 16
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 18
+    }
+   ],
+   "from": "sky_east",
+   "to": "exit"
+  }
+ ],
+ "level": "heights_2",
+ "source_sha": "e0b5bcc389899f479ab54d8a53155f9d279cc2a62b302d416af087933909a273"
+}

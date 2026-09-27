@@ -18,23 +18,15 @@ extends Node
 ## floor along row 12, walls at columns 0 and 24, a one-way platform at row 8
 ## columns 14-16, a breakable crate at (18, 11).
 ##
-## Standalone (this file owns its whole harness):
-##   $GODOT --headless --path . res://tests/integration/enemies_v2_runner.tscn
+## Part of tools/itest.sh: `t_enemies_v2` in
+## tests/integration/integration_tests.gd runs this as a child and adds its tally
+## to the suite's. `standalone = false` is what stops it printing its own report;
+## the host's counters are the ones that matter then.
 ##
-## Not wired into tests/integration/integration_tests.gd: this branch does not
-## own that file. To wire it in, add to `run_all()`'s list:
-##     "t_enemies_v2",
-## and the method:
-##     func t_enemies_v2() -> void:
-##         var s: Node = (load("res://tests/integration/enemies_v2_tests.gd") as GDScript).new()
-##         s.standalone = false
-##         add_child(s)
-##         await s.run_all()
-##         passes += s.passes
-##         failures.append_array(s.failures)
-##         s.queue_free()
-## `standalone = false` is what stops it printing its own report; the host's
-## counters are the ones that matter then. See REPORT.md.
+## Still runnable on its own — this file owns its whole harness — which is how you
+## get its report by itself:
+##   $GODOT --headless --path . res://tests/integration/enemies_v2_runner.tscn
+## or, in the suite: ITEST_TIMEOUT=900 tools/itest.sh --only=t_enemies_v2
 
 const ARENA := "test_arena"
 const TS := 16.0

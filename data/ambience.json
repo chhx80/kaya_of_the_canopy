@@ -104,6 +104,122 @@
       }
     },
 
+    "ruins_1": {
+      "_note": "DROWNED STEPS. The first of the sunken world, so it is the one that has to *introduce* it: the ruins backdrop - a drowned colonnade going blue with distance - is left as readable as it ever gets here, and the haze is only thick enough to sit the stone behind the tiles.",
+      "world": "ruins",
+      "air": { "ramp": "water", "step": 3, "alpha": 0.30 },
+      "bg_tint": { "ramp": "water", "step": 4, "mix": 0.80, "scale": 0.60 },
+      "fg_tint": { "ramp": "water", "step": 6, "mix": 0.30, "scale": 0.94 },
+      "vignette": 0.24,
+      "lights": [],
+      "emissive": {
+        "7": { "ramp": "water", "step": 6, "intensity": 0.26, "radius": 30, "lift": 6 }
+      }
+    },
+
+    "ruins_2": {
+      "_note": "THE COLONNADE. The level is a colonnade and so is the backdrop, so this is the one screen in the game where the parallax and the tiles are the same architecture receding. The tint keeps them apart by value rather than by hue.",
+      "world": "ruins",
+      "air": { "ramp": "water", "step": 3, "alpha": 0.34 },
+      "bg_tint": { "ramp": "water", "step": 4, "mix": 0.85, "scale": 0.56 },
+      "fg_tint": { "ramp": "water", "step": 6, "mix": 0.30, "scale": 0.92 },
+      "vignette": 0.26,
+      "lights": [],
+      "emissive": {
+        "7": { "ramp": "water", "step": 6, "intensity": 0.26, "radius": 30, "lift": 6 }
+      }
+    },
+
+    "ruins_3": {
+      "_note": "TIDE GALLERY. Half the level is under water and the currents run through it, so the surface does the lighting: every run of water_top gets its own pool, exactly as THE WATERWAY does.",
+      "world": "ruins",
+      "air": { "ramp": "water", "step": 2, "alpha": 0.38 },
+      "bg_tint": { "ramp": "water", "step": 4, "mix": 0.85, "scale": 0.54 },
+      "fg_tint": { "ramp": "water", "step": 6, "mix": 0.35, "scale": 0.90 },
+      "vignette": 0.30,
+      "emissive": {
+        "7": { "ramp": "water", "step": 6, "intensity": 0.30, "radius": 32, "lift": 6 }
+      }
+    },
+
+    "ruins_4": {
+      "_note": "THE CISTERN. Enclosed and flooded - the darkest of the five. The haze is nearly black water and the vignette closes the walls in; the only thing that gives light back is the surface itself.",
+      "world": "ruins",
+      "air": { "ramp": "water", "step": 1, "alpha": 0.48 },
+      "bg_tint": { "ramp": "water", "step": 3, "mix": 0.85, "scale": 0.48 },
+      "fg_tint": { "ramp": "water", "step": 5, "mix": 0.45, "scale": 0.86 },
+      "vignette": 0.42,
+      "emissive": {
+        "7": { "ramp": "water", "step": 6, "intensity": 0.32, "radius": 32, "lift": 6 }
+      }
+    },
+
+    "ruins_5": {
+      "_note": "THE TIDE MAW. The arena floods and drains under the player, so the light has to move with it: the pools are on the water surface, not on the walls, and they rise and fall with the tide because the tile they are attached to does.",
+      "world": "ruins",
+      "air": { "ramp": "water", "step": 2, "alpha": 0.36 },
+      "bg_tint": { "ramp": "water", "step": 3, "mix": 0.85, "scale": 0.52 },
+      "fg_tint": { "ramp": "water", "step": 6, "mix": 0.35, "scale": 0.92 },
+      "vignette": 0.32,
+      "emissive": {
+        "7": { "ramp": "water", "step": 6, "intensity": 0.34, "radius": 34, "lift": 6 }
+      }
+    },
+
+    "heights_1": {
+      "_note": "UPDRAFT. First screen of world 3 and the one that has to sell the altitude, so it gets the least air of the five: the heights backdrop - a dusk sky over snow peaks standing out of a sea of cloud - is meant to be looked at here.",
+      "world": "heights",
+      "air": { "ramp": "gold", "step": 6, "alpha": 0.10 },
+      "bg_tint": { "ramp": "gold", "step": 6, "mix": 0.35, "scale": 0.82 },
+      "fg_tint": { "ramp": "metal", "step": 6, "scale": 1.0 },
+      "vignette": 0.10,
+      "lights": []
+    },
+
+    "heights_2": {
+      "_note": "THE THERMALS. The vents are what lift you, so they are the only thing in the level that emits: a low ember pool on every heights_vent, merged along a row, which reads as heat coming off the rock rather than as a lamp.",
+      "world": "heights",
+      "air": { "ramp": "gold", "step": 5, "alpha": 0.14 },
+      "bg_tint": { "ramp": "gold", "step": 5, "mix": 0.45, "scale": 0.78 },
+      "fg_tint": { "ramp": "metal", "step": 6, "scale": 0.98 },
+      "vignette": 0.14,
+      "emissive": {
+        "247": { "ramp": "ember", "step": 5, "intensity": 0.28, "radius": 26, "lift": 5 }
+      }
+    },
+
+    "heights_3": {
+      "_note": "ASH COLUMN. The dim one: ash in the air rather than haze, so the backdrop is pushed towards the ember ramp instead of towards black and the peaks go the colour of the sky.",
+      "world": "heights",
+      "air": { "ramp": "ember", "step": 2, "alpha": 0.26 },
+      "bg_tint": { "ramp": "ember", "step": 4, "mix": 0.45, "scale": 0.66 },
+      "fg_tint": { "ramp": "ember", "step": 6, "mix": 0.22, "scale": 0.92 },
+      "vignette": 0.26,
+      "emissive": {
+        "247": { "ramp": "ember", "step": 5, "intensity": 0.30, "radius": 26, "lift": 5 }
+      }
+    },
+
+    "heights_4": {
+      "_note": "THE LONG GLIDE. The brightest screen in the game. Eleven hundred cloud tiles, almost no vignette and the palest haze there is: nothing here should read as a ceiling.",
+      "world": "heights",
+      "air": { "ramp": "metal", "step": 6, "alpha": 0.12 },
+      "bg_tint": { "ramp": "metal", "step": 6, "scale": 0.86 },
+      "fg_tint": { "ramp": "metal", "step": 6, "scale": 1.0 },
+      "vignette": 0.05,
+      "lights": []
+    },
+
+    "heights_5": {
+      "_note": "THE STORMCREST. Same peaks as the other four, under weather. The air goes stone grey and the vignette closes in, which is what makes the bird - drawn on the stone ramp itself - read by silhouette instead of by colour.",
+      "world": "heights",
+      "air": { "ramp": "stone", "step": 2, "alpha": 0.34 },
+      "bg_tint": { "ramp": "stone", "step": 5, "mix": 0.60, "scale": 0.62 },
+      "fg_tint": { "ramp": "stone", "step": 6, "mix": 0.30, "scale": 0.92 },
+      "vignette": 0.32,
+      "lights": []
+    },
+
     "test_arena": {
       "_note": "Left neutral on purpose. tools/itest.sh plays here, and a test that has to be re-baselined every time someone re-lights a level is a test nobody trusts.",
       "world": "jungle",

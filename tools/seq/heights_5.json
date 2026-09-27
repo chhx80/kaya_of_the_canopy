@@ -1,0 +1,238 @@
+[
+ {
+  "_": "HEIGHTS_5, THE STORMCREST. Re-run with: tools/shot.sh --seq=tools/seq/heights_5.json"
+ },
+ {
+  "_": "Two things about capturing this fight. Kaya is not invulnerable in a capture and the fight does not stop for one, so every arena shot is taken from the west refuge slab -- which is also the tile the fight is about, and which carries a heart. And `debug_advance_boss_phase` and `debug_kill_nearest_enemy` both go through Enemy.hurt(), which this boss REFUSES while it is flying: a call at an arbitrary moment does nothing at all, which is how the first cut of this sequence ended up with four shots of an untouched phase 1. Both are staged off the one window that is not a guess -- leaving the arena screen and coming back respawns it onto its roost pad for 0.9 s (Level._on_screen_changed -> Enemy.set_active_screen -> respawn), and a call 15 frames into that lands every time."
+ },
+ {
+  "scenario": "level:heights_5",
+  "settle": 120
+ },
+ {
+  "teleport": [
+   3,
+   25
+  ],
+  "settle": 40
+ },
+ {
+  "shot": "shots/heights_5_a_shelter.png"
+ },
+ {
+  "_": "Onto the bird pad, then into the chimney: sixteen tiles of updraft, THERMAL HEIGHTS' verb and the only reason the ridge is reachable."
+ },
+ {
+  "teleport": [
+   5,
+   25
+  ],
+  "settle": 30
+ },
+ {
+  "shot": "shots/heights_5_b_pad_bird.png"
+ },
+ {
+  "teleport": [
+   9,
+   22
+  ],
+  "settle": 20
+ },
+ {
+  "shot": "shots/heights_5_c_chimney.png"
+ },
+ {
+  "teleport": [
+   9,
+   12
+  ],
+  "settle": 20
+ },
+ {
+  "shot": "shots/heights_5_d_mouth.png"
+ },
+ {
+  "_": "East along the crest, over the cleft, to the lip above the light-shaft."
+ },
+ {
+  "teleport": [
+   16,
+   9
+  ],
+  "settle": 30
+ },
+ {
+  "shot": "shots/heights_5_e_cleft.png"
+ },
+ {
+  "teleport": [
+   39,
+   10
+  ],
+  "settle": 30
+ },
+ {
+  "shot": "shots/heights_5_f_lip.png"
+ },
+ {
+  "_": "THE EYRIE, phase 1: the floor, the two one-way refuge slabs, the buttresses over the wind-shelters, and the three bleached roost pads at cols 32, 37 and 42."
+ },
+ {
+  "teleport": [
+   42,
+   24
+  ],
+  "settle": 90
+ },
+ {
+  "shot": "shots/heights_5_g_arena.png"
+ },
+ {
+  "_": "On the west refuge slab. 32 px over the floor is where the bore off its stoop goes under her, and the heart on the slab is why she can stand here for the rest of the sequence."
+ },
+ {
+  "teleport": [
+   31,
+   22
+  ],
+  "settle": 60
+ },
+ {
+  "shot": "shots/heights_5_h_refuge.png"
+ },
+ {
+  "wait": 70
+ },
+ {
+  "shot": "shots/heights_5_i_stoop.png"
+ },
+ {
+  "teleport": [
+   31,
+   22
+  ],
+  "settle": 30
+ },
+ {
+  "shot": "shots/heights_5_j_roost.png"
+ },
+ {
+  "_": "SQUALL. Out of the arena and back in, which respawns it roosting, then one advance 15 frames into that window."
+ },
+ {
+  "teleport": [
+   39,
+   10
+  ],
+  "settle": 20
+ },
+ {
+  "teleport": [
+   31,
+   22
+  ],
+  "settle": 15
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 50
+ },
+ {
+  "teleport": [
+   31,
+   22
+  ],
+  "settle": 20
+ },
+ {
+  "shot": "shots/heights_5_k_squall.png"
+ },
+ {
+  "_": "TEMPEST: two advances inside one roost window. The gale spreads from the two shelters across the whole floor, pushing inward -- the green streaks along rows 25-26 are real gust tiles the boss writes and takes out again."
+ },
+ {
+  "teleport": [
+   39,
+   10
+  ],
+  "settle": 20
+ },
+ {
+  "teleport": [
+   31,
+   22
+  ],
+  "settle": 15
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 6
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 60
+ },
+ {
+  "teleport": [
+   31,
+   22
+  ],
+  "settle": 20
+ },
+ {
+  "shot": "shots/heights_5_l_tempest.png"
+ },
+ {
+  "teleport": [
+   28,
+   25
+  ],
+  "settle": 25
+ },
+ {
+  "shot": "shots/heights_5_m_shelter_gale.png"
+ },
+ {
+  "_": "And the way out: the same window, one killing blow, and the gate Level.on_boss_defeated() puts where boss_exit was authored. Kaya is parked eight tiles east of it, on a column with no refuge slab over the floor: standing on the gate ends the level (which is how the first cut of this sequence photographed the hub), and a body teleported into the row a one-way slab occupies gets ejected a few pixels sideways when the sim resumes -- twice enough to walk her into it."
+ },
+ {
+  "teleport": [
+   39,
+   10
+  ],
+  "settle": 20
+ },
+ {
+  "teleport": [
+   31,
+   22
+  ],
+  "settle": 15
+ },
+ {
+  "call": "debug_kill_nearest_enemy"
+ },
+ {
+  "wait": 80
+ },
+ {
+  "teleport": [
+   44,
+   25
+  ],
+  "settle": 40
+ },
+ {
+  "log": "the gate shot"
+ },
+ {
+  "shot": "shots/heights_5_n_gate.png"
+ }
+]
