@@ -1,0 +1,367 @@
+{
+ "id": "heights_2",
+ "name": "THE THERMALS",
+ "music": "world3",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "##################################################",
+  "#dddddddddddddddddddddddddddddddddddddddddddddddd#",
+  "#ddddddddddddddddddddddddVVV.....................#",
+  "#dddddddddddddddddd......VVV.....................#",
+  "#dddddddddddddddddd......VVV.....................#",
+  "#ddddddddddddddd.........VVV....)))))))))).......#",
+  "#ddddddddddddddd.........VVV....)))))))))).......#",
+  "#ddddddddddddddd...SSSS..VVV....))))))))))...SSSS#",
+  "#ddddddddddddddd===ddddSSVVVUUUU.............dddd#",
+  "#ddddddddddddddd...ddddddVVVUUUU....SSS......dddd#",
+  "#ddddddddddd.......ddddddVVVUUUU....sss..VVVVdddd#",
+  "#ddddddddddd....===ddddddVVVUUUU.........VVVVdddd#",
+  "#dddddd............ddddddVVVUUUU.........VVVVdddd#",
+  "#dddddd............ddddddVVVUUUU.........VVVVdddd#",
+  "#dddddd.....#######dddddd^^^UUUU^^^^^^^^^VVVVdddd#",
+  "#dddddd.....ddddddddddddddddUUUUdddddddddVVVVdddd#",
+  "#dddddd.....ddddddddddddddddUUUUdddddddddVVVVdddd#",
+  "#dddddd.....ddddddddddddddddUUUUdddddddddVVVVdddd#",
+  "#dddddd.....ddddddddddddd...UUUU.........VVVVdddd#",
+  "#dddddd.....ddddddddddddd...UUUU.........VVVVdddd#",
+  "#dddddd.....ddddddddddddd...UUUU.........VVVVdddd#",
+  "#dddddd.....ddddddddddddd...UUUU.........VVVVdddd#",
+  "#dddddd.....ddddddddddddd...UUUU.........VVVVdddd#",
+  "#...........ddddddddddddd...UUUU.........VVVVdddd#",
+  "#...........ddddddddddddd...UUUU.............dddd#",
+  "#...........ddddddddddddd...UUUU(((((((((....dddd#",
+  "#...........ddddddddddddd...UUUU(((((((((....dddd#",
+  "#...........ddddddddddddd...UUUU.............dddd#",
+  "####^^######ddddddddddddd##########^^^^######dddd#",
+  "#ddddddddddd#############dddddddddddddddddddd#####"
+ ],
+ "bg": [
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLTTTXXXXXXXXXXXXXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLXXXXXXTTTrrrrrrrrrrrrrrrrXXTXXL",
+  "LLLLLLLLLLLLLLLLLLLXXXXXXTTTXXXXXXXXXXXXXXXXXXTXXL",
+  "LLLLLLLLLLLLLLLLLLLXXXXXXTTTXXXXXXXXXXXXXXXXXXTXXL",
+  "LLLLLLLLLLLLLLLLLLLXXXXXXTTTXXXXXXXXXXXXXXXXXXTXXL",
+  "LLLLLLLLLLLLLLLLLLLXXXXXXTTTXXXXXXXXXXXXXXXXXLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLTTTTTTTXXXXXXXXXXXXXLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLTTTTTTTXXXXXXXXXXXXXLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLTTTTTTTXXXXXXXXXTTTTLLLLL",
+  "LLLLLLLLLLLLLLTLLLLLLLLLLTTTTTTTrrrrrrrrrTTTTLLLLL",
+  "LLLLLLLLLLLLLLTLLLLLLLLLLTTTTTTTXXXXXXXXXTTTTLLLLL",
+  "LLLLLLLLLLLLLLTLLLLLLLLLLTTTTTTTXXXXXXXXXTTTTLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLTTTTLLLLLLLLLTTTTLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLTTTTLLLLLLLLLTTTTLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLTTTTLLLLLLLLLTTTTLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLTTTTLLLLLLLLLTTTTLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLTTTTLLLLLLLLLTTTTLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLTTTTLLLLLLLLLTTTTLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLTLLLLTTTTLLLLLLLLLTTTTLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLTLLLLTTTTLLLLLLLLLTTTTLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLTLLLLTTTTLLLLLLLLLTTTTLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLTLLLLTTTTLLLLLLLLLTTTTLLLLL",
+  "LLTLLLLLLLLLLLLLLLLLLLLTLLLLTTTTLLLLLLLLLLLLLLLLLL",
+  "LLTLLLLLLLLLLLLLLLLLLLLTLLLLTTTTLLLLLLLLLLLLLLLLLL",
+  "LLTLLLLLLLLLLLLLLLLLLLLTLLLLTTTTLLLLLLLLLLLLLLLLLL",
+  "LLTLLLLLLLLLLLLLLLLLLLLLLLLLTTTTLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 2,
+   "y": 27
+  },
+  {
+   "type": "pad_bird",
+   "x": 9,
+   "y": 27
+  },
+  {
+   "type": "pad_frog",
+   "x": 13,
+   "y": 13
+  },
+  {
+   "type": "pad_bird",
+   "x": 20,
+   "y": 6
+  },
+  {
+   "type": "exit",
+   "x": 46,
+   "y": 6
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 34,
+   "y": 11,
+   "axis": "x",
+   "range": 40
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 26,
+   "y": 21,
+   "axis": "y",
+   "range": 48
+  },
+  {
+   "type": "heart",
+   "x": 43,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 3,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 7,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 14,
+   "y": 13
+  },
+  {
+   "type": "gem",
+   "x": 17,
+   "y": 10
+  },
+  {
+   "type": "gem",
+   "x": 17,
+   "y": 7
+  },
+  {
+   "type": "gem",
+   "x": 21,
+   "y": 6
+  },
+  {
+   "type": "gem",
+   "x": 30,
+   "y": 4
+  },
+  {
+   "type": "gem",
+   "x": 37,
+   "y": 8
+  },
+  {
+   "type": "gem",
+   "x": 39,
+   "y": 6
+  },
+  {
+   "type": "gem",
+   "x": 33,
+   "y": 20
+  },
+  {
+   "type": "gem",
+   "x": 40,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 47,
+   "y": 6
+  }
+ ],
+ "marks": {
+  "scree_pad": {
+   "x": 9,
+   "y": 27
+  },
+  "chim_low": {
+   "x": 9,
+   "y": 22
+  },
+  "chim_high": {
+   "x": 9,
+   "y": 16
+  },
+  "crev_foot": {
+   "x": 17,
+   "y": 13
+  },
+  "tread_one": {
+   "x": 17,
+   "y": 10
+  },
+  "tread_two": {
+   "x": 17,
+   "y": 7
+  },
+  "hall_pad": {
+   "x": 20,
+   "y": 6
+  },
+  "lip": {
+   "x": 24,
+   "y": 7
+  },
+  "curtain_out": {
+   "x": 29,
+   "y": 10
+  },
+  "thermal_lip": {
+   "x": 30,
+   "y": 5
+  },
+  "lane_mid": {
+   "x": 36,
+   "y": 6
+  },
+  "island": {
+   "x": 37,
+   "y": 8
+  },
+  "flue_mouth": {
+   "x": 42,
+   "y": 11
+  },
+  "cellar_east": {
+   "x": 42,
+   "y": 27
+  },
+  "cellar_wind": {
+   "x": 38,
+   "y": 24
+  },
+  "cellar_oasis": {
+   "x": 33,
+   "y": 27
+  },
+  "thermal_mid": {
+   "x": 29,
+   "y": 18
+  },
+  "thermal_top": {
+   "x": 29,
+   "y": 5
+  },
+  "sky_east": {
+   "x": 39,
+   "y": 4
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "scree_pad",
+   "form": "human"
+  },
+  {
+   "from": "scree_pad",
+   "to": "chim_low",
+   "form": "bird"
+  },
+  {
+   "from": "chim_low",
+   "to": "chim_high",
+   "form": "bird"
+  },
+  {
+   "from": "chim_high",
+   "to": "pad_frog",
+   "form": "bird"
+  },
+  {
+   "from": "pad_frog",
+   "to": "crev_foot",
+   "form": "frog"
+  },
+  {
+   "from": "crev_foot",
+   "to": "tread_one",
+   "form": "frog"
+  },
+  {
+   "from": "tread_one",
+   "to": "tread_two",
+   "form": "frog"
+  },
+  {
+   "from": "tread_two",
+   "to": "hall_pad",
+   "form": "frog"
+  },
+  {
+   "from": "hall_pad",
+   "to": "lip",
+   "form": "bird"
+  },
+  {
+   "from": "lip",
+   "to": "curtain_out",
+   "form": "bird"
+  },
+  {
+   "from": "curtain_out",
+   "to": "thermal_lip",
+   "form": "bird"
+  },
+  {
+   "from": "thermal_lip",
+   "to": "lane_mid",
+   "form": "bird"
+  },
+  {
+   "from": "lane_mid",
+   "to": "island",
+   "form": "bird"
+  },
+  {
+   "from": "island",
+   "to": "flue_mouth",
+   "form": "bird"
+  },
+  {
+   "from": "flue_mouth",
+   "to": "cellar_east",
+   "form": "bird"
+  },
+  {
+   "from": "cellar_east",
+   "to": "cellar_wind",
+   "form": "bird"
+  },
+  {
+   "from": "cellar_wind",
+   "to": "cellar_oasis",
+   "form": "bird"
+  },
+  {
+   "from": "cellar_oasis",
+   "to": "thermal_mid",
+   "form": "bird"
+  },
+  {
+   "from": "thermal_mid",
+   "to": "thermal_top",
+   "form": "bird"
+  },
+  {
+   "from": "thermal_top",
+   "to": "sky_east",
+   "form": "bird"
+  },
+  {
+   "from": "sky_east",
+   "to": "exit",
+   "form": "bird"
+  }
+ ],
+ "tileset": "heights"
+}
