@@ -1,0 +1,237 @@
+{
+ "id": "heights_1",
+ "name": "UPDRAFT",
+ "music": "world3",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "##################################################",
+  "#dddddddddddddddddddddddddddddddddddddddddddddddd#",
+  "#dddddddddddddddddddddd.........................d#",
+  "#dddddddddddddddddddddd.........................d#",
+  "#dddddddddddddddddddddd.........................d#",
+  "#dddddddddddddddddddddd....****.................d#",
+  "#ddddddddddd...............****.===.............d#",
+  "#ddddddddddd...............****.................d#",
+  "#ddddddddddd...............****....S............d#",
+  "#ddddddddddd...............****....d............d#",
+  "#ddddd........UUUU.........****....d............d#",
+  "#ddddd........UUUU.===S....****....d............d#",
+  "#ddddd........UUUU....d....****....dSSSSSSSSSSSSd#",
+  "#ddddd........UUUU....d....****....dddddddddddddd#",
+  "#ddddd........UUUU....d....****....dddddddddddddd#",
+  "#ddddd........UUUU....d....****....dddddddddddddd#",
+  "#.............UUUU....d....****..........dddddddd#",
+  "#.............UUUU....d....****..........dddddddd#",
+  "#.............UUUU....d....****..........dddddddd#",
+  "#.............UUUU....d....****..........dddddddd#",
+  "#.............UUUU....d....****..........dddddddd#",
+  "#.............UUUU....d....****..........dddddddd#",
+  "#.............UUUU....d....****..........dddddddd#",
+  "#.............UUUU....d....****..........dddddddd#",
+  "#.............UUUU....d....****..........dddddddd#",
+  "#.............UUUU....d....****..........dddddddd#",
+  "#.............UUUU....d....****..........dddddddd#",
+  "######################d##################dddddddd#",
+  "#dddddddddddddddddddddddddddddddddddddddddddddddd#",
+  "##################################################"
+ ],
+ "bg": [
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXXXLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXXXLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLrrrrrrrrrrrrXrrrrrrrrrrrrLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXTXXXXXXXXTXLL",
+  "LLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXXXTXXXXXXXXTXLL",
+  "LLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXXXTXXXXXXXXTXLL",
+  "LLLLLLLLLLLLrrrrrrrrrrXXXXXXXXXXXXXLXTXXXXXXXXTXLL",
+  "LLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXLrTrrrrrrrrTrLL",
+  "LLLLLLXXXXXXXXXXXXXXXXXXXXXXXXXXXXTLXTXXXXXXXXTXLL",
+  "LLLLLLXXXXXXXXXXXXXXXXLXXXXXXXXXXXTLXTXXXXXXXXTXLL",
+  "LLLLLLrrrrrrXXXXXXXXXXLrrrrrrrrrrrTLLLLLLLLLLLLLLL",
+  "LLLLLLXXXXXXXXXXXXXXXXLTXXXXXXXXXXTLLLLLLLLLLLLLLL",
+  "LLLLLLXXXXXXXXXXXXXXXXLTXXXXXXXXXXTLLLLLLLLLLLLLLL",
+  "LLLLLLXXXXXXXXXXXXXXXXLTXXXXXXXXXXTLLLLLLLLLLLLLLL",
+  "LXXXXXXXXXXXXXXXXXXXXTLTXXXXXXXXXXTXXXXXXLLLLLLLLL",
+  "LXXXXXXXXXXXrrrrrrrrrTLTXXXXXXXXXXTXXXXXXLLLLLLLLL",
+  "LXXXXXXXXXXXXXXXXXXXXTLTXXXXXXXXXXTrrrrrTLLLLLLLLL",
+  "LrrrrrrrrrrrXXXXXXXXXTLTXXXXXXXXXXTXXXXXTLLLLLLLLL",
+  "LXTXXXXXXXXXXXXXXXXXXTLTXXXXXXXXXXTXXXXXTLLLLLLLLL",
+  "LXTXXXXXXXXXXXXXXXXXXTLTrrrrrrrrrrTXXXXXTLLLLLLLLL",
+  "LXTXXXXXXXXXXXXXXXXXXTLTXXXXXXXXXXTXXXXXTLLLLLLLLL",
+  "LXTXXXXXXXXXXXXXXXXXXTLTXXXXXXXXXXTXXXXXTLLLLLLLLL",
+  "LXTXXXXXXXXXXXXXXXXXXTLTXXXXXXXXXXTXXXXXTLLLLLLLLL",
+  "LXTXXXXXXXXXXXXXXXXXXTLTXXXXXXXXXXTXXXXXTLLLLLLLLL",
+  "LXTXXXXXXXXXXXXXXXXXXTLTXXXXXXXXXXTXXXXXTLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 2,
+   "y": 26
+  },
+  {
+   "type": "pad_bird",
+   "x": 9,
+   "y": 26
+  },
+  {
+   "type": "pad_human",
+   "x": 38,
+   "y": 11
+  },
+  {
+   "type": "exit",
+   "x": 45,
+   "y": 11
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 6,
+   "y": 20
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 32,
+   "y": 20
+  },
+  {
+   "type": "enemy_walker",
+   "x": 24,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 4,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 7,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 12,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 15,
+   "y": 22
+  },
+  {
+   "type": "gem",
+   "x": 15,
+   "y": 16
+  },
+  {
+   "type": "gem",
+   "x": 20,
+   "y": 10
+  },
+  {
+   "type": "gem",
+   "x": 24,
+   "y": 9
+  },
+  {
+   "type": "gem",
+   "x": 28,
+   "y": 14
+  },
+  {
+   "type": "gem",
+   "x": 33,
+   "y": 5
+  },
+  {
+   "type": "gem",
+   "x": 25,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 31,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 40,
+   "y": 11
+  },
+  {
+   "type": "gem",
+   "x": 43,
+   "y": 11
+  },
+  {
+   "type": "heart",
+   "x": 39,
+   "y": 26
+  }
+ ],
+ "marks": {
+  "shoulder_w": {
+   "x": 4,
+   "y": 26
+  },
+  "perch_1": {
+   "x": 20,
+   "y": 10
+  },
+  "perch_2": {
+   "x": 33,
+   "y": 5
+  },
+  "hollow_w": {
+   "x": 37,
+   "y": 11
+  },
+  "thermal_foot": {
+   "x": 13,
+   "y": 26
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "pad_bird",
+   "form": "human"
+  },
+  {
+   "from": "pad_bird",
+   "to": "thermal_foot",
+   "form": "bird"
+  },
+  {
+   "from": "thermal_foot",
+   "to": "perch_1",
+   "form": "bird"
+  },
+  {
+   "from": "perch_1",
+   "to": "perch_2",
+   "form": "bird"
+  },
+  {
+   "from": "perch_2",
+   "to": "pad_human",
+   "form": "bird"
+  },
+  {
+   "from": "pad_human",
+   "to": "exit",
+   "form": "human"
+  }
+ ],
+ "tileset": "heights"
+}
