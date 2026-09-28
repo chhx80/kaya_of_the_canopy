@@ -1,0 +1,65 @@
+{
+  "_comment": "TERMITE DEEPS tileset probe. Not a level -- it lives in tests/fixtures/ so LevelLoader.list_levels() never sees it, and it is deliberately one screen. Its job is to be the smallest artefact that exercises every role character data/level_legend.json binds for the 'deeps' world (ids 260-271) plus all five shared shoulder-breakable walls ('k' 211 cracked_stone, 'j' 212 cracked_dirt, 'm' 213 termite_wall, 'O' 214 luminous_wall, 'o' 215 rubble), so tests/test_tileset_probes.gd can prove the tileset resolves, its flags survive a level round-trip and the break_hold values arrive intact. tests/fixtures/heights_probe.json is the same idea for World 3 and tests/fixtures/ruins_probe.json for World 2.",
+
+  "_comment_verbs_breakables": "VERB CONTRACT FOR THE WORLD 4 LEVEL AUTHORS, part 1 of 2 -- measured, not asserted; the numbers are re-derived by tests/test_tileset_probes.gd and tests/test_verbs_breakables.gd. (1) The five shoulder-breakable walls and their hold times: 'k' cracked_stone 0.35 s, 'j' cracked_dirt 0.25 s, 'm' termite_wall 0.45 s, 'O' luminous_wall 0.40 s, 'o' rubble 0.18 s. Any form opens any of them -- hold attack and press into it; up and down beat facing, so a form wedged in a shaft can dig the ceiling or the floor. The frog has can_attack:false and still opens all five, which is the whole reason the verb lives on the form. (2) The deeps 'c' role is 270 deep_glowwall and declares NO break_hold, so it is BLADE ONLY, exactly like the jungle crate (10). If you want a wall the frog and the bird can open, write 'O' (214 luminous_wall, 0.40 s) and not 'c'. tools/world_kit.py's DEEPS palette already makes that choice for you: Kit.glow_wall() points at 214 and keeps 270 for decoration. (3) THE PROVER CANNOT BREAK ANYTHING. ProverSearch.action_set() is {left,none,right} x {jump,no jump} x {none,up,down} -- eighteen actions, and ATTACK is in none of them -- and ProverSim.snapshot() does not carry TileWorld._broken, so a broken tile would leak sideways across the search tree anyway. A breakable is therefore a WALL to the gate. Every breakable in this fixture is off the declared route on purpose. A level whose only way on is through a shoulder wall cannot be proved: route around it, or split the route so the mandatory path never crosses one.",
+
+  "_comment_verbs_darkness": "VERB CONTRACT, part 2 of 2. Darkness is ambience data (data/ambience.json), keyed by level id, and it is VISUAL ONLY -- the prover never sees it, so it can never make a level solvable or unsolvable. The measured recipe an author copies for a dark World 4 level is in tests/test_tileset_probes.gd (test_the_dark_recipe_is_data_the_prover_cannot_see) and the capture is shots/m4_verbs_darkness.png.",
+
+  "_comment_layout": "The declared route walks the floor and climbs the ladder, and tools/prove.sh plays it. Everything that is a wall to the prover is kept off that line on purpose. The five shoulder walls are a vertical plug in the last column (x=24, hardest at the top: 'm' 0.45 at y=8 down to 'o' 0.18 at y=12), standing on the ground so a body can brace against them -- tests/test_tileset_probes.gd digs the bottom one with a frog in this fixture's own TileWorld. They are sealed off the route behind the spore field at (21,12)-(22,12): the prover prunes every state that touches a hazard, so it never wanders into a corner it could not leave. The glowwall ('c', 270, blade-only) is set into the 'ScS' ledge overhead. That is the note for the level authors twice over: nothing the prover cannot do may stand between two waypoints, and a hazard is a cheap way to keep the search out of a pocket that is for the player only.",
+  "id": "deeps_probe",
+  "name": "DEEPS PROBE",
+  "tileset": "deeps",
+  "music": "world4",
+  "next_level": "",
+  "topdown": false,
+  "screens": [1, 1],
+  "fg": [
+    ".........................",
+    ".........................",
+    ".........................",
+    ".........................",
+    ".........................",
+    ".........................",
+    ".........................",
+    "....................|....",
+    ".................sss|...m",
+    "....................|...O",
+    "...ScS........===...|...k",
+    "....................|...j",
+    "....................|^^.o",
+    "#########################",
+    "ddddddddddddddddddddddddd"
+  ],
+  "bg": [
+    "rrrrrrrrrrrrrrrrrrrrrrrrr",
+    "..rrrrrrrrrrrrrrrrrrrrr..",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LTLLLLLLLLLLLLLLLLLLLLLTL",
+    "LTLLLLLLLLLLLLLLLLLLLLLTL",
+    "LTLLLLLLLLLLLLLLLLLLLLLTL",
+    "LTLLLLLLLLLLLLLLLLLLLLLTL",
+    "LTLLLLLLLLLLLLLLLLLLLLLTL",
+    "LTLLLLLLLLLLLLLLLLLLLLLTL",
+    "LTLLLLLLLLLLLLLLLLLLLLLTL",
+    "LTLLLLLLLLLLLLLLLLLLLLLTL",
+    "LTLLLLLLLLLLLLLLLLLLLLLTL",
+    "XXXXXXXXXXXXXXXXXXXXXXXXX",
+    "XXXXXXXXXXXXXXXXXXXXXXXXX"
+  ],
+  "entities": [
+    {"type": "player_spawn", "x": 2, "y": 12},
+    {"type": "exit", "x": 18, "y": 7}
+  ],
+  "marks": {
+    "ladder_foot": {"x": 20, "y": 12},
+    "ladder_top": {"x": 20, "y": 7},
+    "shoulder_bank": {"x": 23, "y": 12},
+    "spore_field": {"x": 21, "y": 12}
+  },
+  "route": [
+    {"from": "spawn", "to": "ladder_foot", "form": "human"},
+    {"from": "ladder_foot", "to": "ladder_top", "form": "human"},
+    {"from": "ladder_top", "to": "exit", "form": "human"}
+  ]
+}
