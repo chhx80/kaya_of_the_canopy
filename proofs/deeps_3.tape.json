@@ -1,0 +1,489 @@
+{
+ "fps": 60,
+ "hops": [
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 27
+    }
+   ],
+   "from": "spawn",
+   "to": "mouth_e"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 27
+    }
+   ],
+   "from": "mouth_e",
+   "to": "tunnel_e"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 27
+    }
+   ],
+   "from": "tunnel_e",
+   "to": "run_mid"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    }
+   ],
+   "from": "run_mid",
+   "to": "run_e"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "run_e",
+   "to": "ladder_foot"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+jump",
+     "n": 8
+    },
+    {
+     "a": "right+jump",
+     "n": 12
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "right+jump",
+     "n": 8
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 12
+    },
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 12
+    },
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 8
+    },
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 16
+    },
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "ladder_foot",
+   "to": "high_e"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 36
+    },
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 36
+    }
+   ],
+   "from": "high_e",
+   "to": "high_mid"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 36
+    },
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 27
+    }
+   ],
+   "from": "high_mid",
+   "to": "high_w"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 36
+    },
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 36
+    },
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "high_w",
+   "to": "shaft_foot"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "right+jump",
+     "n": 8
+    },
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "none",
+     "n": 8
+    },
+    {
+     "a": "jump",
+     "n": 12
+    },
+    {
+     "a": "none",
+     "n": 16
+    },
+    {
+     "a": "right",
+     "n": 4
+    }
+   ],
+   "from": "shaft_foot",
+   "to": "shelf_1"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 8
+    }
+   ],
+   "from": "shelf_1",
+   "to": "shelf_2"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "left+jump",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 3
+    }
+   ],
+   "from": "shelf_2",
+   "to": "crown_e"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "left",
+     "n": 140
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "crown_e",
+   "to": "crown_pad"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 36
+    }
+   ],
+   "from": "crown_pad",
+   "to": "exit"
+  }
+ ],
+ "level": "deeps_3",
+ "source_sha": "152429885ff70cdcd685a75efa8f602571636fa0ceaca9320d0dc0431aaadba9"
+}
