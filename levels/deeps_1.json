@@ -1,0 +1,293 @@
+{
+ "id": "deeps_1",
+ "name": "THE LIGHTLESS",
+ "music": "world4",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "##################################################",
+  "#sssS...Sssssssssssss...sssssssssssssssssssssssss#",
+  "#sssS...Sss...sssssss...sss....sssssssss...ssssss#",
+  "#sssS...Sss...sss...sssssss....sssssssss...ssssss#",
+  "#sssS...Sssssssss...sssssssssssss...ssssssss...ss#",
+  "#SSSS...SSSSSSSssssssssssssssssss...ssssssss...ss#",
+  "#..............Ssssssssssss...sssssssssssssssssss#",
+  "#..............Sssss...ssss...ssss...ssssssssssss#",
+  "#..............Sssss...ssss...ssss...ssssssssssss#",
+  "#.............................r........r..r.O..ss#",
+  "#...........................................O..ss#",
+  "#...........................................O..ss#",
+  "#.......................................|...O..ss#",
+  "#SSSSSSSSSSSSSSS########################|.#####ss#",
+  "#ssssssssssssssssssssssssssssssssssssssd|.dssssss#",
+  "#....................ssssssssssssssssssd|rdssssss#",
+  "#r...................sssssssss....s...sd|.ds...ss#",
+  "#....................sss...sss....s...sd|.ds...ss#",
+  "#####====............sss...ssssssssssssd|.dssssss#",
+  "#ssss................ssssssssssssssssssd|rdssssss#",
+  "#r...................ssssssssss...sssssd|.dss...s#",
+  "#........r====.......sss...ssss...ss...d|.dss...s#",
+  "#....................sss...ssss...ss...d|.dssssss#",
+  "#.......................................|rsssssss#",
+  "#r............r====.....................|......ss#",
+  "#.......................................|......ss#",
+  "#.......................................|......ss#",
+  "#############################^^####^^##########ss#",
+  "#ssssssssssssssssssssssssssss^^ssssssssssssssssss#",
+  "##################################################"
+ ],
+ "bg": [
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXTXXXXXXXXXXTXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXTXXXXXXXXXXTXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXTXXXXXXXXXXTXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXTXXXXXXXXXXTXXXXXXTXXXXXXTXXXXXXTXXXXXXXXTXXXLLL",
+  "LXTXXXXXXXXXXTXXXXXXTXXXXXXTXXXXXXTXXXXXXXXTXXXLLL",
+  "LXTXXXXXXXXXXTXXXXXXTXXXXXXTXXXXXXTXXXXXXXXTXXXLLL",
+  "LXTXXXXXXXXXXTXXXXXXTXXXXXXTXXXXXXTXXXXXXXXTXXXLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLXXLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLXXLLLLLLLL",
+  "LXTXXXXXXXXXXXXXXXXTXLLLLLLLLLLLLLLLLLLLXXLLLLLLLL",
+  "LXTXXXXXXXXXXXXXXXXTXLLLLLLLLLLLLLLLLLLLXXLLLLLLLL",
+  "LXTXXXXXXXXXXXXXXXXTXLLLLLLLLLLLLLLLLLLLXXLLLLLLLL",
+  "LXTXXXXXXXXXXXXXXXXTXLLLLLLLLLLLLLLLLLLLXXLLLLLLLL",
+  "LXTXXXXXXXXXXXXXXXXTXLLLLLLLLLLLLLLLLLLLXXLLLLLLLL",
+  "LXTXXXXXXXXXXXXXXXXTXLLLLLLLLLLLLLLLLLLLXXLLLLLLLL",
+  "LXTXXXXXXXXXXXXXXXXTXLLLLLLLLLLLLLLLLLLLXXLLLLLLLL",
+  "LXTXXXXXXXXXXXXXXXXTXLLLLLLLLLLLLLLLLLLLXXLLLLLLLL",
+  "LXTXXXXXXXXTXXXXXXXTXXTXXXXXXXXXXXXXXXTXXXLLLLLLLL",
+  "LXTXXXXXXXXTXXXXXXXTXXTXXXXXXXXXXXXXXXTXXXXXXXXLLL",
+  "LXTXXXXXXXXTXXXXXXXTXXTXXXXXXXXXXXXXXXTXXXXXXXXLLL",
+  "LXXXXXXXXXXTXXXXXXXXXXTXXXXXXXXXXXXXXXTXXXXXXXXLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 6,
+   "y": 12
+  },
+  {
+   "type": "pad_frog",
+   "x": 19,
+   "y": 26
+  },
+  {
+   "type": "exit",
+   "x": 2,
+   "y": 17
+  },
+  {
+   "type": "enemy_walker",
+   "x": 33,
+   "y": 26
+  },
+  {
+   "type": "enemy_walker",
+   "x": 10,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 2,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 9,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 12,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 22,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 30,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 37,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 43,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 46,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 25,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 32,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 39,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 45,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 14,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 17,
+   "y": 23
+  },
+  {
+   "type": "gem",
+   "x": 12,
+   "y": 20
+  },
+  {
+   "type": "gem",
+   "x": 7,
+   "y": 17
+  },
+  {
+   "type": "gem",
+   "x": 4,
+   "y": 17
+  },
+  {
+   "type": "heart",
+   "x": 45,
+   "y": 12
+  },
+  {
+   "type": "heart",
+   "x": 3,
+   "y": 26
+  }
+ ],
+ "marks": {
+  "threshold": {
+   "x": 15,
+   "y": 12
+  },
+  "dark_gallery": {
+   "x": 30,
+   "y": 12
+  },
+  "shaft_head": {
+   "x": 39,
+   "y": 12
+  },
+  "shaft_foot": {
+   "x": 40,
+   "y": 26
+  },
+  "pit_1_west": {
+   "x": 34,
+   "y": 26
+  },
+  "pit_2_west": {
+   "x": 28,
+   "y": 26
+  },
+  "tread_1": {
+   "x": 18,
+   "y": 23
+  },
+  "tread_2": {
+   "x": 13,
+   "y": 20
+  },
+  "tread_3": {
+   "x": 8,
+   "y": 17
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "threshold",
+   "form": "human"
+  },
+  {
+   "from": "threshold",
+   "to": "dark_gallery",
+   "form": "human"
+  },
+  {
+   "from": "dark_gallery",
+   "to": "shaft_head",
+   "form": "human"
+  },
+  {
+   "from": "shaft_head",
+   "to": "shaft_foot",
+   "form": "human"
+  },
+  {
+   "from": "shaft_foot",
+   "to": "pit_1_west",
+   "form": "human"
+  },
+  {
+   "from": "pit_1_west",
+   "to": "pit_2_west",
+   "form": "human"
+  },
+  {
+   "from": "pit_2_west",
+   "to": "pad_frog",
+   "form": "human"
+  },
+  {
+   "from": "pad_frog",
+   "to": "tread_1",
+   "form": "frog"
+  },
+  {
+   "from": "tread_1",
+   "to": "tread_2",
+   "form": "frog"
+  },
+  {
+   "from": "tread_2",
+   "to": "tread_3",
+   "form": "frog"
+  },
+  {
+   "from": "tread_3",
+   "to": "exit",
+   "form": "frog"
+  }
+ ],
+ "tileset": "deeps"
+}
