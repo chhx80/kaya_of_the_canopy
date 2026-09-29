@@ -1,0 +1,380 @@
+{
+ "id": "nest_1",
+ "name": "BLACK GLASS",
+ "music": "world5",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "##################################################",
+  "##################################################",
+  "##################################################",
+  "##################################################",
+  "##################################################",
+  "###...##################....##...#####...#########",
+  "##S...##S#######S#S####S....##...####S...#########",
+  "#................a..............................##",
+  "#...........|....a....|.........................##",
+  "#...........|====d====|.........................##",
+  "#...........|....d....|.........................##",
+  "#...........|....A....|.........................##",
+  "#...........|....A....|......................|..##",
+  "####S^^S#######SS#S############SS^^S#######S.|####",
+  "#######...##....####...####################s.|s###",
+  "#S###S#...##....##S#...####################s.|s###",
+  "S...........................d##############s.|s###",
+  "#...........................d##############s.|s###",
+  "######====..................d##############S.|s###",
+  "#S####......................d#####S##S#####s.|s###",
+  "S...........................d####......####s.|s###",
+  "#..........====.............dS#S#......#S##s.|s###",
+  "#........................................S#S.|s###",
+  "S........................................##s.|s###",
+  "#...............====.....===d===.........##s.|s###",
+  "#...........................b..............B.|c.##",
+  "#...........................b..............B.|c.##",
+  "#SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS##",
+  "##################################################",
+  "##################################################"
+ ],
+ "bg": [
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLrLLLTLrLLLLLTLrLrLLLLrLLTLLLLLLTLLLrLLLTLLLLLLLL",
+  "LLLLLLTLLLLLLLTLLLLLLLLLLLTLLLLLLTLLLLLLLTLLLLLLLL",
+  "LLLLLLTLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLTLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLrLLrLLLLLLLrrLrLLLLLLLLLLLLrrLLrLLLLLLLrLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LrXXTrXXXXXXTXXXXXrXXXXTXXXXLLLLLLLLLLLLLLLLXXLLLL",
+  "LXXXTXXXXXXXTXXXXXXXXXXTXXXXLLLLLLLLLLLLLLLLXXLLLL",
+  "LXXXTXXXXXXXTXXXXXXXXXXTXXXXLLLLLLLLLLLLLLLLrXLLLL",
+  "LXXXTXXXXXXXXXXXXXXXXXXTXXXXLLLLLLLLLLLLLLLLXXLLLL",
+  "LrLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLrLLrLLLLLLXXLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLXXLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLrLrLLLLLLLTrLLLrXLLLL",
+  "LrLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLTLLLLXXLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLXXLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLXXLLLL",
+  "LLLLLLLLLLLLrLLLLLLLrLLLLrLrLLLLLLLLLLLLLLLLXXLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 3,
+   "y": 12
+  },
+  {
+   "type": "switch_a",
+   "x": 10,
+   "y": 12
+  },
+  {
+   "type": "switch_b",
+   "x": 37,
+   "y": 26
+  },
+  {
+   "type": "pad_frog",
+   "x": 33,
+   "y": 26
+  },
+  {
+   "type": "exit",
+   "x": 3,
+   "y": 17
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 24,
+   "y": 8
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 35,
+   "y": 8
+  },
+  {
+   "type": "enemy_walker",
+   "x": 46,
+   "y": 12
+  },
+  {
+   "type": "enemy_walker",
+   "x": 30,
+   "y": 23
+  },
+  {
+   "type": "enemy_walker",
+   "x": 26,
+   "y": 23
+  },
+  {
+   "type": "gem",
+   "x": 2,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 8,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 14,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 14,
+   "y": 8
+  },
+  {
+   "type": "gem",
+   "x": 20,
+   "y": 8
+  },
+  {
+   "type": "gem",
+   "x": 20,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 26,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 31,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 36,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 41,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 47,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 44,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 40,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 35,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 30,
+   "y": 23
+  },
+  {
+   "type": "gem",
+   "x": 26,
+   "y": 23
+  },
+  {
+   "type": "gem",
+   "x": 24,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 18,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 12,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 18,
+   "y": 23
+  },
+  {
+   "type": "gem",
+   "x": 13,
+   "y": 20
+  },
+  {
+   "type": "gem",
+   "x": 8,
+   "y": 17
+  },
+  {
+   "type": "heart",
+   "x": 47,
+   "y": 26
+  },
+  {
+   "type": "heart",
+   "x": 5,
+   "y": 26
+  }
+ ],
+ "marks": {
+  "pit_a_east": {
+   "x": 7,
+   "y": 12
+  },
+  "wall_west": {
+   "x": 16,
+   "y": 12
+  },
+  "wall_east": {
+   "x": 18,
+   "y": 12
+  },
+  "corridor_mid": {
+   "x": 30,
+   "y": 12
+  },
+  "pit_b_east": {
+   "x": 35,
+   "y": 12
+  },
+  "shaft_head": {
+   "x": 43,
+   "y": 12
+  },
+  "shaft_foot": {
+   "x": 44,
+   "y": 26
+  },
+  "gate_west": {
+   "x": 26,
+   "y": 26
+  },
+  "floor_west": {
+   "x": 20,
+   "y": 26
+  },
+  "tread_1": {
+   "x": 19,
+   "y": 23
+  },
+  "tread_2": {
+   "x": 14,
+   "y": 20
+  },
+  "tread_3": {
+   "x": 9,
+   "y": 17
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "pit_a_east",
+   "form": "human"
+  },
+  {
+   "from": "pit_a_east",
+   "to": "switch_a",
+   "form": "human"
+  },
+  {
+   "from": "switch_a",
+   "to": "wall_west",
+   "form": "human"
+  },
+  {
+   "from": "wall_west",
+   "to": "wall_east",
+   "form": "human"
+  },
+  {
+   "from": "wall_east",
+   "to": "corridor_mid",
+   "form": "human"
+  },
+  {
+   "from": "corridor_mid",
+   "to": "pit_b_east",
+   "form": "human"
+  },
+  {
+   "from": "pit_b_east",
+   "to": "shaft_head",
+   "form": "human"
+  },
+  {
+   "from": "shaft_head",
+   "to": "shaft_foot",
+   "form": "human"
+  },
+  {
+   "from": "shaft_foot",
+   "to": "switch_b",
+   "form": "human"
+  },
+  {
+   "from": "switch_b",
+   "to": "pad_frog",
+   "form": "human"
+  },
+  {
+   "from": "pad_frog",
+   "to": "gate_west",
+   "form": "frog"
+  },
+  {
+   "from": "gate_west",
+   "to": "floor_west",
+   "form": "frog"
+  },
+  {
+   "from": "floor_west",
+   "to": "tread_1",
+   "form": "frog"
+  },
+  {
+   "from": "tread_1",
+   "to": "tread_2",
+   "form": "frog"
+  },
+  {
+   "from": "tread_2",
+   "to": "tread_3",
+   "form": "frog"
+  },
+  {
+   "from": "tread_3",
+   "to": "exit",
+   "form": "frog"
+  }
+ ],
+ "tileset": "nest"
+}
