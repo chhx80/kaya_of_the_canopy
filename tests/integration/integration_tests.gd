@@ -166,6 +166,7 @@ func run_all() -> void:
 		"t_enemies_v2",
 		"t_boss_tide_maw",
 		"t_boss_stormcrest",
+		"t_boss_brood_queen",
 	]
 	for t in tests:
 		if _only != "" and not t.contains(_only):
@@ -177,8 +178,8 @@ func run_all() -> void:
 	_report()
 
 # ------------------------------------------------- suites that own their harness
-## Three suites predate this file's ownership and each shipped with its own
-## runner and the four-line patch to fold it in; this is that patch, three times.
+## Four suites predate this file's ownership and each shipped with its own
+## runner and the four-line patch to fold it in; this is that patch, four times.
 ## Each owns its whole harness — its own boot, its own arena, its own
 ## `passes`/`failures` — so it is run as a child and its tally is added to this
 ## one. `standalone = false` is what stops each printing a second report. See the
@@ -203,6 +204,11 @@ func t_boss_tide_maw() -> void:
 ## THE STORMCREST's roost window and gale.
 func t_boss_stormcrest() -> void:
 	await _fold_in("res://tests/integration/boss_stormcrest_tests.gd")
+
+## THE BROOD QUEEN's invisibility and the two luminous walls the player spends
+## to end it — plus the four arenas the boss gate's single sweep cannot see.
+func t_boss_brood_queen() -> void:
+	await _fold_in("res://tests/integration/boss_brood_queen_tests.gd")
 
 # ---------------------------------------------------------------- the gate itself
 ## These two do to the tape gate what the rest of the suite does to the game:

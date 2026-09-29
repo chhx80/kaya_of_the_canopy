@@ -174,13 +174,16 @@ def hub(doors):
     # the main path, drawn on the background layer (walkable)
     g.rect(3, 7, 44, 2, "p", "bg")
     # Spurs off it, one per gateway: (column, y0, y1), drawn two tiles wide so
-    # the 10px walker has a lane. Three bands, one per world: World 1's five sit
+    # the 10px walker has a lane. Four bands, one per world: World 1's five sit
     # on and around the road itself, World 2 climbs to the top band (rows 2-3),
     # World 3 drops to the bottom band (rows 10-11). The lake at cols 26-32
     # splits the bottom band, so World 3's spurs stop either side of the water.
+    # World 4 takes the road's own north shoulder (rows 5-6) in the east half,
+    # which is the last run of open ground left; its spurs are one tile long.
     for (x, y0, y1) in [(5, 6, 8), (14, 4, 8), (23, 8, 10), (33, 4, 8), (43, 7, 10),
                         (10, 3, 7), (16, 2, 7), (25, 3, 7), (35, 2, 7), (45, 3, 7),
-                        (8, 8, 11), (17, 8, 10), (24, 8, 11), (34, 8, 10), (42, 8, 11)]:
+                        (8, 8, 11), (17, 8, 10), (24, 8, 11), (34, 8, 10), (42, 8, 11),
+                        (27, 6, 7), (31, 5, 7), (35, 6, 7), (39, 5, 7), (46, 6, 7)]:
         lo, hi = min(y0, y1), max(y0, y1)
         g.rect(x, lo, 1, hi - lo + 1, "p", "bg")
         g.rect(x + 1, lo, 1, hi - lo + 1, "p", "bg")
@@ -719,6 +722,25 @@ HUB_DOORS = [
      "requires": "heights_3"},
     {"level": "heights_5", "label": "THE STORMCREST", "x": 42, "y": 11,
      "requires": "heights_4"},
+    # --- World 4, TERMITE DEEPS. The road's north shoulder, rows 5-6, east of
+    # the lake: the last band of open ground on a 50x15 map with three bands
+    # already on it. Every one of these five sits in the RIGHT screen (cols
+    # 25-49), which is the only way a single 400x240 capture can show the whole
+    # cluster. Columns are chosen so no gateway's `grow(6.0)` prompt rect
+    # overlaps another's -- deeps_5 is at col 46 rather than 43 because (43,6)
+    # would sit directly on top of HEART OF THE GROVE at (43,7).
+    # deeps_1 opens on heights_5, which is the World 3 -> World 4 gate
+    # tools/build_hub.py uses too.
+    {"level": "deeps_1", "label": "THE LIGHTLESS", "x": 27, "y": 6,
+     "requires": "heights_5"},
+    {"level": "deeps_2", "label": "CHEW THROUGH", "x": 31, "y": 5,
+     "requires": "deeps_1"},
+    {"level": "deeps_3", "label": "THE GALLERIES", "x": 35, "y": 6,
+     "requires": "deeps_2"},
+    {"level": "deeps_4", "label": "SPORE LIGHT", "x": 39, "y": 5,
+     "requires": "deeps_3"},
+    {"level": "deeps_5", "label": "THE BROOD QUEEN", "x": 46, "y": 6,
+     "requires": "deeps_4"},
 ]
 
 def build(level_id, built, name, **kw):
@@ -767,4 +789,14 @@ if __name__ == "__main__":
         _fn = getattr(_mod, _id, None) or getattr(_mod, "build")
         build(_id, _fn(), _name,
               music="boss" if _id == "heights_5" else "world3")
+    # World 4, TERMITE DEEPS. Same arrangement as Worlds 2 and 3: one module per
+    # level under tools/worlds/, each runnable standalone, registered here so
+    # tools/genlevels.sh rebuilds all twenty levels from source.
+    for _id, _name in [("deeps_1", "THE LIGHTLESS"), ("deeps_2", "CHEW THROUGH"),
+                       ("deeps_3", "THE GALLERIES"), ("deeps_4", "SPORE LIGHT"),
+                       ("deeps_5", "THE BROOD QUEEN")]:
+        _mod = __import__("worlds.%s" % _id, fromlist=[_id, "build"])
+        _fn = getattr(_mod, _id, None) or getattr(_mod, "build")
+        build(_id, _fn(), _name,
+              music="boss" if _id == "deeps_5" else "world4")
     build("test_arena", test_arena(), "TEST ARENA")

@@ -518,13 +518,23 @@ func _report_failure(level_id: String, i: int, route: Array, res: ProverSearch.R
 	if not sim.allow_hazard:
 		print("       note: states touching a hazard are pruned; --allow-hazard relaxes that")
 	if _has_breakables(sim):
-		# The prover has no weapon. Leaving crates solid can only ever make it
-		# fail a level it might have passed, never pass one it should fail —
-		# but a route that counts on smashing one will die here, and the
-		# failure would otherwise look like geometry.
+		# Leaving breakables solid can only ever make the prover fail a level it
+		# might have passed, never pass one it should fail — but a route that
+		# counts on smashing one will die here, and the failure would otherwise
+		# look like geometry.
+		#
+		# WHY it cannot break them, measured rather than assumed: it is not that
+		# the body carries no weapon. ProverSearch.action_set() enumerates
+		# {left, none, right} x {jump, no jump} x {none, up, down} = 18 masks and
+		# ATTACK is in none of them, so the button is never pressed; and
+		# ProverSim.snapshot() carries no broken-tile state, so a break could not
+		# survive the search's backtracking even if it were.
 		print("       note: this level has breakable tiles, and the prover cannot break them.")
-		print("             It carries no weapon, so a crate is a wall to it. If the route")
-		print("             goes through one, the route needs a way round, not a bigger budget.")
+		print("             Not for want of a weapon: ProverSearch.action_set() never emits")
+		print("             ATTACK, and ProverSim.snapshot() carries no broken-tile state, so a")
+		print("             break could not survive backtracking either. A breakable is a wall")
+		print("             here. If the route goes through one, the route needs a way round,")
+		print("             not a bigger budget.")
 
 
 func _has_breakables(sim: ProverSim) -> bool:

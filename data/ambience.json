@@ -220,6 +220,97 @@
       "lights": []
     },
 
+    "deeps_1": {
+      "_note": "THE LIGHTLESS. World 4's teacher. `darkness` is one alpha for the whole level, so 'starts lit and descends into the dark' is built out of authored pools rather than out of the shade: six in the mouth, graded eastward (0.58 at the sinkhole's foot, 0.38, then 0.22 at the threshold) so the daylight is visibly behind her before anything is asked. Screens B and D carry no authored light at all -- everything that glows down there is a tile, which is why it can be captured and argued about. deep_fungus (269) marks the route, luminous_wall (214) marks the secret she cannot open yet, and deep_spore (267) marks the only two things that can hurt her: a dark hazard you cannot see is not a lesson, it is a coin toss. The exit gets the one warm pool in screen C, because a lit doorway is what this level teaches her to look for. darkness 0.88 / vignette 0.40 and the 214 and 267 entries are World 4's measured house recipe, not this level's choices.",
+      "world": "deeps",
+      "air": { "ramp": "water", "step": 1, "alpha": 0.42 },
+      "bg_tint": { "ramp": "water", "step": 3, "mix": 0.80, "scale": 0.44 },
+      "fg_tint": { "ramp": "water", "step": 5, "mix": 0.35, "scale": 0.86 },
+      "vignette": 0.40,
+      "darkness": 0.88,
+      "lights": [
+        { "x": 6, "y": 2, "radius": 112, "ramp": "gold", "step": 6, "intensity": 0.72 },
+        { "x": 6, "y": 6, "radius": 96, "ramp": "gold", "step": 6, "intensity": 0.66 },
+        { "x": 6, "y": 11, "radius": 88, "ramp": "gold", "step": 5, "intensity": 0.58 },
+        { "x": 2, "y": 11, "radius": 64, "ramp": "gold", "step": 5, "intensity": 0.34 },
+        { "x": 12, "y": 11, "radius": 72, "ramp": "gold", "step": 5, "intensity": 0.38 },
+        { "x": 17, "y": 11, "radius": 60, "ramp": "gold", "step": 4, "intensity": 0.22 },
+        { "x": 19, "y": 25, "radius": 48, "ramp": "grass", "step": 5, "intensity": 0.40, "flicker": 0.22 },
+        { "x": 2, "y": 16, "radius": 76, "ramp": "gold", "step": 6, "intensity": 0.58, "flicker": 0.10 }
+      ],
+      "emissive": {
+        "269": { "ramp": "grass", "step": 6, "intensity": 0.42, "radius": 28, "lift": 4 },
+        "214": { "ramp": "gold", "step": 6, "intensity": 0.40, "radius": 30 },
+        "267": { "ramp": "grass", "step": 5, "intensity": 0.30, "radius": 26, "lift": 5 }
+      }
+    },
+
+    "deeps_2": {
+      "_note": "CHEW THROUGH. The second level of the world, so it is dim rather than black: darkness 0.70 against the world's 0.88 keeps a wall four tiles ahead legible, because this is the level that has to teach you that some walls are not walls. The only emitter is the luminous wall at the vault (214), an fg tile, merged along its run -- the one wall here with a room behind it is the one you can see from across the chamber.",
+      "world": "deeps",
+      "air": { "ramp": "water", "step": 1, "alpha": 0.34 },
+      "bg_tint": { "ramp": "water", "step": 3, "mix": 0.80, "scale": 0.52 },
+      "fg_tint": { "ramp": "gold", "step": 5, "mix": 0.20, "scale": 0.92 },
+      "vignette": 0.40,
+      "darkness": 0.70,
+      "emissive": {
+        "214": { "ramp": "gold", "step": 6, "intensity": 0.34, "radius": 30, "lift": 5 }
+      }
+    },
+
+    "deeps_3": {
+      "_note": "THE GALLERIES. A ring of six chambers, and the light is what tells you which one you are in: the pools mark the chambers the ring runs through, graded down from the lit mouth to the dead rock, and everything off the ring is lit by tiles or not at all. deep_fungus (269) is the route marker, and 214 and 270 are the two chords that glow -- in a dark level the walls you can break are the walls you can see, and breaking one puts its light out. INTEGRATION NOTE: every scalar here is the author's; the seven pool POSITIONS were not committed anywhere and are placed on the chambers named in tools/worlds/deeps_3.py's docstring. See the M4 integration report.",
+      "world": "deeps",
+      "air": { "ramp": "water", "step": 1, "alpha": 0.52 },
+      "bg_tint": { "ramp": "water", "step": 3, "mix": 0.85, "scale": 0.44 },
+      "fg_tint": { "ramp": "ember", "step": 5, "mix": 0.22, "scale": 0.88 },
+      "vignette": 0.46,
+      "darkness": 0.84,
+      "lights": [
+        { "x": 7, "y": 24, "radius": 88, "ramp": "gold", "step": 6, "intensity": 0.52 },
+        { "x": 13, "y": 23, "radius": 72, "ramp": "gold", "step": 5, "intensity": 0.40 },
+        { "x": 31, "y": 25, "radius": 64, "ramp": "gold", "step": 5, "intensity": 0.28, "flicker": 0.12 },
+        { "x": 44, "y": 24, "radius": 72, "ramp": "gold", "step": 5, "intensity": 0.34 },
+        { "x": 36, "y": 11, "radius": 68, "ramp": "gold", "step": 5, "intensity": 0.30 },
+        { "x": 8, "y": 2, "radius": 80, "ramp": "gold", "step": 6, "intensity": 0.46 },
+        { "x": 6, "y": 18, "radius": 60, "ramp": "gold", "step": 4, "intensity": 0.26, "flicker": 0.18 }
+      ],
+      "emissive": {
+        "269": { "ramp": "grass", "step": 5, "intensity": 0.30, "radius": 34, "lift": 6 },
+        "214": { "ramp": "gold", "step": 5, "intensity": 0.44, "radius": 30, "lift": 4 },
+        "270": { "ramp": "gold", "step": 6, "intensity": 0.38, "radius": 28, "lift": 4 }
+      }
+    },
+
+    "deeps_4": {
+      "_note": "SPORE LIGHT. The darkest level in the game, and the one where light is the resource: the haze is nearly black earth, the vignette closes the tunnel in, and every lamp is a tile. deep_fungus (269) is the violet mat the route is navigated by, pool to pool; luminous_wall (214) is the gold lamp that is also a wall, so breaking it puts it out; deep_glowwall (270) is the one breakable meant to be FOUND in the dark, so its violet fracture is a lamp in its own right - radius 24 reaches eight pixels past the neighbouring tile's centre and stops there. 0.74 is a measured readability floor and not a mood: at 0.86 an additive pool brightens rock and void by the same amount, so a solid tile and the air beside it are both 14% of themselves and the level cannot be read even inside the lantern.",
+      "world": "deeps",
+      "air": { "ramp": "purple", "step": 1, "alpha": 0.42 },
+      "bg_tint": { "ramp": "purple", "step": 4, "mix": 0.85, "scale": 0.52 },
+      "fg_tint": { "ramp": "purple", "step": 6, "mix": 0.35, "scale": 0.98 },
+      "vignette": 0.44,
+      "darkness": { "alpha": 0.74, "flicker": 0.12, "rate": 1.4 },
+      "emissive": {
+        "269": { "ramp": "purple", "step": 6, "intensity": 0.46, "radius": 36, "lift": 4 },
+        "214": { "ramp": "gold", "step": 5, "intensity": 0.42, "radius": 30, "lift": 4 },
+        "270": { "ramp": "purple", "step": 5, "intensity": 0.36, "radius": 20, "lift": 4 }
+      }
+    },
+
+    "deeps_5": {
+      "_note": "THE BROOD QUEEN. The numbers are the world's, not invented here: darkness 0.88 and vignette 0.40 are the foundation agent's measured pair for a 74 px lantern, and the emissive recipe for tile 214 (gold 6, intensity 0.40, radius 30, lift 0) is the measured one for a luminous wall. This entry is not a suggestion -- tests/integration/boss_brood_queen_tests.gd holds it as a constant and `t_the_light_dies_with_the_wall` installs exactly this dictionary into the live level and measures what it does.",
+      "world": "deeps",
+      "air": { "ramp": "water", "step": 1, "alpha": 0.45 },
+      "bg_tint": { "ramp": "purple", "step": 3, "mix": 0.80, "scale": 0.44 },
+      "fg_tint": { "ramp": "dirt", "step": 5, "mix": 0.40, "scale": 0.84 },
+      "vignette": 0.40,
+      "darkness": 0.88,
+      "lights": [],
+      "emissive": {
+        "214": { "ramp": "gold", "step": 6, "intensity": 0.40, "radius": 30, "lift": 0 }
+      }
+    },
+
     "test_arena": {
       "_note": "Left neutral on purpose. tools/itest.sh plays here, and a test that has to be re-baselined every time someone re-lights a level is a test nobody trusts.",
       "world": "jungle",

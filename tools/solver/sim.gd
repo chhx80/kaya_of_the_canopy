@@ -393,6 +393,11 @@ func rejection() -> String:
 
 ## A complete, restorable state. Compact on purpose: a hop search holds hundreds
 ## of thousands of these.
+##
+## "Complete" is true only while the search cannot break a tile. TileWorld._broken
+## is NOT in here, so if ProverSearch.action_set() ever emits ATTACK, restore()
+## will leave every wall a discarded branch smashed still smashed. Snapshot and
+## restore the broken set in the same commit that adds the button, or not at all.
 func snapshot() -> Array:
 	return [
 		actor.pos.x, actor.pos.y, actor.vel.x, actor.vel.y,
