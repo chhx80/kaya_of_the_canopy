@@ -360,6 +360,51 @@ def build_music():
          "step": 11},
     ]))
 
+    # ---- WORLD 4: TERMITE DEEPS — lightless and burrowing (D phrygian)
+    #
+    # World 3 is altitude: lydian, a lead that leaps in fourths and fifths and
+    # climbs an octave and a half, open fifths carrying no weight underneath, and
+    # no drum on purpose. World 4 has to read as its exact inverse, and — same
+    # discipline — the inversion is written into the notes, not into the synth:
+    #   * D phrygian. The flat second (Eb, spelled D# because
+    #     the parser is sharps-only) sits one semitone above the root, and
+    #     that interval is what a wall sounds like. Minor like World 2, but World
+    #     2's D aeolian is open water; the b2 is the roof coming down;
+    #   * the lead never leaves a single octave (A#3 to A4, eleven semitones) and
+    #     moves almost entirely by step. World 3's leaps are lift; steps in a
+    #     closed range are crawling. The arc sinks under its own root in bar 7
+    #     and comes back to the D it started on, so eight bars get nowhere;
+    #   * a PEDAL bass instead of a moving one — D2 held, shoved up to D#2 twice
+    #     and pressed back down. All the weight World 3 refused to put under the
+    #     melody, and no harmonic motion to leave by;
+    #   * the third voice is not a flourish, it is a scrape: two notes a semitone
+    #     apart alternating in eighths for the whole loop, the tightest interval
+    #     there is, never stopping. The termites in the walls;
+    #   * and World 4 gets the drum World 3 would not have, on the ones and the
+    #     threes, with the noise held long (step 8) so it is a dull thud in packed
+    #     earth rather than a snare. A drum gives the altitude a floor; down here
+    #     the floor is the entire point.
+    w4_lead = ("D4 1, D#4 1, D4 2, "
+               "F4 1, D#4 1, D4 2, "
+               "G4 1, F4 1, D#4 2, "
+               "D4 1, D#4 1, F4 2, "
+               "A4 1, G4 1, F4 2, "
+               "D#4 1, F4 1, D4 2, "
+               "A#3 1, C4 1, D4 2, "
+               "D#4 2, D4 2")
+    w4_bass = ("D2 2, D2 2, D2 2, D2 2, D#2 2, D#2 2, D2 2, D2 2, "
+               "D2 2, D2 2, D#2 2, D2 2, D#2 2, D#2 2, D2 2, D2 2")
+    w4_scrape = "D3 0.5, D#3 0.5, " * 32
+    w4_drum = "C2 1, - 1, " * 16
+    write(os.path.join(MUSIC, "world4.wav"), render_track(100, [
+        {"voice": "square", "notes": parse(w4_lead), "vol": 0.13, "duty": 0.25},
+        {"voice": "triangle", "notes": parse(w4_bass), "vol": 0.165},
+        {"voice": "square", "notes": parse(w4_scrape.rstrip(", ")), "vol": 0.028,
+         "duty": 0.125},
+        {"voice": "noise", "notes": parse(w4_drum.rstrip(", ")), "vol": 0.048,
+         "step": 8},
+    ]))
+
     # ---- BOSS: fast, low, relentless
     boss_lead = ("E4 0.5, E4 0.5, G4 0.5, E4 0.5, A#4 0.5, A4 0.5, G4 0.5, E4 0.5, "
                  "E4 0.5, E4 0.5, G4 0.5, A4 0.5, C5 0.5, B4 0.5, A4 0.5, G4 0.5, "

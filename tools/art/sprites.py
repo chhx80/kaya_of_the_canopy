@@ -1189,6 +1189,22 @@ TIDE = {'b': ("water", 4.0), 'c': ("water", 5.0), 'r': ("ember", 3.0),
         'y': ("gold", 5.0), 'o': ("gold", 4.0),
         'w': ("metal", 6.0), 'a': ("metal", 5.0)}
 
+#: THE BROOD QUEEN. One mapping for all 18 frames, as the other three bosses
+#: have, with the *character* carrying the phase and — uniquely in this game —
+#: the character also carrying the POSE. src/enemies/brood_queen.gd draws her at
+#: `dark_alpha` on every frame she is not attacking, so the three attack poses
+#: are authored on 'w' and 'l' and the crawl on 'n' and 'b'. At 12% alpha the
+#: difference between metal 6 and skin 1 is the difference between a flash of a
+#: body and nothing at all.
+#:
+#: She is pale because the fiction is a queen who vanishes into the dark: the
+#: base is the `skin` ramp, which is the one ramp in the game with a bone-white
+#: top step, and the brood-light between her segments climbs `gold` into `ember`
+#: as the fight goes on.
+QUEEN = {'n': ("skin", 1.0), 'b': ("skin", 3.0), 'l': ("skin", 5.0),
+         'a': ("stone", 3.0), 'w': ("metal", 6.0),
+         'y': ("gold", 5.0), 'o': ("gold", 3.0), 'r': ("ember", 5.0)}
+
 BLADE = {'A': ("metal", 1.8), 'w': ("metal", 5.8)}
 GEM = {'c': ("water", 5.2), 'b': ("water", 3.4), 'w': ("metal", 6.0)}
 HEART = {'r': ("ember", 2.8), 'w': ("metal", 6.0)}
@@ -1889,3 +1905,279 @@ def build_boss_tide_maw():
     sheet("boss_tide_maw",
           lit(cells, TIDE, depth=2, rate=1.0, lit=1.0, dark=1.0), 48, 48)
     print("boss_tide_maw.png  %d frames" % len(cells))
+
+
+
+def build_boss_brood_queen():
+    """THE BROOD QUEEN — 48x48, six frames per fight phase, deeps_5.
+
+    A termite queen: a physogastric abdomen the size of the rest of her put
+    together, dragged along by a small armoured thorax and a head that is mostly
+    mandibles. She is drawn **facing right** — abdomen at the left of the frame,
+    jaws leaving it at the right — which is the sheet convention
+    `Enemy._update_anim()` assumes (`flip_h` when `facing < 0`).
+
+    Frame order is the contract with data/enemies/brood_queen.json, which names
+    the six poses `<pose>_p1/_p2/_p3`, and src/enemies/brood_queen.gd picks the
+    suffix for the phase it is in:
+
+        0 idle   1-2 the crawl   3 windup   4 the burrow charge   5 the slam
+
+    **The brightness is the mechanic, not the mood.** This is the one boss in the
+    game that is not always drawn: `brood_queen.gd` fades her sprite towards
+    `dark_alpha` on every frame she is not attacking, and back to full on the
+    frames she is. So the three *attack* poses — windup, charge, slam — carry a
+    rim of the brightest character in the map along the abdomen's crown, the
+    thorax plate and the jaws, and the crawl beats carry none. At 12 % alpha over
+    a dark chamber the crawl is a suggestion and the slam is a white-hot flash of
+    a body, which is the fight's sentence made out of pixels rather than a tint.
+
+    Phases differ in silhouette as well as in value, the rule the plan set for
+    the Grove Warden:
+
+      BROOD   smooth and banded, jaws nearly shut, head low. Bone against earth.
+      SWARM   the bands have parted — brood-light shows between them — three egg
+              blisters have swollen under the flank and the jaws are open.
+      HATCH   the abdomen has split. Ember light pours out of four ruptured
+              segments, grub spines have erupted along the back, and the jaws do
+              not close again.
+
+    The 40x46 collision box sits at (4, 2) in the frame, which is the
+    Stormcrest's box and is measured rather than chosen: a body standing on
+    deeps_5's one-way shelf has its chest at y=383..395, and a 46 px body
+    standing on the arena floor spans y=386..432, so the blade reaches her from a
+    shelf AND her body reaches a body standing on one. A refuge that is safe from
+    the boss forever is a corner to camp in.
+    """
+    import math
+
+    W = H = 48
+    FLOOR = 46
+    ## The abdomen's centre and half-extents. Everything is measured off this one
+    ## point, because the abdomen is four fifths of the animal and the head gets
+    ## the room that is left.
+    ##
+    ## She is drawn this big on purpose. The first cut of this sheet put a 34 px
+    ## animal inside a 46 px hurtbox, which is the Grove Warden's own recorded
+    ## mistake — "a hurtbox larger than the thing that hurts you is the worst
+    ## kind of unfair" — so the abdomen was grown until the drawn pixels span
+    ## rows 3..47 of the frame and the dorsal tubercles below exist to carry the
+    ## crown of it the last few rows.
+    AX0, AY0 = 17.0, 27.0
+    ARX, ARY = 15.5, 15.0
+
+    # body    the abdomen wall
+    # seg     the ink-adjacent band colour
+    # glow    what shows BETWEEN the bands: the phase, in one colour
+    # plate   the thorax and head capsule
+    # jaw     the mandibles
+    # split   None, or the colour pouring out of a ruptured segment
+    PHASES = [
+        dict(name="BROOD", body='b', seg='n', glow='n', plate='a', jaw='a',
+             split=None, blisters=0, spines=0, gape=2),
+        dict(name="SWARM", body='l', seg='b', glow='y', plate='b', jaw='y',
+             split=None, blisters=3, spines=0, gape=4),
+        dict(name="HATCH", body='l', seg='b', glow='r', plate='y', jaw='r',
+             split='r', blisters=3, spines=5, gape=7),
+    ]
+    # dy      how far the whole animal sits off its resting height
+    # arch    how much the abdomen is hunched, + is up
+    # reach   how far the head is thrust forward (+ is toward the jaws)
+    # legs    the leg phase, -1 / 0 / +1
+    # lit     the highlight character for THIS pose, or None. The three attack
+    #         poses are the lit ones; see the docstring.
+    # dust    how many flung specks of earth sit under her
+    POSES = [
+        dict(dy=0, arch=0, reach=0, legs=0, lit=None, dust=0),     # idle
+        dict(dy=-1, arch=1, reach=1, legs=-1, lit=None, dust=0),   # crawl A
+        dict(dy=0, arch=-1, reach=-1, legs=1, lit=None, dust=0),   # crawl B
+        dict(dy=-3, arch=4, reach=-2, legs=0, lit='w', dust=3),    # windup
+        dict(dy=1, arch=-2, reach=4, legs=1, lit='w', dust=6),     # charge
+        dict(dy=2, arch=-3, reach=1, legs=-1, lit='w', dust=8),    # slam
+    ]
+
+    def make(ph, pose):
+        px = [['.'] * W for _ in range(H)]
+
+        def put(x, y, c):
+            x, y = int(round(x)), int(round(y))
+            if 0 <= x < W and 0 <= y < H:
+                px[y][x] = c
+
+        def ellipse(cx, cy, rx, ry, c):
+            for y in range(int(cy - ry) - 1, int(cy + ry) + 2):
+                for x in range(int(cx - rx) - 1, int(cx + rx) + 2):
+                    if ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1.0:
+                        put(x, y, c)
+
+        def stroke(x0, y0, x1, y1, w0, w1, c):
+            """A tapered mass. The same helper the Stormcrest's wing and the
+            Maw's jaw are built from, and for the same reason: an animal drawn
+            out of lines is a skeleton, one drawn out of masses is an animal."""
+            dx, dy_ = x1 - x0, y1 - y0
+            ln = max(math.hypot(dx, dy_), 0.001)
+            nx, ny = -dy_ / ln, dx / ln
+            n = int(ln * 2) + 1
+            for i in range(n + 1):
+                t = i / n
+                x, y = x0 + dx * t, y0 + dy_ * t
+                wd = w0 + (w1 - w0) * t
+                m = int(wd * 2) + 1
+                for s in range(-m, m + 1):
+                    if abs(s * 0.5) <= wd:
+                        put(x + nx * s * 0.5, y + ny * s * 0.5, c)
+
+        body, seg, glow = ph['body'], ph['seg'], ph['glow']
+        lit_c = pose['lit']
+        dy = pose['dy']
+        AX, AY = AX0, AY0 + dy - pose['arch'] * 0.6
+
+        # ---- the ovipositor first, behind everything: a tapered tail leaving
+        # the frame at the bottom-left, so the animal is always bigger than the
+        # 48x48 she is drawn in and the arena never contains all of her.
+        stroke(AX - 9, AY + 6, -4, FLOOR + dy, 5.0, 2.5, seg)
+
+        # ---- the abdomen.
+        ellipse(AX, AY, ARX, ARY, body)
+        ellipse(AX - 1, AY + 2, ARX - 2.0, ARY - 1.5, body)
+
+        # ---- four dorsal tubercles along the crown. Every phase has them: they
+        # are what makes the top of the silhouette a row of humps rather than an
+        # arc, and they are what carries the drawn animal up to the top of its
+        # own hurtbox.
+        for i in range(4):
+            t = -0.48 + i * 0.32
+            tx = AX + ARX * t
+            ty = AY - ARY * (1.0 - t * t) ** 0.5
+            ellipse(tx, ty, 4.6, 5.2, body)
+            put(tx - 1, ty - 4, seg)
+
+        # ---- six segment bands, bowed round the body, ink with the phase's
+        # brood-light showing behind each one. This is the only place the colour
+        # of the fight appears at rest, and it is deliberately thin: at 400x240 a
+        # queen who is one flat mass reads as a boulder until the bands catch.
+        for i in range(5):
+            t = -0.56 + i * 0.28
+            for j in range(-16, 17):
+                v = j / (ARY * 0.88)
+                if t * t + v * v > 0.92:
+                    continue
+                bow = 2.0 * (1.0 - v * v)
+                sx = AX + ARX * t + bow
+                put(sx, AY + j, 'k')
+                put(sx + 1, AY + j, glow if i % 2 else seg)
+
+        # ---- the ruptures. HATCH only: four segments have failed outright and
+        # what is inside is what lights the chamber. Drawn over the bands, so the
+        # abdomen visibly comes apart instead of changing hue.
+        if ph['split'] is not None:
+            for i in range(4):
+                sx = AX + ARX * (-0.46 + i * 0.28)
+                sy = AY - 5 + (i % 2) * 9
+                ellipse(sx, sy, 2.8, 4.0, 'k')
+                ellipse(sx, sy, 1.5, 2.6, ph['split'])
+
+        # ---- egg blisters under the flank, SWARM and HATCH: three lumps that
+        # change the silhouette, which is the phase rule.
+        for i in range(ph['blisters']):
+            bx = AX - 7 + i * 7
+            ellipse(bx, AY + ARY - 1, 3.6, 3.2, body)
+            put(bx - 1, AY + ARY - 2, glow)
+
+        # ---- grub spines, HATCH only: a ridge erupting along the back, so the
+        # last phase is unmistakable in pure silhouette.
+        for i in range(ph['spines']):
+            bx = AX - 9 + i * 5
+            stroke(bx, AY - ARY + 2, bx - 1, AY - ARY - 6 - (i % 2) * 3,
+                   1.7, 0.4, ph['glow'])
+
+        # ---- the thorax: the hinge between the enormous back end and the small
+        # front one, and an ink break so the two do not read as one sausage.
+        TX = AX + ARX + 3.0 + pose['reach'] * 0.5
+        TY = AY + 4.0 + pose['arch'] * 0.3
+        ellipse(TX, TY, 6.8, 7.4, ph['plate'])
+        ellipse(TX - 2, TY, 5.2, 6.2, body)
+        for j in range(-7, 8):
+            put(TX - 5.5, TY + j, 'k')
+
+        # ---- six legs, three a side, short and splayed under the thorax and the
+        # front of the abdomen. The far rank is a step out of phase and a shade
+        # down, which is what makes the crawl read as a crawl and not a slide.
+        for far in (1, 0):
+            c = seg if far else ph['plate']
+            for i in range(3):
+                lx = TX - 3 - i * 7
+                sw = (pose['legs'] if far else -pose['legs']) * (1 + i)
+                knee_y = AY + ARY + 1 + far
+                stroke(lx, AY + ARY - 3, lx + 3 + sw, knee_y, 2.0, 1.1, c)
+                stroke(lx + 3 + sw, knee_y, lx + sw * 2, FLOOR + dy - far * 2,
+                       1.3, 0.7, c)
+
+        # ---- the head capsule and the mandibles: the one part of her that is a
+        # weapon, and the part the charge leads with.
+        hx = TX + 7.0 + pose['reach']
+        hy = TY + 1.0
+        # The neck first, so a head thrust four pixels forward on the charge
+        # frame is still attached to the animal it belongs to.
+        stroke(TX + 2, TY + 0.5, hx, hy, 5.0, 4.4, body)
+        ellipse(hx, hy, 6.0, 5.6, ph['plate'])
+        ellipse(hx - 1, hy - 1, 4.0, 3.8, body)
+        # Blind, like the real animal: two pits where eyes would be, lit from
+        # inside by the same brood-light as the segments. The queen never looks
+        # at you, and that is most of why she is frightening.
+        for s in (-1, 1):
+            ellipse(hx - 1, hy + s * 2.6, 1.7, 1.5, 'k')
+            put(hx - 1, hy + s * 2.6, glow)
+        # Two mandibles, hinged at the cheek, opening by `gape` as the fight goes
+        # on and by two more on every attack frame. This is the widest part of
+        # the silhouette and the thing a player reads a charge off.
+        gape = ph['gape'] + (2 if lit_c else 0)
+        for s in (-1, 1):
+            tipx = min(W - 2, hx + 9)
+            stroke(hx + 3, hy + s * 2, tipx, hy + s * (1 + gape), 2.4, 1.0,
+                   ph['jaw'])
+            put(tipx, hy + s * (1 + gape), 'w')
+            put(tipx - 1, hy + s * (1 + gape), 'w')
+
+        # ---- flung earth. The windup, the charge and the slam throw the floor
+        # about, and these specks are the part of the telegraph that survives at
+        # ANY alpha, because they sit on the ground rather than on her.
+        for i in range(pose['dust']):
+            a = 0.30 + i * 0.38
+            r = 4 + i * 3
+            put(hx + 4 + r * math.cos(a), FLOOR + dy - r * math.sin(a) * 0.55,
+                ph['jaw'])
+
+        # ---- the pose highlight: a rim of the brightest character in the map
+        # over the abdomen's crown and the thorax. Drawn last so nothing buries
+        # it, and it is the whole reason this sheet is authored per-pose.
+        if lit_c is not None:
+            for i in range(30):
+                t = i / 29.0
+                a = math.pi * (1.06 + t * 0.62)
+                put(AX + ARX * math.cos(a), AY + ARY * math.sin(a), lit_c)
+                put(AX + (ARX - 1.4) * math.cos(a), AY + (ARY - 1.3) * math.sin(a),
+                    lit_c)
+            ellipse(TX - 1, TY - 4, 3.4, 1.6, lit_c)
+
+        # ---- ink outline, the last pass, exactly as the other three bosses.
+        out = [row[:] for row in px]
+        for y in range(H):
+            for x in range(W):
+                if px[y][x] != '.':
+                    continue
+                for ddy, ddx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    yy, xx = y + ddy, x + ddx
+                    if 0 <= yy < H and 0 <= xx < W and px[yy][xx] not in ('.', 'k'):
+                        out[y][x] = 'k'
+                        break
+        return ["".join(r) for r in out]
+
+    cells = [make(ph, pose) for ph in PHASES for pose in POSES]
+    # depth=2 and whole-numbered rates, the Tide Maw's setting and for its
+    # reason: this animal is one very large flat mass, and a fractional ramp
+    # level is drawn as a dither, which puts a checkerboard across half of a
+    # 26 px abdomen.
+    sheet("boss_brood_queen",
+          lit(cells, QUEEN, depth=2, rate=1.0, lit=1.0, dark=1.0), 48, 48)
+    print("boss_brood_queen.png  %d frames" % len(cells))

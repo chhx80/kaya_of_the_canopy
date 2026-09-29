@@ -31,9 +31,9 @@
   "ggggggggggggggggppgggggggggggggggggppggggggggggggg",
   "ggggggggggppggggppgggggggppggggggggppggggggggppggg",
   "ggggggggggppggppppgggggggppggggggppppggggggggppggg",
-  "ggggggggggppggppppgggggggppggggggppppggggggggppggg",
-  "gggggppgggppggppppgggggggppggggggppppggggggggppggg",
-  "gggppppppppppppppppppppppppppppppppppppppppppppggg",
+  "ggggggggggppggppppgggggggppggggppppppggppggggppggg",
+  "gggggppgggppggppppgggggggppppggppppppggppggggpppgg",
+  "gggpppppppppppppppppppppppppppppppppppppppppppppgg",
   "gggppppppppppppppppppppppppppppppppppppppppppppggg",
   "ggggggggppgggggggppggggpppggggggggppggggggpppggggg",
   "ggggggggppgggggggppggggpppggggggggppggggggpppggggg",
@@ -181,6 +181,51 @@
    "level": "heights_5",
    "label": "THE STORMCREST",
    "requires": "heights_4",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 27,
+   "y": 6,
+   "level": "deeps_1",
+   "label": "THE LIGHTLESS",
+   "requires": "heights_5",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 31,
+   "y": 5,
+   "level": "deeps_2",
+   "label": "CHEW THROUGH",
+   "requires": "deeps_1",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 35,
+   "y": 6,
+   "level": "deeps_3",
+   "label": "THE GALLERIES",
+   "requires": "deeps_2",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 39,
+   "y": 5,
+   "level": "deeps_4",
+   "label": "SPORE LIGHT",
+   "requires": "deeps_3",
+   "requires_all": false
+  },
+  {
+   "type": "hub_door",
+   "x": 46,
+   "y": 6,
+   "level": "deeps_5",
+   "label": "THE BROOD QUEEN",
+   "requires": "deeps_4",
    "requires_all": false
   }
  ],

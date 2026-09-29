@@ -143,9 +143,12 @@ func test_every_mark_in_a_proof_room_is_standable() -> void:
 			not_ok(def.world.is_solid(x, y - 1),
 				"%s: mark '%s' at (%d,%d) has no headroom"
 				% [name, mark_name, x, y])
+			# The parentheses matter: `%` binds tighter than `+`, so without them
+			# the format is applied to the SECOND fragment only and every call
+			# prints "String formatting error" instead of the message.
 			ok(_supported(def, x, y),
-				"%s: mark '%s' at (%d,%d) has nothing under it -- not a floor, "
-				+ "not a platform, not a ladder, not water"
+				("%s: mark '%s' at (%d,%d) has nothing under it -- not a floor, "
+				+ "not a platform, not a ladder, not water")
 				% [name, mark_name, x, y])
 
 

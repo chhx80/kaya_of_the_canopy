@@ -1,0 +1,274 @@
+{
+ "id": "deeps_5",
+ "name": "THE BROOD QUEEN",
+ "music": "boss",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "ssssssssssssssssssssssssssssssssssssssssssssssssss",
+  "sddddddddddddddddddddddddddddddddddsddddddddddddds",
+  "sddddddddddddddddddddddddddddddddddsddddddddddddds",
+  "sddddddddddddddddddddddddddddddddddsddddddddddddds",
+  "s...................dddddddddddddddsddddddddddddds",
+  "s...................dddddddddddddddsddddddddddddds",
+  "s################...dddddddddddddddsddddddddddddds",
+  "sdddddddddddddddd...dddddddddddddddsddddddddddddds",
+  "sdddddddddddddddd...dddddddddddddddsddddddddddddds",
+  "sdddddddddddddddd...dddddddddddddddsddddddddddddds",
+  "sdddddddddddddddd...dddddddddddddddsddddddddddddds",
+  "sdddddddddddd......................sddddddddddddds",
+  "sdddddddddddd......................sddddddddddddds",
+  "sdddddddddddd###################...sddddddddddddds",
+  "sddddddddddddddddddddddddddddddd...sddddddddddddds",
+  "sddddddddddddddddddddddddsssssss...sssssssssssssss",
+  "sdddddddddddddddddddddddds...sss.......sss.......s",
+  "sdddddddddddddddddddddddds...sss.......sss.......s",
+  "sdddddddddddddddddddddddds...sss.......sss.......s",
+  "sdddddddddddddddddddddddds...sss.......sss.......s",
+  "sdddddddddddddddddddddddds...sss.......sss.......s",
+  "sdddddddddddddddddddddddds...sss.......sss.......s",
+  "sdddddddddddddddddddddddds.......................s",
+  "sdddddddddddddddddddddddds.......................s",
+  "sdddddddddddddddddddddddds.......................s",
+  "sdddddddddddddddddddddddds.........====....OO.OO.s",
+  "sdddddddddddddddddddddddds.................OO.OO.s",
+  "sdddddddddddddddddddddddds#########SSSS##########s",
+  "sddddddddddddddddddddddddsddddddddddddddddddddddds",
+  "ssssssssssssssssssssssssssddddddddddddddddddddddds"
+ ],
+ "bg": [
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLTLLLLTLLLLTLLXXXLTLLLLLLTLLLXXXLLTLLLLLTLLLLLL",
+  "LLLLTLLLLTLLLLTLLXXXLTLLLLLLTLLLXXXLLTLLLLLTLLLLLL",
+  "LLLLTLLLLTLLLLTLLXXXLTLLLLLLTLLLXXXLLTLLLLLTLrrLLL",
+  "LLLLLLLLLLLLLLLLLXXXrrLLLLLLLLLLXXXLLLLLLLLLLrrLLL",
+  "LLLLLLLLLLLLLLLLLLLLrrLLLLLLLLLLXXXLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLXXXLrrLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLXXXLrrLLLLLLLLLLLL",
+  "LLLLLLrrLLLLLLLrrLLLLLLLLLLLLLLLXXXLLLLLLLLLLLLLLL",
+  "LLLLLLrrLLLLLLLrrLLLLLLLLLLrrLLLXXXLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLrrLLLXXXLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXrXXXXXXrXXXXXXXrXXXrXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXrXXXXXXrXXXXXXXrXXXrXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXTXXXXXXXXXTXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXTXXXXXXXXXTXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXTXXXXXXXXXTXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXTXXXXXXXXXTXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 2,
+   "y": 5
+  },
+  {
+   "type": "boss_brood_queen",
+   "x": 40,
+   "y": 26
+  },
+  {
+   "type": "boss_exit",
+   "x": 27,
+   "y": 26
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 19,
+   "y": 8,
+   "axis": "y",
+   "range": 32
+  },
+  {
+   "type": "enemy_walker",
+   "x": 14,
+   "y": 12
+  },
+  {
+   "type": "enemy_walker",
+   "x": 15,
+   "y": 12
+  },
+  {
+   "type": "heart",
+   "x": 8,
+   "y": 5
+  },
+  {
+   "type": "heart",
+   "x": 22,
+   "y": 12
+  },
+  {
+   "type": "heart",
+   "x": 29,
+   "y": 12
+  },
+  {
+   "type": "heart",
+   "x": 35,
+   "y": 24
+  },
+  {
+   "type": "heart",
+   "x": 38,
+   "y": 24
+  },
+  {
+   "type": "gem",
+   "x": 45,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 48,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 4,
+   "y": 5
+  },
+  {
+   "type": "gem",
+   "x": 11,
+   "y": 5
+  },
+  {
+   "type": "gem",
+   "x": 16,
+   "y": 5
+  },
+  {
+   "type": "gem",
+   "x": 17,
+   "y": 9
+  },
+  {
+   "type": "gem",
+   "x": 15,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 19,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 23,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 26,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 31,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 26,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 30,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 40,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 42,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 36,
+   "y": 24
+  },
+  {
+   "type": "gem",
+   "x": 37,
+   "y": 24
+  }
+ ],
+ "marks": {
+  "cell_floor": {
+   "x": 33,
+   "y": 26
+  },
+  "gallery": {
+   "x": 11,
+   "y": 5
+  },
+  "chute_foot": {
+   "x": 18,
+   "y": 12
+  },
+  "gallery_b": {
+   "x": 27,
+   "y": 12
+  },
+  "shaft_lip": {
+   "x": 31,
+   "y": 12
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "gallery",
+   "form": "human"
+  },
+  {
+   "from": "gallery",
+   "to": "chute_foot",
+   "form": "human"
+  },
+  {
+   "from": "chute_foot",
+   "to": "gallery_b",
+   "form": "human"
+  },
+  {
+   "from": "gallery_b",
+   "to": "shaft_lip",
+   "form": "human"
+  },
+  {
+   "from": "shaft_lip",
+   "to": "cell_floor",
+   "form": "human"
+  },
+  {
+   "from": "cell_floor",
+   "to": "boss_exit",
+   "form": "human"
+  }
+ ],
+ "tileset": "deeps"
+}

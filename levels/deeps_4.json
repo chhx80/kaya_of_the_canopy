@@ -1,0 +1,417 @@
+{
+ "id": "deeps_4",
+ "name": "SPORE LIGHT",
+ "music": "world4",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "##################################################",
+  "#dddddddddddddddddddddddddddddddddddddddddddddddd#",
+  "#dddddddddddddddddddd...ddddddddddddddddddddddddd#",
+  "#dddddddddddddd.....c...ddddddddddddddddddddddddd#",
+  "#dddddd.............crrrdddd.........dddddddddddd#",
+  "#d................######.....................dddd#",
+  "#d...........................................dddd#",
+  "#d.............OO............................dddd#",
+  "#drrrrrr..^^^..OO......rrrrrr..^^^..rrrrrrr.|dddd#",
+  "#d##########################################|dddd#",
+  "#ddddddddddddddddddddddddddddddddddddddddddd|dddd#",
+  "#ddddddddddddddddddddddddddddddddddddddddddd|dddd#",
+  "#ddddddddddddddddddddddddddddddddddddddddddd|dddd#",
+  "#ddddddddddddddddddddddddddddddddddddddddddd|dddd#",
+  "#ddddddddddddddddddddddddddddddddddddddddddd|dddd#",
+  "#dddddddddddddddddddddddddddddddddddddddd...|.ddd#",
+  "#dddddddddddddddddddddddddddddddddddddddd...|.ddd#",
+  "#dddddddddddddddddddddddddddddddddddddddd...|.ddd#",
+  "#ddddddddddddddddddddddddddddddddddddddddrrr|.ddd#",
+  "#dddddddddddddddddddddddddddddddddddddddd===..ddd#",
+  "#dddddddddddddddddddddddddddddddddddddddd....m..d#",
+  "#dddddddddddddddddddddddddddddddddddddddd..rrm..d#",
+  "#dddddddddddddddddddddddddddddddddddddddd..===##d#",
+  "#ddddddddd.........dddddddd..........dddd.....ddd#",
+  "#........................................rrr..ddd#",
+  "#........................................===..ddd#",
+  "#.............................................ddd#",
+  "#..rrrrrr....^^...rrrr.rrrr...^^^..rrrrrr.....ddd#",
+  "##############################################ddd#",
+  "##################################################"
+ ],
+ "bg": [
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLTLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLTLLLLLLLLL",
+  "LLLLLLLTLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLTLLLLLLLLL",
+  "LLLLLLLTLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLTLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLXXXLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLXXXLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLXXXLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLXXXLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLXXXLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLXXXLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLXXXLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLXXXLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLTLLLLLLLLLLLLLTLLLLLLLLLLLLLTLLLLLLLLLLLLLLL",
+  "LLLLLLTLLLLLLLLLLLLLTLLLLLLLLLLLLLTLLLLLLLLLLLLLLL",
+  "LLLLLLTLLLLLLLLLLLLLTLLLLLLLLLLLLLTLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 3,
+   "y": 27
+  },
+  {
+   "type": "pad_frog",
+   "x": 38,
+   "y": 27
+  },
+  {
+   "type": "pad_human",
+   "x": 41,
+   "y": 18
+  },
+  {
+   "type": "exit",
+   "x": 4,
+   "y": 8
+  },
+  {
+   "type": "enemy_dropper",
+   "x": 17,
+   "y": 5
+  },
+  {
+   "type": "enemy_walker",
+   "x": 46,
+   "y": 21
+  },
+  {
+   "type": "enemy_dropper",
+   "x": 22,
+   "y": 2
+  },
+  {
+   "type": "gem",
+   "x": 5,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 8,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 19,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 24,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 36,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 39,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 42,
+   "y": 24
+  },
+  {
+   "type": "gem",
+   "x": 44,
+   "y": 21
+  },
+  {
+   "type": "gem",
+   "x": 42,
+   "y": 18
+  },
+  {
+   "type": "gem",
+   "x": 46,
+   "y": 21
+  },
+  {
+   "type": "gem",
+   "x": 47,
+   "y": 21
+  },
+  {
+   "type": "gem",
+   "x": 5,
+   "y": 8
+  },
+  {
+   "type": "gem",
+   "x": 7,
+   "y": 8
+  },
+  {
+   "type": "gem",
+   "x": 24,
+   "y": 8
+  },
+  {
+   "type": "gem",
+   "x": 27,
+   "y": 8
+  },
+  {
+   "type": "gem",
+   "x": 38,
+   "y": 8
+  },
+  {
+   "type": "gem",
+   "x": 41,
+   "y": 8
+  },
+  {
+   "type": "gem",
+   "x": 16,
+   "y": 6
+  },
+  {
+   "type": "gem",
+   "x": 21,
+   "y": 4
+  },
+  {
+   "type": "heart",
+   "x": 20,
+   "y": 27
+  },
+  {
+   "type": "heart",
+   "x": 23,
+   "y": 4
+  }
+ ],
+ "marks": {
+  "lamp_1": {
+   "x": 9,
+   "y": 27
+  },
+  "ledge_a": {
+   "x": 12,
+   "y": 27
+  },
+  "past_a": {
+   "x": 17,
+   "y": 27
+  },
+  "lamp_2": {
+   "x": 20,
+   "y": 27
+  },
+  "seam_low": {
+   "x": 25,
+   "y": 27
+  },
+  "ledge_b": {
+   "x": 29,
+   "y": 27
+  },
+  "past_b": {
+   "x": 35,
+   "y": 27
+  },
+  "chim_foot": {
+   "x": 41,
+   "y": 27
+  },
+  "rung_1": {
+   "x": 42,
+   "y": 24
+  },
+  "rung_2": {
+   "x": 44,
+   "y": 21
+  },
+  "rung_3": {
+   "x": 43,
+   "y": 18
+  },
+  "root_top": {
+   "x": 43,
+   "y": 8
+  },
+  "lamp_6": {
+   "x": 38,
+   "y": 8
+  },
+  "ledge_c": {
+   "x": 34,
+   "y": 8
+  },
+  "past_c": {
+   "x": 28,
+   "y": 8
+  },
+  "seam_high": {
+   "x": 24,
+   "y": 8
+  },
+  "block_e": {
+   "x": 17,
+   "y": 8
+  },
+  "block_top": {
+   "x": 16,
+   "y": 6
+  },
+  "ledge_d": {
+   "x": 13,
+   "y": 8
+  },
+  "past_d": {
+   "x": 7,
+   "y": 8
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "lamp_1",
+   "form": "human"
+  },
+  {
+   "from": "lamp_1",
+   "to": "ledge_a",
+   "form": "human"
+  },
+  {
+   "from": "ledge_a",
+   "to": "past_a",
+   "form": "human"
+  },
+  {
+   "from": "past_a",
+   "to": "lamp_2",
+   "form": "human"
+  },
+  {
+   "from": "lamp_2",
+   "to": "seam_low",
+   "form": "human"
+  },
+  {
+   "from": "seam_low",
+   "to": "ledge_b",
+   "form": "human"
+  },
+  {
+   "from": "ledge_b",
+   "to": "past_b",
+   "form": "human"
+  },
+  {
+   "from": "past_b",
+   "to": "pad_frog",
+   "form": "human"
+  },
+  {
+   "from": "pad_frog",
+   "to": "chim_foot",
+   "form": "frog"
+  },
+  {
+   "from": "chim_foot",
+   "to": "rung_1",
+   "form": "frog"
+  },
+  {
+   "from": "rung_1",
+   "to": "rung_2",
+   "form": "frog"
+  },
+  {
+   "from": "rung_2",
+   "to": "rung_3",
+   "form": "frog"
+  },
+  {
+   "from": "rung_3",
+   "to": "pad_human",
+   "form": "frog"
+  },
+  {
+   "from": "pad_human",
+   "to": "root_top",
+   "form": "human"
+  },
+  {
+   "from": "root_top",
+   "to": "lamp_6",
+   "form": "human"
+  },
+  {
+   "from": "lamp_6",
+   "to": "ledge_c",
+   "form": "human"
+  },
+  {
+   "from": "ledge_c",
+   "to": "past_c",
+   "form": "human"
+  },
+  {
+   "from": "past_c",
+   "to": "seam_high",
+   "form": "human"
+  },
+  {
+   "from": "seam_high",
+   "to": "block_e",
+   "form": "human"
+  },
+  {
+   "from": "block_e",
+   "to": "block_top",
+   "form": "human"
+  },
+  {
+   "from": "block_top",
+   "to": "ledge_d",
+   "form": "human"
+  },
+  {
+   "from": "ledge_d",
+   "to": "past_d",
+   "form": "human"
+  },
+  {
+   "from": "past_d",
+   "to": "exit",
+   "form": "human"
+  }
+ ],
+ "tileset": "deeps"
+}

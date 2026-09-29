@@ -35,6 +35,12 @@ class Result extends RefCounted:
 
 
 ## {left, none, right} x {jump, no jump} x {none, up, down} = 18.
+##
+## ATTACK IS DELIBERATELY ABSENT, AND IT MAY NOT BE ADDED HERE ALONE.
+## ProverSim.snapshot() does not carry TileWorld._broken, so a tile the search
+## smashed on one branch stays smashed after `restore()` puts the body back — the
+## prover would "prove" routes through walls it opened in a branch it abandoned.
+## Adding ATTACK means snapshotting and restoring the broken set first.
 static func action_set() -> PackedInt32Array:
 	var out := PackedInt32Array()
 	for h: int in [0, LEFT, RIGHT]:

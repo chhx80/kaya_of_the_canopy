@@ -1,0 +1,263 @@
+[
+ {
+  "_": "DEEPS_5, THE BROOD QUEEN.  Re-run with:  tools/shot.sh --seq=tools/seq/deeps_5.json --darkness=0.88"
+ },
+ {
+  "_": "THE DARKNESS ARGUMENT IS ON THE COMMAND LINE, and that is temporary and deliberate. deeps_5 is a dark level, but its entry in data/ambience.json has not landed -- five agents are adding World 4 entries to that one file at once, so deeps_5's is reported to integration rather than written by this branch. `--darkness=0.88` is Ambience.darkness_override, which turns on the same shade quad and the same 74 px lantern the shipped entry will, so these captures are of the real mechanism and not of a mock-up. Once the entry lands, drop the flag and every shot below is identical. The one thing the flag cannot bring is the emissive pool over the luminous walls, which is bound to tile 214 in the ambience entry -- so the wall trade is shot twice, once in the dark and once lit, and tests/integration/boss_brood_queen_tests.gd installs the entry into a live level and measures the pools dying with the tiles (4 -> 2 -> 0)."
+ },
+ {
+  "_": "The lit/dark pairs are taken by toggling Ambience.lighting mid-sequence and reloading, which is the capture harness's own A/B switch (tools/seq/perf.json uses it to price the lighting). Same camera, same tile, one difference."
+ },
+ {
+  "_": "Two things about capturing this fight. Kaya is NOT invulnerable in a capture and the fight does not stop for one, so every arena shot is taken from somewhere the Boss Gate proved safe -- the one-way shelf for the floor wave, the floor under a comb for the spore fall. And the teleports put her ONE ROW ABOVE the row she should end up standing in, because a teleport writes the body's top-left and the body is 22 px tall."
+ },
+ {
+  "_": "AND THE PHASE SHOTS ARE TIMED, not hoped for. She is drawn at 12 % alpha on every frame she is not attacking, so a screenshot taken at an arbitrary moment is a screenshot of an empty room -- which is the fight working, and useless as a picture of her. Teleporting her screen into view respawns her (Level._on_screen_changed -> Enemy.set_active_screen -> respawn) onto a known clock: 0.9 s idle, then `slam_interval` crawling, then the burrow windup. 170 frames after the teleport she is in the windup or the charge in every phase, and both are full brightness."
+ },
+ {
+  "scenario": "level:deeps_5",
+  "settle": 120
+ },
+ {
+  "_": "The approach, in the dark: the upper gallery she spawns in, the chute down to the lower gallery, and the east gallery that ends over the brood shaft."
+ },
+ {
+  "shot": "shots/deeps_5_a_gallery.png"
+ },
+ {
+  "teleport": [
+   17,
+   9
+  ],
+  "settle": 20
+ },
+ {
+  "shot": "shots/deeps_5_b_chute.png"
+ },
+ {
+  "teleport": [
+   28,
+   11
+  ],
+  "settle": 30
+ },
+ {
+  "shot": "shots/deeps_5_c_shaft_lip.png"
+ },
+ {
+  "_": "THE ROYAL CELL as it is played: dark, with the lantern Kaya carries and nothing else."
+ },
+ {
+  "teleport": [
+   33,
+   25
+  ],
+  "settle": 50
+ },
+ {
+  "shot": "shots/deeps_5_d_arena_dark.png"
+ },
+ {
+  "_": "And the same tile with the lighting switched off, which is what the arena would be if this were any other world: one unbroken floor, two combs hanging off the roof, the one-way shelf in the middle, and at the east end the two luminous walls with a brood cell behind each. This is the arena the Boss Gate sweeps."
+ },
+ {
+  "lighting": false
+ },
+ {
+  "scenario": "level:deeps_5",
+  "settle": 40
+ },
+ {
+  "teleport": [
+   33,
+   25
+  ],
+  "settle": 50
+ },
+ {
+  "shot": "shots/deeps_5_e_arena_lit.png"
+ },
+ {
+  "lighting": true
+ },
+ {
+  "scenario": "level:deeps_5",
+  "settle": 40
+ },
+ {
+  "_": "The east end in the dark: luminous wall A at cols 43-44 with a brood cell behind it, wall B at 46-47 with another. You get in over the top -- 32 px against a 46 px jump -- and you get LIGHT by breaking one, which is also the only way to take the cover away."
+ },
+ {
+  "teleport": [
+   42,
+   25
+  ],
+  "settle": 40
+ },
+ {
+  "shot": "shots/deeps_5_f_walls_before.png"
+ },
+ {
+  "_": "The trade, made: hold attack and press into it. luminous_wall carries break_hold 0.4, so Kaya shoulders through it as a human; the blade cuts it too, which is why you cannot shoot past your own cover without spending it."
+ },
+ {
+  "hold": [
+   "move_right",
+   "attack"
+  ],
+  "frames": 150
+ },
+ {
+  "release": [
+   "move_right",
+   "attack"
+  ]
+ },
+ {
+  "wait": 12
+ },
+ {
+  "shot": "shots/deeps_5_g_walls_after.png"
+ },
+ {
+  "_": "The same trade lit, because on this branch the walls have no emissive pool yet and a dark screenshot of a dark tile is not evidence. Lit, the two walls are unmistakable -- grey chitin studded with gold -- and so is what is left when they are gone."
+ },
+ {
+  "lighting": false
+ },
+ {
+  "scenario": "level:deeps_5",
+  "settle": 40
+ },
+ {
+  "teleport": [
+   42,
+   25
+  ],
+  "settle": 40
+ },
+ {
+  "shot": "shots/deeps_5_h_walls_lit_before.png"
+ },
+ {
+  "hold": [
+   "move_right",
+   "attack"
+  ],
+  "frames": 150
+ },
+ {
+  "release": [
+   "move_right",
+   "attack"
+  ]
+ },
+ {
+  "wait": 12
+ },
+ {
+  "shot": "shots/deeps_5_i_walls_lit_after.png"
+ },
+ {
+  "_": "The fight, from the west shelf -- the floor wave's dodge window, and the one refuge in this arena that nothing can take away. Phase 1, BROOD: smooth, banded, bone-pale, mid-windup."
+ },
+ {
+  "lighting": true
+ },
+ {
+  "scenario": "level:deeps_5",
+  "settle": 40
+ },
+ {
+  "teleport": [
+   36,
+   23
+  ],
+  "settle": 170
+ },
+ {
+  "shot": "shots/deeps_5_j_phase1.png"
+ },
+ {
+  "_": "Phase 2, SWARM: the bands have parted, brood-light shows between them, three egg blisters have swollen under the flank and she calls soldiers out of the comb."
+ },
+ {
+  "scenario": "level:deeps_5",
+  "settle": 40
+ },
+ {
+  "teleport": [
+   36,
+   23
+  ],
+  "settle": 6
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 164
+ },
+ {
+  "shot": "shots/deeps_5_k_phase2.png"
+ },
+ {
+  "_": "Phase 3, HATCH: the abdomen has split, ember light pours out of four ruptured segments and a ridge of grub spines has erupted along the back."
+ },
+ {
+  "scenario": "level:deeps_5",
+  "settle": 40
+ },
+ {
+  "teleport": [
+   36,
+   23
+  ],
+  "settle": 6
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 4
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 160
+ },
+ {
+  "shot": "shots/deeps_5_l_phase3.png"
+ },
+ {
+  "_": "And the kill. Called four times because phase 3 puts soldiers in the arena and the debug hook puts down the NEAREST enemy: the brood goes first, the Queen last. boss_exit opens on the arena floor and the camera comes unlocked."
+ },
+ {
+  "call": "debug_kill_nearest_enemy"
+ },
+ {
+  "wait": 12
+ },
+ {
+  "call": "debug_kill_nearest_enemy"
+ },
+ {
+  "wait": 12
+ },
+ {
+  "call": "debug_kill_nearest_enemy"
+ },
+ {
+  "wait": 12
+ },
+ {
+  "call": "debug_kill_nearest_enemy"
+ },
+ {
+  "wait": 50
+ },
+ {
+  "shot": "shots/deeps_5_m_kill.png"
+ }
+]

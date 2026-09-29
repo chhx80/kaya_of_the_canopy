@@ -1,0 +1,125 @@
+{
+ "ends_at": "cell_floor",
+ "fps": 60,
+ "hops": [
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    }
+   ],
+   "from": "spawn",
+   "to": "gallery"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "none",
+     "n": 32
+    }
+   ],
+   "from": "gallery",
+   "to": "chute_foot"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    }
+   ],
+   "from": "chute_foot",
+   "to": "gallery_b"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    }
+   ],
+   "from": "gallery_b",
+   "to": "shaft_lip"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 52
+    }
+   ],
+   "from": "shaft_lip",
+   "to": "cell_floor"
+  }
+ ],
+ "level": "deeps_5",
+ "partial": true,
+ "proves": "traversal",
+ "source_sha": "e16e3c4b129a87044b7d8f037a7942a32a53b49cf877924024dd5ac061fdbdfd",
+ "unproved": [
+  {
+   "from": "cell_floor",
+   "owner": "the boss gate (ADR 005 section 4, check 5: boss_exit is reachable from the arena floor after defeat)",
+   "to": "boss_exit",
+   "why": "'boss_exit' is placed by Level.on_boss_defeated(), so it is not in the world during play"
+  }
+ ]
+}

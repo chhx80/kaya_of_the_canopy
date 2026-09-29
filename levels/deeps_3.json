@@ -1,0 +1,414 @@
+{
+ "id": "deeps_3",
+ "name": "THE GALLERIES",
+ "music": "world4",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "##################################################",
+  "##.rrrrr...............##SSSSSSSSSSSSSSSSSSSSSSSSS",
+  "##.....................###########################",
+  "##.....................###########################",
+  "##SSSSSSSSSSSSSSSS.....##SSSSSSSSSSSSSSSSSSSSSSSSS",
+  "SSSSSSSSSSSSSSS.......r###########################",
+  "###############........#####..rrrrrr...###########",
+  "###############.SSS....#####...........###########",
+  "SSSSSSSSSSSSSSS........#####...........###########",
+  "###############........###.............rrrrrr..###",
+  "###############.....SSS###.....................###",
+  "#r...........rmr.......r.r.....................###",
+  "#......|......m...............................|###",
+  "#######|#######SSSSSSSS########oo#############|###",
+  "#######|##########SSSSSSSSSS###oo########SSSSS|SSS",
+  "#######|####################r..............r.#|###",
+  "#r.....|....r###############.................#|###",
+  "#......|.....#####SSSSSSSSSS.................S|SSS",
+  "#......|.....o...r##########.................#|###",
+  "#.|....|.....o....##########.................#|###",
+  "##|######################################SS..S|SSS",
+  "#r|.#..rrrr....r#########################r...r|.##",
+  "#.|.#...........c....SSSSSSS#############.....|.##",
+  "#.|.#...........c....#r..r..............r.....|.##",
+  "#.|.#......===..######........................|.##",
+  "#.|.#...........SSSSSS........................|.##",
+  "#.|.O...===.....r....r.....===....===.........|.##",
+  "#.|.O.........................................|.##",
+  "##################################################",
+  "##################################################"
+ ],
+ "bg": [
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLXXXXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLXXXXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLXXXXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXLLLLL",
+  "LLLLLTLLLLLLLLLLLLLTLLLLLLLLXXXXXTXXXXXXXTXXXLLLLL",
+  "LLLLLTLLLLLLLLLLLLLTLLLLLLLLXXXXXTXXXXXXXTXXXLLLLL",
+  "LLLLLTLLLLLLLLLLLLLTLLLLLLLLXXXXXTXXXXXXXTXXXLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLXXTXXXXTXXXLLLLLLLLLLLLLLTLLLLLLTLLLLLLTLLLLL",
+  "LLLLLXXTXXXXTXXXLLLLLLLLLLLLLLTLLLLLLTLLLLLLTLLLLL",
+  "LLLLLXXXXXXXXXXXLLLLLLXXXXXXXXXXXXXXXXXXXLLLLLLLLL",
+  "LLLLLXXXXXXXXXXXLLLLLLXXXXXXXXXXXXXXXXXXXLLLLLLLLL",
+  "LLLLLXXXXXXXXXXXLLLLLLXXXXXXXXXXXXXXXXXXXLLLLLLLLL",
+  "LLLLLXXXXXXXXXXXLLLLLLXXXXXXXXXXXXXXXXXXXLLLLLLLLL",
+  "LLLLLXXXXXXXXXXXLLLLLLXXXXXXXXXXXXXXXXXXXLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 6,
+   "y": 27
+  },
+  {
+   "type": "pad_human",
+   "x": 43,
+   "y": 27
+  },
+  {
+   "type": "pad_frog",
+   "x": 18,
+   "y": 12
+  },
+  {
+   "type": "pad_human",
+   "x": 8,
+   "y": 3
+  },
+  {
+   "type": "exit",
+   "x": 4,
+   "y": 3
+  },
+  {
+   "type": "enemy_charger",
+   "x": 33,
+   "y": 27
+  },
+  {
+   "type": "enemy_charger",
+   "x": 38,
+   "y": 19
+  },
+  {
+   "type": "enemy_dropper",
+   "x": 30,
+   "y": 23
+  },
+  {
+   "type": "enemy_dropper",
+   "x": 33,
+   "y": 6
+  },
+  {
+   "type": "enemy_dropper",
+   "x": 40,
+   "y": 15
+  },
+  {
+   "type": "enemy_walker",
+   "x": 18,
+   "y": 23
+  },
+  {
+   "type": "enemy_walker",
+   "x": 15,
+   "y": 19
+  },
+  {
+   "type": "enemy_walker",
+   "x": 29,
+   "y": 12
+  },
+  {
+   "type": "heart",
+   "x": 19,
+   "y": 23
+  },
+  {
+   "type": "heart",
+   "x": 16,
+   "y": 19
+  },
+  {
+   "type": "heart",
+   "x": 33,
+   "y": 19
+  },
+  {
+   "type": "gem",
+   "x": 7,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 8,
+   "y": 25
+  },
+  {
+   "type": "gem",
+   "x": 12,
+   "y": 23
+  },
+  {
+   "type": "gem",
+   "x": 18,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 24,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 28,
+   "y": 25
+  },
+  {
+   "type": "gem",
+   "x": 31,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 35,
+   "y": 25
+  },
+  {
+   "type": "gem",
+   "x": 39,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 44,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 20,
+   "y": 23
+  },
+  {
+   "type": "gem",
+   "x": 3,
+   "y": 19
+  },
+  {
+   "type": "gem",
+   "x": 9,
+   "y": 19
+  },
+  {
+   "type": "gem",
+   "x": 30,
+   "y": 19
+  },
+  {
+   "type": "gem",
+   "x": 36,
+   "y": 19
+  },
+  {
+   "type": "gem",
+   "x": 42,
+   "y": 19
+  },
+  {
+   "type": "gem",
+   "x": 28,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 34,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 40,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 45,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 4,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 10,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 21,
+   "y": 9
+  },
+  {
+   "type": "gem",
+   "x": 17,
+   "y": 6
+  },
+  {
+   "type": "gem",
+   "x": 13,
+   "y": 3
+  },
+  {
+   "type": "gem",
+   "x": 2,
+   "y": 25
+  }
+ ],
+ "marks": {
+  "shelf_1": {
+   "x": 20,
+   "y": 9
+  },
+  "shelf_2": {
+   "x": 18,
+   "y": 6
+  },
+  "mouth_e": {
+   "x": 14,
+   "y": 27
+  },
+  "tunnel_e": {
+   "x": 21,
+   "y": 27
+  },
+  "run_mid": {
+   "x": 28,
+   "y": 27
+  },
+  "run_e": {
+   "x": 36,
+   "y": 27
+  },
+  "ladder_foot": {
+   "x": 45,
+   "y": 27
+  },
+  "high_e": {
+   "x": 42,
+   "y": 12
+  },
+  "high_mid": {
+   "x": 34,
+   "y": 12
+  },
+  "high_w": {
+   "x": 27,
+   "y": 12
+  },
+  "shaft_foot": {
+   "x": 18,
+   "y": 12
+  },
+  "crown_e": {
+   "x": 17,
+   "y": 3
+  },
+  "crown_pad": {
+   "x": 8,
+   "y": 3
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "mouth_e",
+   "form": "human"
+  },
+  {
+   "from": "mouth_e",
+   "to": "tunnel_e",
+   "form": "human"
+  },
+  {
+   "from": "tunnel_e",
+   "to": "run_mid",
+   "form": "human"
+  },
+  {
+   "from": "run_mid",
+   "to": "run_e",
+   "form": "human"
+  },
+  {
+   "from": "run_e",
+   "to": "ladder_foot",
+   "form": "human"
+  },
+  {
+   "from": "ladder_foot",
+   "to": "high_e",
+   "form": "human"
+  },
+  {
+   "from": "high_e",
+   "to": "high_mid",
+   "form": "human"
+  },
+  {
+   "from": "high_mid",
+   "to": "high_w",
+   "form": "human"
+  },
+  {
+   "from": "high_w",
+   "to": "shaft_foot",
+   "form": "human"
+  },
+  {
+   "from": "shaft_foot",
+   "to": "shelf_1",
+   "form": "frog"
+  },
+  {
+   "from": "shelf_1",
+   "to": "shelf_2",
+   "form": "frog"
+  },
+  {
+   "from": "shelf_2",
+   "to": "crown_e",
+   "form": "frog"
+  },
+  {
+   "from": "crown_e",
+   "to": "crown_pad",
+   "form": "frog"
+  },
+  {
+   "from": "crown_pad",
+   "to": "exit",
+   "form": "human"
+  }
+ ],
+ "tileset": "deeps"
+}
