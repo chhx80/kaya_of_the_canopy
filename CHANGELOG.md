@@ -1639,3 +1639,148 @@ The integration suite ends the milestone at **624 checks** — the three
 self-harnessed boss/enemy suites folded in — with 279 unit tests,
 validate OK over sixteen levels, and all three boss gates passing under
 the honest landing measurement.
+
+## M4 integration — TERMITE DEEPS wired into the game
+
+The five deeps levels, THE BROOD QUEEN and the M4 foundation were already
+committed; this is the pass that makes the running game able to see them.
+
+**The world's dark.** `data/ambience.json` gains its five `deeps_*` entries,
+each applied exactly as its author specified rather than harmonised into a
+house style — which is the point, because the five alphas are five different
+arguments. THE LIGHTLESS is 0.88 with eight authored pools grading the
+daylight away eastward; CHEW THROUGH is 0.70 because a level that teaches
+"some walls are not walls" has to let you see the wall; THE GALLERIES is 0.84
+with an ember-tinted rock; SPORE LIGHT is the only entry in the game whose
+`darkness` is the object form, `{alpha 0.74, flicker 0.12, rate 1.4}`, and
+0.74 is a measured readability floor rather than a mood — at 0.86 an additive
+pool lifts solid rock and empty void by the same amount; THE BROOD QUEEN is
+0.88 with no authored pool at all, and is the entry
+`tests/integration/boss_brood_queen_tests.gd` holds as a constant and installs
+into the live level, so it has been *run* as well as looked at. One dark
+capture per level, in the running game with no `--darkness` override, in
+`shots/m4_dark_deeps_1..5.png`; all five read.
+
+**Registration and the overworld.** `tools/build_levels.py` now builds World 4
+from `tools/worlds/deeps_*.py` like Worlds 2 and 3 — `music: "world4"`, `"boss"`
+for deeps_5 — and all five levels regenerate byte-identically from source. The
+shipped hub gains the deeps cluster on the road's north shoulder, east of the
+lake, gated `heights_5 -> deeps_1 -> ... -> deeps_5`: twenty gateways, all five
+of World 4's in one 400x240 screen so a single capture shows the cluster
+(`shots/m4_hub_deeps.png`). `test_the_shipped_hub_has_a_gateway_for_every_level
+_on_disk` — a declared expected failure since the first deeps level landed —
+passes, and no expected failures remain.
+
+**The suite.** THE BROOD QUEEN's self-harnessed suite is folded into
+`tools/itest.sh` by the `_fold_in` pattern: **687 checks, all passed**, 641
+plus the Queen's 46.
+
+**Four docketed fixes, all pre-flagged by their authors.**
+`data/tile_anim.json` gives `deep_spore` (267) a breath — a tint, not a sway,
+because a hazard that slides sideways lies about where its edge is — measured
+at 214 of 512 differing pixels across the two spore tiles against 0 of 512 in
+the rock directly below them, and 0 of 512 in the same crop with the entry
+removed. `tools/solver/prove.gd`'s breakable hint said the prover "carries no
+weapon"; the measured truth is that `ProverSearch.action_set()` never emits
+ATTACK and `ProverSim.snapshot()` carries no broken-tile state, and the hint
+now says so. `tests/test_world_kit.gd` had a passing test that printed "String
+formatting error" fourteen times a run — `%` binds tighter than `+`, so the
+format was applied to the second fragment only. And the omission behind the
+corrected hint is now a trap with a sign on it: `action_set()` and `snapshot()`
+each carry a comment saying ATTACK may not be added to one without the other,
+because a search that can break a tile and cannot un-break it on backtracking
+would prove routes through walls it opened on a branch it threw away.
+
+Green at the end: `genlevels` clean over every non-hub level, `validate: OK`
+over twenty-one levels, 291 unit tests / 88,979 assertions with zero failures,
+687 integration checks, every tape fresh, and all four boss gates — the Grove
+Warden's 21, the Tide Maw's 23, the Stormcrest's 23 and the Brood Queen's 23.
+
+## M4 — TERMITE DEEPS: the foundation and the four levels
+
+The world's music is D phrygian at 100 BPM, written as world3's deliberate
+inverse — the flat second is the interval a wall makes, a pedal bass
+instead of weightless fifths, a scrape that never stops, and the drum
+world3 refused: noise held long, a thud in packed earth, because down
+here the floor is the point. The deeps probe joined the registry at the
+promised price of two lines, and the verb contract was measured before a
+level was drawn: shoulder hold times belong to the wall and not the form
+(rubble 11 ticks to termite_wall 28 — the table was corrected by one
+frame in play, and the accumulation math is written down so nobody
+re-derives it wrongly), the deeps legend's `c` is blade-only, and THE
+PROVER CANNOT BREAK — one column of the cheapest rubble on a route burns
+the entire budget, because the search alphabet has no attack and its
+snapshots carry no broken-tile state. That finding reshaped every level
+that followed: a breakable is a wall to the gate, so every wall in World
+4 is a chord across a loop the proved route walks the long way around.
+
+### deeps_1 — THE LIGHTLESS
+
+Darkness taught in five beats that descend as they go, with the teaching
+encoded: a self-check reads the ambience data and fails the build unless
+every route hop ends inside the lantern or within five tiles of a light.
+The hazard is the light source — emissive spore pits announce themselves
+from beyond lantern range — and the discovery that entities stay at full
+contrast in the dark became a deliberate second wayfinding layer of
+gems. PROVED, 11 hops, 1042 frames, full health throughout.
+
+### deeps_2 — CHEW THROUGH
+
+The verb taught against the measured contract: four beats from the wall
+you cannot miss (and the same verb pressed DOWN through a rubble floor)
+to a 28-frame shoulder-hold with a beetle's patrol closing. Every wall
+is optional to the gate and worth something to the player — 2 hearts,
+~9 gems, three shortcuts. The PNG review moved rubble out of walls
+(32 opaque pixels of 256 reads as nothing at all) and into floors,
+where seeing the shaft through the gaps is the affordance. PROVED,
+15 hops, 1341 frames.
+
+### deeps_3 — THE GALLERIES
+
+A termite nest read as a ring of six chambers with a third of the map
+off the ring, and five chewable chords across it: one that skips four
+fifths of the level and costs you every heart, one that lets a beetle
+out with its treasure, a floor dug from under your own feet, glass only
+the blade opens, and a comb wall that unrolls the west stack backwards
+to your own spawn — the level's one true loop, existing only after you
+make it. check() re-probes the grid once per wall, open and shut.
+PROVED, 14 hops, 1137 frames.
+
+### deeps_4 — SPORE LIGHT
+
+The exam, and the milestone's sharpest finding: ambience light is
+additive and cannot be occluded, so "break a wall to spill light in" is
+impossible in this engine — the honest inversion is built instead:
+every lamp is a wall, and every wall you break is a lamp you spend. The
+glowwall vault advertises itself by glowing through its own wall, and
+breaking in moves YOU into the light. Also measured: this palette's
+darkness readability floor is 0.74 — above it, an additive pool raises
+rock and void by the same amount and the level cannot be read even
+inside the lantern. Every crossing is drawn to one piece of arithmetic
+(a mat lights its own tiles plus two either side); self-checks hold the
+grammar. PROVED, 23 hops, 1513 frames.
+
+## M4 — TERMITE DEEPS, the fourth world
+
+```
+deeps_1  THE LIGHTLESS   11 hops  1,042 frames    PROVED
+deeps_2  CHEW THROUGH    15 hops  1,341 frames    PROVED
+deeps_3  THE GALLERIES   14 hops  1,137 frames    PROVED
+deeps_4  SPORE LIGHT     23 hops  1,513 frames    PROVED
+deeps_5  THE BROOD QUEEN  5 hops    372 frames    PARTIAL, by design
+```
+
+THE BROOD QUEEN passes her gate at birth — 23 checks, 16 refuges, a
+tape that wins at 4 hearts — the second boss in a row to do so. She is
+visible only while attacking or while a landed hit's flash burns, and
+the arena's two luminous walls are a permanent light-for-cover trade
+measured three ways: her crawl alpha 0.12 -> 0.56 -> 1.00, the pools
+4 -> 2 -> 0, and the floor wave running 32 px further past where the
+wall stood. Fairness in the dark is its own tested bar — worst cue gap
+14 frames, zero frames of touching while dark and silent, and the
+all-walls-broken arena re-measured rather than argued.
+
+The milestone ends at 687 integration checks, 291 unit tests with zero
+failures and zero expected failures, twenty gateways on the shipped
+overworld, four boss gates passing, and every one of the twenty-one
+levels regenerating byte-identically from its module.
