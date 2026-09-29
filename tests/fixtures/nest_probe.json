@@ -1,0 +1,71 @@
+{
+  "_comment": "THE OBSIDIAN NEST tileset probe. Not a level -- it lives in tests/fixtures/ so LevelLoader.list_levels() never sees it, and it is deliberately one screen. Its job is to be the smallest artefact that exercises every role character data/level_legend.json binds for the 'nest' world (ids 280-291, which is the whole block: twelve roles, twelve ids, none spare) plus all four shared switch-block tiles ('A' 11 switch_block_a_on, 'a' 26 switch_block_a_off, 'B' 12 switch_block_b_on, 'b' 27 switch_block_b_off) and a lever for each group, so tests/test_tileset_probes.gd can prove the tileset resolves, its flags survive a level round-trip, and switch_group/switch_state arrive intact on the other side of the loader. tests/fixtures/deeps_probe.json is the same idea for World 4, heights_probe for World 3, ruins_probe for World 2.",
+
+  "_comment_verbs_switches": "VERB CONTRACT FOR THE WORLD 5 LEVEL AUTHORS -- measured, not asserted; every number is re-derived by tests/test_tileset_probes.gd. (1) TWO GROUPS, EVER. data/tiles.json defines switch_group 1 (tiles 11/26) and 2 (tiles 12/27) and nothing else; TileWorld.switch_states seeds {1: true, 2: false} and ProverSim.reset() repeats that seeding in the same order SwitchTrigger._ready() does. So 'A' starts SOLID and 'a' starts OPEN, 'b' starts SOLID and 'B' starts OPEN, in every level, before any lever is touched. (2) ONE LEVER CAN GATE ANY NUMBER OF TILES. Solidity is resolved per tile in TileWorld.is_solid() off two booleans -- there is no registry, no cap and no per-screen limit -- so a single lever gating forty blocks costs exactly what one costs. What there is no room for is a THIRD independent gate: every switch_a in a level shares group 1, so two 'a' levers in one level undo each other. (3) THE LEVER'S BOX IS NOT ITS TILE. Level._spawn_entity() does sw.setup(p + Vector2(1, 6)) and SwitchTrigger.SIZE is (14, 10), so the trip box is the BOTTOM TEN PIXELS of the tile, inset one pixel each side. A body that arrives in the row above the lever's tile never touches it -- that is the ruins_4 trap, and it is why a lever goes at floor level or inside the water a fish swims through, never on the upper row of a two-row arrival. (4) CONTACT IS EVERY FORM; RANGE IS THE HUMAN ALONE. SwitchTrigger._physics_process() trips on any overlap with the player's hitbox, so frog, bird and fish all throw levers by swimming or walking into them. The only weapon that trips one is Blade._trip_switches(), and the blade belongs to the human: the fish's 'bite' spawns a MeleeHit, which trips nothing. (5) THE PROVER HANDLES REVISITING. ProverSearch._key() folds sim.switch_bits into the duplicate-state key, so the same tile standing in two different switch states is two different states and a route may cross a gate, flip it and cross back. Measured on tests/fixtures/nest_scratch_revisit.json.",
+
+  "_comment_layout": "The declared route walks the floor, trips the group 1 lever at (5,12), passes through the 'A' gate that lever opens at column 8, climbs the chain at column 13 and steps onto the nest_plate shelf to the exit. Everything the prover cannot do is kept off that line on purpose: the 'c' nest_crust is set into the floating 'ScS' shelf overhead (ProverSim breaks nothing), and the whole water pocket -- pool, pad_fish, the submerged group 2 lever and the 'BbBb' lid over it -- is sealed behind the two nest_shard tiles at (17,12) and (18,12), because the search prunes every state that touches a hazard and therefore never wanders into a corner it was not asked about. The 'a' gate at (10,8)-(10,9) stands on the one-way nest_ledge and is the OTHER HALF of the same lever: throwing it opens the floor and shuts the bypass over the top. One lever, two walls, opposite senses, both visible in shots/world_nest_probe.png.",
+
+  "id": "nest_probe",
+  "name": "NEST PROBE",
+  "tileset": "nest",
+  "music": "world5",
+  "next_level": "",
+  "topdown": false,
+  "screens": [1, 1],
+  "fg": [
+    ".........................",
+    ".........................",
+    ".........................",
+    ".........................",
+    ".........................",
+    ".........................",
+    "...ScS...................",
+    ".............|...........",
+    "..........a..|sss........",
+    "..........a..|...........",
+    "......======.|......BbBb.",
+    "........A....|.....~~~~~.",
+    "........A....|...^^wwwww.",
+    "#########################",
+    "ddddddddddddddddddddddddd"
+  ],
+  "bg": [
+    "rrrrrrrrrrrrrrrrrrrrrrrrr",
+    "..rrrrrrrrrrrrrrrrrrrrr..",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LTLLLLLLLLLLLLLLLLLLLLLTL",
+    "LTLLLLLLLLLLLLLLLLLLLLLTL",
+    "LTLLLLLLLLLLLLLLLLLLLLLTL",
+    "LTLLLLLLLLLLLLLLLLLLLLLTL",
+    "LTLLLLLLLLLLLLLLLLLLLLLTL",
+    "LTLLLLLLLLLLLLLLLLLLLLLTL",
+    "LTLLLLLLLLLLLLLLLLLLLLLTL",
+    "LTLLLLLLLLLLLLLLLLLLLLLTL",
+    "LTLLLLLLLLLLLLLLLLLLLLLTL",
+    "XXXXXXXXXXXXXXXXXXXXXXXXX",
+    "XXXXXXXXXXXXXXXXXXXXXXXXX"
+  ],
+  "entities": [
+    {"type": "player_spawn", "x": 2, "y": 12},
+    {"type": "switch_a", "x": 5, "y": 12},
+    {"type": "pad_fish", "x": 19, "y": 11},
+    {"type": "switch_b", "x": 21, "y": 12},
+    {"type": "exit", "x": 15, "y": 7}
+  ],
+  "marks": {
+    "gate_e": {"x": 10, "y": 12},
+    "ladder_foot": {"x": 13, "y": 12},
+    "ladder_top": {"x": 13, "y": 7},
+    "bypass": {"x": 7, "y": 9},
+    "shard_field": {"x": 17, "y": 12},
+    "pool_lip": {"x": 19, "y": 11}
+  },
+  "route": [
+    {"from": "spawn", "to": "switch_a", "form": "human"},
+    {"from": "switch_a", "to": "gate_e", "form": "human"},
+    {"from": "gate_e", "to": "ladder_foot", "form": "human"},
+    {"from": "ladder_foot", "to": "ladder_top", "form": "human"},
+    {"from": "ladder_top", "to": "exit", "form": "human"}
+  ]
+}

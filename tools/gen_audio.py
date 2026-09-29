@@ -405,6 +405,61 @@ def build_music():
          "step": 8},
     ]))
 
+    # ---- WORLD 5: THE OBSIDIAN NEST — the last world (C harmonic minor)
+    #
+    # Four worlds are already spoken for and each one took its character from the
+    # notes rather than from the synth, so the fifth has to do the same and has
+    # the smallest room left to do it in. What World 5 is *for* is the end
+    # approaching: grandeur and dread, which are not the same feeling as World
+    # 4's claustrophobia and must not sound like it.
+    #   * C HARMONIC MINOR. The one mode nothing else in the game uses (World 1
+    #     A aeolian, World 2 D aeolian, World 3 G lydian, World 4 D phrygian),
+    #     and the only one with an augmented second in it — G# up to B, a step
+    #     and a half where a whole step belongs. That interval is ceremonial and
+    #     wrong at the same time, which is the whole brief in one gesture; the
+    #     lead plays it twice, bar 3 and bar 7;
+    #   * 84 BPM, the slowest tempo in the game (the title card is 96). Grandeur
+    #     is duration: the lead is written in halves and wholes and holds a
+    #     single note for a whole bar twice, where World 4's lead never rests;
+    #   * a GROUND BASS, not a pedal and not a walk. C3 B2 A#2 A2 G#2 G2 — the
+    #     lament tetrachord, chromatic, descending, four bars long, played twice
+    #     underneath eight bars of melody. World 4's bass is a pedal that will
+    #     not move; this one moves and only ever downward, and lands on the
+    #     dominant every time instead of the root, so the loop never closes. A
+    #     passacaglia is the oldest "this is the last movement" there is;
+    #   * the third voice is a TOLL: one 0.5-beat strike on the downbeat of each
+    #     bar, high and very quiet, spelling the same descent two octaves up
+    #     (C6 A#5 G#5 G5, twice). World 3's third voice is a flourish that
+    #     answers the lead and World 4's is a scrape that never stops; this one
+    #     is eight sounds in twenty-three seconds. The dread is in the gaps;
+    #   * and the percussion is not a drum at all. One long, deep noise burst
+    #     (step 13, the lowest-pitched noise in the game) every two bars —
+    #     something enormous moving a long way off. World 1 and the boss put
+    #     noise on every half beat; here it lands four times in the whole loop;
+    #   * duty 0.375 on the lead, the one pulse width no other track uses.
+    #     Between World 1's 0.25 and the title's 0.5: fuller than either, which
+    #     is as close to brass as a PSG gets.
+    w5_lead = ("C5 3, D5 1, "
+               "D#5 2, C5 2, "
+               "G4 2, G#4 1, B4 1, "
+               "C5 4, "
+               "G5 2, F5 1, D#5 1, "
+               "D5 2, C5 2, "
+               "D#5 1, F5 1, G5 1, G#5 1, "
+               "G5 3, - 1")
+    w5_ground = ("C3 2, B2 2, A#2 2, A2 2, G#2 2, G2 2, G2 4, "
+                 "C3 2, B2 2, A#2 2, A2 2, G#2 2, G2 2, G2 4")
+    w5_toll = ("C6 0.5, - 3.5, A#5 0.5, - 3.5, G#5 0.5, - 3.5, G5 0.5, - 3.5, "
+               "C6 0.5, - 3.5, A#5 0.5, - 3.5, G#5 0.5, - 3.5, G5 0.5, - 3.5")
+    w5_roar = "C2 2, - 6, " * 4
+    write(os.path.join(MUSIC, "world5.wav"), render_track(84, [
+        {"voice": "square", "notes": parse(w5_lead), "vol": 0.136, "duty": 0.375},
+        {"voice": "triangle", "notes": parse(w5_ground), "vol": 0.174},
+        {"voice": "square", "notes": parse(w5_toll), "vol": 0.039, "duty": 0.125},
+        {"voice": "noise", "notes": parse(w5_roar.rstrip(", ")), "vol": 0.038,
+         "step": 13},
+    ]))
+
     # ---- BOSS: fast, low, relentless
     boss_lead = ("E4 0.5, E4 0.5, G4 0.5, E4 0.5, A#4 0.5, A4 0.5, G4 0.5, E4 0.5, "
                  "E4 0.5, E4 0.5, G4 0.5, A4 0.5, C5 0.5, B4 0.5, A4 0.5, G4 0.5, "

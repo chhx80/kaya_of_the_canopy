@@ -1,0 +1,57 @@
+{
+  "_comment": "SCRATCH FIXTURE, and the answer to 'how many doors can one lever gate?'. Thirty-six switch tiles and ONE lever: nine two-tile 'A' gates standing in the corridor the route walks (columns 4,6,8,10,12,14,16,18,20 at rows 11-12) and the nine matching two-tile 'a' gates in the sealed chamber above (rows 8-9), which are the same nine doors in their other configuration. All thirty-six resolve off the same two booleans in TileWorld.switch_states, so throwing the one lever at (2,12) opens every gate on the route and shuts every gate above it, in the same frame, at no cost that grows with N -- TileWorld.is_solid() asks data.switch_group[id] per tile and there is no registry, no cap and no per-screen limit anywhere in the chain. What a level CANNOT have is a third independent gate: data/tiles.json defines groups 1 and 2 and nothing else, ProverSim packs the world's switch state into two bits, and every switch_a in a level is group 1 -- so a second 'a' lever anywhere in the level undoes the first. Kept in tests/fixtures/ and out of levels/ -- it is an experiment, not a level.",
+  "id": "nest_scratch_fanout",
+  "name": "SWITCH FAN-OUT",
+  "tileset": "nest",
+  "music": "world5",
+  "next_level": "",
+  "topdown": false,
+  "screens": [1, 1],
+  "fg": [
+    ".........................",
+    ".........................",
+    ".........................",
+    ".........................",
+    ".........................",
+    ".........................",
+    ".........................",
+    "#########################",
+    "....a.a.a.a.a.a.a.a.a....",
+    "....a.a.a.a.a.a.a.a.a....",
+    "#########################",
+    "....A.A.A.A.A.A.A.A.A....",
+    "....A.A.A.A.A.A.A.A.A....",
+    "#########################",
+    "ddddddddddddddddddddddddd"
+  ],
+  "bg": [
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "XXXXXXXXXXXXXXXXXXXXXXXXX",
+    "XXXXXXXXXXXXXXXXXXXXXXXXX"
+  ],
+  "entities": [
+    {"type": "player_spawn", "x": 1, "y": 12},
+    {"type": "switch_a", "x": 2, "y": 12},
+    {"type": "exit", "x": 22, "y": 12}
+  ],
+  "marks": {
+    "gate_5": {"x": 13, "y": 12}
+  },
+  "route": [
+    {"from": "spawn", "to": "switch_a", "form": "human"},
+    {"from": "switch_a", "to": "gate_5", "form": "human"},
+    {"from": "gate_5", "to": "exit", "form": "human"}
+  ]
+}

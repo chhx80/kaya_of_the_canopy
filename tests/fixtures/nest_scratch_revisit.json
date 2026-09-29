@@ -1,0 +1,63 @@
+{
+  "_comment": "SCRATCH FIXTURE, and the answer to the question every World 5 author is about to ask: may a route cross a gate, throw the lever again and cross back? YES, and this is the measurement. Two decks share one gate column (x=10). The lower half is 'a' (26, solid while group 1 is OFF) and starts OPEN; the upper half is 'A' (11, solid while group 1 is ON) and starts SHUT. The route walks east along the lower deck THROUGH column 10, carries on past the chain to the lever in the dead end at (16,12), throws it -- which shuts the floor behind her and opens the deck above -- walks back WEST over the two tiles she just crossed, climbs, and returns west along the upper deck THROUGH column 10 again. Same column, both configurations, and three tiles of the lower corridor are walked twice with the switch bits different the second time. ProverSearch._key() folds `sim.switch_bits` into the duplicate-state key (search.gd, `k = (k << 2) | (sim.switch_bits & 3)`), which is what makes the second crossing a new state rather than one the search has already closed; tests/test_tileset_probes.gd asserts that the key actually changes. Kept in tests/fixtures/ and out of levels/ -- it is an experiment, not a level.",
+  "id": "nest_scratch_revisit",
+  "name": "SWITCH REVISIT",
+  "tileset": "nest",
+  "music": "world5",
+  "next_level": "",
+  "topdown": false,
+  "screens": [1, 1],
+  "fg": [
+    "..................#######",
+    "..................#######",
+    "..................#######",
+    "..................#######",
+    "..................#######",
+    "..................#######",
+    "..................#######",
+    "..................#######",
+    "..........A.......#######",
+    "..........A...|...#######",
+    "##############|...#######",
+    "..........a...|...#######",
+    "..........a...|...#######",
+    "#########################",
+    "ddddddddddddddddddddddddd"
+  ],
+  "bg": [
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "LLLLLLLLLLLLLLLLLLLLLLLLL",
+    "XXXXXXXXXXXXXXXXXXXXXXXXX",
+    "XXXXXXXXXXXXXXXXXXXXXXXXX"
+  ],
+  "entities": [
+    {"type": "player_spawn", "x": 2, "y": 12},
+    {"type": "switch_a", "x": 16, "y": 12},
+    {"type": "exit", "x": 3, "y": 9}
+  ],
+  "marks": {
+    "gate_lower_e": {"x": 12, "y": 12},
+    "ladder_foot": {"x": 14, "y": 12},
+    "ladder_top": {"x": 14, "y": 9},
+    "gate_upper_w": {"x": 9, "y": 9}
+  },
+  "route": [
+    {"from": "spawn", "to": "gate_lower_e", "form": "human"},
+    {"from": "gate_lower_e", "to": "switch_a", "form": "human"},
+    {"from": "switch_a", "to": "ladder_foot", "form": "human"},
+    {"from": "ladder_foot", "to": "ladder_top", "form": "human"},
+    {"from": "ladder_top", "to": "gate_upper_w", "form": "human"},
+    {"from": "gate_upper_w", "to": "exit", "form": "human"}
+  ]
+}
