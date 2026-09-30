@@ -2011,3 +2011,88 @@ Grove Warden's 24, the Tide Maw's 26, the Stormcrest's 26, the Brood
 Queen's 26 and the Obsidian Heart's 34.
 
 Twenty-five levels, five worlds, one overworld, and an ending.
+
+## M5 — THE OBSIDIAN NEST: the four levels
+
+### nest_1 — BLACK GLASS
+
+The first level in the game whose subject is a lever. The trading wall
+gives the verb away free — one wall, two doorways, exactly one always
+open in either configuration, re-derived from the finished grid by
+self-check. The slag gate charges for it: one lever, a plug that shuts
+the flue and the first half of the level behind her, and a gate that
+opens the furnace ahead, fifteen tiles apart in one frame. Two
+structural findings became law for the world: ONE LEVER PER GROUP
+(a second goes stale against the solver — prove.sh would pass a level
+the replay cannot finish; the self-check fails the build instead), and
+commitment gates need an escape search over room-by-configuration
+states, not a single-config question. PROVED, 16 hops, 1067 frames.
+
+### nest_2 — THE SWITCHYARD
+
+Scale from composition under the hard rule: two levers, six doors. The
+same A throw opens a door beside you and another two screens away, and
+shuts a third — one group in opposite senses, so no configuration
+opens the gantry end to end and the way past is a thirteen-row chute
+back to where you began. The exit needs A OFF and B ON in series, so
+both levers are load-bearing and neither alone suffices, by proof.
+Every region any configuration can carve either holds the exit or
+drains toward a lever without a throw. PROVED, 17 hops, 1159 frames,
+413 expansions.
+
+### nest_3 — FOUR SHAPES
+
+The whole movement vocabulary, one wing per form, braided by two
+levers whose four doors never serve only their own wing. The aerie is
+flown on a bare stamina bar — no thermals, deliberately, on the one
+level that asks whether you can still do it yourself. ADR 004 is a
+graph, not a claim: a strand flood over (tile × form × configuration)
+— 1,757 states, 0 dead ends — that found two real softlocks prose
+missed, one reachable only because the fish reverts on a ledge and
+walks through an open door. Measured for the book: shouldering needs
+attack held, a three-tile hole is uncrossable to the kit's own flood,
+and every form's attack button breaks walls. PROVED, 23 hops, 1393
+frames.
+
+### nest_4 — THE LAST ASCENT
+
+The game's valediction, one leg per world on the way up: THE CISTERN's
+one-way current restated in a roofed pipe, the flue ridden as Thermal
+Heights taught, the dark staged as where-the-light-is-not, and the
+world's own verb at two scales. Then the quiet — three treads, a
+heart, nothing else — and the boss door. Two measurements for the
+book: the prover accepts any body-rect overlap as arrival (a submerged
+head "reaches" a shore; every shore mark now sits one tile inland —
+43,882 expansions became 20), and SwitchTrigger re-arms after 27
+frames, so a capture that stops on a lever photographs the state it
+started in. PROVED, 25 hops, 1033 frames, 384 expansions.
+
+## M5 — THE OBSIDIAN NEST, the fifth world, and the game complete
+
+```
+nest_1  BLACK GLASS         16 hops  1,067 frames    PROVED
+nest_2  THE SWITCHYARD      17 hops  1,159 frames    PROVED
+nest_3  FOUR SHAPES         23 hops  1,393 frames    PROVED
+nest_4  THE LAST ASCENT     25 hops  1,033 frames    PROVED
+nest_5  THE OBSIDIAN HEART   6 hops    471 frames    PARTIAL, by design
+```
+
+THE OBSIDIAN HEART is the boss the gate's check 4 was written for, and
+the check finally asked its question: the Heart owns the switch state
+— three phases, three configurations, one authored arena, nothing
+restored — and the runner's smallest generic extension made the
+per-configuration sweeps genuine (raw-flag solidity had reported every
+bay solid forever). Flip fairness is structural: 34 switch tiles
+against 6 reconfigurations, zero can close on a standing body, with a
+1.05-second telegraph before every write. Each phase opens one form's
+bay as an offer, not a demand — every dodge is human-reachable and the
+tape wins without entering a bay. Gate: 34 checks, ALL PASSED. All
+five bosses now pass under the extended runner: 24 / 26 / 26 / 26 / 34.
+
+The milestone — and the plan docs/plan-20-levels.md set out five
+milestones ago — ends with the game whole: twenty-five levels in five
+worlds, every route proved against the shipping movement code and
+replayed in the booted game, every boss provably beatable and provably
+fair, one overworld carrying every door, an ending derived from the
+hub's own graph, and a suite of 306 unit tests and 791 integration
+checks with zero failures and zero expectations of failure.
