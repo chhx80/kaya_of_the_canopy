@@ -1,0 +1,394 @@
+[
+ {
+  "_": "NEST_5, THE OBSIDIAN HEART.  Re-run with:  tools/shot.sh --seq=tools/seq/nest_5.json"
+ },
+ {
+  "_": "NO AMBIENCE FLAG, and that is the difference from deeps_5's sequence. The nest is not a dark world -- tests/integration/boss_obsidian_heart_tests.gd's AMBIENCE constant carries no `darkness` key at all, because this room is lit by what is burning in it. So these captures are of the level as it renders today, with the default ambience, and the entry that is reported to integration only adds the ember tint and the emissive pools on 281 obsidian_hot and 287 nest_shard. Nothing below moves when it lands."
+ },
+ {
+  "_": "THE THREE CONFIGURATIONS ARE STAGED, not waited for. `debug_advance_boss_phase` is Level's own capture hook: it drops the boss onto the next health threshold, which for this one starts the REFORGE -- 1.05 s of telegraph and then the write. So each phase is shot twice, once mid-telegraph and once after the nest has turned, and the pair is the whole mechanic in two frames."
+ },
+ {
+  "_": "Kaya is NOT invulnerable in a capture and the fight does not stop for one, so every arena shot is taken from somewhere the Boss Gate proved safe: the floor under the comb (cols 34-35) for the shed, a bay's one-way step (row 25) for the bore. And every teleport is ONE ROW ABOVE the row she ends up standing in, because a teleport writes the body's TOP-LEFT and the body is 22 px tall."
+ },
+ {
+  "scenario": "level:nest_5",
+  "settle": 120
+ },
+ {
+  "_": "THE APPROACH. The outer flue she spawns in, cols 1-16 at row 5, ending over a six-tile chute."
+ },
+ {
+  "shot": "shots/nest_5_a_flue.png"
+ },
+ {
+  "teleport": [
+   17,
+   8
+  ],
+  "settle": 30
+ },
+ {
+  "shot": "shots/nest_5_b_chute.png"
+ },
+ {
+  "_": "THE FROG'S STEP. The lower flue ends at col 31 and the ledge above it is at row 9 -- a THREE-tile rise, inside LIMITS[frog][rise] and outside LIMITS[human][rise]. `pad_frog` is at col 27, four tiles west, and it is the only reason this level has a pad in its approach at all."
+ },
+ {
+  "teleport": [
+   27,
+   11
+  ],
+  "settle": 30
+ },
+ {
+  "shot": "shots/nest_5_c_frog_step.png"
+ },
+ {
+  "_": "And the ledge it buys, ending at col 35 over the inner flue: two columns of nothing, seventeen tiles down, through the hearthold's roof."
+ },
+ {
+  "teleport": [
+   34,
+   8
+  ],
+  "settle": 30
+ },
+ {
+  "shot": "shots/nest_5_d_ledge.png"
+ },
+ {
+  "_": "THE HEARTHOLD IN SEALED -- group 1 ON, group 2 OFF, which is TileWorld's seeded default and therefore the arena exactly as levels/nest_5.json draws it. West to east: open floor with boss_exit on it, the FROG bay (step 28-29, shelf 30-31), open floor, the comb hanging to row 20, the inner flue's mouth with the floor pad under it, the BIRD bay (shelf 40-41, step 42-43), and the HUMAN bay (step 44, gates 45-46, shelf 47-48)."
+ },
+ {
+  "teleport": [
+   36,
+   25
+  ],
+  "settle": 60
+ },
+ {
+  "shot": "shots/nest_5_e_arena_sealed.png"
+ },
+ {
+  "_": "SEALED's bay, from the floor below it. The frog's plug is group 2's 'B' block and group 2 is OFF, so the two columns over the step are air and the shelf at row 23 -- with pad_frog on it -- is a 32 px hop away. Behind her, the bird's and the human's gates are stone."
+ },
+ {
+  "teleport": [
+   29,
+   25
+  ],
+  "settle": 40
+ },
+ {
+  "shot": "shots/nest_5_f_bay_frog_open.png"
+ },
+ {
+  "_": "And standing on that shelf, which is what the phase is offering: the pad, the gem, and a tier the Heart's body can never reach."
+ },
+ {
+  "teleport": [
+   30,
+   21
+  ],
+  "settle": 40
+ },
+ {
+  "shot": "shots/nest_5_g_bay_frog_shelf.png"
+ },
+ {
+  "_": "EVERY CONFIGURATION BELOW STARTS FROM A FRESH BOOT, and that is a lesson this sequence learned the hard way. The first run staged all three phases in one visit; Kaya is not invulnerable in a capture and this arena has no tile that is safe from everything -- that is the whole design -- so she died between the bird's bay and the human's, the level restarted, the Heart went back to phase 1, and the three shots labelled MOLTEN were all of INVERTED. LIVES 3 -> LIVES 2 in the contact sheet was the only thing that gave it away. A boot per configuration costs six seconds and cannot lie about which room it is showing."
+ },
+ {
+  "_": "THE TELEGRAPH. Crossing a health threshold does NOT turn the nest over; it starts the reforge. The Heart stops where it stands, flares, and shudders for 1.05 s with the switch sound and a HUD line, and only then writes. Thirty frames in, this is that beat: the arena is still SEALED, the boss bar still says SEALED, and the line across the middle of the screen is the only warning the player gets."
+ },
+ {
+  "scenario": "level:nest_5",
+  "settle": 70
+ },
+ {
+  "teleport": [
+   34,
+   25
+  ],
+  "settle": 40
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 30
+ },
+ {
+  "shot": "shots/nest_5_h_telegraph.png"
+ },
+ {
+  "_": "THE SAME TILE, ONE SECOND LATER: the beat has run out, the nest has been written, and this is INVERTED. Group 1 is OFF and group 2 is ON, so every switch block in the arena has swapped -- compare the gold and violet lattices against the SEALED shot above. The frog's bay has closed over its own step and the bird's has opened."
+ },
+ {
+  "wait": 80
+ },
+ {
+  "shot": "shots/nest_5_i_arena_inverted.png"
+ },
+ {
+  "_": "INVERTED's bay, from its step at cols 42-43. The bird's plug is group 1's 'A' block and group 1 is now OFF, so the climb west onto the shelf at cols 40-41 is open and pad_bird is standing on it."
+ },
+ {
+  "scenario": "level:nest_5",
+  "settle": 70
+ },
+ {
+  "teleport": [
+   34,
+   25
+  ],
+  "settle": 30
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 110
+ },
+ {
+  "teleport": [
+   42,
+   23
+  ],
+  "settle": 40
+ },
+ {
+  "shot": "shots/nest_5_j_bay_bird_open.png"
+ },
+ {
+  "scenario": "level:nest_5",
+  "settle": 70
+ },
+ {
+  "teleport": [
+   34,
+   25
+  ],
+  "settle": 30
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 110
+ },
+ {
+  "teleport": [
+   40,
+   21
+  ],
+  "settle": 40
+ },
+ {
+  "shot": "shots/nest_5_k_bay_bird_shelf.png"
+ },
+ {
+  "_": "And the frog's bay in the same configuration, shut: the two columns over its step that were air a moment ago are stone, and the shelf behind them is a room with no door. The pad is still on it. You cannot get to it again this fight."
+ },
+ {
+  "scenario": "level:nest_5",
+  "settle": 70
+ },
+ {
+  "teleport": [
+   34,
+   25
+  ],
+  "settle": 30
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 110
+ },
+ {
+  "teleport": [
+   29,
+   25
+  ],
+  "settle": 40
+ },
+ {
+  "shot": "shots/nest_5_l_bay_frog_shut.png"
+ },
+ {
+  "_": "MOLTEN. Both groups ON -- two reforges, so two calls with the beat between them -- and the only configuration in which the human bay's two gates, 'b' at col 45 and 'a' at col 46, in series and neither of them in the step she jumps from, are open at the same time."
+ },
+ {
+  "scenario": "level:nest_5",
+  "settle": 70
+ },
+ {
+  "teleport": [
+   34,
+   25
+  ],
+  "settle": 30
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 110
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 110
+ },
+ {
+  "shot": "shots/nest_5_m_arena_molten.png"
+ },
+ {
+  "scenario": "level:nest_5",
+  "settle": 70
+ },
+ {
+  "teleport": [
+   34,
+   25
+  ],
+  "settle": 30
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 110
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 110
+ },
+ {
+  "teleport": [
+   44,
+   23
+  ],
+  "settle": 40
+ },
+ {
+  "shot": "shots/nest_5_n_bay_human_open.png"
+ },
+ {
+  "_": "The last pad in the game, on the last shelf: MOLTEN's bore is the fastest in the fight, and this is where a player who spent INVERTED as the bird gets her blade back without crossing the floor under it."
+ },
+ {
+  "scenario": "level:nest_5",
+  "settle": 70
+ },
+ {
+  "teleport": [
+   34,
+   25
+  ],
+  "settle": 30
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 110
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 110
+ },
+ {
+  "teleport": [
+   47,
+   21
+  ],
+  "settle": 40
+ },
+ {
+  "shot": "shots/nest_5_o_bay_human_shelf.png"
+ },
+ {
+  "_": "THE KILL. `debug_kill_nearest_enemy` is Level's own capture hook and it puts the Heart down where it stands, which is what the strategy tape spends 27 s doing. The camera unlocks, the HUD names the boss that fell, and boss_exit opens at col 27 -- across an arena still in MOLTEN's configuration, because nothing this boss writes is ever restored."
+ },
+ {
+  "scenario": "level:nest_5",
+  "settle": 70
+ },
+ {
+  "teleport": [
+   34,
+   25
+  ],
+  "settle": 30
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 110
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 110
+ },
+ {
+  "call": "debug_kill_nearest_enemy"
+ },
+ {
+  "wait": 26
+ },
+ {
+  "shot": "shots/nest_5_p_kill.png"
+ },
+ {
+  "teleport": [
+   28,
+   25
+  ],
+  "settle": 40
+ },
+ {
+  "shot": "shots/nest_5_q_gate_open.png"
+ },
+ {
+  "_": "THE ENDING, and this is a capture of a PROBLEM rather than of a feature. Walking into that gate calls Level.complete(), which calls Game.complete_level(), which sets the level's flag, saves, and calls goto_hub(). That is the same four lines every other level in the game runs. `Game.goto_victory()` exists, `src/ui/menus/victory.tscn` has existed since M2, and NOTHING IN src/ CALLS IT -- the only caller in the repository is tools/dev_capture.gd's own `victory` scenario. So the last boss in the game is followed by the overworld."
+ },
+ {
+  "hold": [
+   "move_left"
+  ],
+  "frames": 90
+ },
+ {
+  "release": [
+   "move_left"
+  ]
+ },
+ {
+  "wait": 70
+ },
+ {
+  "shot": "shots/nest_5_y_after_the_gate.png"
+ },
+ {
+  "_": "And the screen that DOES exist, reached the only way anything can reach it today: by asking for it. Note the words -- it is jungle-flavoured, written when THE CANOPY was the whole game. This is what integration has to wire to the last door, and it is why this branch reports the ending rather than building one."
+ },
+ {
+  "scenario": "victory",
+  "settle": 90
+ },
+ {
+  "shot": "shots/nest_5_z_victory_unreachable.png"
+ }
+]

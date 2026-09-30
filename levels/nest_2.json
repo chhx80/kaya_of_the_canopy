@@ -1,0 +1,379 @@
+{
+ "id": "nest_2",
+ "name": "THE SWITCHYARD",
+ "music": "world5",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "##################################################",
+  "####...###...##########..#####...########...######",
+  "####...S#d...d###d#####..Sd###...#####dS#...######",
+  "#........b...A...a........b...........A.........##",
+  "#........b...A...a........b...........A.........##",
+  "#........b...A...a........b...........A.........##",
+  "#........b...A...a........b...........A.........##",
+  "#........b...A...a........b...........A.........##",
+  "#........b...A...a........b...........A.........##",
+  "#........b...A...a........b...........A.........##",
+  "#........b...A...a........b...........A.........##",
+  "#........b...A...a........b...........A.........##",
+  "#........b...A...a........b...........A.........##",
+  "#........b...A.|.a^^......b...........A.......|.##",
+  "######S##d##Sd#|#d##S..#S#d###S###..#Sd#####S#|###",
+  "###############|#####..###########..##########|###",
+  "#####....##...#|#...#..######...##..#d###...##|###",
+  "#####....##...#|#...#..####..........A........|.##",
+  "#..............|..........#..........A........|.##",
+  "#..............|..........S..===.....A........|.##",
+  "#..............|..........S.....|....A........|.##",
+  "#..............|..........#S####|#S##d##S#.##S####",
+  "S..............|..........d#####|##...####.#..####",
+  "#..............|..........B.....|...............##",
+  "#..............|..........B.....|...............##",
+  "#..............|..........B.....|...............##",
+  "#..............|..........B.===.|...............##",
+  "#..............|..........B.....|...........^^..##",
+  "##S#####S###S######S###S##d#S######S####S####S####",
+  "##################################################"
+ ],
+ "bg": [
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXXXXXrXXXXXXXXXXXXXXXTXrXXXXXXXTXXXXXrXXXTXXXXLL",
+  "LXXXXXXTXXXXXXXXXXXXXXXTXXXXXXXXXTXXXXXXXXXTXXXXLL",
+  "LXXXXXXTXXXXXXXXXXXXXXXTXXXXXXXXXTXXXXXXXXXTXXXXLL",
+  "LXXXXXXTXXXXXXXXXXXXXXXTXXXXXXXXXTXXXXXXXXXTXXXXLL",
+  "LXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXLL",
+  "LXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXLL",
+  "LXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXLL",
+  "LXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXLL",
+  "LXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXLL",
+  "LXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXLL",
+  "LXXXXXrXXXXXrXXXXXXXrXXXrXXXXXrXXXXXXrXXXXXXrXXXLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXXTXXXXXXTXXXXXXXXXXTXXXLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXXTXXXXXXTXXXXXXXXXXTXXrLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXXTXXXXXXTXXXXXXXXXXTXXXLrLLLLLLrLLLLLrLLLLrLLLL",
+  "LXXXXXXXXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LrXXXXXXXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXXXXXXXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXXXXXXXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXXXXXXXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXXXXXXXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXrXXXXXrXXXrXXXXXXrXXXrXXLLrLLLLLLrLLLLrLLLLrLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 3,
+   "y": 27
+  },
+  {
+   "type": "switch_a",
+   "x": 29,
+   "y": 25
+  },
+  {
+   "type": "switch_b",
+   "x": 30,
+   "y": 18
+  },
+  {
+   "type": "exit",
+   "x": 4,
+   "y": 13
+  },
+  {
+   "type": "enemy_walker",
+   "x": 35,
+   "y": 27
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 19,
+   "y": 9,
+   "axis": "y",
+   "range": 32
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 9,
+   "y": 20,
+   "axis": "x",
+   "range": 48
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 40,
+   "y": 8,
+   "axis": "y",
+   "range": 40
+  },
+  {
+   "type": "heart",
+   "x": 47,
+   "y": 27
+  },
+  {
+   "type": "heart",
+   "x": 2,
+   "y": 13
+  },
+  {
+   "type": "gem",
+   "x": 2,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 9,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 18,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 24,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 28,
+   "y": 25
+  },
+  {
+   "type": "gem",
+   "x": 31,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 38,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 42,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 28,
+   "y": 20
+  },
+  {
+   "type": "gem",
+   "x": 31,
+   "y": 18
+  },
+  {
+   "type": "gem",
+   "x": 35,
+   "y": 20
+  },
+  {
+   "type": "gem",
+   "x": 40,
+   "y": 20
+  },
+  {
+   "type": "gem",
+   "x": 45,
+   "y": 20
+  },
+  {
+   "type": "gem",
+   "x": 45,
+   "y": 13
+  },
+  {
+   "type": "gem",
+   "x": 36,
+   "y": 13
+  },
+  {
+   "type": "gem",
+   "x": 30,
+   "y": 13
+  },
+  {
+   "type": "gem",
+   "x": 24,
+   "y": 13
+  },
+  {
+   "type": "gem",
+   "x": 20,
+   "y": 13
+  },
+  {
+   "type": "gem",
+   "x": 11,
+   "y": 13
+  },
+  {
+   "type": "gem",
+   "x": 6,
+   "y": 13
+  }
+ ],
+ "marks": {
+  "hall_east": {
+   "x": 24,
+   "y": 27
+  },
+  "cellar_west": {
+   "x": 28,
+   "y": 27
+  },
+  "chain1_top": {
+   "x": 32,
+   "y": 20
+  },
+  "sigma_west": {
+   "x": 36,
+   "y": 20
+  },
+  "chute_e_east": {
+   "x": 43,
+   "y": 20
+  },
+  "chain2_foot": {
+   "x": 46,
+   "y": 20
+  },
+  "chain2_top": {
+   "x": 46,
+   "y": 13
+  },
+  "g1_west": {
+   "x": 37,
+   "y": 13
+  },
+  "chute_m_west": {
+   "x": 33,
+   "y": 13
+  },
+  "g2_west": {
+   "x": 25,
+   "y": 13
+  },
+  "hall_drop": {
+   "x": 21,
+   "y": 27
+  },
+  "lift_foot": {
+   "x": 15,
+   "y": 27
+  },
+  "lift_top": {
+   "x": 15,
+   "y": 13
+  },
+  "vestibule": {
+   "x": 11,
+   "y": 13
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "hall_east",
+   "form": "human"
+  },
+  {
+   "from": "hall_east",
+   "to": "cellar_west",
+   "form": "human"
+  },
+  {
+   "from": "cellar_west",
+   "to": "switch_a",
+   "form": "human"
+  },
+  {
+   "from": "switch_a",
+   "to": "chain1_top",
+   "form": "human"
+  },
+  {
+   "from": "chain1_top",
+   "to": "switch_b",
+   "form": "human"
+  },
+  {
+   "from": "switch_b",
+   "to": "sigma_west",
+   "form": "human"
+  },
+  {
+   "from": "sigma_west",
+   "to": "chute_e_east",
+   "form": "human"
+  },
+  {
+   "from": "chute_e_east",
+   "to": "chain2_foot",
+   "form": "human"
+  },
+  {
+   "from": "chain2_foot",
+   "to": "chain2_top",
+   "form": "human"
+  },
+  {
+   "from": "chain2_top",
+   "to": "g1_west",
+   "form": "human"
+  },
+  {
+   "from": "g1_west",
+   "to": "chute_m_west",
+   "form": "human"
+  },
+  {
+   "from": "chute_m_west",
+   "to": "g2_west",
+   "form": "human"
+  },
+  {
+   "from": "g2_west",
+   "to": "hall_drop",
+   "form": "human"
+  },
+  {
+   "from": "hall_drop",
+   "to": "lift_foot",
+   "form": "human"
+  },
+  {
+   "from": "lift_foot",
+   "to": "lift_top",
+   "form": "human"
+  },
+  {
+   "from": "lift_top",
+   "to": "vestibule",
+   "form": "human"
+  },
+  {
+   "from": "vestibule",
+   "to": "exit",
+   "form": "human"
+  }
+ ],
+ "tileset": "nest"
+}

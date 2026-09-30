@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
-"""Builds staging/hub_v2.json — the 25-door overworld (M6).
+"""Builds levels/hub.json — THE CANOPY, the game's one and only overworld.
 
-Standalone on purpose. `tools/build_levels.py` owns the five-door 50x15 hub and
-is not touched by this file; nothing here imports from it, so the two can be
-merged without either script moving.
+This is the 25-gateway map. It was staged as `staging/hub_v2.json` for three
+milestones while worlds 4 and 5 were written, and promoted over the shipped
+20-door 50x15 map in M5 when the last five levels landed. `tools/build_levels.py`
+no longer draws a hub at all; it calls `main()` below, so `tools/genlevels.sh`
+stays the single command that rebuilds every file in levels/ from source.
+
+Deterministic: same input, same bytes. Nothing here reads the clock, the
+filesystem beyond data/, or a random seed, and the gateway table is a literal.
 
 The map is 50x30 (2x2 screens of 25x15) and holds 25 gateways in five clusters,
 one per world. It is top-down, so there is no gravity and none of the
@@ -106,7 +111,7 @@ class Map:
 
     def to_dict(self):
         return {
-            "id": "hub_v2",
+            "id": "hub",
             "name": "THE CANOPY",
             "music": "hub",
             "next_level": "",
@@ -356,7 +361,7 @@ def prove_walkable(m):
     sx = SPAWN[0] * TS + SPAWN_OFFSET[0]
     sy = SPAWN[1] * TS + SPAWN_OFFSET[1]
     if not free[sy * stride + sx]:
-        raise SystemExit("hub_v2: the spawn at tile %s is inside a wall" % (SPAWN,))
+        raise SystemExit("hub: the spawn at tile %s is inside a wall" % (SPAWN,))
     seen = bytearray(len(free))
     q = deque([sy * stride + sx])
     seen[sy * stride + sx] = 1
@@ -437,15 +442,15 @@ def main():
     if problems:
         for p in problems:
             print("  FAIL %s" % p)
-        raise SystemExit("hub_v2 not written: %d problem(s)" % len(problems))
+        raise SystemExit("hub.json not written: %d problem(s)" % len(problems))
 
     os.makedirs(LEVELS, exist_ok=True)
-    path = os.path.join(LEVELS, "hub_v2.json")
+    path = os.path.join(LEVELS, "hub.json")
     with open(path, "w") as f:
         json.dump(m.to_dict(), f, indent=1)
         f.write("\n")
     walkable = sum(seen)
-    print("hub_v2.json      %dx%d tiles  %d doors  %d entities"
+    print("hub.json         %dx%d tiles  %d doors  %d entities"
           % (W, H, len(DOORS), len(m.entities)))
     print("                 proved: %d reachable player positions, "
           "all %d gateways walkable" % (walkable, len(DOORS)))

@@ -20,6 +20,13 @@ extends Node
 ##   {"log": "note"}                     print player tile + camera screen
 ##   {"perf": "label", "frames": 240}    measure frame cost and print it
 ##   {"lighting": false}                 phase 3 ambience off, for an A/B perf run
+##   {"cleared": ["jungle_1", ...]}      stage a save: those flags set, rest wiped
+##   {"cleared": "all"}                  ...or every gateway on the overworld
+##
+## `{"scenario": "hub"}` walks in at the spawn; `{"scenario": "hub:nest_5"}` walks
+## in standing at that gateway, the way the game places you when you come back out
+## of a level — which is the only way to photograph a door's label and prompt
+## without steering the walker across half the map first.
 
 const HOLDABLE := ["move_left", "move_right", "move_up", "move_down", "jump", "attack", "pause"]
 
@@ -174,6 +181,22 @@ func _run_step(step: Dictionary) -> bool:
 	if step.has("lighting"):
 		Ambience.lighting = bool(step["lighting"])
 		return false
+	if step.has("cleared"):
+		# Stage a save. The overworld reads SaveManager to decide which gateways
+		# are open and what "CLEARED n/25" says, so a capture of a mid-game or
+		# end-game hub has to set the flags BEFORE the scene loads.
+		SaveManager.wipe()
+		var want: Array[String] = []
+		if typeof(step["cleared"]) == TYPE_STRING and String(step["cleared"]) == "all":
+			for id in Game.hub_levels():
+				want.append(id)
+		else:
+			want = _as_list(step["cleared"])
+		for id: String in want:
+			SaveManager.set_flag(id, true)
+		SaveManager.save()
+		print("[cleared] %d flag(s) staged" % want.size())
+		return false
 	if step.has("perf"):
 		_measure(String(step["perf"]), int(step.get("frames", 240)))
 		return true   # async; _measure clears _busy and the sequencer resumes
@@ -211,6 +234,10 @@ func _goto(scenario: String) -> void:
 	elif scenario == "hub":
 		Game.reset_run()
 		Game.goto_hub()
+	elif scenario.begins_with("hub:"):
+		# Stand at a named gateway, exactly as coming back out of that level does.
+		Game.reset_run()
+		Game.goto_hub(scenario.substr(4))
 	elif scenario.begins_with("level:"):
 		Game.reset_run()
 		Game.goto_level(scenario.substr(6))

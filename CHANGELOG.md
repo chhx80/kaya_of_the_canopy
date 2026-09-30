@@ -1784,3 +1784,315 @@ The milestone ends at 687 integration checks, 291 unit tests with zero
 failures and zero expected failures, twenty gateways on the shipped
 overworld, four boss gates passing, and every one of the twenty-one
 levels regenerating byte-identically from its module.
+
+## M5 foundation — the world 5 track, the nest probe, the switch contract
+
+Three foundation pieces for THE OBSIDIAN NEST, the final world.
+
+**WORLD 5 MUSIC.** `world5` in the PSG style of the other four, and
+distinct from all of them in the notes rather than in the synth, which
+is the discipline the earlier tracks set. C harmonic minor — the one
+mode nothing else in the game uses, and the only one carrying an
+augmented second (G# to B), which is ceremonial and wrong at once. 84
+BPM, the slowest tempo in the game. A ground bass rather than World 4's
+pedal or World 3's open fifths: the chromatic lament tetrachord
+C3-B2-A#2-A2-G#2-G2, four bars, played twice, landing on the dominant
+every time so the loop never closes. The third voice is a toll — eight
+strikes in twenty-three seconds, spelling the same descent two octaves
+up — where World 3's is a flourish and World 4's is a scrape that never
+stops. The percussion is one deep noise burst (step 13, the lowest in
+the game) every two bars, four times in the whole loop. Duty 0.375 on
+the lead, the one pulse width no other track uses. Measured: 22.88 s,
+peak 11804, RMS 3334, both inside the family's range (peak
+10459-12018, RMS 3171-3640). The generator is deterministic and
+`git diff` confirms it: `world5.wav` is the only file that changed.
+
+**THE NEST PROBE.** `tests/fixtures/nest_probe.json`, registered in
+`PROBES` and in `FULL_COVERAGE`. One screen placing all twelve 'nest'
+roles — 280-291 is the whole block, twelve roles and twelve ids with
+none spare — plus all four shared switch blocks and a lever for each
+group, water, and the pool the fish swims to the submerged one.
+PROVED: 5 hops, 157 frames, 41 expansions, 218 ms. Rendered in both
+configurations in `shots/world_nest_probe.png` and
+`shots/m5_verbs_gates.png`.
+
+**THE SWITCH VERB CONTRACT**, measured for the five level authors and
+asserted in `tests/test_tileset_probes.gd`:
+
+- Two groups exist and there is no third. 'A'/'a' are group 1, 'B'/'b'
+  group 2, and *every* `switch_a` in a level is group 1 — so a second
+  'a' lever undoes the first. Group 1 seeds ON and group 2 OFF in both
+  `TileWorld` and `ProverSim.reset()`, so on frame one 'A' and 'b' are
+  walls and 'a' and 'B' are holes.
+- One lever gates any number of tiles: solidity is resolved per tile
+  off two booleans, with no registry, no cap and no per-screen limit.
+  Proved on a fixture with 36 switch tiles and one lever — 53
+  expansions, the same as a corridor with none.
+- **The lever's box is not its tile.** It is 14x10 at +1,+6 — the
+  bottom ten pixels — and the trip is decided by the body's *bottom*
+  edge, which must reach 6 px into the tile. Five pixels in misses,
+  seven trips. A body arriving in the row above never touches it. That
+  is the ruins_4 trap, now a number.
+- Contact is every form; range is the human alone. All four forms trip
+  a lever by standing under it (measured with settled bodies through
+  the shipping predicate). `Blade._trip_switches()` is the only code
+  that trips one without contact, and the fish's `bite` spawns a
+  `MeleeHit`, which trips nothing.
+- **The prover tells two switch configurations apart.**
+  `ProverSearch._key()` folds `sim.switch_bits` into the duplicate-state
+  key, so a route may cross a gate, throw the lever again and cross
+  back. Proved end to end on `nest_scratch_revisit.json`: 6 hops, 70
+  expansions, 367 ms. Also measured — naming the lever as a waypoint
+  costs 13 expansions; letting the search discover it costs 19,227 and
+  115 seconds. Name your levers.
+- Switch blocks are walls and doors, never floors:
+  `tools/reachability.py` resolves any switched tile as *not solid*,
+  unconditionally, so a ledge made of one is invisible to `validate.sh`.
+
+`shots/m5_verbs_switches.png` is the weakest case in the running game:
+the fish — which cannot trip anything with its weapon — throwing a
+submerged lever by body contact with three pixels of overlap, and three
+tiles of wall ghosting on the far side of the screen.
+
+## M5 integration — THE OBSIDIAN NEST wired in, and the overworld promoted
+
+The five nest levels, THE OBSIDIAN HEART and the M5 foundation were
+already committed; this is the pass that makes the running game able to
+see them, and the pass that finally replaces the overworld.
+
+**The world's light.** `data/ambience.json` gains its five `nest_*`
+entries, each applied exactly as its author wrote it — verified by
+comparing the parsed file against the authoring modules' own `AMBIENCE`
+constants field by field, not by eye. Four of the five are printed by
+`tools/worlds/nest_[1-4].py`; nest_5's is a constant in
+`tests/integration/boss_obsidian_heart_tests.gd`, which installs it into
+the live level and measures it, so the entry that ships is one that has
+been run. **No `darkness` key anywhere in World 5**, which is the
+world's grammar and not an oversight: the dark is World 4's verb and
+this world's is the lever, so every one of these five is built out of
+tint, vignette and tiles that burn. Ember is the room in all five; gold
+is reserved for what a throw moves. Eleven pools in BLACK GLASS,
+fifteen in THE SWITCHYARD, thirteen each in FOUR SHAPES and THE LAST
+ASCENT, and **none at all** in THE OBSIDIAN HEART — the hearthold is lit
+entirely by tile 281 obsidian_hot and tile 287 nest_shard, and 289
+nest_vein stays dark on purpose because a vein that glowed would compete
+with the Heart. One capture per level in the running game,
+`shots/m5_amb_nest_1..5.png`. The marquee is nest_4: cols 23-38 carry no
+authored pool at all, the nearest being off each edge of the frame, so
+the flat, the comb and the fault are lit by nothing but the obsidian_hot
+banded around their veins. `darkness` is one value for a whole level and
+a gradient does not exist, so "dark stretch" had to be built out of
+where the light is *not* — and that argument was unphotographable until
+this entry existed.
+
+**Registration.** `tools/build_levels.py` builds World 5 from
+`tools/worlds/nest_*.py` like Worlds 2, 3 and 4 — `music: "world5"`,
+`"boss"` for nest_5. Every one of the twenty-six non-hub files in
+`levels/` — the twenty-five levels and the integration fixture —
+regenerates byte-identically; `levels/hub.json` is the only file in
+`levels/` that `tools/genlevels.sh` changed, and a second run changes
+nothing at all.
+
+**THE HUB PROMOTION.** The overworld the game loads is now the
+25-gateway map. It was built in M2, proved walkable, kept in
+`staging/hub_v2.json` for three milestones while Worlds 4 and 5 were
+written, and tested the whole time — while the map the game actually
+loaded was a different file with twenty doors on it. That arrangement is
+the direct cause of the worst bug this project has shipped: M2 authored
+five SUNKEN RUINS levels, put their gateways in the staged map, and left
+`levels/hub.json` untouched, so for a milestone nothing in the running
+game could reach World 2 at all. A second map is somewhere for a gateway
+to go and not arrive.
+
+So the promotion is not a copy, it is a deletion. `tools/build_hub.py`
+writes `levels/hub.json` with id `hub`; `tools/build_levels.py` no
+longer draws a hub at all — its 50x15 `hub()` and its `HUB_DOORS` table
+are gone, and it calls `build_hub.main()` instead, so `genlevels.sh`
+remains the one command that rebuilds every file in `levels/` and the
+hub still goes through its own prover on the way. `staging/` is
+`git rm`-ed; `git log` keeps it. The promoted file is the staged file
+byte for byte with its `id` changed and nothing else, so what ships is
+the map that was proved, not a re-derivation of it. It rebuilds
+deterministically: two runs, identical bytes.
+
+`tests/test_hub_layout.gd` and `tests/test_hub_walkable.gd` proved both
+maps and pinned "the staged hub holds 25 gateways". They now prove the
+one shipped map, and every guard with teeth in them survived: a gateway
+for every level on disk, a label on every gateway, a prerequisite that
+is itself a gateway, no cycle, no `requires_all`, exactly one door open
+on a fresh save, a world arrives whole, a full flood fill over player
+positions with its negative control, and a simulated HubPlayer walking
+from the spawn to all twenty-five with the real SPEED/ACCEL/FRICTION.
+208,370 reachable player positions; all 25 gateways walkable,
+returnable and promptable. Two guards are new. One is the promotion's
+own invariant — `staging/` must not come back and `levels/` must hold
+exactly one top-down map — because the hole that was closed here was
+structural and nothing else was watching it. The other is the M2
+door-label defect class made an assertion: a gateway's label lives in
+`tools/build_hub.py`'s table and the level's `name` lives in
+`tools/build_levels.py`'s registration, two files that can drift in
+silence, so all 25 are now checked against each other in the suite.
+Checked once by hand as well, in both directions: 25 labels equal to
+their level's name, no level without a gateway, no gateway without a
+level.
+
+`test_the_shipped_hub_has_a_gateway_for_every_level_on_disk` — a
+declared expected failure since the day World 2 landed, carried through
+M3 and M4 — **passes**. There are no expected failures left in the
+suite. `shots/m5_hub_nest.png` is the nest cluster on a 21/25 save;
+`shots/m5_hub_final.png` is CLEARED 24/25 with THE OBSIDIAN HEART
+reading PRESS JUMP TO ENTER.
+
+**THE ENDING.** `Game.goto_victory()` and `src/ui/menus/victory.tscn`
+have existed since M2 with nothing in `src/` calling them: the game had
+no ending, and `shots/nest_5_y_after_the_gate.png` is nest_5's author
+photographing that — walk into the last gate in the game and you are
+returned to the overworld with all 25 doors green and nothing said.
+`Game.complete_level` now asks whether the clear it just recorded was
+the last one, and goes to the victory screen if it was.
+
+Two decisions, and the first one was got wrong first and measured.
+
+It is the LAST DOOR that ends the game, not the last flag. "Every
+gateway is cleared" sounds like the same statement and is not, and the
+integration suite said so within one run: it also fires on save states
+the requires chain cannot produce — clear `jungle_1` last, with the
+other twenty-four already green, and the game ended on World 1's first
+level — and it fires on levels the overworld does not offer at all, like
+the `test_arena` fixture, which is the same class of mistake as
+`requires_all` counting files. Three long-standing tests failed and they
+were right to. The rule is now the terminus: `final_level()` is the one
+gateway no other gateway is waiting on, *derived* from the hub rather
+than compared against `"nest_5"`, so a sixth world would end the game at
+its own last door with nothing here changed. Clearing the terminus
+already implies the chain behind it was walked, so the weaker-looking
+condition is the stronger one. Both wrong states are now tests.
+
+And it fires on the CLEAR, not on the state: whether this is the
+finishing blow is decided *before* the flag goes down, because
+afterwards a replay of the last level is indistinguishable from
+finishing it. A finished save has to stay playable, and post-game replay
+of any of the 25 returns to the hub as it always did, with every gateway
+still open.
+
+The words were `THE CANOPY / IS QUIET AGAIN`, written when the canopy
+was the whole game. Kaya ends it five worlds from home, in a room lit by
+the thing she just put out, so the screen now reads `THE NEST IS COLD /
+KAYA COMES HOME / FIVE WORLDS BEHIND HER`. `shots/m5_ending.png` is the
+real one: the same save state, arena, kill and walk into the gate that
+`tools/seq/nest_5.json` used to photograph the defect, with nothing in
+the sequence asking for the victory scenario — compare
+`shots/nest_5_z_victory_unreachable.png`, which had to.
+
+**The suite.** THE OBSIDIAN HEART's self-harnessed suite is folded into
+`tools/itest.sh` by the `_fold_in` pattern: **791 checks, all passed** —
+704, plus the Heart's 72, plus 15 for the ending. `ITEST_TIMEOUT`'s
+default goes from 240 to 1800. 240 was honest for a five-level game;
+this one measures **1008 s and 1020 s** on two runs, for 2m42s of CPU,
+because almost all of it is spent waiting on physics frames. That is a
+bound on a hang and not a budget, so it is the measurement plus 75%, and
+the env override is kept for driving a subset with `--only`.
+
+Two small honesties elsewhere: `tools/dev_capture.gd` gains a
+`{"cleared": [...]}` step and a `hub:<level>` scenario, because a
+staged-save overworld could not be photographed at all before — the
+flags have to be set before the hub scene loads, and a door's label
+needs the walker standing at it. `src/world/level_loader.gd`'s note
+about `load_path` said `staging/` holds levels that are built but not
+yet part of the game; it says what that directory was, in the past
+tense, now.
+
+Green at the end: `genlevels` a no-op over all twenty-seven files,
+`validate: OK`, 306 unit tests / 107,517 assertions with zero failures
+and zero expected failures, 791 integration checks, 26 proof tapes
+fresh (21 full, and the five boss levels partial by design, each handing
+its last hop to the gate that owns it), and all five boss gates — the
+Grove Warden's 24, the Tide Maw's 26, the Stormcrest's 26, the Brood
+Queen's 26 and the Obsidian Heart's 34.
+
+Twenty-five levels, five worlds, one overworld, and an ending.
+
+## M5 — THE OBSIDIAN NEST: the four levels
+
+### nest_1 — BLACK GLASS
+
+The first level in the game whose subject is a lever. The trading wall
+gives the verb away free — one wall, two doorways, exactly one always
+open in either configuration, re-derived from the finished grid by
+self-check. The slag gate charges for it: one lever, a plug that shuts
+the flue and the first half of the level behind her, and a gate that
+opens the furnace ahead, fifteen tiles apart in one frame. Two
+structural findings became law for the world: ONE LEVER PER GROUP
+(a second goes stale against the solver — prove.sh would pass a level
+the replay cannot finish; the self-check fails the build instead), and
+commitment gates need an escape search over room-by-configuration
+states, not a single-config question. PROVED, 16 hops, 1067 frames.
+
+### nest_2 — THE SWITCHYARD
+
+Scale from composition under the hard rule: two levers, six doors. The
+same A throw opens a door beside you and another two screens away, and
+shuts a third — one group in opposite senses, so no configuration
+opens the gantry end to end and the way past is a thirteen-row chute
+back to where you began. The exit needs A OFF and B ON in series, so
+both levers are load-bearing and neither alone suffices, by proof.
+Every region any configuration can carve either holds the exit or
+drains toward a lever without a throw. PROVED, 17 hops, 1159 frames,
+413 expansions.
+
+### nest_3 — FOUR SHAPES
+
+The whole movement vocabulary, one wing per form, braided by two
+levers whose four doors never serve only their own wing. The aerie is
+flown on a bare stamina bar — no thermals, deliberately, on the one
+level that asks whether you can still do it yourself. ADR 004 is a
+graph, not a claim: a strand flood over (tile × form × configuration)
+— 1,757 states, 0 dead ends — that found two real softlocks prose
+missed, one reachable only because the fish reverts on a ledge and
+walks through an open door. Measured for the book: shouldering needs
+attack held, a three-tile hole is uncrossable to the kit's own flood,
+and every form's attack button breaks walls. PROVED, 23 hops, 1393
+frames.
+
+### nest_4 — THE LAST ASCENT
+
+The game's valediction, one leg per world on the way up: THE CISTERN's
+one-way current restated in a roofed pipe, the flue ridden as Thermal
+Heights taught, the dark staged as where-the-light-is-not, and the
+world's own verb at two scales. Then the quiet — three treads, a
+heart, nothing else — and the boss door. Two measurements for the
+book: the prover accepts any body-rect overlap as arrival (a submerged
+head "reaches" a shore; every shore mark now sits one tile inland —
+43,882 expansions became 20), and SwitchTrigger re-arms after 27
+frames, so a capture that stops on a lever photographs the state it
+started in. PROVED, 25 hops, 1033 frames, 384 expansions.
+
+## M5 — THE OBSIDIAN NEST, the fifth world, and the game complete
+
+```
+nest_1  BLACK GLASS         16 hops  1,067 frames    PROVED
+nest_2  THE SWITCHYARD      17 hops  1,159 frames    PROVED
+nest_3  FOUR SHAPES         23 hops  1,393 frames    PROVED
+nest_4  THE LAST ASCENT     25 hops  1,033 frames    PROVED
+nest_5  THE OBSIDIAN HEART   6 hops    471 frames    PARTIAL, by design
+```
+
+THE OBSIDIAN HEART is the boss the gate's check 4 was written for, and
+the check finally asked its question: the Heart owns the switch state
+— three phases, three configurations, one authored arena, nothing
+restored — and the runner's smallest generic extension made the
+per-configuration sweeps genuine (raw-flag solidity had reported every
+bay solid forever). Flip fairness is structural: 34 switch tiles
+against 6 reconfigurations, zero can close on a standing body, with a
+1.05-second telegraph before every write. Each phase opens one form's
+bay as an offer, not a demand — every dodge is human-reachable and the
+tape wins without entering a bay. Gate: 34 checks, ALL PASSED. All
+five bosses now pass under the extended runner: 24 / 26 / 26 / 26 / 34.
+
+The milestone — and the plan docs/plan-20-levels.md set out five
+milestones ago — ends with the game whole: twenty-five levels in five
+worlds, every route proved against the shipping movement code and
+replayed in the booted game, every boss provably beatable and provably
+fair, one overworld carrying every door, an ending derived from the
+hub's own graph, and a suite of 306 unit tests and 791 integration
+checks with zero failures and zero expectations of failure.

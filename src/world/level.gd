@@ -174,6 +174,9 @@ func _spawn_gameplay_entity(type: String, p: Vector2, e: Dictionary) -> Node:
 		"boss_brood_queen":
 			boss = _spawn_enemy("brood_queen", p, e)
 			return boss
+		"boss_obsidian_heart":
+			boss = _spawn_enemy("obsidian_heart", p, e)
+			return boss
 		"gem", "heart", "key_yellow", "key_red", "key_cyan":
 			var pu := Pickup.new()
 			pu.setup(type, p + Vector2(2, 2), bool(e.get("from_drop", false)))

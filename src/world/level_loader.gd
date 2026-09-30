@@ -123,10 +123,13 @@ static func load_level(id: String) -> LevelDef:
 	return load_path(level_path(id), id)
 
 
-## Load a level from an explicit path. Used for levels that are built but not yet
-## part of the game -- staging/ holds those, and staging/ is deliberately outside
-## LEVEL_DIR so list_levels() never sees them. A hub with doors to twenty levels
-## that do not exist is not something to ship while they do not exist.
+## Load a level from an explicit path, rather than by id out of LEVEL_DIR. Used by
+## the tests and by tools/ for JSON that is a level but is not one of the game's:
+## the prover's fixtures under tests/fixtures/, and, for three milestones, the
+## 25-gateway overworld staged in staging/ while worlds 4 and 5 were written --
+## deliberately outside LEVEL_DIR so list_levels() never saw it, because a hub
+## with doors to twenty levels that do not exist is not something to ship while
+## they do not exist. M5 promoted that map to levels/hub.json and staging/ is gone.
 static func load_path(path: String, id: String = "") -> LevelDef:
 	var def := LevelDef.new()
 	def.id = id if id != "" else path.get_file().get_basename()

@@ -167,6 +167,11 @@ func run_all() -> void:
 		"t_boss_tide_maw",
 		"t_boss_stormcrest",
 		"t_boss_brood_queen",
+		"t_boss_obsidian_heart",
+		"t_finishing_the_last_level_ends_the_game",
+		"t_clearing_an_early_level_last_does_not_end_the_game",
+		"t_completing_a_level_the_overworld_does_not_offer_never_ends_the_game",
+		"t_replaying_a_finished_game_goes_back_to_the_hub",
 	]
 	for t in tests:
 		if _only != "" and not t.contains(_only):
@@ -209,6 +214,103 @@ func t_boss_stormcrest() -> void:
 ## to end it — plus the four arenas the boss gate's single sweep cannot see.
 func t_boss_brood_queen() -> void:
 	await _fold_in("res://tests/integration/boss_brood_queen_tests.gd")
+
+## THE OBSIDIAN HEART's arena that moves: the three phase configurations, the
+## bay each one opens, and the flip that must never crush.
+func t_boss_obsidian_heart() -> void:
+	await _fold_in("res://tests/integration/boss_obsidian_heart_tests.gd")
+
+# ---------------------------------------------------------------- the ending
+## The last door. `Game.goto_victory()` and src/ui/menus/victory.tscn existed for
+## four milestones with nothing calling them, so the game's ending was a screen
+## you could only reach by editing the code. This is the wire, tested at the
+## outcome: set the other 24 flags, complete the 25th, and the state machine must
+## be in VICTORY rather than back on the overworld.
+##
+## Driven through `Game.complete_level` rather than by walking Kaya into nest_5's
+## exit, because the trigger is what is under test and the exit trigger already
+## has its own case (t_exit_completes_the_level_and_sets_its_flag).
+func t_finishing_the_last_level_ends_the_game() -> void:
+	var levels := Game.hub_levels()
+	check_eq(levels.size(), 25, "the overworld offers 25 levels")
+	var last := Game.final_level()
+	check_eq(last, "nest_5", "the gateway nobody is waiting on is THE OBSIDIAN HEART")
+	SaveManager.wipe()
+	for id in levels:
+		if id != last:
+			SaveManager.set_flag(id, true)
+	check(not Game.run_is_complete(),
+		"with 24 of 25 cleared the run is not over yet")
+	Game.complete_level(last)
+	await frames(4)
+	check(Game.run_is_complete(), "all 25 flags are set")
+	check_eq(Game.state, Game.State.VICTORY,
+		"completing the last uncleared level goes to the victory screen, not the hub")
+	SaveManager.wipe()
+
+## The first of the two states that ruled out "every gateway is cleared" as the
+## trigger. It is not a state the requires chain can produce -- jungle_1 opens
+## everything, so it cannot be the one left over -- but the suite constructs it
+## in t_full_loop_hub_to_level_and_back_marks_the_door_cleared, and under the
+## flag-counting rule the game ended on World 1's first level.
+func t_clearing_an_early_level_last_does_not_end_the_game() -> void:
+	SaveManager.wipe()
+	var first := "jungle_1"
+	for id in Game.hub_levels():
+		if id != first:
+			SaveManager.set_flag(id, true)
+	Game.complete_level(first)
+	await frames(6)
+	check(Game.run_is_complete(), "all 25 flags are now set")
+	check_eq(Game.state, Game.State.HUB,
+		"but the game ends at the LAST door, not at the last flag")
+	SaveManager.wipe()
+
+## The second. test_arena has no gateway -- it is the integration fixture, not a
+## level anyone plays -- so completing it can never be the end of the game, no
+## matter what the save says. Under the flag-counting rule it was, which is the
+## same class of mistake as `requires_all` counting files.
+func t_completing_a_level_the_overworld_does_not_offer_never_ends_the_game() -> void:
+	SaveManager.wipe()
+	for id in Game.hub_levels():
+		SaveManager.set_flag(id, true)
+	check(not Game.hub_levels().has(ARENA), "the arena is not on the overworld")
+	SaveManager.set_flag(ARENA, false)
+	Game.complete_level(ARENA)
+	await frames(6)
+	check_eq(Game.state, Game.State.HUB,
+		"clearing the test fixture on a 100% save returns to the hub")
+	SaveManager.wipe()
+
+## The other half of that, and the reason the trigger fires on the CLEAR and not
+## on the state: a finished save has to stay playable. Every door is open, and
+## walking back through one must return the player to the overworld — a game that
+## replays its ending every time you revisit a level has taken the hub away.
+func t_replaying_a_finished_game_goes_back_to_the_hub() -> void:
+	SaveManager.wipe()
+	for id in Game.hub_levels():
+		SaveManager.set_flag(id, true)
+	check(Game.run_is_complete(), "the save is a finished game")
+	Game.complete_level("nest_5")
+	await frames(6)
+	check_eq(Game.state, Game.State.HUB,
+		"replaying the last level on a finished save returns to the hub")
+	Game.complete_level("jungle_1")
+	await frames(6)
+	check_eq(Game.state, Game.State.HUB,
+		"replaying any other level on a finished save returns to the hub")
+	# And the overworld it returns to is fully open: 25 gateways, none of them grey.
+	var hub: Node = Game.main.current_scene()
+	check(hub != null and hub.get("doors") != null, "the hub scene is up")
+	if hub != null and hub.get("doors") != null:
+		var ds: Array = hub.doors
+		check_eq(ds.size(), 25, "all 25 gateways are on the returned-to hub")
+		var locked: Array = []
+		for d: HubDoor in ds:
+			if not d.unlocked():
+				locked.append(d.level_id)
+		check_eq(locked, [], "every gateway is replayable after the ending")
+	SaveManager.wipe()
 
 # ---------------------------------------------------------------- the gate itself
 ## These two do to the tape gate what the rest of the suite does to the game:

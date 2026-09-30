@@ -1,0 +1,274 @@
+{
+  "id": "obsidian_heart",
+  "display_name": "THE OBSIDIAN HEART",
+  "sprite": "res://assets/sprites/boss_obsidian_heart.png",
+  "frame_w": 48,
+  "frame_h": 48,
+  "hitbox": {
+    "w": 40,
+    "h": 46,
+    "ox": 4,
+    "oy": 2
+  },
+  "health": 24,
+  "contact_damage": 1,
+  "score": 6000,
+  "gravity": 720.0,
+  "speed": 0.0,
+  "boss": true,
+  "hitstop": "boss_kill",
+  "death_fx": "scatter",
+  "_arena": "`arena_cols` clamps the Heart's BODY to cols 32..39 of levels/nest_5.json -- x 512..640 on screen (1,1). Every switch block in the level stands at rows 21-22 of cols 28-29, 42-43 and 44-45, all outside that span, so no configuration can put a solid tile inside the Heart and the Heart can never be standing in a bay that is about to close. deeps_5 wrote the same constraint for THE BROOD QUEEN's luminous walls; here it is load-bearing, because this arena moves. tools/worlds/nest_5.py's `_self_checks` compares these columns against the geometry and fails the build if they ever overlap.",
+  "_switch": "THE MECHANIC. Each phase names the switch configuration the Heart forces on the nest, and src/enemies/obsidian_heart.gd writes it with TileWorld.set_switch -- the same call src/world/triggers/switch_trigger.gd makes, because this is the machinery the whole world runs on. Phase 1 is group 1 ON / group 2 OFF, which is TileWorld's own seeded default and what tools/solver/sim.gd seeds, so it is the arena exactly as levels/nest_5.json draws it: the prover, the traversal tape, tools/reachability.py and tests/test_level_validity.gd all see the room the fight opens in. Nothing is ever restored -- the configuration IS the fight, so the arena Kaya walks out of is the one MOLTEN left behind. nest_5 authors no switch ENTITY at all; the Heart owns the state, and tools/worlds/nest_5.py says why.",
+  "_reforge": "THE SAFE BEAT. A phase threshold does not flip the nest on the frame it is crossed. The Heart stops, flares, and holds for `reforge_time` seconds while a shudder runs every `reforge_shudder` seconds -- a telegraph with the same shape as its windup, plus the switch sound and a HUD line -- and the configuration is written when that runs out. `set_switch` cannot push a body out of a tile it turns solid; the arena's geometry means no flip can close on a body that is STANDING anywhere (every switch tile is at rows 21-22 of the step columns, and a body standing in this arena occupies rows 21-22 of a SHELF column, 23-24 of a step or 25-26 of the floor), so what is left is a body in the air inside a plug column -- which is what the beat is for and what `_make_room_for_player()` catches if she spends it badly.",
+  "reforge_time": 1.05,
+  "reforge_shudder": 0.14,
+  "_shed": "THE VAULT SHEDS. Shards fall from `row` 16 -- the arena's top interior row -- down the columns in `cols`, half of them per volley so two volleys cover all six. `cols` is every SHELF column in the arena and no comb column: the comb is solid obsidian at row 16, so a shard thrown over it is born inside rock and `Projectile` kills it on the frame it is born, which is what makes the two floor tiles under the comb the only cover this attack has. The shelves are the one tier the bore cannot climb to and the glass passes under, so without this they would be safe from everything. tools/worlds/nest_5.py's `_self_checks` compares this list against the geometry and fails the build if a shelf stops being covered, the comb starts being, or any of these columns stops being open at row 16.",
+  "shed": {
+    "row": 16,
+    "cols": [
+      26,
+      30,
+      31,
+      33,
+      38,
+      40,
+      41,
+      47,
+      48
+    ]
+  },
+  "windup_time": 0.45,
+  "land_time": 0.5,
+  "max_adds": 2,
+  "add_type": "enemy_charger",
+  "phases": [
+    {
+      "name": "SEALED",
+      "until_health": 16,
+      "switch_a": true,
+      "switch_b": false,
+      "walk_speed": 44.0,
+      "slam_interval": 2.2,
+      "slam_jump": -250.0,
+      "bore_speed": 128.0,
+      "bore_life": 1.7,
+      "shed": 4,
+      "shed_interval": 3.4,
+      "shed_speed": 130.0,
+      "shed_gravity": 90.0,
+      "spawn_adds": 0,
+      "shed_windup": 0.5,
+      "glass": 2,
+      "glass_interval": 3.6,
+      "glass_speed": 150.0
+    },
+    {
+      "name": "INVERTED",
+      "until_health": 8,
+      "switch_a": false,
+      "switch_b": true,
+      "walk_speed": 54.0,
+      "slam_interval": 1.8,
+      "slam_jump": -262.0,
+      "bore_speed": 144.0,
+      "bore_life": 1.7,
+      "shed": 5,
+      "shed_interval": 3.0,
+      "shed_speed": 145.0,
+      "shed_gravity": 90.0,
+      "spawn_adds": 0,
+      "shed_windup": 0.5,
+      "glass": 3,
+      "glass_interval": 3.1,
+      "glass_speed": 168.0
+    },
+    {
+      "name": "MOLTEN",
+      "until_health": 0,
+      "switch_a": true,
+      "switch_b": true,
+      "walk_speed": 62.0,
+      "slam_interval": 1.5,
+      "slam_jump": -268.0,
+      "bore_speed": 158.0,
+      "bore_life": 1.7,
+      "shed": 5,
+      "shed_interval": 2.7,
+      "shed_speed": 160.0,
+      "shed_gravity": 90.0,
+      "spawn_adds": 1,
+      "shed_windup": 0.5,
+      "glass": 4,
+      "glass_interval": 2.6,
+      "glass_speed": 186.0
+    }
+  ],
+  "projectile": {
+    "speed": 132.0,
+    "damage": 1,
+    "frame": 0,
+    "life": 2.4,
+    "gravity": 0.0
+  },
+  "drops": {},
+  "anim": {
+    "idle_p1": {
+      "frames": [
+        0
+      ],
+      "fps": 1
+    },
+    "walk_p1": {
+      "frames": [
+        1,
+        2
+      ],
+      "fps": 5
+    },
+    "windup_p1": {
+      "frames": [
+        3
+      ],
+      "fps": 1
+    },
+    "air_p1": {
+      "frames": [
+        4
+      ],
+      "fps": 1
+    },
+    "land_p1": {
+      "frames": [
+        5
+      ],
+      "fps": 1
+    },
+    "hurt_p1": {
+      "frames": [
+        5
+      ],
+      "fps": 1
+    },
+    "idle_p2": {
+      "frames": [
+        6
+      ],
+      "fps": 1
+    },
+    "walk_p2": {
+      "frames": [
+        7,
+        8
+      ],
+      "fps": 7
+    },
+    "windup_p2": {
+      "frames": [
+        9
+      ],
+      "fps": 1
+    },
+    "air_p2": {
+      "frames": [
+        10
+      ],
+      "fps": 1
+    },
+    "land_p2": {
+      "frames": [
+        11
+      ],
+      "fps": 1
+    },
+    "hurt_p2": {
+      "frames": [
+        11
+      ],
+      "fps": 1
+    },
+    "idle_p3": {
+      "frames": [
+        12
+      ],
+      "fps": 1
+    },
+    "walk_p3": {
+      "frames": [
+        13,
+        14
+      ],
+      "fps": 9
+    },
+    "windup_p3": {
+      "frames": [
+        15
+      ],
+      "fps": 1
+    },
+    "air_p3": {
+      "frames": [
+        16
+      ],
+      "fps": 1
+    },
+    "land_p3": {
+      "frames": [
+        17
+      ],
+      "fps": 1
+    },
+    "hurt_p3": {
+      "frames": [
+        17
+      ],
+      "fps": 1
+    },
+    "idle": {
+      "frames": [
+        0
+      ],
+      "fps": 1
+    },
+    "walk": {
+      "frames": [
+        1,
+        2
+      ],
+      "fps": 5
+    },
+    "windup": {
+      "frames": [
+        3
+      ],
+      "fps": 1
+    },
+    "air": {
+      "frames": [
+        4
+      ],
+      "fps": 1
+    },
+    "land": {
+      "frames": [
+        5
+      ],
+      "fps": 1
+    },
+    "hurt": {
+      "frames": [
+        5
+      ],
+      "fps": 1
+    }
+  },
+  "arena_cols": [
+    32,
+    39
+  ],
+  "_adds": "MOLTEN calls two shards of itself off the walls. Counted by `live_adds()` from the live scene and BY SCREEN, because every other enemy in the level is in the same `enemies` group and counting the ones out in the flues would mean the garrison was full before the fight started. The cap is boss_grove.gd's measured lesson: nothing in the fight takes an add away, so an uncapped call-for-help mints them faster than the blade can spend them.",
+  "_glass": "THE GLASS, and the three numbers that make it fair. A body standing on a bay's one-way step at row 24 spans y 378..400; a body standing on the arena floor at row 26 spans y 410..432; the Heart's centre is at y 409 with its feet on the floor. `glass_height` 20 puts the first shard at y 389 and `glass_spread` 8 stacks the rest up to y 381, so every shard is inside a step body and none is inside a floor body. That is what makes the floor the glass's dodge and the step the bore's, and it is re-checked against the geometry by tools/worlds/nest_5.py's `_self_checks` on every build.",
+  "glass_height": 20.0,
+  "glass_spread": 8.0,
+  "_health": "Twenty-four, eight per phase, and it is the last boss in the game on purpose. The first recording gave it fifteen and the pen killed it in 17.8 s with fifteen throws and two hearts spent, which is a boss the player meets three configurations of and barely reads one. THE GROVE WARDEN has 18 and it is the first fight in the game."
+}

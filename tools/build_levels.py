@@ -148,51 +148,13 @@ def jungle_1():
     return g
 
 
-def hub(doors):
-    """THE CANOPY — top-down overworld, 2x1 screens.
-
-    `doors` is a list of dicts: {level, label, requires?, requires_all?, x, y}.
-    Regenerate this whenever a level is added."""
-    g = Grid(50, 15, ".")
-    g.rect(0, 0, 50, 15, "g", "bg")                 # grass everywhere underneath
-
-    # forest border
-    g.rect(0, 0, 50, 2, "@")
-    g.rect(0, 13, 50, 2, "@")
-    g.rect(0, 0, 2, 15, "@")
-    g.rect(48, 0, 2, 15, "@")
-
-    # a lake you have to walk around
-    g.rect(26, 10, 7, 3, "W")
-    g.rect(27, 9, 5, 1, "W")
-
-    # scattered trees to shape the route
-    for (x, y, w, h) in [(7, 3, 2, 2), (11, 10, 3, 2), (18, 3, 2, 3), (20, 11, 4, 1),
-                         (30, 3, 2, 2), (36, 9, 3, 2), (39, 3, 3, 2), (44, 10, 2, 2)]:
-        g.rect(x, y, w, h, "@")
-
-    # the main path, drawn on the background layer (walkable)
-    g.rect(3, 7, 44, 2, "p", "bg")
-    # Spurs off it, one per gateway: (column, y0, y1), drawn two tiles wide so
-    # the 10px walker has a lane. Four bands, one per world: World 1's five sit
-    # on and around the road itself, World 2 climbs to the top band (rows 2-3),
-    # World 3 drops to the bottom band (rows 10-11). The lake at cols 26-32
-    # splits the bottom band, so World 3's spurs stop either side of the water.
-    # World 4 takes the road's own north shoulder (rows 5-6) in the east half,
-    # which is the last run of open ground left; its spurs are one tile long.
-    for (x, y0, y1) in [(5, 6, 8), (14, 4, 8), (23, 8, 10), (33, 4, 8), (43, 7, 10),
-                        (10, 3, 7), (16, 2, 7), (25, 3, 7), (35, 2, 7), (45, 3, 7),
-                        (8, 8, 11), (17, 8, 10), (24, 8, 11), (34, 8, 10), (42, 8, 11),
-                        (27, 6, 7), (31, 5, 7), (35, 6, 7), (39, 5, 7), (46, 6, 7)]:
-        lo, hi = min(y0, y1), max(y0, y1)
-        g.rect(x, lo, 1, hi - lo + 1, "p", "bg")
-        g.rect(x + 1, lo, 1, hi - lo + 1, "p", "bg")
-
-    g.ent("player_spawn", 3, 7)
-    for d in doors:
-        g.ent("hub_door", d["x"], d["y"], level=d["level"], label=d["label"],
-              requires=d.get("requires", ""), requires_all=d.get("requires_all", False))
-    return g
+## THE CANOPY used to be drawn here, as a 50x15 map with a door per level, and
+## the door table below it. Both are gone: tools/build_hub.py owns the overworld
+## now and draws the 50x30, 25-gateway, five-region map the game ships, proving
+## you can walk to every gateway before it writes anything. Two generators for
+## one map is how five SUNKEN RUINS levels shipped with no way in -- the gateways
+## went into the staged map and the shipped one was never touched. `git log`
+## keeps the old one; nothing should resurrect it.
 
 
 def jungle_2():
@@ -680,69 +642,6 @@ def test_arena():
     return g
 
 
-HUB_DOORS = [
-    {"level": "jungle_1", "label": "CANOPY TRAIL", "x": 5, "y": 6},
-    {"level": "jungle_2", "label": "ROOT HOLLOW", "x": 14, "y": 4, "requires": "jungle_1"},
-    {"level": "jungle_3", "label": "THE WATERWAY", "x": 23, "y": 9, "requires": "jungle_2"},
-    {"level": "jungle_4", "label": "SKY BRANCH", "x": 33, "y": 4, "requires": "jungle_3"},
-    {"level": "jungle_5", "label": "HEART OF THE GROVE", "x": 43, "y": 7,
-     "requires": "jungle_4"},
-    # jungle_5 used to carry requires_all, which HubDoor.unlocked() reads as
-    # "every file in levels/ is flagged" -- not "World 1 is done". That counted
-    # levels the hub had no gateway for, so from the day World 2 shipped, HEART
-    # OF THE GROVE could not be opened at all: nine of ten doors cleared and the
-    # tenth still grey. It gates on jungle_4 like every other door now, which is
-    # what staging/hub_v2.json does and what
-    # tests/test_hub_layout.gd::test_no_gateway_uses_the_requires_all_shortcut
-    # has been asking for.
-    # --- World 2, SUNKEN RUINS. The top band, rows 2-3, opening on World 1's
-    # boss. These were missing entirely until M3: M2 authored, proved and
-    # shipped five levels and left their gateways in staging/hub_v2.json, so
-    # nothing in the running game could reach them.
-    {"level": "ruins_1", "label": "DROWNED STEPS", "x": 10, "y": 3,
-     "requires": "jungle_5"},
-    {"level": "ruins_2", "label": "THE COLONNADE", "x": 16, "y": 2,
-     "requires": "ruins_1"},
-    {"level": "ruins_3", "label": "TIDE GALLERY", "x": 25, "y": 3,
-     "requires": "ruins_2"},
-    {"level": "ruins_4", "label": "THE CISTERN", "x": 35, "y": 2,
-     "requires": "ruins_3"},
-    {"level": "ruins_5", "label": "THE TIDE MAW", "x": 45, "y": 3,
-     "requires": "ruins_4"},
-    # --- World 3, THERMAL HEIGHTS. The bottom band, zig-zagging east under the
-    # road, each gateway on the previous one. heights_1 opens on ruins_5, which
-    # is the World 2 -> World 3 gate tools/build_hub.py uses too.
-    {"level": "heights_1", "label": "UPDRAFT", "x": 8, "y": 11,
-     "requires": "ruins_5"},
-    {"level": "heights_2", "label": "THE THERMALS", "x": 17, "y": 10,
-     "requires": "heights_1"},
-    {"level": "heights_3", "label": "ASH COLUMN", "x": 24, "y": 11,
-     "requires": "heights_2"},
-    {"level": "heights_4", "label": "THE LONG GLIDE", "x": 34, "y": 10,
-     "requires": "heights_3"},
-    {"level": "heights_5", "label": "THE STORMCREST", "x": 42, "y": 11,
-     "requires": "heights_4"},
-    # --- World 4, TERMITE DEEPS. The road's north shoulder, rows 5-6, east of
-    # the lake: the last band of open ground on a 50x15 map with three bands
-    # already on it. Every one of these five sits in the RIGHT screen (cols
-    # 25-49), which is the only way a single 400x240 capture can show the whole
-    # cluster. Columns are chosen so no gateway's `grow(6.0)` prompt rect
-    # overlaps another's -- deeps_5 is at col 46 rather than 43 because (43,6)
-    # would sit directly on top of HEART OF THE GROVE at (43,7).
-    # deeps_1 opens on heights_5, which is the World 3 -> World 4 gate
-    # tools/build_hub.py uses too.
-    {"level": "deeps_1", "label": "THE LIGHTLESS", "x": 27, "y": 6,
-     "requires": "heights_5"},
-    {"level": "deeps_2", "label": "CHEW THROUGH", "x": 31, "y": 5,
-     "requires": "deeps_1"},
-    {"level": "deeps_3", "label": "THE GALLERIES", "x": 35, "y": 6,
-     "requires": "deeps_2"},
-    {"level": "deeps_4", "label": "SPORE LIGHT", "x": 39, "y": 5,
-     "requires": "deeps_3"},
-    {"level": "deeps_5", "label": "THE BROOD QUEEN", "x": 46, "y": 6,
-     "requires": "deeps_4"},
-]
-
 def build(level_id, built, name, **kw):
     """Write one level, auditing it first if it came with a Kit.
 
@@ -763,7 +662,16 @@ def build(level_id, built, name, **kw):
 
 
 if __name__ == "__main__":
-    build("hub", hub(HUB_DOORS), "THE CANOPY", music="hub", topdown=True)
+    # THE CANOPY. The overworld is the one level this file does not draw. It has
+    # its own generator, tools/build_hub.py, because it is the one map whose
+    # correctness is a walkability proof rather than a jump envelope: it is
+    # top-down, so tools/reachability.py has nothing to say about it, and
+    # build_hub.py floods the space of player positions and refuses to write a
+    # map with a gateway nobody can reach. Calling it from here keeps
+    # tools/genlevels.sh as the single entry point that rebuilds all 27 files in
+    # levels/: the overworld, twenty-five levels and the integration fixture.
+    import build_hub
+    build_hub.main()
     build("jungle_1", jungle_1(), "CANOPY TRAIL", music="world1")
     build("jungle_2", jungle_2(), "ROOT HOLLOW", music="world1")
     build("jungle_3", jungle_3(), "THE WATERWAY", music="world2")
@@ -799,4 +707,15 @@ if __name__ == "__main__":
         _fn = getattr(_mod, _id, None) or getattr(_mod, "build")
         build(_id, _fn(), _name,
               music="boss" if _id == "deeps_5" else "world4")
+    # World 5, THE OBSIDIAN NEST. The last five. Same arrangement as Worlds 2, 3
+    # and 4: one module per level under tools/worlds/, each runnable standalone,
+    # registered here so tools/genlevels.sh rebuilds all twenty-five levels and
+    # the overworld from source.
+    for _id, _name in [("nest_1", "BLACK GLASS"), ("nest_2", "THE SWITCHYARD"),
+                       ("nest_3", "FOUR SHAPES"), ("nest_4", "THE LAST ASCENT"),
+                       ("nest_5", "THE OBSIDIAN HEART")]:
+        _mod = __import__("worlds.%s" % _id, fromlist=[_id, "build"])
+        _fn = getattr(_mod, _id, None) or getattr(_mod, "build")
+        build(_id, _fn(), _name,
+              music="boss" if _id == "nest_5" else "world5")
     build("test_arena", test_arena(), "TEST ARENA")

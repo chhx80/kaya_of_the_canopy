@@ -1,0 +1,580 @@
+{
+ "fps": 60,
+ "hops": [
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "spawn",
+   "to": "m_chain_foot"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right+jump",
+     "n": 16
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 8
+    },
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 5
+    }
+   ],
+   "from": "m_chain_foot",
+   "to": "m_shelf_c"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 12
+    },
+    {
+     "a": "none",
+     "n": 9
+    }
+   ],
+   "from": "m_shelf_c",
+   "to": "switch_a"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "none",
+     "n": 29
+    }
+   ],
+   "from": "switch_a",
+   "to": "m_gate_w"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 27
+    }
+   ],
+   "from": "m_gate_w",
+   "to": "m_lock"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 32
+    },
+    {
+     "a": "none",
+     "n": 4
+    }
+   ],
+   "from": "m_lock",
+   "to": "pad_frog"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "right",
+     "n": 248
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "pad_frog",
+   "to": "m_flue_foot"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 24
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 8
+    },
+    {
+     "a": "right+jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 13
+    }
+   ],
+   "from": "m_flue_foot",
+   "to": "m_s1"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 12
+    },
+    {
+     "a": "right+jump",
+     "n": 12
+    },
+    {
+     "a": "none",
+     "n": 16
+    },
+    {
+     "a": "right",
+     "n": 4
+    }
+   ],
+   "from": "m_s1",
+   "to": "m_s2"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 20
+    },
+    {
+     "a": "none",
+     "n": 6
+    }
+   ],
+   "from": "m_s2",
+   "to": "m_head_e"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "left",
+     "n": 60
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "m_head_e",
+   "to": "switch_b"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "left",
+     "n": 43
+    }
+   ],
+   "from": "switch_b",
+   "to": "pad_bird"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 12
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 5
+    }
+   ],
+   "from": "pad_bird",
+   "to": "m_air"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 12
+    },
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 12
+    },
+    {
+     "a": "none",
+     "n": 19
+    }
+   ],
+   "from": "m_air",
+   "to": "perch_1"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "left+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 16
+    },
+    {
+     "a": "left",
+     "n": 32
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "perch_1",
+   "to": "perch_2"
+  },
+  {
+   "form": "bird",
+   "frames": [
+    {
+     "a": "left",
+     "n": 44
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "perch_2",
+   "to": "pad_fish"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "left",
+     "n": 36
+    },
+    {
+     "a": "left+down",
+     "n": 20
+    },
+    {
+     "a": "down",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 4
+    }
+   ],
+   "from": "pad_fish",
+   "to": "m_dive"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "left+down",
+     "n": 28
+    },
+    {
+     "a": "left",
+     "n": 44
+    }
+   ],
+   "from": "m_dive",
+   "to": "m_sluice_e"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "left",
+     "n": 20
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "m_sluice_e",
+   "to": "m_sluice_w"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "left+up",
+     "n": 28
+    },
+    {
+     "a": "left",
+     "n": 56
+    },
+    {
+     "a": "none",
+     "n": 4
+    }
+   ],
+   "from": "m_sluice_w",
+   "to": "m_surface"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "left+up",
+     "n": 8
+    },
+    {
+     "a": "up",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 8
+    },
+    {
+     "a": "left+up",
+     "n": 4
+    },
+    {
+     "a": "right+up",
+     "n": 4
+    },
+    {
+     "a": "up",
+     "n": 12
+    },
+    {
+     "a": "none",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    }
+   ],
+   "from": "m_surface",
+   "to": "m_bank"
+  },
+  {
+   "form": "fish",
+   "frames": [
+    {
+     "a": "right",
+     "n": 20
+    },
+    {
+     "a": "jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 15
+    }
+   ],
+   "from": "m_bank",
+   "to": "m_bank_pad"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 4
+    }
+   ],
+   "from": "m_bank_pad",
+   "to": "exit"
+  }
+ ],
+ "level": "nest_3",
+ "source_sha": "cf8f999969322ecd9b232d2f1768c74d6b639fda696be843ca8d3f762e523781"
+}

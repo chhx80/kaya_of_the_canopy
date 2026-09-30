@@ -1,0 +1,156 @@
+{
+ "ends_at": "hearthold",
+ "fps": 60,
+ "hops": [
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    }
+   ],
+   "from": "spawn",
+   "to": "flue_head"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 24
+    },
+    {
+     "a": "none",
+     "n": 32
+    }
+   ],
+   "from": "flue_head",
+   "to": "chute_foot"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    }
+   ],
+   "from": "chute_foot",
+   "to": "flue_pad"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 56
+    }
+   ],
+   "from": "flue_pad",
+   "to": "step_foot"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "right+jump",
+     "n": 8
+    },
+    {
+     "a": "right",
+     "n": 52
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "step_foot",
+   "to": "ledge_lip"
+  },
+  {
+   "form": "frog",
+   "frames": [
+    {
+     "a": "right",
+     "n": 28
+    },
+    {
+     "a": "none",
+     "n": 24
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 28
+    },
+    {
+     "a": "left",
+     "n": 4
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "ledge_lip",
+   "to": "hearthold"
+  }
+ ],
+ "level": "nest_5",
+ "partial": true,
+ "proves": "traversal",
+ "source_sha": "453b55bf2a48dccc874c47fc6c9fdf9b7df9022f52914c7b61fe5724b57b9ff3",
+ "unproved": [
+  {
+   "from": "hearthold",
+   "owner": "the boss gate (ADR 005 section 4, check 5: boss_exit is reachable from the arena floor after defeat)",
+   "to": "boss_exit",
+   "why": "'boss_exit' is placed by Level.on_boss_defeated(), so it is not in the world during play"
+  }
+ ]
+}

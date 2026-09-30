@@ -33,6 +33,7 @@ const PROBES := {
 	"ruins_probe": "ruins",
 	"heights_probe": "heights",
 	"deeps_probe": "deeps",
+	"nest_probe": "nest",
 }
 
 ## The twelve role characters every tileset binds (data/level_legend.json
@@ -45,7 +46,7 @@ const ROLES := ["#", "S", "d", "s", "=", "|", "^", "c", "L", "T", "r", "X"]
 ## non-jungle legend, and it touches four of the twelve. It is left exactly as it
 ## was rather than widened, because the tape it backs is evidence about World 2
 ## and retuning a fixture to satisfy a later test throws that evidence away.
-const FULL_COVERAGE := ["heights_probe", "deeps_probe"]
+const FULL_COVERAGE := ["heights_probe", "deeps_probe", "nest_probe"]
 
 const DIR := "res://tests/fixtures/"
 
@@ -671,6 +672,406 @@ func test_the_deeps_art_is_not_the_jungle_wearing_a_different_id() -> void:
 		ne(_digest(img, int(DEEPS_IDS[ch]), cols),
 			_digest(img, int(HEIGHTS_IDS[ch]), cols),
 			"deeps role '%s' is painted identically to the heights' role" % ch)
+
+# --------------------------------------------------------------- the nest probe
+## World 5 specific, and it carries the SWITCH VERB CONTRACT the five OBSIDIAN
+## NEST level authors build on. The machinery is M2-vintage and battle-tested;
+## what was missing was the numbers and the sharp edges in one place. Every
+## number below is measured — by this file, by tools/prove.sh over
+## tests/fixtures/nest_scratch_*.json, or read off the shipping code — and not
+## reasoned.
+const NEST := "nest_probe"
+
+## role character -> the id data/level_legend.json binds it to for "nest".
+## 280-291 is the whole block: twelve roles, twelve ids, none spare.
+const NEST_IDS := {
+	"#": 280, "S": 281, "d": 283, "s": 290, "=": 286, "|": 288,
+	"^": 287, "c": 291, "L": 282, "T": 285, "r": 289, "X": 284,
+}
+
+## The four shared switch blocks. character -> [tile id, group, solid-when].
+## These are World 5's verb the way the updraft is World 3's and the shoulder
+## wall is World 4's: the pairing lives in data/tiles.json, the level only names
+## the character, so no level can state it for itself.
+const SWITCH_TILES := {
+	"A": [11, 1, true], "a": [26, 1, false],
+	"B": [12, 2, true], "b": [27, 2, false],
+}
+
+## MEASURED off the shipping code, because a level author has to place the lever
+## on a tile and needs to know what part of that tile is live:
+## Level._spawn_entity() does `sw.setup(p + Vector2(1, 6), ...)` and
+## SwitchTrigger.SIZE is (14, 10) — so the trip box is the BOTTOM TEN PIXELS of
+## the 16x16 tile, inset one pixel on each side. It is NOT the tile.
+const LEVER_OFFSET := Vector2(1, 6)
+
+func test_the_nest_legend_binds_the_ids_the_obsidian_nest_art_was_painted_for() -> void:
+	var lg := LevelLoader.legend_for("nest")
+	ok(not lg.is_empty(), "data/level_legend.json defines a 'nest' tileset")
+	for ch: String in NEST_IDS.keys():
+		eq(int(lg.get(ch, -1)), int(NEST_IDS[ch]),
+			"nest '%s' must bind tile %d" % [ch, int(NEST_IDS[ch])])
+		var id := int(NEST_IDS[ch])
+		ok(id >= 280 and id <= 291,
+			"nest role '%s' points at %d, outside the 280-291 block" % [ch, id])
+
+func test_the_nest_tiles_carry_the_flags_their_roles_promise() -> void:
+	## The twelve roles mean the same thing in every world, so the flags line up
+	## with the jungle's, the heights' and the deeps'.
+	var f := TileData4.Flag
+	ok(data.flags_of(280) & f.SOLID != 0, "280 obsidian is solid")
+	ok(data.flags_of(281) & f.SOLID != 0, "281 obsidian_hot is solid")
+	ok(data.flags_of(283) & f.SOLID != 0, "283 nest_block is solid")
+	ok(data.flags_of(290) & f.SOLID != 0, "290 nest_plate is solid")
+	ok(data.flags_of(286) & f.ONEWAY != 0, "286 nest_ledge is one-way")
+	ok(data.flags_of(286) & f.SOLID == 0, "286 nest_ledge is not solid")
+	ok(data.flags_of(288) & f.LADDER != 0, "288 nest_chain is climbable")
+	ok(data.flags_of(288) & f.SOLID == 0, "288 nest_chain is not solid")
+	ok(data.flags_of(287) & f.HAZARD != 0, "287 nest_shard hurts")
+	ok(data.flags_of(291) & f.BREAKABLE != 0, "291 nest_crust breaks")
+	ok(data.flags_of(291) & f.SOLID != 0, "291 nest_crust is solid until it does")
+	for id: int in [282, 284, 285, 289]:
+		eq(data.flags_of(id), 0,
+			"%d (%s) is a background tile and must carry no flags" % [id, data.name_of(id)])
+	for id: int in NEST_IDS.values():
+		ok(data.flags_of(id) & f.WATER == 0,
+			"%d (%s) — nothing in the nest block is water" % [id, data.name_of(id)])
+		ok(data.flags_of(id) & f.SWITCHED == 0,
+			"%d (%s) — a world tile never carries a switch group" % [id, data.name_of(id)])
+
+func test_the_nest_probe_grid_answers_those_flags_through_a_real_tileworld() -> void:
+	## Flags on ids prove the table; this proves the *level* — the grid the loader
+	## built from the probe's characters answers collision correctly at the
+	## coordinates the fixture authored.
+	var def := _load(NEST)
+	ok(def.ok(), "nest probe loads: %s" % ", ".join(def.errors))
+	if def.world == null:
+		return
+	var w := def.world
+	eq(w.width, 25, "the probe is one screen wide")
+	eq(w.height, 15, "the probe is one screen tall")
+	ok(w.is_solid(0, 13), "the ground cap is solid")
+	eq(w.get_fg(0, 13), 280, "the ground cap is obsidian")
+	ok(w.is_solid(0, 14), "the fill under the cap is solid")
+	eq(w.get_fg(0, 14), 283, "the fill is nest_block")
+	eq(w.get_fg(3, 6), 281, "the overhead shelf is obsidian_hot")
+	ok(w.is_solid(3, 6), "and it is solid")
+	eq(w.get_fg(14, 8), 290, "the exit shelf is nest_plate")
+	ok(w.is_solid(14, 8), "and it is solid")
+	ok(w.is_oneway(6, 10), "the bypass deck is one-way")
+	not_ok(w.is_solid(6, 10), "and not solid")
+	ok(w.is_ladder(13, 10), "the chain climbs")
+	ok(w.is_hazard(17, 12), "the shard field is a hazard")
+	ok(w.is_breakable(4, 6), "the crust breaks")
+	ok(w.is_water(21, 12), "the pool is water")
+	not_ok(w.is_solid(1, 12), "the walkable floor level is open")
+	# Background tiles are decoration only: nothing in bg may affect collision.
+	eq(w.get_bg(0, 0), 289, "the ceiling is nest_vein")
+	eq(w.get_bg(0, 2), 282, "the wall behind the gallery is nest_wall")
+	eq(w.get_bg(1, 5), 285, "the flues are nest_flue")
+	eq(w.get_bg(0, 13), 284, "under the floor is nest_void")
+	not_ok(w.is_solid(0, 0), "a bg vein is not something you stand on")
+
+# ------------------------------- SWITCH VERB CONTRACT 1: the pairing and the seed
+func test_the_four_switch_blocks_are_two_pairs_and_the_table_says_so() -> void:
+	## The data half. Two groups exist and there is no third: a level gets one
+	## 'a' lever and one 'b' lever, and every switch_a in it shares group 1.
+	var f := TileData4.Flag
+	var shared: Dictionary = LevelLoader.legend_doc().get("shared", {})
+	var groups: Dictionary = {}
+	for ch: String in SWITCH_TILES.keys():
+		var spec: Array = SWITCH_TILES[ch]
+		var id := int(spec[0])
+		eq(int(shared.get(ch, -1)), id, "'%s' is the shared character for %d" % [ch, id])
+		ok(data.flags_of(id) & f.SOLID != 0, "%d (%s) is a wall" % [id, data.name_of(id)])
+		ok(data.flags_of(id) & f.SWITCHED != 0, "%d (%s) is switched" % [id, data.name_of(id)])
+		eq(data.switch_group[id], int(spec[1]), "%d belongs to group %d" % [id, int(spec[1])])
+		eq(data.switch_state[id] == 1, bool(spec[2]),
+			"%d is solid when its group is %s" % [id, "ON" if bool(spec[2]) else "OFF"])
+		groups[int(spec[1])] = true
+	eq(groups.size(), 2, "there are exactly two switch groups in the whole game")
+	# And nothing else in the table is switched, so an author cannot reach for a
+	# third pair that does not exist.
+	var switched: Array = []
+	for id in data.switch_group.size():
+		if data.flags_of(id) & f.SWITCHED != 0:
+			switched.append(id)
+	eq(switched, [11, 12, 26, 27], "the only switch tiles in data/tiles.json")
+
+func test_group_one_starts_on_and_group_two_starts_off_everywhere() -> void:
+	## The seed, in the two places that seed it. Everything an author draws with
+	## 'A'/'a'/'B'/'b' reads off this: 'A' and 'b' are WALLS on frame one, 'a' and
+	## 'B' are HOLES on frame one, before any lever is touched.
+	var rows: Array = [[0, 0], [1, 1]]
+	var bare := TileWorld.from_rows(rows, data)
+	eq(bool(bare.switch_states.get(1, false)), true, "TileWorld seeds group 1 ON")
+	eq(bool(bare.switch_states.get(2, true)), false, "TileWorld seeds group 2 OFF")
+	var def := _load(NEST)
+	if def.world == null:
+		return
+	var w := def.world
+	ok(w.is_solid(8, 12), "'A' at (8,12) is a wall before the lever is thrown")
+	not_ok(w.is_solid(10, 9), "'a' at (10,9) is a hole before the lever is thrown")
+	not_ok(w.is_solid(20, 10), "'B' at (20,10) is a hole before the lever is thrown")
+	ok(w.is_solid(21, 10), "'b' at (21,10) is a wall before the lever is thrown")
+	# And the prover seeds the same world the same way — ProverSim.reset() repeats
+	# TileWorld's defaults and then applies each switch entity's own `on`, in the
+	# order SwitchTrigger._ready() applies them.
+	var sim := ProverSim.new()
+	sim.setup(def)
+	eq(sim.switch_bits, 1, "the prover starts the probe with group 1 on and group 2 off")
+
+func test_switch_group_survives_the_level_round_trip_into_a_tileworld() -> void:
+	## The World 5 twin of `test_the_updraft_vectors_survive_a_level_round_trip`.
+	## The group and the sense live in data/tiles.json and the level only names
+	## the character; if they were lost, five levels would break at once with
+	## nothing pointing at the cause. Both configurations, on the probe's own grid,
+	## through the shipping TileWorld.is_solid().
+	var def := _load(NEST)
+	if def.world == null:
+		return
+	var w := def.world
+	var a_gate := [Vector2i(8, 11), Vector2i(8, 12)]
+	var a_ghost := [Vector2i(10, 8), Vector2i(10, 9)]
+	var b_lid := [Vector2i(20, 10), Vector2i(22, 10)]
+	var b_ghost := [Vector2i(21, 10), Vector2i(23, 10)]
+	for t: Vector2i in a_gate:
+		eq(w.get_fg(t.x, t.y), 11, "(%d,%d) is switch_block_a_on" % [t.x, t.y])
+	for t: Vector2i in a_ghost:
+		eq(w.get_fg(t.x, t.y), 26, "(%d,%d) is switch_block_a_off" % [t.x, t.y])
+	for t: Vector2i in b_lid:
+		eq(w.get_fg(t.x, t.y), 12, "(%d,%d) is switch_block_b_on" % [t.x, t.y])
+	for t: Vector2i in b_ghost:
+		eq(w.get_fg(t.x, t.y), 27, "(%d,%d) is switch_block_b_off" % [t.x, t.y])
+	# Configuration 1: the seed.
+	for t: Vector2i in a_gate:
+		ok(w.is_solid(t.x, t.y), "group 1 ON: (%d,%d) is a wall" % [t.x, t.y])
+	for t: Vector2i in a_ghost:
+		not_ok(w.is_solid(t.x, t.y), "group 1 ON: (%d,%d) is open" % [t.x, t.y])
+	# Configuration 2: after the lever. Group 2 is untouched, which is the point —
+	# the two groups are independent.
+	w.set_switch(1, false)
+	for t: Vector2i in a_gate:
+		not_ok(w.is_solid(t.x, t.y), "group 1 OFF: (%d,%d) is open" % [t.x, t.y])
+	for t: Vector2i in a_ghost:
+		ok(w.is_solid(t.x, t.y), "group 1 OFF: (%d,%d) is a wall" % [t.x, t.y])
+	for t: Vector2i in b_lid:
+		not_ok(w.is_solid(t.x, t.y), "group 2 is untouched by group 1's lever")
+	w.set_switch(2, true)
+	for t: Vector2i in b_lid:
+		ok(w.is_solid(t.x, t.y), "group 2 ON: the lid closes")
+	for t: Vector2i in b_ghost:
+		not_ok(w.is_solid(t.x, t.y), "group 2 ON: its pair opens")
+	w.set_switch(1, true)
+	w.set_switch(2, false)
+	ok(w.is_solid(8, 12), "and the seed is restorable")
+
+func test_the_renderer_picks_switch_art_by_solidity_and_not_by_the_authored_id() -> void:
+	## The M2 fix, pinned. A pair is authored as either half and the *ghost* is
+	## always the `_off` art, so `TileRenderer._draw_layer()` resolves the cell
+	## from `world.is_solid()` rather than swapping ids in the grid. Without it,
+	## half of every switch wall in World 5 renders as the wrong state.
+	var r := TileRenderer.new()
+	eq(r._ghost_of(11), 26, "11 ghosts as 26")
+	eq(r._ghost_of(12), 27, "12 ghosts as 27")
+	eq(r._solid_of(26), 11, "26 solidifies as 11")
+	eq(r._solid_of(27), 12, "27 solidifies as 12")
+	eq(r._ghost_of(280), 280, "and an ordinary tile is left alone")
+	r.free()
+
+# ----------------------------- SWITCH VERB CONTRACT 2: which forms throw a lever
+func test_the_lever_box_is_the_bottom_ten_pixels_of_its_tile() -> void:
+	## THE RULE THAT COST RUINS_4 A DEBUGGING SESSION. The entity's x,y is a tile;
+	## the thing that trips is 14x10 at +1,+6 inside it. A body that arrives in the
+	## row above never touches it, and a body swimming through the TOP of the
+	## lever's own row can miss it too.
+	eq(SwitchTrigger.SIZE, Vector2(14, 10), "the trip box is 14x10")
+	var ts := float(TileData4.TILE_SIZE)
+	var tile := Vector2(8.0 * ts, 10.0 * ts)
+	var sw := SwitchTrigger.new()
+	sw.setup(tile + LEVER_OFFSET, 1, true)
+	var box := sw.aabb()
+	eq(box.position, Vector2(129.0, 166.0), "one pixel in, six pixels down")
+	eq(box.end, Vector2(143.0, 176.0), "and flush with the bottom of the tile")
+	near(box.position.y - tile.y, 6.0, 0.0001, "six pixels of the tile are dead")
+	near(tile.y + ts - box.end.y, 0.0, 0.0001, "and none at the bottom")
+	# THE DEAD ZONE, measured rather than described: the trip is decided by the
+	# body's BOTTOM edge, and that edge has to reach 6 px into the lever's tile.
+	# Six pixels is a third of a tile and the whole of the ruins_4 trap.
+	var bottom_at := func(y: float) -> bool:
+		return box.intersects(Rect2(tile.x + 1.0, y - 9.0, 14.0, 9.0))
+	not_ok(bottom_at.call(tile.y), "a body whose feet stop at the tile's top misses")
+	not_ok(bottom_at.call(tile.y + 5.0), "five pixels in still misses")
+	not_ok(bottom_at.call(tile.y + 6.0), "six pixels in is the edge, and edges do not count")
+	ok(bottom_at.call(tile.y + 7.0), "seven pixels in is the first pixel that trips it")
+	ok(bottom_at.call(tile.y + ts), "and a body sunk to the bottom of the row trips it")
+	# So a 9 px fish swimming along the TOP of the lever's own row does trip it,
+	# but only by 3 px of overlap — and one swimming 3 px higher, which is still
+	# visually inside the row, does not.
+	ok(box.intersects(Rect2(tile.x + 1.0, tile.y, 14.0, 9.0)),
+		"a fish at the top of the lever's own row trips it by three pixels")
+	not_ok(box.intersects(Rect2(tile.x + 1.0, tile.y - 3.0, 14.0, 9.0)),
+		"three pixels higher and the same fish swims straight past")
+	# And a body that arrives in the row ABOVE never touches it at all. That is
+	# the ruins_4 trap: a two-row arrival whose live row is the wrong one.
+	var row_above := Rect2(tile.x + 1.0, tile.y - ts, 14.0, 9.0)
+	not_ok(box.intersects(row_above), "the row above is not even close")
+	# Sideways the box is 14 of 16 px, so a body anywhere over the tile touches it.
+	ok(box.intersects(Rect2(tile.x, tile.y + 10.0, 10.0, 6.0)),
+		"a 10 px body against the tile's left edge is inside the box")
+	ok(box.intersects(Rect2(tile.x + 6.0, tile.y + 10.0, 10.0, 6.0)),
+		"and against its right edge")
+	sw.free()
+
+func test_every_form_trips_a_lever_by_standing_on_the_floor_under_it() -> void:
+	## The contact half of the verb, for all four forms, measured through the same
+	## predicate SwitchTrigger._physics_process() uses — `aabb().intersects(p.aabb())`
+	## — with each body settled on a real floor by the shipping movement code. The
+	## frog and the bird carry no weapon at all, so if this failed for them a lever
+	## would be scenery to half the forms in the game.
+	var ts := float(TileData4.TILE_SIZE)
+	var rows: Array = []
+	for y in 8:
+		var r: Array = []
+		for x in 12:
+			r.append(1 if (y == 6 or y == 7 or x == 0 or x == 11) else 0)
+		rows.append(r)
+	var world := TileWorld.from_rows(rows, data)
+	# The lever sits on tile (5,5): the row whose floor is the cap at row 6.
+	var sw := SwitchTrigger.new()
+	sw.setup(Vector2(5.0 * ts, 5.0 * ts) + LEVER_OFFSET, 1, true)
+	var overlaps: Dictionary = {}
+	for form_id: String in ["human", "frog", "bird", "fish"]:
+		var f := FormBase.load_form(form_id)
+		var hb: Dictionary = f.hitbox()
+		var a := Actor.new()
+		a.world = world
+		a.box = Vector2(float(hb.get("w", 10)), float(hb.get("h", 22)))
+		# Centred on the lever's column, dropped from just above the floor, then
+		# settled — so the y is the one play produces and not one this test chose.
+		a.pos = Vector2(5.0 * ts + (ts - a.box.x) * 0.5, 6.0 * ts - a.box.y - 2.0)
+		var input := InputState.new()
+		for i in 20:
+			f.update(a, input, DT)
+			a.step_motion(DT)
+		ok(a.on_floor, "%s settles on the floor" % form_id)
+		var hit := sw.aabb().intersects(a.aabb())
+		ok(hit, "%s (%d px tall) standing under the lever trips it"
+			% [form_id, int(a.box.y)])
+		overlaps[form_id] = sw.aabb().intersects(a.aabb())
+	eq(overlaps.size(), 4, "all four forms were measured")
+	sw.free()
+
+func test_only_the_human_can_trip_a_lever_from_range() -> void:
+	## The other half, and the one an author will get wrong. `Blade._trip_switches()`
+	## is the only code in the game that toggles a SwitchTrigger without a body
+	## touching it, and the blade is the human's weapon. The fish DOES carry a
+	## weapon — `can_attack` is true — but `bite` spawns a MeleeHit, which trips
+	## nothing. So a lever placed out of reach is a HUMAN-ONLY lever, and a lever
+	## a frog, a bird or a fish has to throw must be somewhere its body can go.
+	eq(FormBase.load_form("human").weapon_id(), "boomerang_blade", "the human throws the blade")
+	eq(FormBase.load_form("fish").weapon_id(), "bite", "the fish bites instead")
+	eq(FormBase.load_form("frog").weapon_id(), "", "the frog carries nothing")
+	eq(FormBase.load_form("bird").weapon_id(), "", "the bird carries nothing")
+	var blade := FileAccess.get_file_as_string("res://src/player/weapons/blade.gd")
+	ok(blade.contains("_trip_switches"), "the blade is what reaches a lever")
+	var melee := FileAccess.get_file_as_string("res://src/player/weapons/melee_hit.gd")
+	not_ok(melee.contains("switch"), "and the bite is not")
+
+# --------------------------- SWITCH VERB CONTRACT 3: what the gate can prove
+func test_the_prover_tells_two_switch_configurations_apart() -> void:
+	## THE LOAD-BEARING ONE. A route that crosses a gate, throws the lever again
+	## and crosses back visits the same ground twice in two different worlds, and
+	## the search would prune the second visit as a duplicate unless the switch
+	## state is part of the key. `ProverSearch._key()` folds `sim.switch_bits` in;
+	## this proves it does, by changing nothing else.
+	var def := _load(NEST)
+	if def.world == null:
+		return
+	var sim := ProverSim.new()
+	sim.setup(def)
+	var search := ProverSearch.new()
+	var on_key: int = search._key(sim)
+	ok(sim.world.is_solid(8, 12), "the gate starts shut")
+	var s: Array = sim.snapshot()
+	var flipped: Array = s.duplicate()
+	flipped[10] = 0                  # ProverSim.snapshot(): index 10 is switch_bits
+	sim.restore(flipped)
+	not_ok(sim.world.is_solid(8, 12), "and restoring the other configuration opens it")
+	var off_key: int = search._key(sim)
+	ne(on_key, off_key,
+		"the same body in two switch states must be two states to the search")
+	sim.restore(s)
+	eq(search._key(sim), on_key, "and flipping back is the state it was")
+	ok(sim.world.is_solid(8, 12), "gate included")
+
+func test_no_switch_tile_in_the_probe_is_something_the_route_stands_on() -> void:
+	## THE CONSTRAINT ON EVERY WORLD 5 LEVEL, and it comes from the OTHER gate.
+	## tools/reachability.py:81 resolves any tile carrying a `switch_group` as
+	## NOT SOLID, unconditionally — it cannot know which half is up, so it assumes
+	## the passable one. That is safe for a wall (the checker walks through a gate
+	## it should not) and a silent lie for a FLOOR: a ledge made of 'A' is a ledge
+	## reachability believes you fall through, and a ledge made of 'a' is one it
+	## believes is not there at all. Switch blocks are walls and doors. Never
+	## floors, never the one platform a jump lands on.
+	var def := _load(NEST)
+	if def.world == null:
+		return
+	var w := def.world
+	var raw := _raw(NEST)
+	var marks: Dictionary = raw.get("marks", {})
+	var f := TileData4.Flag
+	for name: String in marks.keys():
+		var m: Dictionary = marks[name]
+		var x := int(m.get("x", 0))
+		var y := int(m.get("y", 0))
+		eq(w.flags_at(x, y) & f.SWITCHED, 0,
+			"mark '%s' sits inside a switch block" % name)
+		eq(w.flags_at(x, y + 1) & f.SWITCHED, 0,
+			"mark '%s' stands ON a switch block" % name)
+	# And the walked line, spawn (2,12) east to the chain at (13,12): nothing under
+	# it is switched, and nothing on it is a hazard or a breakable.
+	for x in range(2, 14):
+		eq(w.flags_at(x, 13) & f.SWITCHED, 0,
+			"(%d,13) is floor the route walks and it is switched" % x)
+		not_ok(w.is_hazard(x, 12), "(%d,12) is on the walked line and a hazard" % x)
+		not_ok(w.is_breakable(x, 12), "(%d,12) is on the walked line and breakable" % x)
+
+func test_the_nest_art_is_not_another_world_wearing_a_different_id() -> void:
+	## MEMORY: a world kit once emitted the jungle's stone under ruins ids and the
+	## level looked plausible. Pixels, not ids — and by World 5 there are four
+	## earlier blocks to collide with, all generated by the same script from
+	## different ramps, which is exactly how two blocks come out equal.
+	var tex: Texture2D = load("res://assets/tiles/tileset.png")
+	if tex == null:
+		return
+	var img := tex.get_image()
+	var cols := int(img.get_width() / 16)
+	var jungle := LevelLoader.legend_for("jungle")
+	for ch: String in NEST_IDS.keys():
+		var n := int(NEST_IDS[ch])
+		gt(float(_painted(img, n, cols)), 0.0,
+			"nest role '%s' (cell %d) has no art at all" % [ch, n])
+		if jungle.has(ch):
+			ne(_digest(img, n, cols), _digest(img, int(jungle[ch]), cols),
+				"nest role '%s' (cell %d) is painted identically to the jungle's" % [ch, n])
+		ne(_digest(img, n, cols), _digest(img, int(HEIGHTS_IDS[ch]), cols),
+			"nest role '%s' is painted identically to the heights' role" % ch)
+		ne(_digest(img, n, cols), _digest(img, int(DEEPS_IDS[ch]), cols),
+			"nest role '%s' is painted identically to the deeps' role" % ch)
+	# The switch blocks are shared art, and the whole verb reads off the player
+	# being able to see which half is up: the two halves of a pair must not be
+	# painted the same.
+	for pair: Array in [[11, 26], [12, 27]]:
+		gt(float(_painted(img, int(pair[0]), cols)), 0.0,
+			"cell %d has no art at all" % int(pair[0]))
+		gt(float(_painted(img, int(pair[1]), cols)), 0.0,
+			"cell %d has no art at all" % int(pair[1]))
+		ne(_digest(img, int(pair[0]), cols), _digest(img, int(pair[1]), cols),
+			"%d and %d are painted the same, so the state is invisible"
+				% [int(pair[0]), int(pair[1])])
+	ne(_digest(img, 11, cols), _digest(img, 12, cols),
+		"group 1 and group 2 blocks must be tellable apart")
 
 # --------------------------------------------------------------------- the art
 func test_every_probe_resolves_to_atlas_cells_that_exist_and_are_painted() -> void:

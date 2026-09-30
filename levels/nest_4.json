@@ -1,0 +1,459 @@
+{
+ "id": "nest_4",
+ "name": "THE LAST ASCENT",
+ "music": "world5",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "##################################################",
+  "#...d........#####################################",
+  "S...b........S.........###########################",
+  "#...b..................###########################",
+  "#====......................aAaAa................##",
+  "#....====....S.............aAaAa................##",
+  "#........====b......===.....A.A.................##",
+  "#............b..............A.A.................##",
+  "###S#######S####S###S#####S##S#S.....SS#S###UUU###",
+  "###############################S.....#######UUU###",
+  "################################S^^S########UUU###",
+  "############################################UUU###",
+  "############################################UUU###",
+  "############################################UUU###",
+  "############################################UUU###",
+  "############################################UUU###",
+  "############################################UUU###",
+  "############################################UUU###",
+  "############################################UUU###",
+  "############################################UUU###",
+  "###################################S########UUU###",
+  "###########S#####S####S###########.......aa#UUU###",
+  "####....................##########.......aadUUU###",
+  "####....................##########.........AUUU###",
+  "####....................##########.........AUUU###",
+  "####.....~~~~~~~~~~~~~~~##########~~~~S##S########",
+  "#..c.....wwwwwwwwwwwwwwwwww>>>>>>>wwwd############",
+  "#..c.....wwwwwwwwwwwwwwwwww>>>>>>>wwdd############",
+  "####S##S##########################################",
+  "##################################################"
+ ],
+ "bg": [
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LrXTXXXXXTXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXTXXXXXTXXXrLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXTXXXXXTXXXLLLTLLLLLLLTLLLLLTLLLLLLLLTLLLLTTTLLL",
+  "LXXXXXXXXXXXrLLLTLLLLLLLTLLLLLTLLLLLLLLTLLLLTTTLLL",
+  "LXXXXXXXXXXXXLLLTLLLLLLLTLLLLLTLLLLLLLLTLLLLTTTLLL",
+  "LXXrXXXXXXXrXLLLrLLLrLLLLLrLLrLrLLLLLrrLrLLLTTTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTTTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLrLLrLLLLLLLLTTTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTTTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTTTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTTTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTTTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTTTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTTTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTTTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTTTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTTTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTTTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTTTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLrLLXXXXXLTTTLLL",
+  "LLLLLLTLLLLrTLLLLrLTLLrLLLLLLLLLLLLLLLXXXXXLTTTLLL",
+  "LLLLLLTLLLLLTLLLLLLTLLLLLLLLLLLLLLLLLLXXXXXLTTTLLL",
+  "LLLLLLTLLLLLTLLLLLLTLLLLLLLLLLLLLLLLLLrXXrXLTTTLLL",
+  "LLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLL",
+  "LLLLrLLrLXXXXXXXXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 5,
+   "y": 27
+  },
+  {
+   "type": "switch_a",
+   "x": 40,
+   "y": 24
+  },
+  {
+   "type": "pad_bird",
+   "x": 42,
+   "y": 24
+  },
+  {
+   "type": "pad_human",
+   "x": 41,
+   "y": 7
+  },
+  {
+   "type": "switch_b",
+   "x": 21,
+   "y": 5
+  },
+  {
+   "type": "exit",
+   "x": 2,
+   "y": 3
+  },
+  {
+   "type": "enemy_swimmer",
+   "x": 16,
+   "y": 26
+  },
+  {
+   "type": "enemy_swimmer",
+   "x": 35,
+   "y": 26
+  },
+  {
+   "type": "enemy_walker",
+   "x": 38,
+   "y": 7
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 23,
+   "y": 5,
+   "axis": "x",
+   "range": 32
+  },
+  {
+   "type": "enemy_charger",
+   "x": 26,
+   "y": 7
+  },
+  {
+   "type": "enemy_dropper",
+   "x": 34,
+   "y": 4
+  },
+  {
+   "type": "heart",
+   "x": 2,
+   "y": 27
+  },
+  {
+   "type": "heart",
+   "x": 33,
+   "y": 9
+  },
+  {
+   "type": "heart",
+   "x": 7,
+   "y": 4
+  },
+  {
+   "type": "gem",
+   "x": 4,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 8,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 13,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 20,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 29,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 35,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 38,
+   "y": 24
+  },
+  {
+   "type": "gem",
+   "x": 45,
+   "y": 18
+  },
+  {
+   "type": "gem",
+   "x": 45,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 38,
+   "y": 7
+  },
+  {
+   "type": "gem",
+   "x": 36,
+   "y": 9
+  },
+  {
+   "type": "gem",
+   "x": 31,
+   "y": 7
+  },
+  {
+   "type": "gem",
+   "x": 27,
+   "y": 7
+  },
+  {
+   "type": "gem",
+   "x": 24,
+   "y": 7
+  },
+  {
+   "type": "gem",
+   "x": 19,
+   "y": 7
+  },
+  {
+   "type": "gem",
+   "x": 21,
+   "y": 4
+  },
+  {
+   "type": "gem",
+   "x": 11,
+   "y": 5
+  },
+  {
+   "type": "gem",
+   "x": 5,
+   "y": 4
+  },
+  {
+   "type": "gem",
+   "x": 3,
+   "y": 3
+  }
+ ],
+ "marks": {
+  "wade": {
+   "x": 12,
+   "y": 27
+  },
+  "sump_e": {
+   "x": 21,
+   "y": 27
+  },
+  "pipe_in": {
+   "x": 25,
+   "y": 27
+  },
+  "intake": {
+   "x": 29,
+   "y": 27
+  },
+  "flume_out": {
+   "x": 34,
+   "y": 27
+  },
+  "step": {
+   "x": 36,
+   "y": 26
+  },
+  "beach": {
+   "x": 37,
+   "y": 25
+  },
+  "bank": {
+   "x": 39,
+   "y": 24
+  },
+  "flue_1": {
+   "x": 45,
+   "y": 20
+  },
+  "flue_2": {
+   "x": 45,
+   "y": 15
+  },
+  "flue_3": {
+   "x": 45,
+   "y": 10
+  },
+  "fault_e": {
+   "x": 36,
+   "y": 9
+  },
+  "fault_w": {
+   "x": 32,
+   "y": 9
+  },
+  "comb_e": {
+   "x": 31,
+   "y": 7
+  },
+  "comb_w": {
+   "x": 27,
+   "y": 7
+  },
+  "flat_w": {
+   "x": 23,
+   "y": 7
+  },
+  "door": {
+   "x": 14,
+   "y": 7
+  },
+  "stair_foot": {
+   "x": 11,
+   "y": 7
+  },
+  "stair_1": {
+   "x": 10,
+   "y": 5
+  },
+  "stair_2": {
+   "x": 6,
+   "y": 4
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "wade",
+   "form": "human"
+  },
+  {
+   "from": "wade",
+   "to": "sump_e",
+   "form": "human"
+  },
+  {
+   "from": "sump_e",
+   "to": "pipe_in",
+   "form": "human"
+  },
+  {
+   "from": "pipe_in",
+   "to": "intake",
+   "form": "human"
+  },
+  {
+   "from": "intake",
+   "to": "flume_out",
+   "form": "human"
+  },
+  {
+   "from": "flume_out",
+   "to": "step",
+   "form": "human"
+  },
+  {
+   "from": "step",
+   "to": "beach",
+   "form": "human"
+  },
+  {
+   "from": "beach",
+   "to": "bank",
+   "form": "human"
+  },
+  {
+   "from": "bank",
+   "to": "switch_a",
+   "form": "human"
+  },
+  {
+   "from": "switch_a",
+   "to": "pad_bird",
+   "form": "human"
+  },
+  {
+   "from": "pad_bird",
+   "to": "flue_1",
+   "form": "bird"
+  },
+  {
+   "from": "flue_1",
+   "to": "flue_2",
+   "form": "bird"
+  },
+  {
+   "from": "flue_2",
+   "to": "flue_3",
+   "form": "bird"
+  },
+  {
+   "from": "flue_3",
+   "to": "pad_human",
+   "form": "bird"
+  },
+  {
+   "from": "pad_human",
+   "to": "fault_e",
+   "form": "human"
+  },
+  {
+   "from": "fault_e",
+   "to": "fault_w",
+   "form": "human"
+  },
+  {
+   "from": "fault_w",
+   "to": "comb_e",
+   "form": "human"
+  },
+  {
+   "from": "comb_e",
+   "to": "comb_w",
+   "form": "human"
+  },
+  {
+   "from": "comb_w",
+   "to": "flat_w",
+   "form": "human"
+  },
+  {
+   "from": "flat_w",
+   "to": "switch_b",
+   "form": "human"
+  },
+  {
+   "from": "switch_b",
+   "to": "door",
+   "form": "human"
+  },
+  {
+   "from": "door",
+   "to": "stair_foot",
+   "form": "human"
+  },
+  {
+   "from": "stair_foot",
+   "to": "stair_1",
+   "form": "human"
+  },
+  {
+   "from": "stair_1",
+   "to": "stair_2",
+   "form": "human"
+  },
+  {
+   "from": "stair_2",
+   "to": "exit",
+   "form": "human"
+  }
+ ],
+ "tileset": "nest"
+}

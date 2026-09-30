@@ -1,0 +1,432 @@
+{
+ "id": "nest_3",
+ "name": "FOUR SHAPES",
+ "music": "world5",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "##################################################",
+  "##.......................d......................##",
+  "##.......................d..................dddd##",
+  "##.......................S..................BbBb##",
+  "##..........d............d..................BbBb##",
+  "##..........d............b..................BbBb##",
+  "##..........S............b....#.............BbBb##",
+  "##~~####S~~~d~~~~~~~~~##Sd===.#.............BbBb##",
+  "##wwwwwwwwwwdwwwwwwwww###d....#.............BbBb##",
+  "##==wwwwwwwwdwwwwwwwww###d....#.................##",
+  "##wwwwwwwwwwAwwwwwwwww###S....#.................##",
+  "##wwwwwwwwwwAwwwwwwwww###d....#===..............##",
+  "##wwwwwwwwwwAwwwwwwwww###d....#.................##",
+  "##wwwwwwwwwwdwwwwwwwww###d....S.................##",
+  "##########################....#S##S...S######S####",
+  "##########################....#####...######d#####",
+  "#########################d..................B...##",
+  "####...................d.d..................B...##",
+  "####...................d..##########S#####S#....##",
+  "####.......|...........d...............#####....##",
+  "####.......|##S#..###S.d...............#####..S###",
+  "####.......|aAaA.......d...............#...k....##",
+  "####.......|aAaA.......d...............#...k....##",
+  "####.......|...........d...............#####S#..##",
+  "#..c.......|...........A........................##",
+  "#..c.......|...........A........................##",
+  "####S##..####S########S####S#####S####S#######S###",
+  "#######..#########################################",
+  "#######^^#########################################",
+  "##################################################"
+ ],
+ "bg": [
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXTXXXXTXXXTXXXXTXXXTXLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXTXXXXTXXXTXXXXTXXXTXLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLrXTXXXXTXXXTXXXXTXXXTXLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXTXXXXXXXXTXXXXTXXXXXLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXTXXXXXXXXTXXXXXXXXXXLL",
+  "LLLLLLLLrLLrLrLLLLLLLLLLrLXXXXXXXXXXXTXXXXXXXXXXLL",
+  "LLXXXXXXXXXXXXXXXXXXXXLLLLXXXXXXXXXXXXXXXXXXXXXXLL",
+  "LLXXXXXXXXXXXXXXXXXXXXLLLLXXXXXXXXXXXXXXXXXXXXXXLL",
+  "LLXXXXXXXXXXXXXXXXXXXXLLLLXXXXXXXXXXXXXXXXXXXXXXLL",
+  "LLXXXXXXXXXXXXXXXXXXXXLLLLrXXXXXXXXXXXXXXXXXXXXXLL",
+  "LLXXXXXXXXXXXXXXXXXXXXLLLLXXXXXXXXXXXXXXXXXXXXXXLL",
+  "LLXXXXXXXXXXXXXXXXXXXXLLLLXXXXXXXXXXXXXXXXXXXXXXLL",
+  "LLXXXXXXXXXXXXXXXXXXXXLLLLXXXrXrXXrXXXrXXXXXXrXXLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXXXXXTXXXXXXTXXXXXXTLLLLLLLLLLLLLLrLLLLLrLLLLLLL",
+  "LXXXXXXTXXXXXXTXXXXXXTLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXXXXXTXXXXXXrXXXXXXrLLLLTLLLLTLLLLLTLLLLLLLLrLLL",
+  "LXXXXXXTXXXXXXTXXXXXXTLLLLTLLLLTLLLLLTLLLLLLLLLLLL",
+  "LXXXXXXXXXXXXXXXXXXXXLLLLLTLLLLTLLLLLTLLLLLLLLLLLL",
+  "LXXXXXXXXXXXXXXXXXXXXLLLLLTLLLLTLLLLLTLLLLLLrLLLLL",
+  "LXXXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXXXXXXXXXXXXXXXXXXXLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LXXXrXXXXXXXXrXXXXXXXLrLLLLrLLLLLrLLLLrLLLLLLLrLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 5,
+   "y": 25
+  },
+  {
+   "type": "switch_a",
+   "x": 19,
+   "y": 19
+  },
+  {
+   "type": "pad_human",
+   "x": 26,
+   "y": 25
+  },
+  {
+   "type": "pad_frog",
+   "x": 30,
+   "y": 25
+  },
+  {
+   "type": "switch_b",
+   "x": 39,
+   "y": 17
+  },
+  {
+   "type": "pad_bird",
+   "x": 36,
+   "y": 17
+  },
+  {
+   "type": "pad_fish",
+   "x": 22,
+   "y": 6
+  },
+  {
+   "type": "pad_human",
+   "x": 5,
+   "y": 6
+  },
+  {
+   "type": "exit",
+   "x": 7,
+   "y": 6
+  },
+  {
+   "type": "enemy_walker",
+   "x": 16,
+   "y": 25
+  },
+  {
+   "type": "enemy_jumper",
+   "x": 33,
+   "y": 25
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 41,
+   "y": 8,
+   "axis": "y",
+   "range": 40
+  },
+  {
+   "type": "enemy_swimmer",
+   "x": 17,
+   "y": 11
+  },
+  {
+   "type": "heart",
+   "x": 2,
+   "y": 25
+  },
+  {
+   "type": "heart",
+   "x": 41,
+   "y": 22
+  },
+  {
+   "type": "heart",
+   "x": 14,
+   "y": 19
+  },
+  {
+   "type": "gem",
+   "x": 9,
+   "y": 25
+  },
+  {
+   "type": "gem",
+   "x": 14,
+   "y": 25
+  },
+  {
+   "type": "gem",
+   "x": 28,
+   "y": 25
+  },
+  {
+   "type": "gem",
+   "x": 34,
+   "y": 25
+  },
+  {
+   "type": "gem",
+   "x": 46,
+   "y": 25
+  },
+  {
+   "type": "gem",
+   "x": 21,
+   "y": 19
+  },
+  {
+   "type": "gem",
+   "x": 44,
+   "y": 22
+  },
+  {
+   "type": "gem",
+   "x": 47,
+   "y": 19
+  },
+  {
+   "type": "gem",
+   "x": 27,
+   "y": 17
+  },
+  {
+   "type": "gem",
+   "x": 32,
+   "y": 10
+  },
+  {
+   "type": "gem",
+   "x": 27,
+   "y": 6
+  },
+  {
+   "type": "gem",
+   "x": 45,
+   "y": 13
+  },
+  {
+   "type": "gem",
+   "x": 33,
+   "y": 13
+  },
+  {
+   "type": "gem",
+   "x": 19,
+   "y": 5
+  },
+  {
+   "type": "gem",
+   "x": 9,
+   "y": 4
+  },
+  {
+   "type": "gem",
+   "x": 14,
+   "y": 11
+  },
+  {
+   "type": "gem",
+   "x": 5,
+   "y": 11
+  }
+ ],
+ "marks": {
+  "perch_1": {
+   "x": 32,
+   "y": 10
+  },
+  "perch_2": {
+   "x": 27,
+   "y": 6
+  },
+  "m_chain_foot": {
+   "x": 11,
+   "y": 25
+  },
+  "m_shelf_c": {
+   "x": 13,
+   "y": 19
+  },
+  "m_gate_w": {
+   "x": 22,
+   "y": 25
+  },
+  "m_lock": {
+   "x": 26,
+   "y": 25
+  },
+  "m_flue_foot": {
+   "x": 46,
+   "y": 25
+  },
+  "m_s1": {
+   "x": 45,
+   "y": 22
+  },
+  "m_s2": {
+   "x": 46,
+   "y": 19
+  },
+  "m_head_e": {
+   "x": 43,
+   "y": 17
+  },
+  "m_air": {
+   "x": 36,
+   "y": 13
+  },
+  "m_dive": {
+   "x": 19,
+   "y": 9
+  },
+  "m_sluice_e": {
+   "x": 13,
+   "y": 11
+  },
+  "m_sluice_w": {
+   "x": 11,
+   "y": 11
+  },
+  "m_surface": {
+   "x": 3,
+   "y": 8
+  },
+  "m_bank": {
+   "x": 4,
+   "y": 6
+  },
+  "m_bank_pad": {
+   "x": 5,
+   "y": 6
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "m_chain_foot",
+   "form": "human"
+  },
+  {
+   "from": "m_chain_foot",
+   "to": "m_shelf_c",
+   "form": "human"
+  },
+  {
+   "from": "m_shelf_c",
+   "to": "switch_a",
+   "form": "human"
+  },
+  {
+   "from": "switch_a",
+   "to": "m_gate_w",
+   "form": "human"
+  },
+  {
+   "from": "m_gate_w",
+   "to": "m_lock",
+   "form": "human"
+  },
+  {
+   "from": "m_lock",
+   "to": "pad_frog",
+   "form": "human"
+  },
+  {
+   "from": "pad_frog",
+   "to": "m_flue_foot",
+   "form": "frog"
+  },
+  {
+   "from": "m_flue_foot",
+   "to": "m_s1",
+   "form": "frog"
+  },
+  {
+   "from": "m_s1",
+   "to": "m_s2",
+   "form": "frog"
+  },
+  {
+   "from": "m_s2",
+   "to": "m_head_e",
+   "form": "frog"
+  },
+  {
+   "from": "m_head_e",
+   "to": "switch_b",
+   "form": "frog"
+  },
+  {
+   "from": "switch_b",
+   "to": "pad_bird",
+   "form": "frog"
+  },
+  {
+   "from": "pad_bird",
+   "to": "m_air",
+   "form": "bird"
+  },
+  {
+   "from": "m_air",
+   "to": "perch_1",
+   "form": "bird"
+  },
+  {
+   "from": "perch_1",
+   "to": "perch_2",
+   "form": "bird"
+  },
+  {
+   "from": "perch_2",
+   "to": "pad_fish",
+   "form": "bird"
+  },
+  {
+   "from": "pad_fish",
+   "to": "m_dive",
+   "form": "fish"
+  },
+  {
+   "from": "m_dive",
+   "to": "m_sluice_e",
+   "form": "fish"
+  },
+  {
+   "from": "m_sluice_e",
+   "to": "m_sluice_w",
+   "form": "fish"
+  },
+  {
+   "from": "m_sluice_w",
+   "to": "m_surface",
+   "form": "fish"
+  },
+  {
+   "from": "m_surface",
+   "to": "m_bank",
+   "form": "fish"
+  },
+  {
+   "from": "m_bank",
+   "to": "m_bank_pad",
+   "form": "fish"
+  },
+  {
+   "from": "m_bank_pad",
+   "to": "exit",
+   "form": "human"
+  }
+ ],
+ "tileset": "nest"
+}

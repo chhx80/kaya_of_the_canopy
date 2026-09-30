@@ -1,0 +1,41 @@
+[
+ {"_": "THE SWITCH VERB, weakest case — for the five OBSIDIAN NEST authors.",
+  "__": "Re-run with: tools/shot.sh --seq=tools/seq/m5_switches.json",
+  "___": "Then: tools/grid.sh shots/m5_verbs_switches.png 2 2 shots/_m5_sw_before.png shots/_m5_sw_after.png"},
+
+ {"_": "WHY RUINS_4 AND NOT A NEST LEVEL. The claim being proved is that a form with no",
+  "__": "blade throws a lever by putting its body in the trip box, underwater, where the",
+  "___": "margin is smallest. levels/nest_*.json belong to five other authors and a probe",
+  "____": "in tests/fixtures/ cannot be reached by a `scenario` at all (Game.goto_level",
+  "_____": "resolves res://levels/<id>.json), so the capture uses the one shipped level that",
+  "______": "already has a submerged lever: ruins_4 THE CISTERN, switch_b at (8,10), sitting in",
+  "_______": "the drowned tank. The machinery is shared — SwitchTrigger, TileWorld.switch_states",
+  "________": "and the tile pairs 11/12/26/27 are the same objects World 5 will use."},
+
+ {"scenario": "level:ruins_4", "settle": 210},
+
+ {"_": "Become the fish. pad_fish sits at (24,6) and TransformPad's box is the LOWER HALF",
+  "__": "of its tile, so she is dropped a row high at (24,5) and falls into it — the same",
+  "___": "trick tools/seq/deeps_1.json uses. The fish carries `bite`, which spawns a",
+  "____": "MeleeHit and trips nothing: from here on the only way to throw a lever is to",
+  "_____": "swim into it."},
+ {"teleport": [24, 5], "settle": 60},
+ {"log": "became_fish"},
+
+ {"_": "BEFORE. Dropped into the tank at (11,10), three tiles east of the lever and on",
+  "__": "the tank floor — the lever's trip box is the bottom 10 px of row 10, so a fish",
+  "___": "swimming high in that row would sail straight over it. Group 2 is OFF, which is",
+  "____": "the seed: the 'b' wall at column 4, rows 2-4, is SOLID and the lever is on its",
+  "_____": "OFF frame. Both are in this one screen."},
+ {"teleport": [11, 10], "settle": 40},
+ {"log": "before"},
+ {"shot": "shots/_m5_sw_before.png"},
+
+ {"_": "AFTER. Swim west into it. Contact is the whole verb — no button is pressed in",
+  "__": "this step and none can be: SwitchTrigger._physics_process() tests",
+  "___": "aabb().intersects(p.aabb()) every frame and toggles on overlap."},
+ {"press": "move_left", "frames": 50},
+ {"wait": 20},
+ {"log": "after"},
+ {"shot": "shots/_m5_sw_after.png"}
+]
