@@ -1205,6 +1205,20 @@ QUEEN = {'n': ("skin", 1.0), 'b': ("skin", 3.0), 'l': ("skin", 5.0),
          'a': ("stone", 3.0), 'w': ("metal", 6.0),
          'y': ("gold", 5.0), 'o': ("gold", 3.0), 'r': ("ember", 5.0)}
 
+#: THE OBSIDIAN HEART. One mapping for all 18 frames, as the other four bosses
+#: have, with the *character* carrying the phase. This is the only boss in the
+#: game that is not an animal, and the map says so: the shell is drawn on the
+#: bottom two steps of `purple` — the darkest near-black in the ramp table that
+#: is still a colour — with a cold `water` sheen for the rim of a glass edge,
+#: and everything that is alight climbs `gold` into `ember`.
+#:
+#: Whole-numbered bases, the Tide Maw's setting and the Brood Queen's: one very
+#: large flat mass, where a fractional ramp level dithers into a checkerboard.
+OBSIDIAN = {'g': ("purple", 0.0), 'G': ("purple", 2.0), 'h': ("water", 4.0),
+            'w': ("metal", 6.0),
+            'o': ("gold", 3.0), 'y': ("gold", 5.0),
+            'r': ("ember", 3.0), 'R': ("ember", 5.0)}
+
 BLADE = {'A': ("metal", 1.8), 'w': ("metal", 5.8)}
 GEM = {'c': ("water", 5.2), 'b': ("water", 3.4), 'w': ("metal", 6.0)}
 HEART = {'r': ("ember", 2.8), 'w': ("metal", 6.0)}
@@ -2181,3 +2195,300 @@ def build_boss_brood_queen():
     sheet("boss_brood_queen",
           lit(cells, QUEEN, depth=2, rate=1.0, lit=1.0, dark=1.0), 48, 48)
     print("boss_brood_queen.png  %d frames" % len(cells))
+
+
+def build_boss_obsidian_heart():
+    """THE OBSIDIAN HEART — 48x48, six frames per fight phase, nest_5.
+
+    The final boss of the game, and the only one that is not an animal: a heart
+    of black volcanic glass the size of a bull, ember-lit from the inside,
+    walking the floor of the nest on four stubby glass roots. It is drawn
+    **facing right** — the cleft between its lobes leans right, the roots step
+    right — which is the sheet convention `Enemy._update_anim()` assumes
+    (`flip_h` when `facing < 0`).
+
+    Frame order is the contract with data/enemies/obsidian_heart.json, which
+    names the six poses `<pose>_p1/_p2/_p3`, and src/enemies/obsidian_heart.gd
+    picks the suffix for the phase it is in:
+
+        0 idle   1-2 the walk   3 windup   4 the leap   5 the slam
+
+    **The glass is the phase.** The other four bosses change silhouette between
+    phases; this one changes how much of itself is still opaque. SEALED is a
+    closed stone with two cold seams and a coal somewhere behind it. INVERTED
+    has split along those seams — gold light in the cracks, the cleft gaping,
+    three shards knocked loose and riding beside it. MOLTEN has lost the fight
+    to keep itself shut: the core is a hole of ember light, the cracks run to
+    the rim, and the shell survives only as a rind around the outside.
+
+    That is the sheet's whole job. The mechanic underneath it is the arena
+    reconfiguring, which is made of tiles and cannot be drawn here — so what the
+    sprite has to carry is the reason the room keeps changing, and a stone
+    coming apart from the inside is that reason in one frame.
+
+    The 40x46 collision box sits at (4, 2) in the frame, which is the Brood
+    Queen's box and is measured rather than chosen, for the same reason: a body
+    standing on nest_5's one-way shelf has its chest at y=383..395, and a 46 px
+    body standing on the arena floor spans y=386..432, so the blade reaches it
+    from a shelf AND its body reaches a body standing on one. A refuge that is
+    safe from the boss forever is a corner to camp in.
+    """
+    import math
+
+    W = H = 48
+    ## The heart itself, measured once. Two lobes and a point; everything else
+    ## hangs off these three numbers. Drawn to span rows 2..45 of the frame,
+    ## because a 34 px animal inside a 46 px hurtbox is the Grove Warden's
+    ## recorded mistake and this is the last boss in the game to repeat it.
+    CX = 23.5
+    LOBE_Y, LOBE_R, LOBE_DX = 16.0, 10.6, 8.2
+    POINT_Y = 45.0
+
+    # shell   the opaque glass
+    # seam    the colour of a closed crack
+    # crack   the colour of an open one
+    # core    what is burning behind it
+    # rim     the character that carries the rim light on the crown
+    # gape    how far the cleft between the lobes is forced open, in px
+    # core_r  the radius of the burning core
+    # crack_n how many cracks run out of the core
+    # crack_w how wide each one is, in pixels: the phase's silhouette change
+    # shards  loose pieces riding beside it
+    PHASES = [
+        dict(name="SEALED", shell='g', seam='G', crack='h', core='o',
+             rim='h', gape=1.0, core_r=3.8, crack_n=3, crack_w=1, shards=0),
+        dict(name="INVERTED", shell='G', seam='h', crack='y', core='r',
+             rim='w', gape=3.0, core_r=5.6, crack_n=5, crack_w=2, shards=3),
+        dict(name="MOLTEN", shell='g', seam='y', crack='R', core='y',
+             rim='w', gape=5.2, core_r=6.6, crack_n=7, crack_w=3, shards=5),
+    ]
+    # dy      how far the whole body sits off its resting height
+    # squash  + is squat and wide, - is stretched and narrow
+    # lean    how far the crown is thrown forward (+ is toward the facing)
+    # roots   the leg phase, -1 / 0 / +1
+    # flare   how much the core is overdriven for THIS pose. The three attack
+    #         poses are the flared ones, which is the telegraph: this boss
+    #         brightens before it hits you and the nest changes with it.
+    # dust    flung glass chips under it
+    POSES = [
+        dict(dy=0, squash=0.0, lean=0.0, roots=0, flare=0.0, dust=0),   # idle
+        dict(dy=-1, squash=-0.4, lean=0.6, roots=-1, flare=0.0, dust=0),  # walk A
+        dict(dy=0, squash=0.5, lean=-0.4, roots=1, flare=0.0, dust=1),   # walk B
+        dict(dy=-2, squash=1.6, lean=-1.8, roots=0, flare=1.0, dust=3),  # windup
+        dict(dy=-4, squash=-1.8, lean=2.4, roots=1, flare=1.5, dust=5),  # leap
+        dict(dy=2, squash=2.4, lean=0.8, roots=-1, flare=2.0, dust=8),   # slam
+    ]
+
+    def make(ph, pose):
+        px = [['.'] * W for _ in range(H)]
+
+        def put(x, y, c):
+            x, y = int(round(x)), int(round(y))
+            if 0 <= x < W and 0 <= y < H:
+                px[y][x] = c
+
+        def at(x, y):
+            x, y = int(round(x)), int(round(y))
+            if 0 <= x < W and 0 <= y < H:
+                return px[y][x]
+            return None
+
+        dy = pose["dy"]
+        sq = pose["squash"]
+        lean = pose["lean"]
+        # Squash is volume-preserving, near enough: wider by as much as it is
+        # shorter, so a slam reads as weight landing and not as a smaller boss.
+        rx = LOBE_R + sq * 0.55
+        ry = LOBE_R - sq * 0.55
+        top = LOBE_Y + dy
+        bottom = POINT_Y + dy + sq * 0.8
+        gape = ph["gape"]
+
+        def inside(x, y):
+            """The heart, as one implicit shape.
+
+            Two lobes and the wedge under them, with `lean` shearing the whole
+            thing toward the facing as it rises — which is what makes the
+            windup read as a body gathering rather than a stone sliding.
+            """
+            shear = lean * (bottom - y) / max(1.0, bottom - (top - ry))
+            xs = x - shear
+            hit = False
+            for sgn in (-1.0, 1.0):
+                lcx = CX + sgn * (LOBE_DX + gape * 0.5)
+                if ((xs - lcx) / rx) ** 2 + ((y - top) / ry) ** 2 <= 1.0:
+                    hit = True
+            # The wedge: full width at the lobes' waist, tapering to the point.
+            wy0 = top
+            if not hit and wy0 <= y <= bottom:
+                t = (y - wy0) / max(1.0, bottom - wy0)
+                half = (LOBE_DX + gape * 0.5 + rx) * (1.0 - t * t)
+                if abs(xs - CX) <= half:
+                    hit = True
+            if not hit:
+                return False
+            # And the CLEFT cut back out of the crown: a V between the lobes,
+            # widening with the phase. Without it the two lobes merge into one
+            # dome and the thing reads as an egg — and the cleft is also the
+            # line the seams run down and the line the glass splits along, so
+            # it has to be a hole in the silhouette and not a drawn mark.
+            notch_top = top - ry
+            notch_bot = top + 1.5 + gape
+            if notch_top <= y <= notch_bot:
+                t = (y - notch_top) / max(1.0, notch_bot - notch_top)
+                if abs(xs - CX) <= (2.2 + gape) * (1.0 - t * t):
+                    return False
+            return True
+
+        # ---- the shell -------------------------------------------------
+        for y in range(H):
+            for x in range(W):
+                if inside(x, y):
+                    put(x, y, ph["shell"])
+
+        # ---- the roots. Four stubby glass feet, two near and two far, so the
+        # walk beats read at a glance and the body does not float.
+        root_y = bottom - 1
+        for i, ox in enumerate((-9.0, -3.0, 3.0, 9.0)):
+            step = pose["roots"] * (1 if i % 2 == 0 else -1)
+            for j in range(3):
+                put(CX + ox + step * 0.6, root_y + j, ph["shell"])
+                put(CX + ox + step * 0.6 + 1, root_y + j, ph["seam"])
+
+        # ---- the crown rim. The lit edge of a glass body is the only thing
+        # that says "glass" rather than "rock", so it is drawn and not left to
+        # auto_shade.
+        for sgn in (-1.0, 1.0):
+            lcx = CX + sgn * (LOBE_DX + gape * 0.5)
+            for a in range(-160, 20, 6):
+                th = math.radians(a)
+                x = lcx + math.cos(th) * (rx - 0.6) + lean * 0.8
+                y = top + math.sin(th) * (ry - 0.6)
+                if at(x, y) is not None and at(x, y) != '.':
+                    put(x, y, ph["rim"])
+
+        # ---- the core --------------------------------------------------
+        # A hole of fire behind the glass. Its rim is deliberately jagged
+        # rather than circular: a clean circle in the middle of a heart reads
+        # as a clock face, which is what the first cut of this sheet drew.
+        core_y = top + ry * 0.55
+        cr = ph["core_r"] + pose["flare"]
+        for y in range(H):
+            for x in range(W):
+                if px[y][x] == '.':
+                    continue
+                ddx, ddy = x - CX, y - core_y
+                th = math.atan2(ddy, ddx)
+                jag = 1.0 + 0.17 * math.sin(th * 5.0 + 1.3) + 0.10 * math.sin(th * 9.0)
+                d = math.hypot(ddx, ddy) / max(1.0, cr * jag)
+                if d <= 1.0:
+                    put(x, y, ph["core"])
+                elif d <= 1.0 + 2.0 / max(1.0, cr):
+                    put(x, y, ph["crack"])
+
+        # A RIND of unbroken glass around the outside, which nothing burning
+        # may cross. Without it the widest phase's cracks reach the outline and
+        # the heart stops reading as a heart: measured, MOLTEN at crack_w 3 and
+        # nine cracks was a gold splat with a purple fringe. This is the one
+        # rule that keeps the boss obsidian in the phase where it is losing.
+        RIND = 3
+        rind = [[False] * W for _ in range(H)]
+        for y in range(H):
+            for x in range(W):
+                if px[y][x] == '.':
+                    continue
+                for ddy in range(-RIND, RIND + 1):
+                    for ddx in range(-RIND, RIND + 1):
+                        if at(x + ddx, y + ddy) in (None, '.'):
+                            rind[y][x] = True
+                            break
+                    if rind[y][x]:
+                        break
+
+        # ---- the cracks. Radial, out of the core, `crack_n` of them, at fixed
+        # angles so the sheet is reproducible: nothing in this file may be
+        # random, because tools/gen_art.py has to be byte-identical run to run.
+        #
+        # They are drawn `crack_w` pixels wide, and that is the phase's whole
+        # silhouette change. A one-pixel crack in a 40 px stone is a scratch;
+        # three pixels of ember light running to the rim is a stone losing. The
+        # shell is never filled in wholesale — an all-gold heart stopped being
+        # obsidian, which is the one thing this boss is named for.
+        for i in range(ph["crack_n"]):
+            th = math.radians(-90.0 + (360.0 / max(1, ph["crack_n"])) * i + 18.0)
+            nx, ny = math.cos(th), math.sin(th)
+            length = cr + 6.0 + ph["crack_w"] * 2.0
+            wob = 0.0
+            for s in range(int(cr), int(length)):
+                wob += 0.40 * math.sin(s * 0.9 + i * 2.1)
+                x = CX + nx * s + wob
+                y = core_y + ny * s
+                if at(x, y) in (None, '.'):
+                    break
+                # Across the crack, not along it: the perpendicular is what
+                # gives it width without turning it into a wedge.
+                for k in range(ph["crack_w"]):
+                    off = k - (ph["crack_w"] - 1) * 0.5
+                    cx2, cy2 = x - ny * off, y + nx * off
+                    ix, iy = int(round(cx2)), int(round(cy2))
+                    if at(cx2, cy2) in (None, '.'):
+                        continue
+                    if 0 <= ix < W and 0 <= iy < H and rind[iy][ix]:
+                        continue
+                    # Hot in the middle, cooling at the lips, so a wide crack
+                    # reads as depth rather than as a painted stripe.
+                    hot = abs(off) < 0.6 and s < length - 3
+                    put(cx2, cy2, ph["core"] if hot else ph["crack"])
+
+        # ---- the seams. Two cold lines down the cleft, always, in every phase:
+        # they are what INVERTED and MOLTEN are splitting ALONG, so they have to
+        # be visible while they are still shut.
+        for j in range(int(top - ry * 0.2), int(bottom - 2)):
+            t = (j - (top - ry * 0.2)) / max(1.0, bottom - 2 - (top - ry * 0.2))
+            for sgn in (-1.0, 1.0):
+                x = CX + sgn * (1.6 + gape * 0.5) * (1.0 - t * 0.7)
+                if at(x, j) not in (None, '.'):
+                    put(x, j, ph["seam"])
+
+        # ---- loose shards, riding beside it once the shell has opened.
+        for i in range(ph["shards"]):
+            th = math.radians(-118.0 + 236.0 * (i / max(1, ph["shards"] - 1) if ph["shards"] > 1 else 0.5))
+            r = rx + 6.0 + (i % 2) * 3.0
+            sx = CX + math.cos(th) * r + lean
+            sy = core_y + math.sin(th) * r * 0.82
+            # A shard, not a dot: a three-pixel wedge with a lit lip, so a
+            # piece of the boss that has come off reads as broken glass.
+            put(sx, sy, ph["shell"])
+            put(sx + 1, sy, ph["shell"])
+            put(sx, sy + 1, ph["shell"])
+            put(sx + 1, sy - 1, ph["seam"])
+            put(sx - 1, sy + 1, ph["crack"])
+
+        # ---- flung chips, under it, on the poses that land.
+        for i in range(pose["dust"]):
+            x = CX - 15.0 + i * 4.3
+            y = bottom - 1 + (i % 2)
+            if at(x, y) in (None, '.'):
+                put(x, y, ph["seam"])
+
+        # ---- ink outline, the last pass, exactly as the other four bosses.
+        out = [row[:] for row in px]
+        for y in range(H):
+            for x in range(W):
+                if px[y][x] != '.':
+                    continue
+                for ddy, ddx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    yy, xx = y + ddy, x + ddx
+                    if 0 <= yy < H and 0 <= xx < W and px[yy][xx] not in ('.', 'k'):
+                        out[y][x] = 'k'
+                        break
+        return ["".join(r) for r in out]
+
+    cells = [make(ph, pose) for ph in PHASES for pose in POSES]
+    # depth=2 and whole-numbered rates, THE TIDE MAW's setting and the Brood
+    # Queen's, for their reason: this is one very large flat mass, and a
+    # fractional ramp level is drawn as a dither, which puts a checkerboard
+    # across half of a 40 px stone.
+    sheet("boss_obsidian_heart",
+          lit(cells, OBSIDIAN, depth=2, rate=1.0, lit=1.0, dark=1.0), 48, 48)
+    print("boss_obsidian_heart.png  %d frames" % len(cells))

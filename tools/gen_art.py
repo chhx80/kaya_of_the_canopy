@@ -443,6 +443,7 @@ def main():
     sprites.build_boss_stormcrest()
     sprites.build_boss_tide_maw()
     sprites.build_boss_brood_queen()
+    sprites.build_boss_obsidian_heart()
     backdrops.build_font()
     backdrops.build_logo()
     backdrops.build_title_bg()

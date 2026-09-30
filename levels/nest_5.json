@@ -1,0 +1,323 @@
+{
+ "id": "nest_5",
+ "name": "THE OBSIDIAN HEART",
+ "music": "boss",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "ssssssssssssssssssssssssssssssssssssssssssssssssss",
+  "sdddddddddddddddddddddddddddddddddddddsdddddddddds",
+  "sdddddddddddddddddddddddddddddddddddddsdddddddddds",
+  "sdddddddddddddddddddddddddddddddddddddsdddddddddds",
+  "s...................ddddddddddddddddddsdddddddddds",
+  "s...................ddddddddddddddddddsdddddddddds",
+  "s################...ddddddddddddddddddsdddddddddds",
+  "sdddddddddddddddd...ddddddddddddddddddsdddddddddds",
+  "sdddddddddddddddd...ddddddddd.........sdddddddddds",
+  "sdddddddddddddddd...ddddddddd.........sdddddddddds",
+  "sdddddddddddddddd...ddddddddd...####..sdddddddddds",
+  "sdddddddddddd...................dddd..sdddddddddds",
+  "sdddddddddddd...................dddd..sdddddddddds",
+  "sdddddddddddd###################dddd..sdddddddddds",
+  "sddddddddddddddddddddddddddddddddddd..sdddddddddds",
+  "sddddddddddddddddddddddddsssssssssss..ssssssssssss",
+  "sdddddddddddddddddddddddds..ss....ss......sssss..s",
+  "sdddddddddddddddddddddddds..ss....ss......sssss..s",
+  "sdddddddddddddddddddddddds..ss....ss......sssss..s",
+  "sdddddddddddddddddddddddds..ss....ss......sssss..s",
+  "sdddddddddddddddddddddddds..ss....ss......sssss..s",
+  "sdddddddddddddddddddddddds..BB............AA.ba..s",
+  "sdddddddddddddddddddddddds..BB............AA.ba..s",
+  "sdddddddddddddddddddddddds....SS........SS.....SSs",
+  "sdddddddddddddddddddddddds.......................s",
+  "sdddddddddddddddddddddddds..==............===....s",
+  "sdddddddddddddddddddddddds.......................s",
+  "sdddddddddddddddddddddddds########SS#############s",
+  "sddddddddddddddddddddddddsddddddddddddddddddddddds",
+  "ssssssssssssssssssssssssssddddddddddddddddddddddds"
+ ],
+ "bg": [
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLTLLLLTLLLLTLLXXXLLTLLLLLLLLLLLLLXXLLLLLLLLLLLL",
+  "LLLLTLLLLTLLLLTLLXXXLLTLLLLLLLLLLLLLXXLLLLLLLLLLLL",
+  "LLLLTLLLLTLLLLTLLXXXrrTLLLLLLLLLLLLLXXLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLXXXrrLLLLLLLLLLLLLLXXLLLLLLLrrLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLrrLXXLLLLLLLrrLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLrrLXXLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLXXLLLLLLLLLLLL",
+  "LLLLLLrrLLLLLLLrrLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLrrLLLLLLLrrLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLrrLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLrrLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXrXXXXXrXXXXrXXXXXXXXXrL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXrXXXXXrXXXXrXXXXXXXXXrL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLXXXXXXXXXXXXXXXXXXXXXXXL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
+ ],
+ "entities": [
+  {
+   "type": "player_spawn",
+   "x": 2,
+   "y": 5
+  },
+  {
+   "type": "boss_obsidian_heart",
+   "x": 35,
+   "y": 26
+  },
+  {
+   "type": "boss_exit",
+   "x": 27,
+   "y": 26
+  },
+  {
+   "type": "pad_frog",
+   "x": 27,
+   "y": 12
+  },
+  {
+   "type": "pad_human",
+   "x": 36,
+   "y": 26
+  },
+  {
+   "type": "pad_frog",
+   "x": 30,
+   "y": 22
+  },
+  {
+   "type": "gem",
+   "x": 31,
+   "y": 22
+  },
+  {
+   "type": "pad_bird",
+   "x": 40,
+   "y": 22
+  },
+  {
+   "type": "gem",
+   "x": 41,
+   "y": 22
+  },
+  {
+   "type": "pad_human",
+   "x": 47,
+   "y": 22
+  },
+  {
+   "type": "gem",
+   "x": 48,
+   "y": 22
+  },
+  {
+   "type": "enemy_walker",
+   "x": 14,
+   "y": 12
+  },
+  {
+   "type": "enemy_charger",
+   "x": 16,
+   "y": 12
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 19,
+   "y": 8,
+   "axis": "y",
+   "range": 32
+  },
+  {
+   "type": "heart",
+   "x": 8,
+   "y": 5
+  },
+  {
+   "type": "heart",
+   "x": 22,
+   "y": 12
+  },
+  {
+   "type": "heart",
+   "x": 35,
+   "y": 9
+  },
+  {
+   "type": "heart",
+   "x": 28,
+   "y": 24
+  },
+  {
+   "type": "heart",
+   "x": 43,
+   "y": 24
+  },
+  {
+   "type": "gem",
+   "x": 4,
+   "y": 5
+  },
+  {
+   "type": "gem",
+   "x": 11,
+   "y": 5
+  },
+  {
+   "type": "gem",
+   "x": 16,
+   "y": 5
+  },
+  {
+   "type": "gem",
+   "x": 18,
+   "y": 9
+  },
+  {
+   "type": "gem",
+   "x": 15,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 19,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 24,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 26,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 30,
+   "y": 12
+  },
+  {
+   "type": "gem",
+   "x": 32,
+   "y": 9
+  },
+  {
+   "type": "gem",
+   "x": 34,
+   "y": 9
+  },
+  {
+   "type": "gem",
+   "x": 26,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 33,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 38,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 48,
+   "y": 26
+  },
+  {
+   "type": "gem",
+   "x": 29,
+   "y": 24
+  },
+  {
+   "type": "gem",
+   "x": 44,
+   "y": 24
+  }
+ ],
+ "marks": {
+  "hearthold": {
+   "x": 36,
+   "y": 26
+  },
+  "flue_head": {
+   "x": 11,
+   "y": 5
+  },
+  "chute_foot": {
+   "x": 18,
+   "y": 12
+  },
+  "flue_pad": {
+   "x": 27,
+   "y": 12
+  },
+  "step_foot": {
+   "x": 31,
+   "y": 12
+  },
+  "ledge_lip": {
+   "x": 35,
+   "y": 9
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "flue_head",
+   "form": "human"
+  },
+  {
+   "from": "flue_head",
+   "to": "chute_foot",
+   "form": "human"
+  },
+  {
+   "from": "chute_foot",
+   "to": "flue_pad",
+   "form": "human"
+  },
+  {
+   "from": "flue_pad",
+   "to": "step_foot",
+   "form": "frog"
+  },
+  {
+   "from": "step_foot",
+   "to": "ledge_lip",
+   "form": "frog"
+  },
+  {
+   "from": "ledge_lip",
+   "to": "hearthold",
+   "form": "frog"
+  },
+  {
+   "from": "hearthold",
+   "to": "boss_exit",
+   "form": "human"
+  }
+ ],
+ "tileset": "nest"
+}

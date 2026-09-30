@@ -70,6 +70,9 @@ var passes := 0
 var lines: PackedStringArray = PackedStringArray()
 var _current := ""
 var _completed := false
+## Which phase each safe tile was observed in, so the reachability and
+## fightability probes can stage the arena that tile actually lives in.
+var _probe_phase: Dictionary = {}
 
 # ---------------------------------------------------------------- harness
 func frames(n: int) -> void:
@@ -111,6 +114,45 @@ func boot() -> bool:
 func arena_tile_origin() -> Vector2i:
 	var o := Screen.origin(home_screen)
 	return Vector2i(int(o.x / TS), int(o.y / TS))
+
+## THE PER-CONFIGURATION EXTENSION — added for THE OBSIDIAN HEART, and generic.
+##
+## ADR 005's check 4 says "run the Route Prover over the arena itself, IN EACH
+## PHASE CONFIGURATION — this matters most for The Obsidian Heart, whose arena
+## moves". Until that boss existed no arena moved in a way that changed where you
+## could stand: THE TIDE MAW's flood writes water, which is not solid, and its
+## own file says so ("the set of standable tiles is the same in both tide
+## states, which is what makes the fairness sweep — which finds the standable
+## tiles once and then sweeps every phase — mean what it says here").
+##
+## THE OBSIDIAN HEART writes SOLIDITY. So three things here are now per-phase
+## rather than once, and all three are the smallest change that makes the
+## existing checks keep meaning what they say. For every other boss they are
+## no-ops, because for every other boss the answer does not change between
+## phases.
+##
+##   1. `standable_tiles()` is re-collected inside the phase loop instead of
+##      once before it, so the sweep sweeps the room that phase is actually in.
+##   2. `_can_hop_onto()` and `_can_fight_from()` stage the PHASE the refuge was
+##      found in instead of always phase 0 — a refuge that only exists in phase 2
+##      cannot be probed in phase 1's arena.
+##   3. solidity is resolved through `TileWorld.is_solid()` rather than
+##      `TileCollision.has_flag(SOLID)`. `has_flag` ORs the RAW flags of every
+##      overlapped tile and a switch block carries SOLID whatever its group is
+##      doing, so it answers "is there a switch block here", not "is it solid
+##      right now". That is correct for every level in the game that has no
+##      switch blocks in its arena, and wrong for every question this one asks:
+##      measured, it reported every tile in all six of nest_5's bays as solid in
+##      all three phases, which would have silently excluded the entire mechanic
+##      from the sweep.
+func rect_hits_solid(r: Rect2) -> bool:
+	var cols := TileCollision.tile_range(r.position.x, r.position.x + r.size.x)
+	var rows := TileCollision.tile_range(r.position.y, r.position.y + r.size.y)
+	for ty in range(rows.x, rows.y + 1):
+		for tx in range(cols.x, cols.y + 1):
+			if lvl.world.is_solid(tx, ty):
+				return true
+	return false
 
 ## Every tile Kaya can stand on inside the arena screen, found by putting her
 ## real hitbox there and asking the real collision code, not by reading tile ids.
@@ -361,26 +403,37 @@ func discover_attacks(phase: int, probes: Array) -> Array:
 func check_fair() -> void:
 	_current = "fair"
 	var phases: Array = boss.cfg.get("phases", [])
-	var tiles := standable_tiles()
 	say("")
-	say("  arena %s   standable tiles: %d   phases: %d"
-		% [str(boss.home_screen), tiles.size(), phases.size()])
-	check(tiles.size() > 0, "the arena has no standable tile at all")
-	if tiles.is_empty():
-		return
-
-	var sweep_tiles: Array = tiles
-	if quick:
-		sweep_tiles = []
-		for i in tiles.size():
-			if i % 4 == 0:
-				sweep_tiles.append(tiles[i])
+	say("  arena %s   phases: %d" % [str(boss.home_screen), phases.size()])
 	var total_escapes := 0
 	var body_tiles: Dictionary = {}
 	var safe_by_phase: Dictionary = {}
+	var tiles_by_phase: Dictionary = {}
+	var solid_by_phase: Dictionary = {}
+	var swept := 0
 
 	for phase in phases.size():
 		var pname := String((phases[phase] as Dictionary).get("name", "phase %d" % phase))
+		# THE PER-CONFIGURATION SWEEP. Staging the phase first is what makes this
+		# the room that phase is in; for a boss that does not move its arena the
+		# set is identical every time round and this costs one reset.
+		reset_arena(phase)
+		await frames(SETTLE)
+		var tiles := standable_tiles()
+		tiles_by_phase[phase] = tiles
+		solid_by_phase[phase] = arena_solidity()
+		check(tiles.size() > 0,
+			"phase %d (%s): the arena has no standable tile at all" % [phase, pname])
+		if tiles.is_empty():
+			continue
+		var sweep_tiles: Array = tiles
+		if quick:
+			sweep_tiles = []
+			for i in tiles.size():
+				if i % 4 == 0:
+					sweep_tiles.append(tiles[i])
+		swept = maxi(swept, sweep_tiles.size())
+		say("  phase %d %-9s standable tiles: %d" % [phase, pname, tiles.size()])
 		var expected: Array = await discover_attacks(phase, _probe_tiles(sweep_tiles))
 		say("  phase %d %-6s attacks: %s" % [phase, pname,
 			", ".join(PackedStringArray(expected)) if not expected.is_empty() else "(none)"])
@@ -448,8 +501,92 @@ func check_fair() -> void:
 	# you cannot get to during the fight is not a dodge. Reported because the
 	# whole point of this gate is that nothing goes unmeasured.
 	_current = "fair"
+	_report_configurations(tiles_by_phase, solid_by_phase)
 	await _report_refuge_reachability(safe_by_phase)
-	say("  the boss body reached %d of the %d swept tiles" % [body_tiles.size(), sweep_tiles.size()])
+	say("  the boss body reached %d of the %d swept tiles" % [body_tiles.size(), swept])
+
+## What the reconfiguration actually did, named tile by tile. ADR 005's check 4
+## asks whether the arena is still playable in every phase configuration; the
+## sweep above answers the fairness half by construction now that it is
+## per-phase, and this is the part a reader needs in order to believe it — which
+## tiles each phase added and took away, and whether the lowest row (the arena
+## floor, and the only thing check 5 walks along) ever changes.
+## Which tiles of the arena are solid right now. Read through
+## `TileWorld.is_solid()`, so switch groups are resolved — this is the arena as
+## the collision code sees it this instant, not as the file was authored.
+func arena_solidity() -> Dictionary:
+	var out: Dictionary = {}
+	var t0 := arena_tile_origin()
+	for ty in range(t0.y, t0.y + Screen.H / int(TS)):
+		for tx in range(t0.x, t0.x + Screen.W / int(TS)):
+			if lvl.world.is_solid(tx, ty):
+				out[Vector2i(tx, ty)] = true
+	return out
+
+func _report_configurations(tiles_by_phase: Dictionary,
+		solid_by_phase: Dictionary) -> void:
+	var keys: Array = tiles_by_phase.keys()
+	keys.sort()
+	var floors: Dictionary = {}
+	for phase: int in keys:
+		var lowest := -1
+		for t: Vector2i in (tiles_by_phase[phase] as Array):
+			lowest = maxi(lowest, t.y)
+		var row: Array = []
+		for t: Vector2i in (tiles_by_phase[phase] as Array):
+			if t.y == lowest:
+				row.append(t)
+		floors[phase] = row.size()
+	for i in keys.size():
+		if i == 0:
+			continue
+		var prev: Dictionary = {}
+		for t: Vector2i in (tiles_by_phase[keys[i - 1]] as Array):
+			prev[t] = true
+		var gained: Array = []
+		var here: Dictionary = {}
+		for t: Vector2i in (tiles_by_phase[keys[i]] as Array):
+			here[t] = true
+			if not prev.has(t):
+				gained.append(t)
+		var lost: Array = []
+		for t: Vector2i in prev.keys():
+			if not here.has(t):
+				lost.append(t)
+		# Two different things change when an arena reconfigures and they are
+		# worth saying separately, because for THE OBSIDIAN HEART the first is
+		# zero and the second is the whole mechanic: WHERE YOU CAN STAND may not
+		# move at all while WHAT IS SOLID moves a lot. Its bays keep their
+		# permanent ledges in every configuration — the plug that seals one is
+		# two rows above the ledge, so it changes what you can CLIMB, not what
+		# you can stand on. A gate that only diffed the standable set would have
+		# reported "nothing changed" about a boss whose entire idea is that the
+		# room changes.
+		var was: Dictionary = solid_by_phase.get(keys[i - 1], {})
+		var now: Dictionary = solid_by_phase.get(keys[i], {})
+		var became := 0
+		var opened := 0
+		for t: Vector2i in now.keys():
+			if not was.has(t):
+				became += 1
+		for t: Vector2i in was.keys():
+			if not now.has(t):
+				opened += 1
+		say("  reconfiguration %d -> %d: %d tile(s) became solid, %d stopped being"
+			% [keys[i - 1], keys[i], became, opened])
+		say("      standable set: %d tile(s) opened %s, %d closed %s"
+			% [gained.size(), _tiles_str(gained), lost.size(), _tiles_str(lost)])
+	var same := true
+	for phase: int in keys:
+		if int(floors[phase]) != int(floors[keys[0]]):
+			same = false
+	check(same,
+		"the arena floor is not the same width in every phase configuration (%s) "
+			% str(floors)
+		+ "— check 5 walks Kaya out along it, and a configuration that shortens "
+		+ "it can seal a pocket")
+	say("  the arena floor is %d tile(s) wide in every phase configuration"
+		% int(floors[keys[0]]))
 
 ## A few tiles spread across the sweep set, for the discovery pass.
 func _probe_tiles(tiles: Array) -> Array:
@@ -486,11 +623,14 @@ func _report_refuge_reachability(safe_by_phase: Dictionary) -> void:
 				if floor_tiles.has(tile):
 					reachable.append(tile)
 					continue
-				var ok: bool = await _can_hop_onto(tile, floor_tiles)
+				# In THE PHASE IT WAS FOUND IN: a refuge that only exists in one
+				# configuration cannot be probed in another one's arena.
+				var ok: bool = await _can_hop_onto(tile, floor_tiles, phase)
 				if ok:
 					reachable.append(tile)
 				else:
 					unreachable.append(tile)
+				_probe_phase[tile] = phase
 	say("  refuges: %d reachable from the arena floor, %d not"
 		% [reachable.size(), unreachable.size()])
 	if not unreachable.is_empty():
@@ -546,8 +686,8 @@ func _measure_apex() -> float:
 ## Stand on the tile and throw the blade at the boss for six seconds. Synthetic
 ## input goes through the real InputMap, so this is the weapon the player has,
 ## fired the way the player fires it.
-func _can_fight_from(tile: Vector2i) -> bool:
-	reset_arena(0)
+func _can_fight_from(tile: Vector2i, phase: int = 0) -> bool:
+	reset_arena(phase)
 	pl.control_enabled = true
 	pl.dead = false
 	pl.invuln = 999.0
@@ -586,7 +726,7 @@ func _floor_tiles() -> Array:
 ## Runs the real player: stand under the target, hold toward it, jump, and see
 ## whether she ends up standing on it. Tries from every floor tile within a
 ## screen's reach, nearest first.
-func _can_hop_onto(target: Vector2i, floor_tiles: Array) -> bool:
+func _can_hop_onto(target: Vector2i, floor_tiles: Array, phase: int = 0) -> bool:
 	var order: Array = floor_tiles.duplicate()
 	order.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
 		return absi(a.x - target.x) < absi(b.x - target.x))
@@ -618,8 +758,8 @@ func _can_hop_onto(target: Vector2i, floor_tiles: Array) -> bool:
 ##
 ## So: clear the carried-over value, require that she actually left the ground,
 ## and ask where her feet are.
-func _try_hop(from: Vector2i, target: Vector2i, run_up: int) -> bool:
-	reset_arena(0)
+func _try_hop(from: Vector2i, target: Vector2i, run_up: int, phase: int = 0) -> bool:
+	reset_arena(phase)
 	boss.active = false            ## the hop question is geometry, not combat
 	pl.control_enabled = true
 	pl.dead = false
