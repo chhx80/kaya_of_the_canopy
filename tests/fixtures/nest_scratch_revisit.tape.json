@@ -1,0 +1,145 @@
+{
+ "fps": 60,
+ "hops": [
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 8
+    },
+    {
+     "a": "none",
+     "n": 2
+    }
+   ],
+   "from": "spawn",
+   "to": "gate_lower_e"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+down+jump",
+     "n": 4
+    },
+    {
+     "a": "right",
+     "n": 36
+    },
+    {
+     "a": "none",
+     "n": 1
+    }
+   ],
+   "from": "gate_lower_e",
+   "to": "switch_a"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 7
+    }
+   ],
+   "from": "switch_a",
+   "to": "ladder_foot"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "jump",
+     "n": 8
+    },
+    {
+     "a": "up",
+     "n": 1
+    }
+   ],
+   "from": "ladder_foot",
+   "to": "ladder_top"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "left+jump",
+     "n": 8
+    },
+    {
+     "a": "left",
+     "n": 20
+    },
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "ladder_top",
+   "to": "gate_upper_w"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 36
+    },
+    {
+     "a": "right+down+jump",
+     "n": 4
+    },
+    {
+     "a": "left",
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 3
+    }
+   ],
+   "from": "gate_upper_w",
+   "to": "exit"
+  }
+ ],
+ "level": "nest_scratch_revisit",
+ "source_sha": "5d76466c6448c158513ab9593348f7d1116a08f68d8799c04cc07ad4d5a32f5e"
+}

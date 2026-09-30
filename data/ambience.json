@@ -311,6 +311,133 @@
       }
     },
 
+    "nest_1": {
+      "_note": "BLACK GLASS. World 5's teacher, and the first level in the game whose subject is a lever. Cold glass lit from inside: the air is thin and dark so the backdrop stays behind the tiles, the fg tint is pushed one step towards ember rather than desaturated, and every pool is on something the player has to read -- the two levers, the trading wall's two doorways, the mouth of the flue, the slag gate's two ends and the exit. The emissive tiles are the level's own light and are all three of them SOLID, because AmbienceLayer._collect_emissive scans the fg: 281 obsidian_hot is the heat, banded around every nest_vein in the backdrop and run along the whole lower floor, so the deep half of the level is visibly the hot one; 287 nest_shard is the two pits, which glow for the reason deeps_1's spore does; 291 nest_crust is the single breakable, glowing once, which is how TERMITE DEEPS taught 'this wall is different'. 289 nest_vein is NOT in here: it is a background tile by its own art and emits nothing from back there, which is the point -- the flow is behind the glass and the glass is what you see.",
+      "world": "obsidian",
+      "air": { "ramp": "ember", "step": 1, "alpha": 0.30 },
+      "bg_tint": { "ramp": "ember", "step": 2, "mix": 0.72, "scale": 0.48 },
+      "fg_tint": { "ramp": "ember", "step": 5, "mix": 0.18, "scale": 0.92 },
+      "vignette": 0.38,
+      "lights": [
+        { "x": 3, "y": 11, "radius": 72, "ramp": "ember", "step": 5, "intensity": 0.34 },
+        { "x": 10, "y": 11, "radius": 64, "ramp": "gold", "step": 5, "intensity": 0.46, "flicker": 0.18 },
+        { "x": 17, "y": 7, "radius": 56, "ramp": "gold", "step": 4, "intensity": 0.34 },
+        { "x": 17, "y": 12, "radius": 56, "ramp": "gold", "step": 4, "intensity": 0.34 },
+        { "x": 30, "y": 10, "radius": 80, "ramp": "ember", "step": 4, "intensity": 0.26 },
+        { "x": 44, "y": 13, "radius": 72, "ramp": "ember", "step": 5, "intensity": 0.30 },
+        { "x": 44, "y": 24, "radius": 64, "ramp": "ember", "step": 4, "intensity": 0.26 },
+        { "x": 37, "y": 25, "radius": 64, "ramp": "gold", "step": 5, "intensity": 0.46, "flicker": 0.18 },
+        { "x": 28, "y": 25, "radius": 56, "ramp": "gold", "step": 4, "intensity": 0.32 },
+        { "x": 20, "y": 24, "radius": 88, "ramp": "ember", "step": 4, "intensity": 0.30 },
+        { "x": 3, "y": 17, "radius": 76, "ramp": "gold", "step": 6, "intensity": 0.54, "flicker": 0.10 }
+      ],
+      "emissive": {
+        "281": { "ramp": "ember", "step": 5, "intensity": 0.18, "radius": 24 },
+        "287": { "ramp": "ember", "step": 6, "intensity": 0.32, "radius": 26, "lift": 5 },
+        "291": { "ramp": "ember", "step": 6, "intensity": 0.38, "radius": 28 }
+      }
+    },
+
+    "nest_2": {
+      "_note": "THE SWITCHYARD. World 5's second level and the first one whose subject is COMPOSITION: two levers, six doors, and most of the doors in rooms the lever cannot see. The light says which is which. GOLD pools sit on the two levers in the cabin and on all five gantry plugs plus the two yard doors -- the things a throw moves -- and EMBER pools sit on the three chutes and the two chain heads, which are the things that are always true. No `darkness` key: the dark is World 4's verb and this world's is the lever, so everything here is tint, vignette and the tiles that glow. The emissive entries are the level's own light and both are SOLID, because AmbienceLayer._collect_emissive scans the fg: 281 obsidian_hot is the heat banded around every nest_vein in the backdrop, and 287 nest_shard is the two pits, which glow for the reason deeps_1's spore does -- a hazard you cannot see is a coin toss. 289 nest_vein is NOT in here: it is a background tile by its own art and emits nothing from back there, which is the point.",
+      "world": "obsidian",
+      "air": { "ramp": "ember", "step": 1, "alpha": 0.28 },
+      "bg_tint": { "ramp": "ember", "step": 2, "mix": 0.70, "scale": 0.50 },
+      "fg_tint": { "ramp": "ember", "step": 5, "mix": 0.18, "scale": 0.92 },
+      "vignette": 0.36,
+      "lights": [
+        { "x": 29, "y": 25, "radius": 64, "ramp": "gold", "step": 5, "intensity": 0.48, "flicker": 0.18 },
+        { "x": 30, "y": 18, "radius": 64, "ramp": "gold", "step": 5, "intensity": 0.48, "flicker": 0.18 },
+        { "x": 26, "y": 25, "radius": 56, "ramp": "gold", "step": 4, "intensity": 0.32 },
+        { "x": 37, "y": 19, "radius": 56, "ramp": "gold", "step": 4, "intensity": 0.32 },
+        { "x": 38, "y": 9, "radius": 60, "ramp": "gold", "step": 4, "intensity": 0.34 },
+        { "x": 26, "y": 9, "radius": 60, "ramp": "gold", "step": 4, "intensity": 0.34 },
+        { "x": 17, "y": 9, "radius": 60, "ramp": "gold", "step": 4, "intensity": 0.34 },
+        { "x": 13, "y": 9, "radius": 60, "ramp": "gold", "step": 4, "intensity": 0.34 },
+        { "x": 9, "y": 9, "radius": 64, "ramp": "gold", "step": 6, "intensity": 0.52, "flicker": 0.10 },
+        { "x": 21, "y": 14, "radius": 72, "ramp": "ember", "step": 4, "intensity": 0.30 },
+        { "x": 34, "y": 14, "radius": 64, "ramp": "ember", "step": 4, "intensity": 0.26 },
+        { "x": 42, "y": 21, "radius": 56, "ramp": "ember", "step": 4, "intensity": 0.24 },
+        { "x": 15, "y": 20, "radius": 76, "ramp": "ember", "step": 5, "intensity": 0.30 },
+        { "x": 46, "y": 16, "radius": 64, "ramp": "ember", "step": 4, "intensity": 0.26 },
+        { "x": 3, "y": 26, "radius": 72, "ramp": "ember", "step": 5, "intensity": 0.32 }
+      ],
+      "emissive": {
+        "281": { "ramp": "ember", "step": 5, "intensity": 0.18, "radius": 24 },
+        "287": { "ramp": "ember", "step": 6, "intensity": 0.32, "radius": 26, "lift": 5 }
+      }
+    },
+
+    "nest_3": {
+      "_note": "FOUR SHAPES. The working floor of the nest, and the one level in the world that is lit in four different rooms at once. EMBER is the room everywhere: the forge floor is the hottest thing in the level and the quench the coldest, which is the `bg_tint` doing the work rather than a second alpha. GOLD is reserved for what a throw moves or what you act on -- the two levers, and each of the four doors they move -- so the player can read the machine off the light. No `darkness` key: the dark is World 4's verb and this world's is the lever. The two emissive entries are the level's own light and both are SOLID, because AmbienceLayer._collect_emissive scans the fg: 281 obsidian_hot is the heat `_hot()` bands around every nest_vein, and 287 nest_shard is the trench, which glows for the reason deeps_1's spore does -- a hazard you cannot see is a coin toss. 289 nest_vein is NOT in here: it is a background tile by its own art and emits nothing from back there, which is the point.",
+      "world": "obsidian",
+      "air": { "ramp": "ember", "step": 1, "alpha": 0.26 },
+      "bg_tint": { "ramp": "ember", "step": 2, "mix": 0.66, "scale": 0.52 },
+      "fg_tint": { "ramp": "ember", "step": 5, "mix": 0.16, "scale": 0.93 },
+      "vignette": 0.34,
+      "lights": [
+        { "x": 8, "y": 19, "radius": 64, "ramp": "gold", "step": 5, "intensity": 0.48, "flicker": 0.18 },
+        { "x": 39, "y": 17, "radius": 64, "ramp": "gold", "step": 5, "intensity": 0.48, "flicker": 0.18 },
+        { "x": 23, "y": 24, "radius": 56, "ramp": "gold", "step": 4, "intensity": 0.34 },
+        { "x": 12, "y": 11, "radius": 60, "ramp": "gold", "step": 4, "intensity": 0.34 },
+        { "x": 44, "y": 16, "radius": 56, "ramp": "gold", "step": 4, "intensity": 0.34 },
+        { "x": 25, "y": 5, "radius": 60, "ramp": "gold", "step": 6, "intensity": 0.50, "flicker": 0.10 },
+        { "x": 17, "y": 22, "radius": 72, "ramp": "ember", "step": 5, "intensity": 0.30 },
+        { "x": 36, "y": 15, "radius": 72, "ramp": "ember", "step": 4, "intensity": 0.30 },
+        { "x": 32, "y": 10, "radius": 64, "ramp": "ember", "step": 4, "intensity": 0.24 },
+        { "x": 27, "y": 6, "radius": 64, "ramp": "ember", "step": 4, "intensity": 0.24 },
+        { "x": 42, "y": 22, "radius": 64, "ramp": "ember", "step": 4, "intensity": 0.26 },
+        { "x": 5, "y": 25, "radius": 72, "ramp": "ember", "step": 5, "intensity": 0.32 },
+        { "x": 6, "y": 6, "radius": 72, "ramp": "ember", "step": 6, "intensity": 0.34 }
+      ],
+      "emissive": {
+        "281": { "ramp": "ember", "step": 5, "intensity": 0.18, "radius": 24 },
+        "287": { "ramp": "ember", "step": 6, "intensity": 0.32, "radius": 26, "lift": 5 }
+      }
+    },
+
+    "nest_4": {
+      "_note": "THE LAST ASCENT. The level is lit in two halves and the gap between them is the level's World 4 leg: cols 23-38 -- the flat, the comb and the fault -- carry NO authored pool at all, and everything that glows in there is a tile. That is not a mood, it is the only way this world can say 'dark stretch': `darkness` is one value for a whole level, World 5 does not use the key (nest_1's grammar), and a gradient does not exist. EMBER is the room, as everywhere in the nest. GOLD is reserved for what a throw moves or what you act on -- the two levers and the three doors they move -- so a player can read the machine off the light, and the two gold pools in the unlit half's neighbours (the flue's mouth at the landing, lever B in the hall) are the two things the dark stretch is navigated BETWEEN. The emissive pair is the level's own light and both are SOLID, because AmbienceLayer._collect_emissive scans the fg: 281 obsidian_hot is the heat `_hot()` bands around every nest_vein -- including the four in the fault, which is what marks its take-offs when nothing else does -- and 287 nest_shard is the shard bed, which glows for the reason deeps_1's spore does. 289 nest_vein is NOT in here: it is a background tile by its own art and emits nothing from back there, which is the point.",
+      "world": "obsidian",
+      "air": { "ramp": "ember", "step": 1, "alpha": 0.28 },
+      "bg_tint": { "ramp": "ember", "step": 2, "mix": 0.66, "scale": 0.50 },
+      "fg_tint": { "ramp": "ember", "step": 5, "mix": 0.16, "scale": 0.93 },
+      "vignette": 0.36,
+      "lights": [
+        { "x": 40, "y": 24, "radius": 64, "ramp": "gold", "step": 5, "intensity": 0.48, "flicker": 0.18 },
+        { "x": 21, "y": 5, "radius": 64, "ramp": "gold", "step": 5, "intensity": 0.48, "flicker": 0.18 },
+        { "x": 43, "y": 24, "radius": 56, "ramp": "gold", "step": 4, "intensity": 0.34 },
+        { "x": 13, "y": 7, "radius": 60, "ramp": "gold", "step": 4, "intensity": 0.34 },
+        { "x": 4, "y": 3, "radius": 60, "ramp": "gold", "step": 6, "intensity": 0.50, "flicker": 0.10 },
+        { "x": 5, "y": 26, "radius": 76, "ramp": "ember", "step": 5, "intensity": 0.34 },
+        { "x": 16, "y": 26, "radius": 72, "ramp": "ember", "step": 4, "intensity": 0.28 },
+        { "x": 30, "y": 27, "radius": 64, "ramp": "ember", "step": 3, "intensity": 0.22 },
+        { "x": 35, "y": 25, "radius": 72, "ramp": "ember", "step": 5, "intensity": 0.30 },
+        { "x": 41, "y": 8, "radius": 76, "ramp": "ember", "step": 5, "intensity": 0.32 },
+        { "x": 18, "y": 6, "radius": 72, "ramp": "ember", "step": 4, "intensity": 0.26 },
+        { "x": 9, "y": 6, "radius": 80, "ramp": "ember", "step": 6, "intensity": 0.36 },
+        { "x": 3, "y": 3, "radius": 72, "ramp": "ember", "step": 6, "intensity": 0.34 }
+      ],
+      "emissive": {
+        "281": { "ramp": "ember", "step": 5, "intensity": 0.18, "radius": 24 },
+        "287": { "ramp": "ember", "step": 6, "intensity": 0.32, "radius": 26, "lift": 5 }
+      }
+    },
+
+    "nest_5": {
+      "_note": "THE OBSIDIAN HEART. The last room in the game, and the one the world's grammar was written for: world \"obsidian\", an ember room, gold reserved for the things you act on, and NO `darkness` key at all -- the nest is lit by what is burning in it. 281 obsidian_hot and 287 nest_shard are the emissive foreground tiles; 289 nest_vein is background dressing and stays unlit, because a vein that glowed would compete with the Heart. This entry is not a suggestion -- tests/integration/boss_obsidian_heart_tests.gd holds it as a constant and `t_the_hearthold_reads_as_an_ember_room` installs exactly this dictionary into the live level and measures what it does.",
+      "world": "obsidian",
+      "air": { "ramp": "ember", "step": 1, "alpha": 0.34 },
+      "bg_tint": { "ramp": "purple", "step": 2, "mix": 0.78, "scale": 0.42 },
+      "fg_tint": { "ramp": "ember", "step": 4, "mix": 0.30, "scale": 0.88 },
+      "vignette": 0.34,
+      "lights": [],
+      "emissive": {
+        "281": { "ramp": "ember", "step": 5, "intensity": 0.42, "radius": 26, "lift": 0 },
+        "287": { "ramp": "gold", "step": 6, "intensity": 0.34, "radius": 18, "lift": 0 }
+      }
+    },
+
     "test_arena": {
       "_note": "Left neutral on purpose. tools/itest.sh plays here, and a test that has to be re-baselined every time someone re-lights a level is a test nobody trusts.",
       "world": "jungle",
