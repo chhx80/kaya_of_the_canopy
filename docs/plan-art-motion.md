@@ -149,8 +149,37 @@ Bring every form to the human's standard, each with its own turn:
   coverage (no sprite ships without the post-pass).
 - The full stack at the end of every phase: 306 unit tests, 791+
   integration checks, 26 tapes verified, five gates. Phases are
-  independently shippable in A -> B -> C -> D -> E order, and A alone is
+  independently shippable in A -> B -> C -> D -> E order with F riding
+  alongside B (it is sprite work on the same sheets), and A alone is
   the single highest-value change in the plan.
+
+## Phase F — the idle dance
+
+Stand still for five seconds and Kaya dances. An original piece of
+choreography in the viral-short-video spirit — a hip-sway into a
+two-step, one arm-wave, a little spin, back to idle — not a copy of any
+named routine, because the project's first rule is that every asset is
+original. The mechanics:
+
+- The idle fidget clock from Phase A grows a second threshold: fidget at
+  ~6 s becomes dance at 5 s (the fidget moves to ~12 s as the SECOND
+  idle beat, so the two never collide).
+- An 8-frame `dance` strip at 8 fps, played twice through, then back to
+  `idle` until the clock re-arms (~15 s cooldown so it stays a treat).
+  Any input, damage, or ground loss cancels it on the next frame — the
+  dance must never cost a player one frame of responsiveness, which is
+  the same rule the turn lives under.
+- Render-only, like everything in this plan: the clock lives beside
+  `render_facing` in `player.gd`, reads input and velocity, writes
+  nothing. A tape that happens to idle five seconds dances through its
+  replay and still verifies bit-identically.
+- Human first; each animal form gets a 4-frame species take in Phase B
+  (the frog bobs, the bird head-bangs, the fish loops a barrel roll) so
+  the easter egg survives transformation.
+- One guard test: the dance state is reachable only from `idle`, exits
+  on any input bit, and its strip exists in every form's sheet.
+- Captured for the record the way everything else is: a seq that waits
+  it out and a short frame-grid in `shots/` proving the whole loop.
 
 ## Agent shape
 
