@@ -40,6 +40,10 @@ func anim_for(p: Actor) -> String:
 	if not p.on_floor:
 		if p.vel.y > 0.0 and stamina > 0.0:
 			return "glide"
+		# Phase B: empty stamina while falling is a stall, not a glide or a
+		# flap — read-only off `stamina`, which step() already spends.
+		if stamina <= 0.0 and p.vel.y > 0.0 and has_anim("stall"):
+			return "stall"
 		return "fly"
 	return "run" if absf(p.vel.x) > 6.0 else "idle"
 

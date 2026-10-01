@@ -15,6 +15,14 @@ const KNOCKBACK := Vector2(110.0, -150.0)
 ## them, the way _update_anim already did. See _update_anim()/_update_overlays().
 const THROW_TIME := 0.17        ## 2 throw frames held on the air
 const CATCH_TIME := 0.12        ## 1 catch frame held on the catch
+## Phase F, docs/plan-art-motion.md: the idle dance. `_idle_t` is the one
+## clock both beats share — dance is the FIRST beat at 5s, fidget the SECOND
+## at 12s, so they never collide: landing the dance beat always resets the
+## clock, so the fidget threshold is only ever reached on an idle stretch
+## that did NOT just dance (its cooldown was still running). See
+## _update_overlays().
+const DANCE_IDLE_TIME := 5.0    ## seconds of true stillness before a dance
+const DANCE_COOLDOWN := 15.0    ## seconds after a dance before another can start
 const FIDGET_IDLE_TIME := 12.0  ## seconds of true stillness before a fidget
 const FIDGET_PLAY_TIME := 0.5   ## 3 fidget frames at 6 fps, played once
 const SQUASH_EASE_TIME := 0.12
@@ -42,8 +50,10 @@ var _render_fsm := RenderFacingFSM.new()
 var _prev_blade_state: int = WeaponBase.FlightState.NONE
 var _throw_t := 0.0
 var _catch_t := 0.0
-var _fidget_t := 0.0
+var _idle_t := 0.0             ## Phase F: shared clock for the dance and fidget beats
 var _fidget_play_t := 0.0
+var _dance_play_t := 0.0
+var _dance_cooldown_t := 0.0
 var _squash_t := 0.0
 var _squash_scale := Vector2.ONE
 var _stretch_t := 0.0
@@ -81,8 +91,10 @@ func set_form(new_id: String) -> void:
 	_render_fsm.reset(facing)
 	_throw_t = 0.0
 	_catch_t = 0.0
-	_fidget_t = 0.0
+	_idle_t = 0.0
 	_fidget_play_t = 0.0
+	_dance_play_t = 0.0
+	_dance_cooldown_t = 0.0
 	_squash_t = 0.0
 	_stretch_t = 0.0
 	_prev_blade_state = WeaponBase.FlightState.NONE
@@ -183,7 +195,11 @@ func _update_anim(delta: float) -> void:
 	# flip catches up — see RenderFacingFSM. It only ever reads `facing`/`vel`
 	# /`on_floor`/the input axis and writes its own fields, never physics.
 	var prev_render_state: int = _render_fsm.state
-	_render_fsm.update(delta, facing, vel.x, on_floor, input.axis_x())
+	# Phase B: the bird (move_mode "fly") always resolves a reversal as the
+	# 2-frame banking pair — see RenderFacingFSM's `flying` parameter. Every
+	# other form passes the default false and is bit-identical to Phase A.
+	_render_fsm.update(delta, facing, vel.x, on_floor, input.axis_x(),
+		form.move_mode == "fly")
 	if on_floor and _render_fsm.state == RenderFacingFSM.State.TURN \
 			and prev_render_state != RenderFacingFSM.State.TURN:
 		Fx.burst("turn_scuff", feet(), Vector2(-float(facing), 0.0))
@@ -247,6 +263,12 @@ func _resolve_anim_state() -> String:
 		return "skid"
 	if _render_fsm.state == RenderFacingFSM.State.TURN and form.has_anim("turn"):
 		return "turn"
+	# Phase F: the dance and the fidget are mutually exclusive by construction
+	# (see _update_overlays()) — at most one of their play timers is ever
+	# positive at once — but dance is checked first since it is the primary
+	# idle beat and the fidget is the fallback.
+	if _dance_play_t > 0.0 and form.has_anim("dance"):
+		return "dance"
 	if _fidget_play_t > 0.0 and form.has_anim("fidget"):
 		return "fidget"
 	return form.anim_for(self)
@@ -264,16 +286,35 @@ func _update_overlays(delta: float) -> void:
 	_throw_t = maxf(0.0, _throw_t - delta)
 	_catch_t = maxf(0.0, _catch_t - delta)
 
+	# The cooldown ticks down in real time, idle or not — a player who dances,
+	# then immediately moves off and comes back, should not get a second dance
+	# for free. It never gates the fidget, which has no cooldown of its own.
+	_dance_cooldown_t = maxf(0.0, _dance_cooldown_t - delta)
+
 	if not _is_truly_idle():
-		_fidget_t = 0.0
+		# Any input, damage or ground loss cancels whichever beat is playing
+		# on the very next frame — the dance must never cost a frame of
+		# responsiveness, the same rule the turn lives under (Phase A).
+		_idle_t = 0.0
 		_fidget_play_t = 0.0
+		_dance_play_t = 0.0
+		return
+	if _dance_play_t > 0.0:
+		_dance_play_t = maxf(0.0, _dance_play_t - delta)
 		return
 	if _fidget_play_t > 0.0:
 		_fidget_play_t = maxf(0.0, _fidget_play_t - delta)
 		return
-	_fidget_t += delta
-	if _fidget_t >= FIDGET_IDLE_TIME:
-		_fidget_t = 0.0
+	_idle_t += delta
+	if _idle_t >= DANCE_IDLE_TIME and _dance_cooldown_t <= 0.0 and form.has_anim("dance"):
+		_idle_t = 0.0
+		var da: Dictionary = form.anim("dance")
+		var dframes: Array = da.get("frames", [0])
+		var dfps: float = maxf(1.0, float(da.get("fps", 8.0)))
+		_dance_play_t = float(dframes.size()) / dfps
+		_dance_cooldown_t = DANCE_COOLDOWN
+	elif _idle_t >= FIDGET_IDLE_TIME:
+		_idle_t = 0.0
 		_fidget_play_t = FIDGET_PLAY_TIME
 
 ## True only with no input bit held, feet on the ground, no knockback, not

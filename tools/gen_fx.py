@@ -283,7 +283,46 @@ TAKEOFF_KICK = [
      "........"],
 ]
 
-ROWS = [DUST, SPARK, SHIMMER, SCATTER, TURN_SCUFF, TAKEOFF_KICK]
+# Row 6 — surface-break splash: Phase B, docs/plan-art-motion.md. Spawned
+# once by form_fish.gd when the fish breaks the surface (the jump-out hop) --
+# a ring that pops open and falls back as droplets, cyan rather than the
+# off-white every other burst uses, so it reads as water and not dust.
+SPLASH = [
+    ["........",
+     "........",
+     "..c..c..",
+     ".c.CC.c.",
+     "..CwwC..",
+     ".c.CC.c.",
+     "..c..c..",
+     "........"],
+    ["........",
+     ".c....c.",
+     "c.C..C.c",
+     "..Cwwc..",
+     "..cwwC..",
+     "c.C..C.c",
+     ".c....c.",
+     "........"],
+    ["c......c",
+     "........",
+     ".C....C.",
+     "....c...",
+     "..C.....",
+     ".C....C.",
+     "........",
+     "c......c"],
+    ["........",
+     "c......c",
+     "........",
+     ".C......",
+     "......C.",
+     "........",
+     "c......c",
+     "........"],
+]
+
+ROWS = [DUST, SPARK, SHIMMER, SCATTER, TURN_SCUFF, TAKEOFF_KICK, SPLASH]
 
 
 def build_particles():

@@ -1,0 +1,25 @@
+[
+  {"_": "Phase B, docs/plan-art-motion.md: the dropper's 4-frame crawl (walk",
+   "__": "went from 2 frames to 4: D_CRAWL_A/C/B/D) plus its pre-existing",
+   "___": "2-frame shiver/tell telegraph before it falls. deeps_3 has a dropper",
+   "____": "(HOLLOW TICK) at (30, 23), hanging over trigger_width 14px /",
+   "_____": "trigger_depth 112px. Re-run with:",
+   "______": "tools/shot.sh --seq=tools/seq/m6b_enemy_dropper.json"},
+
+  {"scenario": "level:deeps_3", "settle": 90},
+  {"teleport": [30, 25], "settle": 20},
+  {"log": "cling"},
+  {"shot": "shots/m6b_dropper_cling.png"},
+
+  {"_": "walking under it trips the trigger; wind_up 0.45s (27 ticks)."},
+  {"hold": "move_right", "frames": 6},
+  {"release": "move_right"},
+  {"wait": 14},
+  {"log": "tell"},
+  {"shot": "shots/m6b_dropper_tell.png"},
+
+  {"_": "it falls and lands, then walks -- the 4-frame crawl."},
+  {"wait": 30},
+  {"log": "walk"},
+  {"shot": "shots/m6b_dropper_walk.png"}
+]

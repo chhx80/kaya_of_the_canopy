@@ -1,0 +1,41 @@
+[
+  {"_": "Phase B, docs/plan-art-motion.md: bird form parity. heights_1's",
+   "__": "pad_bird sits at tile (9, 26), on the ground at the foot of the",
+   "___": "thermal. Re-run with: tools/shot.sh --seq=tools/seq/m6b_bird.json"},
+
+  {"scenario": "level:heights_1", "settle": 90},
+  {"teleport": [9, 26], "settle": 30},
+  {"log": "transformed"},
+  {"shot": "shots/m6b_bird_idle.png"},
+
+  {"_": "A -- the banking turn pair. move_mode 'fly' makes RenderFacingFSM",
+   "__": "use the 2-frame bank regardless of ground state (see render_facing_fsm.gd)."},
+  {"hold": "move_right", "frames": 20},
+  {"release": "move_right"},
+  {"wait": 1},
+  {"hold": "move_left", "frames": 1},
+  {"log": "bank_turn"},
+  {"shot": "shots/m6b_bird_turn.png"},
+  {"wait": 10},
+  {"release": "move_left"},
+
+  {"_": "B -- glide (hold jump while falling) -- the ruffle pair."},
+  {"press": "jump", "frames": 10},
+  {"wait": 6},
+  {"hold": "jump", "frames": 14},
+  {"log": "glide"},
+  {"shot": "shots/m6b_bird_glide.png"},
+  {"release": "jump"},
+
+  {"_": "C -- let her fall back and settle on the ground before the idle clock."},
+  {"wait": 90},
+  {"log": "settled"},
+
+  {"_": "D -- the idle dance (the flap cycle at a jaunty tempo), and the",
+   "__": "perch head-tilt idle either side of it."},
+  {"wait": 310},
+  {"log": "dance_start"},
+  {"shot": "shots/m6b_bird_dance_a.png"},
+  {"wait": 8},
+  {"shot": "shots/m6b_bird_dance_b.png"}
+]

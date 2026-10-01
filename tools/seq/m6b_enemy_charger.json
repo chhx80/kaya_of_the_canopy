@@ -1,0 +1,23 @@
+[
+  {"_": "Phase B, docs/plan-art-motion.md: the charger's 4-frame patrol (move",
+   "__": "went from 2 frames to 4: C_PATROL_A/C/B/D) plus its pre-existing",
+   "___": "2-frame wind-up telegraph. deeps_3 has a charger (THORN BOAR) at",
+   "____": "(33, 27). sight_range is 140px; standing 5 tiles off on the same",
+   "_____": "row is well inside it. Re-run with:",
+   "______": "tools/shot.sh --seq=tools/seq/m6b_enemy_charger.json"},
+
+  {"scenario": "level:deeps_3", "settle": 90},
+  {"teleport": [38, 27], "settle": 20},
+  {"log": "patrol"},
+  {"shot": "shots/m6b_charger_patrol.png"},
+
+  {"_": "wind_up is 0.55s (33 ticks); land mid-telegraph."},
+  {"wait": 20},
+  {"log": "windup"},
+  {"shot": "shots/m6b_charger_windup.png"},
+
+  {"_": "charge_time 0.85s after the windup ends."},
+  {"wait": 40},
+  {"log": "charge"},
+  {"shot": "shots/m6b_charger_charge.png"}
+]

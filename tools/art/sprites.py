@@ -346,6 +346,23 @@ K_FIDGET1 = _kaya(K_T_BACK, L_STAND, 0)
 K_FIDGET2 = _kaya(K_T_MID, L_CONTACT, 1)
 K_FIDGET3 = _kaya(K_T_UP, L_APEX, 0, head=K_HEAD_UP)
 
+# ---- Phase F, docs/plan-art-motion.md: the idle dance. An original eight-beat
+# routine -- hip-sway into a two-step, an arm-wave, a little spin, settling
+# back toward camera -- built the same way every frame since the run cycle
+# has been: recomposing the existing head/torso/leg vocabulary into
+# combinations the first 31 frames never used, never drawing a new limb.
+# Player.gd plays this list twice through at 8fps (see data/forms/human.json)
+# and purely reads velocity/input/time to pick it; nothing here ever writes
+# `facing` or any physics state.
+K_DANCE1 = _kaya(K_T_BACK, L_CONTACT, 1)             # weight shifts right
+K_DANCE2 = _kaya(K_T_MID, L_DOWN, 2)                 # dips into the sway
+K_DANCE3 = _kaya(K_T_FWD, _swap(L_CONTACT), 1)       # weight shifts left
+K_DANCE4 = _kaya(K_T_MID, _swap(L_DOWN), 2)          # dips the other way
+K_DANCE5 = _kaya(K_T_UP, L_APEX, 0, head=K_HEAD_UP)  # the arm-wave, a little hop
+K_DANCE6 = _kaya(K_T_OUT, L_PASS, 0)                 # the spin begins, legs crossing
+K_DANCE7 = _kaya(K_T_BACK, _swap(L_PASS), 0)         # the spin continues
+K_DANCE8 = _kaya(K_T_MID, L_STAND, 0, head=K_HEAD_TURN)  # settle, face-on, back to idle
+
 
 # Everything from here down is 16x16, and authored through `cell()` so a row
 # only has to carry the pixels that are actually lit — trailing transparency is
@@ -457,7 +474,7 @@ F_REACH = cell([
     "g...gg....gg..g",
     "...gg......gg",
 ])
-F_CLING = cell([
+_F_CLING_ROWS = [
     "",
     "..gg........gg",
     ".gllg......gllg",
@@ -472,6 +489,50 @@ F_CLING = cell([
     "glgggllllllggglg",
     "gg.gg.gggg.gg.gg",
     "g..gg......gg..g",
+]
+F_CLING = cell(_F_CLING_ROWS)
+# Phase B, docs/plan-art-motion.md: the breathing cling's second beat, built
+# the same way the human idle's one-pixel breath (K_IDLE_B) is -- drop the
+# leading blank row so the whole frog lifts one pixel, a chest-rising inhale.
+F_CLING_B = cell(_F_CLING_ROWS[1:])
+
+# Phase B: the apex tuck -- legs pulled up tight at the top of the hop,
+# between the leap (toe-off) and the reach (stretching for the landing).
+# Shares F_IDLE's head and body rows (the frog's silhouette does not change
+# above the hips mid-air) and replaces only the legs with a tight tuck.
+F_APEX = cell([
+    "...gg......gg",
+    "..gllg....gllg",
+    "..glwlgggglwlg",
+    "..gllllllllllg",
+    "..glllllllllllg",
+    ".gllGllllllGllg",
+    ".gllllllllllllg",
+    ".gllGGllllGGllg",
+    ".gGllllllllllGg",
+    ".gglllllllllggg",
+    "ggglllllllllggg",
+    ".ggg.gggg.ggg..",
+])
+
+# Phase B: the tongue-blink idle -- F_BREATHE with the tongue flicked out
+# across the mouth row.
+F_TONGUE = cell([
+    "",
+    "",
+    "...gg......gg",
+    "..gllg....gllg",
+    "..glglgggglglg",
+    "..gllllllllllg",
+    ".glllllllllllllg",
+    ".gllGllllllGllg",
+    "gllllrrllllllllg",
+    ".gllGGllllGGllg",
+    ".gGllllllllllGg",
+    ".gglllllllllggg",
+    "gglgggllllgggglg",
+    "glggg.gggg.ggglg",
+    "gg.............g",
 ])
 
 # --- fish form (16x16). Four beats of tail, plus a bite and a beached flop.
@@ -623,7 +684,7 @@ B_MIDB = cell([
     "........yy",
     "........kk",
 ])
-B_GLIDE = cell([
+_B_GLIDE_ROWS = [
     "",
     "",
     "",
@@ -637,7 +698,8 @@ B_GLIDE = cell([
     "........kkk",
     "........yy",
     "........kk",
-])
+]
+B_GLIDE = cell(_B_GLIDE_ROWS)
 B_PERCH = cell([
     "",
     "",
@@ -653,6 +715,64 @@ B_PERCH = cell([
     "........yy",
     "........kk",
 ])
+# Phase B, docs/plan-art-motion.md: the glide's feather-ruffle second beat --
+# the wing rows shifted one pixel, the body and feet held still, the same
+# economy the dropper's shiver (tools/art/sprites_enemies_v2.py) shifts a
+# whole body by.
+B_GLIDE2 = cell([
+    "",
+    "",
+    "",
+    "",
+    ".kkkk",
+    ".kyyyykkkk",
+    "..kyyoooooyyk",
+    "..kkoorrrkwrok",
+    "....kkrrrrrykk",
+    "......kkrryk",
+    "........kkk",
+    "........yy",
+    "........kk",
+])
+# Phase B: the perch's head-tilt second beat -- the head cap shifted one
+# pixel right against the still body.
+B_PERCH2 = cell([
+    "",
+    "",
+    "",
+    ".....kkkk",
+    "....kyyyyk",
+    "...kyyoookkk",
+    "...kyorrrrrok",
+    "...kkorrkwrok",
+    "....kkrrrrykk",
+    ".....kkrrryk",
+    "......kkkkk",
+    "........yy",
+    "........kk",
+])
+
+
+def _row_shift(row, n):
+    """`row` translated `n` pixels right (left if negative), clipped to width.
+
+    The same trick tools/art/sprites_enemies_v2.py's dropper shiver uses to
+    animate a whole silhouette by translation rather than redrawing it.
+    """
+    if n < 0:
+        return row[-n:] + "." * -n
+    if n > 0:
+        return "." * n + row[:-n]
+    return row
+
+
+# Phase B, docs/plan-art-motion.md: the banking turn pair -- the bird is the
+# form where turning reads most, so it banks into the new direction rather
+# than holding a static half-turn frame (see RenderFacingFSM's `flying`
+# parameter). Built by translating the glide silhouette, which is already the
+# wings-spread pose a bank naturally extends from.
+B_TURN1 = cell([_row_shift(r, -1) for r in _B_GLIDE_ROWS])
+B_TURN2 = cell([_row_shift(r, 1) for r in _B_GLIDE_ROWS])
 
 # ---------------------------------------------------------------- enemies
 # --- the bark beetle. Four legs positions, and the shell drops a pixel on the
@@ -1192,7 +1312,8 @@ KAYA = {'s': ("skin", 2.6), 'w': ("metal", 6.0),
         # read as a cycle if the leg behind the body is visibly behind it.
         'S': ("skin", 1.5), 'n': ("dirt", 0.5), 'N': ("dirt", 1.9)}
 FROG = {'g': ("foliage", 1.6), 'G': ("grass", 2.0),
-        'l': ("grass", 3.5), 'w': ("metal", 6.0)}
+        'l': ("grass", 3.5), 'w': ("metal", 6.0),
+        'r': ("ember", 3.0)}        # Phase B: the tongue-blink idle frame
 FISH = {'o': ("gold", 1.8), 'y': ("gold", 3.4)}
 BIRD = {'y': ("gold", 4.3), 'o': ("gold", 2.8),
         'r': ("ember", 3.2), 'w': ("metal", 6.0)}
@@ -1288,26 +1409,34 @@ def build_sprites():
     # Frame order matches data/forms/human.json. 0-1 idle, 2-9 run, 10-15 the
     # jump arc (anticipate, launch, rise, apex, fall, land), 16-18 climb, 19
     # hurt, 20-21 turn (plant, half-turn), 22 skid, 23-24 push, 25-26 throw,
-    # 27 catch, 28-30 idle fidget. 20-30 are Phase A, docs/plan-art-motion.md.
+    # 27 catch, 28-30 idle fidget (Phase A), 31-38 the idle dance (Phase F).
     sheet("kaya_human",
           lit([K_IDLE, K_IDLE_B] + K_RUN
               + [K_CROUCH, K_LAUNCH, K_RISE, K_APEX, K_FALL, K_LAND,
                  K_CLIMB1, K_CLIMB2, K_CLIMB3, K_HURT,
                  K_TURN_PLANT, K_TURN_HALF, K_SKID, K_PUSH1, K_PUSH2,
                  K_THROW1, K_THROW2, K_CATCH,
-                 K_FIDGET1, K_FIDGET2, K_FIDGET3], KAYA, dark=0.75),
+                 K_FIDGET1, K_FIDGET2, K_FIDGET3,
+                 K_DANCE1, K_DANCE2, K_DANCE3, K_DANCE4,
+                 K_DANCE5, K_DANCE6, K_DANCE7, K_DANCE8], KAYA, dark=0.75),
           16, 24)
-    # 0 idle, 1 breath, 2 crouch, 3 leap, 4 reach, 5 cling
+    # 0 idle, 1 breath, 2 crouch (anticipation; also reused as the turn frame),
+    # 3 leap (also reused as the wall-kick flash), 4 reach, 5 cling, 6 apex
+    # (mid-air tuck), 7 tongue-blink idle, 8 cling breathe. 6-8 are Phase B,
+    # docs/plan-art-motion.md.
     sheet("kaya_frog", lit([F_IDLE, F_BREATHE, F_CROUCH, F_LEAP,
-                            F_REACH, F_CLING], FROG), 16, 16)
+                            F_REACH, F_CLING, F_APEX, F_TONGUE,
+                            F_CLING_B], FROG), 16, 16)
     # 0-3 the swim beat, 4 bite, 5 flop. Mirrored so the unflipped cell faces
     # right, which is the direction `facing == 1` draws.
     sheet("kaya_fish", lit([mirror(c) for c in
                             (FI_TAIL_MID, FI_TAIL_UP, FI_TAIL_MID2,
                              FI_TAIL_DOWN, FI_BITE, FI_FLOP)], FISH), 16, 16)
-    # 0-3 the flap beat, 4 glide, 5 perch
+    # 0-3 the flap beat, 4 glide, 5 perch, 6 glide ruffle, 7 perch head-tilt,
+    # 8-9 the banking turn pair. 6-9 are Phase B, docs/plan-art-motion.md.
     sheet("kaya_bird", lit([B_UP, B_MIDA, B_DOWN, B_MIDB,
-                            B_GLIDE, B_PERCH], BIRD), 16, 16)
+                            B_GLIDE, B_PERCH, B_GLIDE2, B_PERCH2,
+                            B_TURN1, B_TURN2], BIRD), 16, 16)
     sheet("enemy_walker", lit([walker(i) for i in range(4)], WALKER), 16, 16)
     # 0 idle, 1-2 the telegraph, 3 airborne, 4 the landing squash
     sheet("enemy_jumper", lit([E_J_IDLE, E_J_CROUCH, E_J_COIL,

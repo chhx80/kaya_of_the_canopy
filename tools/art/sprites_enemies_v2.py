@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from art import palette                                     # noqa: E402
 from art.palette import auto_shade, sheet                   # noqa: E402
-from art.sprites import cell                                # noqa: E402
+from art.sprites import cell, _row_shift                    # noqa: E402
 
 # ---------------------------------------------------------------- materials
 # Character -> (ramp, base level); auto_shade() does the rest. Every one of
@@ -178,6 +178,14 @@ C_CHARGE_B = cell([
     ".kMMMMk.kMMk....",
     ".kkkkkk.kkkk....",
 ])
+# Phase B, docs/plan-art-motion.md: two more beats of the patrol, bringing
+# "move" up to a real 4-frame cycle. Reuses the already-valid leg rows from
+# the wind-up frames (a different leg phase, same body) rather than drawing
+# new ones -- the same economy the patrol/wind-up pair's own crest-sway is
+# built from.
+C_PATROL_C = C_PATROL_A[:13] + C_WIND_A[13:16]
+C_PATROL_D = C_PATROL_B[:13] + C_WIND_B[13:16]
+
 C_DAZED = cell([
     "",
     "",
@@ -281,6 +289,19 @@ D_CRAWL_B = cell(["", "", ""] + _D_STANDING + [
     "kw...kw..wk...wk",
     "kk...kk..kk...kk",
 ])
+# Phase B, docs/plan-art-motion.md: two more beats of the crawl, built the
+# same way the shiver already is -- translating the leg row, not redrawing
+# it -- to bring "walk" up to a real 4-frame cycle.
+D_CRAWL_C = cell(["", "", ""] + _D_STANDING + [
+    _row_shift(".kw.kw....wk.wk.", -1),
+    _row_shift(".kw..kw..wk..wk.", -1),
+    _row_shift(".kk..kk..kk..kk.", -1),
+])
+D_CRAWL_D = cell(["", "", ""] + _D_STANDING + [
+    _row_shift("kw..kw....wk..wk", 2),
+    _row_shift("kw...kw..wk...wk", 2),
+    _row_shift("kk...kk..kk...kk", 2),
+])
 
 # ---------------------------------------------------------------- flyer
 # THE CANOPY WASP. Authored facing right, four beats of wing. The banded body
@@ -357,12 +378,19 @@ def lit(cells, mapping, **kw):
 def build():
     # depth=3 everywhere: all three are organic shapes that should read as
     # round, the same call the beetle and the hopper make.
+    # 0-1 patrol, 2-3 the wind-up, 4-5 the charge, 6 dazed, 7-8 patrol legs
+    # C/D (Phase B, docs/plan-art-motion.md -- brings "move" to a 4-frame
+    # cycle: data/enemies/charger.json plays 0,7,1,8).
     sheet("enemy_charger",
           lit([C_PATROL_A, C_PATROL_B, C_WIND_A, C_WIND_B,
-               C_CHARGE_A, C_CHARGE_B, C_DAZED], CHARGER), 16, 16)
+               C_CHARGE_A, C_CHARGE_B, C_DAZED,
+               C_PATROL_C, C_PATROL_D], CHARGER), 16, 16)
+    # 0 cling, 1-2 the shiver, 3 falling, 4-5 crawl, 6-7 crawl C/D (Phase B --
+    # brings "walk" to a 4-frame cycle: data/enemies/dropper.json plays
+    # 4,6,5,7).
     sheet("enemy_dropper",
           lit([D_CLING, D_SHIVER_A, D_SHIVER_B, D_FALL,
-               D_CRAWL_A, D_CRAWL_B], DROPPER), 16, 16)
+               D_CRAWL_A, D_CRAWL_B, D_CRAWL_C, D_CRAWL_D], DROPPER), 16, 16)
     sheet("enemy_flyer",
           lit([F_UP, F_MID_A, F_DOWN, F_MID_B], FLYER), 16, 16)
     print("enemies v2 written to %s" % palette.SPRITES)

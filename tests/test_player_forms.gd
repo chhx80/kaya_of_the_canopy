@@ -45,7 +45,9 @@ func test_every_animation_referenced_by_the_controller_exists() -> void:
 	for name in ["idle", "run", "jump", "fall", "land", "climb", "hurt",
 			# Phase A, docs/plan-art-motion.md: player.gd's render-only overlay
 			# states. The human form is the first to declare all of them.
-			"turn", "skid", "push", "throw", "catch", "fidget"]:
+			"turn", "skid", "push", "throw", "catch", "fidget",
+			# Phase F: the idle dance.
+			"dance"]:
 		var a: Dictionary = f.anim(name)
 		ok(a.has("frames"), "anim '%s' needs frames" % name)
 		gt(float((a["frames"] as Array).size()), 0.0, "anim '%s' is empty" % name)
@@ -54,6 +56,48 @@ func test_every_animation_referenced_by_the_controller_exists() -> void:
 func test_has_anim_is_false_for_a_state_the_form_never_declared() -> void:
 	var f := FormBase.load_form("human")
 	not_ok(f.has_anim("there_is_no_such_state"))
+
+## Phase B, docs/plan-art-motion.md, guard tests: every form's canonical state
+## set. `_assert_states()` is the same check `test_every_animation_referenced_
+## by_the_controller_exists()` runs for human, generalised — each form must
+## declare `turn` and `dance` (the two cross-form overlays player.gd gates on
+## generically, see player.gd's _resolve_anim_state()) plus the states its own
+## `anim_for()` can return.
+func _assert_states(id: String, names: PackedStringArray) -> void:
+	var f := FormBase.load_form(id)
+	ok(f != null, "%s.json must exist" % id)
+	if f == null:
+		return
+	for name: String in names:
+		var a: Dictionary = f.anim(name)
+		ok(a.has("frames"), "%s anim '%s' needs frames" % [id, name])
+		gt(float((a.get("frames", []) as Array).size()), 0.0,
+			"%s anim '%s' is empty" % [id, name])
+		ok(f.has_anim(name), "%s: has_anim('%s') must agree with anim()" % [id, name])
+
+func test_frog_declares_its_canonical_state_set() -> void:
+	_assert_states("frog", ["idle", "jump", "fall", "cling", "hurt",
+		"turn", "wallkick", "dance"])
+
+func test_bird_declares_its_canonical_state_set() -> void:
+	_assert_states("bird", ["idle", "run", "jump", "fall", "fly", "glide",
+		"hurt", "turn", "stall", "dance"])
+
+func test_fish_declares_its_canonical_state_set() -> void:
+	_assert_states("fish", ["idle", "swim", "run", "jump", "fall", "flop",
+		"hurt", "turn", "burst", "dance"])
+
+func test_every_form_declares_turn_and_dance() -> void:
+	## The two overlays player.gd's _resolve_anim_state() gates on generically
+	## for every form, not just the ones with a bespoke list above — a new
+	## form that forgets either falls silently through to its base animation,
+	## which is exactly the failure mode has_anim() exists to make loud.
+	for id in _form_ids():
+		var f := FormBase.load_form(id)
+		if f == null:
+			continue
+		ok(f.has_anim("turn"), "%s must declare 'turn'" % id)
+		ok(f.has_anim("dance"), "%s must declare 'dance'" % id)
 
 func test_sprite_sheet_for_each_form_exists_on_disk() -> void:
 	for id in _form_ids():

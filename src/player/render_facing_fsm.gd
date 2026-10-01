@@ -36,11 +36,25 @@ const TURN_FULL_TIME := TURN_FULL_FRAMES / TURN_FULL_FPS
 ## A single held frame, airborne or slow.
 const TURN_HALF_TIME := 0.05
 
+## Phase B, docs/plan-art-motion.md: the bird is the one form where turning
+## reads most, and its 2-frame "bank into the new direction" pair does not fit
+## the grounded 3-frame strip or the generic single held half-turn — a glide
+## banking over 3 frames at 40fps would read as a stumble, not a wing-over.
+## `update()`'s `flying` parameter (default false, so every existing call site
+## and every recorded trace is untouched) swaps the whole TURN resolution for
+## this pair instead. 2 frames at 30fps is still comfortably under the
+## shortest coyote_time in the game (bird's own, 0.08s) — see
+## tests/test_render_facing_fsm.gd.
+const BANK_FPS := 30.0
+const BANK_FRAMES := 2
+const BANK_TIME := BANK_FRAMES / BANK_FPS
+
 var render_facing := 1
 var state: int = State.NORMAL
 
 var _turn_elapsed := 0.0
 var _turn_full := false
+var _turn_bank := false
 var _turn_target := 1          ## the `facing` this turn is resolving towards
 
 func _init(start_facing: int = 1) -> void:
@@ -51,6 +65,7 @@ func reset(start_facing: int) -> void:
 	state = State.NORMAL
 	_turn_elapsed = 0.0
 	_turn_full = false
+	_turn_bank = false
 	_turn_target = start_facing
 
 func _signi(v: float) -> int:
@@ -61,7 +76,13 @@ func _signi(v: float) -> int:
 	return 0
 
 ## One tick. `axis_x` is -1/0/1, read straight off InputState.axis_x().
-func update(delta: float, facing: int, vel_x: float, on_floor: bool, axis_x: float) -> void:
+## `flying` is new in Phase B (docs/plan-art-motion.md): true for a form whose
+## `move_mode` is "fly" (the bird), which always resolves a reversal as the
+## 2-frame banking pair instead of the grounded 3-frame strip or the generic
+## held half-turn. Defaults to false, so every pre-existing call site (and
+## every recorded trace) is bit-identical to before this parameter existed.
+func update(delta: float, facing: int, vel_x: float, on_floor: bool, axis_x: float,
+		flying: bool = false) -> void:
 	var speed := absf(vel_x)
 	var vel_sign := _signi(vel_x)
 	var axis_sign := _signi(axis_x)
@@ -84,15 +105,15 @@ func update(delta: float, facing: int, vel_x: float, on_floor: bool, axis_x: flo
 	# twitch, not silently cancel the strip as if nothing had happened.
 	if state == State.TURN:
 		if facing != _turn_target:
-			# Re-reversed mid-turn. Restart at the half-turn frame rather than
-			# the plant, so mashing the direction keys reads as twitchy, not
-			# laggy.
-			_turn_full = on_floor and speed >= TURN_SPEED_MIN
-			_turn_elapsed = (TURN_FULL_TIME / TURN_FULL_FRAMES) if _turn_full else 0.0
+			# Re-reversed mid-turn. Restart at the half-turn frame (or the
+			# bank's first frame, flying) rather than the plant, so mashing
+			# the direction keys reads as twitchy, not laggy.
+			_turn_bank = flying
+			_turn_full = (not flying) and on_floor and speed >= TURN_SPEED_MIN
+			_turn_elapsed = _restart_elapsed()
 			_turn_target = facing
 		_turn_elapsed += delta
-		var duration := TURN_FULL_TIME if _turn_full else TURN_HALF_TIME
-		if _turn_elapsed >= duration:
+		if _turn_elapsed >= _duration():
 			render_facing = facing
 			state = State.NORMAL
 		return
@@ -105,19 +126,33 @@ func update(delta: float, facing: int, vel_x: float, on_floor: bool, axis_x: flo
 
 	# A fresh mismatch: start a new turn.
 	state = State.TURN
-	_turn_full = on_floor and speed >= TURN_SPEED_MIN
+	_turn_bank = flying
+	_turn_full = (not flying) and on_floor and speed >= TURN_SPEED_MIN
 	_turn_target = facing
 	_turn_elapsed = delta
-	var start_duration := TURN_FULL_TIME if _turn_full else TURN_HALF_TIME
-	if _turn_elapsed >= start_duration:
+	if _turn_elapsed >= _duration():
 		render_facing = facing
 		state = State.NORMAL
 
-## 0..2 into the 3-frame strip, or 1 (the half-turn frame) for the single-frame
-## airborne/slow variant. -1 outside State.TURN.
+func _restart_elapsed() -> float:
+	if _turn_bank:
+		return 0.0
+	return (TURN_FULL_TIME / TURN_FULL_FRAMES) if _turn_full else 0.0
+
+func _duration() -> float:
+	if _turn_bank:
+		return BANK_TIME
+	return TURN_FULL_TIME if _turn_full else TURN_HALF_TIME
+
+## 0..2 into the 3-frame strip, 0..1 into the 2-frame banking pair (flying),
+## or 1 (the half-turn frame) for the single-frame airborne/slow variant. -1
+## outside State.TURN.
 func turn_frame_index() -> int:
 	if state != State.TURN:
 		return -1
+	if _turn_bank:
+		var bi := int(_turn_elapsed / BANK_TIME * BANK_FRAMES)
+		return clampi(bi, 0, BANK_FRAMES - 1)
 	if not _turn_full:
 		return 1
 	var idx := int(_turn_elapsed / TURN_FULL_TIME * TURN_FULL_FRAMES)

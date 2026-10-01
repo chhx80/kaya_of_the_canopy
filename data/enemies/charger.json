@@ -41,9 +41,11 @@
     "move": {
       "frames": [
         0,
-        1
+        7,
+        1,
+        8
       ],
-      "fps": 6
+      "fps": 10
     },
     "windup": {
       "frames": [

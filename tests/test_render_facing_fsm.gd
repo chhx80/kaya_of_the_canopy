@@ -23,6 +23,56 @@ func test_half_turn_is_even_shorter() -> void:
 	var f := FormBase.load_form("human")
 	lt(RenderFacingFSM.TURN_HALF_TIME, f.coyote_time, "the half-turn too")
 
+func test_bank_pair_is_shorter_than_the_birds_own_coyote_time() -> void:
+	## Phase B: the bird's banking turn pair is a distinct timing from the
+	## grounded strip and the half-turn, and it has to clear the shortest
+	## coyote_time of any form that could plausibly use it — the bird's own.
+	var f := FormBase.load_form("bird")
+	ok(f != null, "bird.json must exist")
+	lt(RenderFacingFSM.BANK_TIME, f.coyote_time,
+		"the 2-frame bank must finish before the bird's coyote_time runs out")
+
+# --------------------------------------------------------------- bird banking
+func test_flying_reversal_always_uses_the_banking_pair() -> void:
+	## Phase B, docs/plan-art-motion.md: `flying=true` (gated on move_mode
+	## "fly" by player.gd) swaps the grounded-strip/half-turn choice for the
+	## 2-frame bank pair, regardless of speed or ground state — the bird has
+	## no 3-frame grounded strip art, only the bank.
+	var fsm := RenderFacingFSM.new(1)
+	fsm.update(DT, -1, 120.0, false, -1.0, true)   # fast, airborne, flying
+	eq(fsm.state, RenderFacingFSM.State.TURN)
+	ok(fsm.turn_frame_index() == 0 or fsm.turn_frame_index() == 1,
+		"bank index is 0 or 1, never the grounded strip's range")
+	var ticks := 0
+	while ticks < 20 and fsm.state == RenderFacingFSM.State.TURN:
+		fsm.update(DT, -1, 120.0, false, -1.0, true)
+		ticks += 1
+	eq(fsm.render_facing, -1, "the bank eventually snaps to the new facing")
+	lt(float(ticks) * DT, FormBase.load_form("bird").coyote_time,
+		"the whole bank finished inside the bird's coyote_time")
+
+func test_flying_reversal_on_the_ground_still_banks() -> void:
+	## The bird has no grounded 3-frame strip at all — even a perched, slow
+	## reversal uses the bank pair rather than falling back to a held
+	## half-turn frame that was never drawn for it.
+	var fsm := RenderFacingFSM.new(1)
+	fsm.update(DT, -1, 10.0, true, -1.0, true)
+	eq(fsm.state, RenderFacingFSM.State.TURN)
+	var saw_bank_frame_zero := fsm.turn_frame_index() == 0
+	ok(saw_bank_frame_zero, "the bank strip opens on its first frame")
+
+func test_non_flying_forms_are_unaffected_by_the_new_parameter() -> void:
+	## The default (`flying` omitted) must reproduce Phase A's behaviour
+	## bit-identically — every existing call site, trace and tape relies on
+	## this and never passes the new argument.
+	var fsm := RenderFacingFSM.new(1)
+	for i in 6:
+		fsm.update(DT, 1, 55.0, true, 1.0)
+	fsm.update(DT, -1, 55.0, true, -1.0)
+	eq(fsm.state, RenderFacingFSM.State.TURN)
+	ok(fsm.turn_frame_index() >= 0 and fsm.turn_frame_index() <= 2,
+		"grounded reversal without `flying` still uses the 3-frame strip range")
+
 # ------------------------------------------------------------------- idle
 func test_facing_unchanged_never_moves_render_facing() -> void:
 	var fsm := RenderFacingFSM.new(1)

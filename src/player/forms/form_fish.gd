@@ -3,18 +3,26 @@ extends FormBase
 ## the whole tension of a water level — you always know how far the next pool is.
 
 var air_left := 0.0
+## Phase B, docs/plan-art-motion.md: read-only cosmetic timers, never fed back
+## into vel/pos/facing. `_burst_t` holds the burst-stroke frame for a beat
+## after a swim stroke starts from near-standstill; `_prev_speed` is what
+## detects that transition.
+var _burst_t := 0.0
+var _prev_speed := 0.0
 
 func configure(d: Dictionary) -> void:
 	super.configure(d)
 	air_left = float(cfg.get("air_seconds", 2.6))
 
 func step(p: Actor, input: InputState, delta: float) -> void:
+	_burst_t = maxf(0.0, _burst_t - delta)
 	var wet := p.in_water()
 	if wet:
 		air_left = float(cfg.get("air_seconds", 2.6))
 		_swim(p, input, delta)
 	else:
 		air_left -= delta
+		_prev_speed = 0.0
 		_flop(p, input, delta)
 		if air_left <= 0.0 and p is Player:
 			# Running out of air turns Kaya back rather than killing her. Dying
@@ -28,6 +36,7 @@ func step(p: Actor, input: InputState, delta: float) -> void:
 				(p as Player).set_form("human")
 
 func _swim(p: Actor, input: InputState, delta: float) -> void:
+	var was_still := _prev_speed < 8.0
 	var want := Vector2(input.axis_x(), input.axis_y())
 	if want.length() > 1.0:
 		want = want.normalized()
@@ -40,11 +49,21 @@ func _swim(p: Actor, input: InputState, delta: float) -> void:
 			float(cfg.get("swim_accel", 620.0)) * delta)
 		if absf(want.x) > 0.01:
 			p.facing = 1 if want.x > 0.0 else -1
+		# A burst flash for the first stroke out of a standstill — cosmetic
+		# only, held by anim_for() below via _burst_t.
+		if was_still and p.vel.length() >= 8.0 and has_anim("burst"):
+			_burst_t = 0.14
 	else:
 		p.vel = p.vel.move_toward(current, float(cfg.get("swim_drag", 420.0)) * delta)
 	# Break the surface with a hop so you can cross a lip of land.
 	if input.jump_pressed and not p.submerged():
 		p.vel.y = float(cfg.get("surface_hop", -150.0)) + current.y
+		# A splash at the break — purely cosmetic, and safe to call from any
+		# context FormBase runs in (the real game, tools/test.sh under ADR 003,
+		# the Route Prover): Fx.burst() is a no-op wherever it has no live
+		# ParticleField, and never feeds anything back into `p`.
+		Fx.burst("splash", p.center())
+	_prev_speed = p.vel.length()
 
 func _flop(p: Actor, input: InputState, delta: float) -> void:
 	tick_timers(p, input, delta)
@@ -55,6 +74,8 @@ func _flop(p: Actor, input: InputState, delta: float) -> void:
 
 func anim_for(p: Actor) -> String:
 	if p.in_water():
+		if _burst_t > 0.0 and has_anim("burst"):
+			return "burst"
 		return "swim" if p.vel.length() > 10.0 else "idle"
 	return "flop"
 

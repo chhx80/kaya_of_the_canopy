@@ -4,10 +4,15 @@ extends FormBase
 
 var _cling := 0.0
 var _cling_dir := 0
+## Phase B, docs/plan-art-motion.md: a read-only cosmetic timer, never fed back
+## into vel/pos/facing — it only tells anim_for() to hold the wall-kick flash
+## frame for a beat after the (instant, undelayed) kick-off below.
+var _wall_kick_t := 0.0
 
 func step(p: Actor, input: InputState, delta: float) -> void:
 	var wet := p.submerged()
 	tick_timers(p, input, delta)
+	_wall_kick_t = maxf(0.0, _wall_kick_t - delta)
 
 	# --- wall cling: pressing into a wall in mid-air slows the slide and buys
 	# --- a short window for a kick-off jump.
@@ -25,6 +30,7 @@ func step(p: Actor, input: InputState, delta: float) -> void:
 			p.vel.x = -_cling_dir * float(cfg.get("wall_jump_push", 120.0)) + current.x
 			_cling = 0.0
 			buffer = 0.0
+			_wall_kick_t = 0.12
 			sfx("jump")
 			return
 	else:
@@ -42,6 +48,8 @@ func step(p: Actor, input: InputState, delta: float) -> void:
 		p.vel.y *= jump_cut
 
 func anim_for(p: Actor) -> String:
+	if _wall_kick_t > 0.0 and has_anim("wallkick"):
+		return "wallkick"
 	if _cling > 0.0 and not p.on_floor and p.against_wall != 0:
 		return "cling"
 	if not p.on_floor:

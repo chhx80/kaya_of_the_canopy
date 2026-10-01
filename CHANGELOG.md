@@ -2140,3 +2140,88 @@ now checks the human form declares every Phase A state. Full stack:
 316 unit tests, 791 integration checks, 26 tapes (21 proved, 5 partial
 by design) — every count and every verdict unchanged, because nothing
 here is physics.
+
+## Phase B and F — four shapes, for real; the idle dance (`docs/plan-art-motion.md`)
+
+Every animal form reaches the human's Phase A standard, each with its
+own turn, and Kaya (and every form she can take) gains an original
+idle dance. Still entirely render-only: nothing here writes `facing`,
+`vel`, `pos`, enemy behaviour timing, or any other physics state, and
+all 26 proof tapes still replay bit-identically.
+
+**Frog**: a 4-frame hop (anticipation crouch, leap, a new mid-air apex
+tuck, reach), a 2-frame breathing cling, a 3-frame tongue-blink idle,
+and a wall-kick flash — the last three cosmetic-only timers living
+alongside the existing `_cling` state in `form_frog.gd`, read by
+`anim_for()`, never fed back into movement. Turn and wall-kick
+deliberately reuse existing frames (crouch, leap) rather than drawing
+more — the same economy the human turn strip's own push-off (frame 5,
+the run cycle) already set.
+
+**Bird**: a 2-frame glide ruffle and a 2-frame perch head-tilt (one new
+frame each, the head/wing rows translated a pixel the way the dropper's
+shiver already animates by translation), a stall pose at empty stamina
+(a read-only `stamina <= 0.0` check in `form_bird.gd`'s own
+`anim_for()`), and the one true extension in this phase: a 2-frame
+banking turn pair. `RenderFacingFSM` grows an optional `flying`
+parameter (default `false`, every existing call site and every
+recorded trace untouched) that swaps the grounded 3-frame strip and the
+generic held half-turn for a dedicated `BANK_TIME` (2 frames at 30fps,
+under even the bird's own 0.08s `coyote_time`) — gated in `player.gd`
+on `form.move_mode == "fly"`.
+
+**Fish**: turn, idle fin-sway, a burst-stroke flash and the barrel-roll
+dance all reuse the existing 4-frame swim cycle and bite frame — a fish
+that already turns constantly and swims in one continuous cycle needed
+no new art, only new combinations of what it had. The burst flash is a
+cosmetic timer in `form_fish.gd` keyed off a stroke starting from
+near-standstill; a new `splash` emitter (`tools/gen_fx.py`,
+`data/fx.json`) bursts once, read-only, on the existing surface-hop
+branch.
+
+**Enemies**: measured first. Jumper and shooter's 3-frame wind-ups and
+charger and dropper's 2-frame wind-up/tell already met the plan's
+2-frame anticipation floor — a prior pass, not this one. What was still
+2-frame was charger's patrol and dropper's crawl; both are now real
+4-frame cycles, built by recombining already-valid leg-row art from
+their own wind-up/shiver frames (`C_PATROL_C/D`, `D_CRAWL_C/D`) rather
+than drawing new silhouettes. The death poof was already unified
+(`scatter`, 4 frames, the default every non-boss enemy falls back to) —
+nothing to replace. Bosses are untouched, per the plan: they keep their
+18-frame contract.
+
+**The idle dance** (Phase F): an original eight-beat routine — hip-sway
+two-step, arm-wave, a spin, settling face-on — composed from the same
+head/torso/leg vocabulary every frame since the run cycle has been,
+plus `player.gd`'s existing render-only overlay system. The old
+12-second fidget clock becomes two beats sharing one `_idle_t` timer:
+dance at 5s (cooldown ~15s so it stays a treat), fidget as the
+fallback second beat at 12s whenever dance is still cooling down — the
+two can never collide, because landing the dance beat always resets
+the clock. Any input, damage or ground loss cancels whichever is
+playing on the very next tick, the same rule the turn lives under.
+Each animal form gets a 4-frame species take (frog bobs through its
+idle/crouch/leap poses, bird head-bangs its flap cycle, fish barrel-
+rolls its swim cycle), all reused frames played twice through.
+
+Guards: `test_player_forms.gd`'s canonical-state-set check now covers
+all four forms (`turn` + `dance` + each form's own states); a new
+`test_enemy_motion_parity.gd` pins the 4-frame floor and the 2-frame
+anticipation floor across every non-boss enemy and the unified death
+poof; `test_render_facing_fsm.gd` gets trace tests for the banking-pair
+extension; a new `test_idle_dance.gd` drives `Player`'s own overlay
+methods (no scene tree, the same way the FSM is driven) to prove the
+dance is reachable only from true idle, cancels on any input bit or
+ground loss the very next tick, and that fidget — not a second dance —
+is the beat a cooling-down idle stretch reaches instead.
+
+A clean `tools/bossgate.sh --quick` spot-check on THE GROVE WARDEN
+surfaced a pre-existing fairness failure (phase 2 FURY's SPRAY>WALK
+attack has no dodge window on any of the 7 standable tiles it was
+observed from) — confirmed, by reproducing it against the unmodified
+baseline commit, to predate this phase and be unrelated to it. Left
+unfixed: boss attack fairness is explicitly outside render-only scope.
+
+Full stack: 334 unit tests, 791 integration checks, 26 tapes (21
+proved, 5 partial by design) — every count unchanged except the unit
+total, which only grew with new guard tests.
