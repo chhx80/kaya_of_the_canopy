@@ -307,6 +307,45 @@ K_CLIMB1 = _kaya(K_T_UP, L_CLIMB_A, 0, head=K_HEAD_CLIMB)
 K_CLIMB2 = _kaya(K_T_UP, L_STAND, 0, head=K_HEAD_CLIMB)
 K_CLIMB3 = _kaya(K_T_UP, _swap(L_CLIMB_A), 0, head=K_HEAD_CLIMB)
 
+# ---- Phase A, docs/plan-art-motion.md: the turn. New poses are built the same
+# way the run cycle is — recomposing the existing head/torso/leg blocks into
+# combinations the first 20 frames never used — except for the half-turn's
+# head, which is genuinely new: every other frame in this sheet is drawn in
+# profile, and the half-turn is the one beat that has to look at the camera.
+#
+# Eyes brought together and centred rather than offset toward the leading
+# edge (as K_HEAD's profile eyes are), and the hairline swept off-centre, so
+# the frame reads as a body caught mid-pivot rather than a second idle pose.
+K_HEAD_TURN = list(K_HEAD)
+K_HEAD_TURN[0] = ".....kkkkk......"    # hair caught mid-swing, off the part
+K_HEAD_TURN[5] = "....kswkkwsk...."    # both eyes toward the camera, a two-
+                                       # pixel nose bridge keeping them apart
+
+# plant: braced backward lean, wide low stance (shared with the land pose's
+# legs, but K_T_BACK's trailing arm reads as resisting rather than absorbing).
+K_TURN_PLANT = _kaya(K_T_BACK, L_LAND, 3)
+# half-turn: the pivot itself, face-on. Also played alone (held, no loop) for
+# an airborne or slow-speed reversal — see RenderFacingFSM.turn_frame_index().
+K_TURN_HALF = _kaya(K_T_BACK, L_PASS, 0, head=K_HEAD_TURN)
+# skid: full lean-back over a dug-in crouch.
+K_SKID = _kaya(K_T_OUT, L_CROUCH, 3)
+# push: shouldering a breakable wall. Two frames of the same forward drive the
+# run cycle already has the vocabulary for, cycling slowly while tick_break()
+# runs rather than striding.
+K_PUSH1 = _kaya(K_T_FWD, L_CONTACT, 1)
+K_PUSH2 = _kaya(K_T_FWD, L_DOWN, 2)
+# throw: the wind-up (reaching into the swing) and the follow-through (arms
+# thrown up and out, same silhouette family as the jump arc's K_T_UP beats).
+K_THROW1 = _kaya(K_T_FWD, L_STAND, 0)
+K_THROW2 = _kaya(K_T_UP, L_STAND, 0, head=K_HEAD_UP)
+# catch: arms out to take the blade back, planted.
+K_CATCH = _kaya(K_T_OUT, L_STAND, 0)
+# idle fidget: a small weight-shift, a settle, a stretch -- three beats, no
+# loop, back to idle. See RenderFacingFSM's sibling timers in player.gd.
+K_FIDGET1 = _kaya(K_T_BACK, L_STAND, 0)
+K_FIDGET2 = _kaya(K_T_MID, L_CONTACT, 1)
+K_FIDGET3 = _kaya(K_T_UP, L_APEX, 0, head=K_HEAD_UP)
+
 
 # Everything from here down is 16x16, and authored through `cell()` so a row
 # only has to carry the pixels that are actually lit — trailing transparency is
@@ -1247,12 +1286,16 @@ def build_sprites():
     # Kaya's limbs are three pixels wide; the default occlusion term would
     # push their shaded column down two whole ramp steps and read as mud.
     # Frame order matches data/forms/human.json. 0-1 idle, 2-9 run, 10-15 the
-    # jump arc (anticipate, launch, rise, apex, fall, land), 16-18 climb,
-    # 19 hurt.
+    # jump arc (anticipate, launch, rise, apex, fall, land), 16-18 climb, 19
+    # hurt, 20-21 turn (plant, half-turn), 22 skid, 23-24 push, 25-26 throw,
+    # 27 catch, 28-30 idle fidget. 20-30 are Phase A, docs/plan-art-motion.md.
     sheet("kaya_human",
           lit([K_IDLE, K_IDLE_B] + K_RUN
               + [K_CROUCH, K_LAUNCH, K_RISE, K_APEX, K_FALL, K_LAND,
-                 K_CLIMB1, K_CLIMB2, K_CLIMB3, K_HURT], KAYA, dark=0.75),
+                 K_CLIMB1, K_CLIMB2, K_CLIMB3, K_HURT,
+                 K_TURN_PLANT, K_TURN_HALF, K_SKID, K_PUSH1, K_PUSH2,
+                 K_THROW1, K_THROW2, K_CATCH,
+                 K_FIDGET1, K_FIDGET2, K_FIDGET3], KAYA, dark=0.75),
           16, 24)
     # 0 idle, 1 breath, 2 crouch, 3 leap, 4 reach, 5 cling
     sheet("kaya_frog", lit([F_IDLE, F_BREATHE, F_CROUCH, F_LEAP,

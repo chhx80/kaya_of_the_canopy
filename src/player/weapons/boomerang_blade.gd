@@ -19,3 +19,12 @@ func fire(p: Player) -> bool:
 	_in_flight.append(blade)
 	AudioManager.play("throw")
 	return true
+
+## Read-only: see WeaponBase.flight_state(). Driven straight off the one live
+## blade's own `st` — never written here, only inspected.
+func flight_state() -> int:
+	for n: Variant in _in_flight:
+		if is_instance_valid(n):
+			var b: Blade = n
+			return FlightState.BACK if b.st == Blade.St.BACK else FlightState.OUT
+	return FlightState.NONE

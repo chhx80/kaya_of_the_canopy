@@ -42,10 +42,18 @@ func test_hitbox_fits_inside_a_one_tile_corridor() -> void:
 
 func test_every_animation_referenced_by_the_controller_exists() -> void:
 	var f := FormBase.load_form("human")
-	for name in ["idle", "run", "jump", "fall", "land", "climb", "hurt"]:
+	for name in ["idle", "run", "jump", "fall", "land", "climb", "hurt",
+			# Phase A, docs/plan-art-motion.md: player.gd's render-only overlay
+			# states. The human form is the first to declare all of them.
+			"turn", "skid", "push", "throw", "catch", "fidget"]:
 		var a: Dictionary = f.anim(name)
 		ok(a.has("frames"), "anim '%s' needs frames" % name)
 		gt(float((a["frames"] as Array).size()), 0.0, "anim '%s' is empty" % name)
+		ok(f.has_anim(name), "has_anim('%s') must agree with anim()" % name)
+
+func test_has_anim_is_false_for_a_state_the_form_never_declared() -> void:
+	var f := FormBase.load_form("human")
+	not_ok(f.has_anim("there_is_no_such_state"))
 
 func test_sprite_sheet_for_each_form_exists_on_disk() -> void:
 	for id in _form_ids():

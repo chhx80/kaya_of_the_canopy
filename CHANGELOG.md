@@ -2096,3 +2096,47 @@ replayed in the booted game, every boss provably beatable and provably
 fair, one overworld carrying every door, an ending derived from the
 hub's own graph, and a suite of 306 unit tests and 791 integration
 checks with zero failures and zero expectations of failure.
+
+## Phase A — the turn (`docs/plan-art-motion.md`)
+
+Kaya no longer turns by mirror. `player.gd` grows a render-facing state
+machine — `RenderFacingFSM`, a pure `RefCounted` so `tools/test.sh` can
+drive it off a recorded trace with no scene tree, no Player, no Actor —
+that lags a new `render_facing` behind the gameplay `facing` form_base.gd
+still writes. A grounded reversal above 40 px/s plays a 3-frame turn
+strip (plant, the one hand-drawn face-on half-turn frame, push-off) over
+0.075s, measured under `coyote_time` (0.09s) by a guard test; a slower
+or airborne reversal plays the half-turn alone; an axis that opposes
+velocity above 70 px/s skids — a held lean-back — until velocity itself
+crosses zero, chaining skid -> turn -> run the way the plan asked for.
+Mashing the direction restarts the strip at the half-turn frame rather
+than the plant, so it reads as twitchy, not laggy. None of it writes to
+`facing`, `vel`, `pos` or any other physics state: render-only, as the
+plan's invariant requires, and all 26 proof tapes still replay
+bit-identically.
+
+The human sheet grows from 20 frames to 31: turn (plant, half-turn),
+skid, push x2 (shouldering, read off the existing `FormBase.break_progress`),
+throw x2 + catch (read off a new `WeaponBase.flight_state()` the
+boomerang blade overrides — every other weapon reports NONE), and a
+3-frame idle fidget every 12s of true stillness that any input, damage
+or loss of ground cancels on the next frame. `data/forms/human.json` and
+`tools/art/sprites.py` move in lockstep, composing the new poses from
+the same head/torso/leg blocks the run cycle already established, plus
+one genuinely new head (`K_HEAD_TURN`) for the face-on half-turn.
+`tests/test_art_palette.gd` keeps every named frame honest.
+
+Two new dust one-shots through the existing FX pipeline
+(`tools/gen_fx.py` + `data/fx.json`): a turn scuff and a takeoff kick,
+alongside the landing puff that already existed. Landing squash
+(1.15x/0.85y, proportional to impact speed above the dust threshold)
+and launch stretch are a `sprite.scale` pinned to the hitbox's feet and
+horizontal centre, so neither ever moves `box` or the hitbox it defines.
+
+Guards: a new unit suite drives `RenderFacingFSM` off recorded
+velocity/facing/ground traces and asserts the state sequence and the
+3-frame strip's timing against `coyote_time`; `test_player_forms.gd`
+now checks the human form declares every Phase A state. Full stack:
+316 unit tests, 791 integration checks, 26 tapes (21 proved, 5 partial
+by design) — every count and every verdict unchanged, because nothing
+here is physics.

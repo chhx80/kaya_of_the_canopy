@@ -111,6 +111,13 @@ func anim(name: String) -> Dictionary:
 	var a: Dictionary = cfg.get("anim", {})
 	return a.get(name, {"frames": [0], "fps": 1})
 
+## Whether `name` is a declared animation for this form. Lets the render layer
+## (player.gd) gate an overlay state — turn, skid, push, throw, catch, fidget —
+## on forms that actually drew the frames for it, rather than silently falling
+## back to frame 0 of a sheet that was never asked for that state.
+func has_anim(name: String) -> bool:
+	return (cfg.get("anim", {}) as Dictionary).has(name)
+
 # ------------------------------------------------------------------ currents
 ## The velocity of the medium under `rect`: the area-weighted mean of the
 ## `current` vectors of every tile it overlaps.

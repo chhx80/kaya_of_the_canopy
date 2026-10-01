@@ -207,7 +207,83 @@ SCATTER = [
      "........"],
 ]
 
-ROWS = [DUST, SPARK, SHIMMER, SCATTER]
+# Row 4 — turn scuff: a low, flat heel-streak that fades fast. Phase A,
+# docs/plan-art-motion.md — spawned once when RenderFacingFSM enters State.TURN
+# on the ground, kicked opposite the new facing.
+TURN_SCUFF = [
+    ["........",
+     "........",
+     "........",
+     "........",
+     "........",
+     ".addda..",
+     "adddada.",
+     "........"],
+    ["........",
+     "........",
+     "........",
+     "........",
+     "........",
+     "a.ddd.a.",
+     ".adada..",
+     "........"],
+    ["........",
+     "........",
+     "........",
+     "........",
+     "........",
+     "..a.a...",
+     ".a...a..",
+     "........"],
+    ["........",
+     "........",
+     "........",
+     "........",
+     "........",
+     "........",
+     "...a....",
+     "........"],
+]
+
+# Row 5 — takeoff kick: a brighter, wider version of the landing dust, spawned
+# once on the tick a jump leaves the ground (vel.y < 0), not on an ordinary
+# walk off a ledge.
+TAKEOFF_KICK = [
+    ["........",
+     "........",
+     "..add...",
+     ".adAda..",
+     "adAAAda.",
+     ".adada..",
+     "..add...",
+     "........"],
+    ["........",
+     ".a....a.",
+     "a.adda.a",
+     ".adAAda.",
+     "a.adda.a",
+     ".a....a.",
+     "........",
+     "........"],
+    ["a......a",
+     ".a....a.",
+     "..a..a..",
+     "...aa...",
+     "..a..a..",
+     ".a....a.",
+     "a......a",
+     "........"],
+    [".a....a.",
+     "..a..a..",
+     "...aa...",
+     "........",
+     "........",
+     "........",
+     "........",
+     "........"],
+]
+
+ROWS = [DUST, SPARK, SHIMMER, SCATTER, TURN_SCUFF, TAKEOFF_KICK]
 
 
 def build_particles():

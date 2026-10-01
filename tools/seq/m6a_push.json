@@ -1,0 +1,37 @@
+[
+  {"_": "Phase A: push (shouldering). deeps_2 has a cracked_stone wall ('k',",
+   "__": "break_hold 0.35s) at (9,11)-(9,12), six tiles east of spawn (3,12) on",
+   "___": "the same floor. Re-run with: tools/shot.sh --seq=tools/seq/m6a_push.json",
+   "____": "GOTCHA, paid for once already: holding attack also fires the blade",
+   "_____": "on the rising edge (player.gd: weapon.try_attack on input.attack_pressed),",
+   "______": "and the blade shatters ANY breakable tile it touches on contact --",
+   "_______": "standing flush against the wall and pressing attack breaks it in two",
+   "________": "ticks, nothing like the 0.35s shoulder. Fix: face away (left) and",
+   "_________": "press+hold attack ONCE there, so the only rising edge sends the blade",
+   "__________": "into the open border wall instead; then walk to the target wall",
+   "___________": "WITHOUT ever releasing attack, so it never re-fires."},
+
+  {"scenario": "level:deeps_2", "settle": 90},
+  {"log": "spawn"},
+
+  {"_": "A -- face left (a tap, not a walk) and throw there -- away from the",
+   "__": "wall -- then keep attack held from here on."},
+  {"hold": "move_left", "frames": 2},
+  {"release": "move_left"},
+  {"wait": 3},
+  {"hold": "attack", "frames": 3},
+  {"wait": 20},
+  {"log": "threw_away"},
+
+  {"_": "B -- walk to the wall with attack still held throughout: no new",
+   "__": "rising edge, so no second blade -- just the shoulder."},
+  {"hold": "move_right", "frames": 70},
+  {"log": "at_wall"},
+
+  {"_": "C -- break_progress > 0 drives the push overlay from the first tick",
+   "__": "it is in range; shoot well inside the 0.35s hold so the wall stands."},
+  {"wait": 8},
+  {"log": "pushing"},
+  {"shot": "shots/m6a_push.png"},
+  {"release": ["move_right", "attack"]}
+]

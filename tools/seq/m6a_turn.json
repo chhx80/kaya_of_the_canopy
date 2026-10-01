@@ -1,0 +1,52 @@
+[
+  {"_": "Phase A, docs/plan-art-motion.md: the turn. test_arena's lane (cols",
+   "__": "2-20, row 11, ground cap at row 12) is clear and 25 tiles wide -- one",
+   "___": "screen, so no screen-flip to fight. Re-run with:",
+   "____": "tools/shot.sh --seq=tools/seq/m6a_turn.json"},
+
+  {"scenario": "level:test_arena", "settle": 90},
+  {"log": "spawn"},
+
+  {"_": "A -- run right to full speed, well clear of the spike/crate dressing",
+   "__": "past col 18."},
+  {"hold": "move_right", "frames": 50},
+  {"log": "at_speed"},
+  {"shot": "shots/m6a_a_run.png"},
+
+  {"_": "B -- reverse the stick while still doing ~108 px/s. axis opposes",
+   "__": "velocity above SKID_SPEED_MIN (70 px/s): RenderFacingFSM.State.SKID,",
+   "___": "render_facing holding the OLD (right) direction while facing has",
+   "____": "already flipped. Measured: at 900 px/s^2 deceleration (15 px/s per",
+   "_____": "tick) velocity is back under 70 by the 3rd tick after the reversal,",
+   "______": "so the shot has to land on tick 1."},
+  {"release": "move_right"},
+  {"hold": "move_left", "frames": 1},
+  {"log": "skid"},
+  {"shot": "shots/m6a_b_skid.png"},
+
+  {"_": "C -- a few ticks later: velocity has crossed zero, so the skid has",
+   "__": "released into State.TURN -- render_facing still hasn't caught up."},
+  {"wait": 2},
+  {"log": "turn"},
+  {"shot": "shots/m6a_c_turn.png"},
+
+  {"_": "D -- the strip has finished (well under coyote_time=0.09s) and the",
+   "__": "run cycle resumes, now facing left."},
+  {"wait": 30},
+  {"log": "run_left"},
+  {"shot": "shots/m6a_d_run_left.png"},
+  {"release": "move_left"},
+
+  {"_": "E -- a slow reversal: a short right-tap first (itself a full",
+   "__": "skid/turn back to facing right, settling near zero speed) and then",
+   "___": "left again. That second flip, at low speed, should be the single",
+   "____": "held half-turn frame rather than the 3-frame strip."},
+  {"wait": 20},
+  {"hold": "move_right", "frames": 6},
+  {"release": "move_right"},
+  {"wait": 2},
+  {"hold": "move_left", "frames": 1},
+  {"log": "half_turn"},
+  {"shot": "shots/m6a_e_half_turn.png"},
+  {"release": "move_left"}
+]
