@@ -445,6 +445,24 @@ def grain(p, seed, count, dv=0.12):
                 dv if rnd.random() < 0.5 else -dv)
 
 
+def horizon_haze(p, y0, y1, v0, v1, ramp=None, curve=1.0, bands=5):
+    """Phase C, docs/plan-art-motion.md: "horizon gradient banding via dither
+    on the far planes." A dithered gradient like `vband`, except it steps
+    through `bands` discrete levels rather than a continuous curve — the
+    classic banded-sunset look, each band Bayer-dithered into the next at its
+    boundary. And unlike `vband` it only fills pixels the plane has not
+    already painted: called after a world's colonnade/ridge/comb is drawn, it
+    shows up in the gaps between them — behind an arcade's arches, through a
+    comb's cells — as atmosphere, and never overwrites a silhouette."""
+    for y in range(max(0, y0), min(p.h, y1)):
+        t = (y - y0) / float(max(1, y1 - y0))
+        step_t = round(t * bands) / float(bands)
+        v = v0 + (v1 - v0) * (step_t ** curve)
+        for x in range(p.w):
+            if p.val[y][x] is None:
+                p.set(x, y, v, ramp)
+
+
 def sky_path(p, path, curve=1.0):
     """Vertical gradient that walks a path *through* several ramps.
 
@@ -498,6 +516,7 @@ def _jungle():
           fade=0.30, rough=0.06)
     mist(far, 156, 34, 0.45)
     shafts(far, 4, 4050, dv=0.18, slope=4, width=(12, 30), reach=0.9)
+    horizon_haze(far, 170, 240, 0.34, 0.14, ramp="foliage", bands=4)
 
     # Near: the frame. The widest window of the three, kept at the dark end of
     # the ramp — it is a silhouette, so its contrast is against the plane behind
@@ -525,7 +544,22 @@ def _jungle():
     for i in range(9):                           # vines off that fringe
         hang(near, rnd.randrange(400), rnd.randrange(6, 22),
              rnd.randrange(28, 120), 0.34, 4080 + i)
-    return {"sky": sky, "far": far, "near": near}
+
+    # Fg: canopy grasses, Phase C's near-foreground plane. Drawn in
+    # src/world/level.gd over the tiles and the light pools but still behind
+    # every entity (see PARALLAX_FG there), so these blades read as ground
+    # cover closer than the camera rather than as something in Kaya's way.
+    # Sparse and dark on purpose — a handful of blades, not a hedge.
+    fg = Plane("grass", (0.0, 1.9))
+    rnd = random.Random(4095)
+    for i in range(22):
+        x = rnd.randrange(400)
+        bh = rnd.randrange(9, 20)
+        lean = rnd.uniform(-0.35, 0.35)
+        for k in range(bh):
+            t = k / float(bh - 1)
+            fg.set(x + int(lean * k), 240 - k, 0.15 + 0.85 * t)
+    return {"sky": sky, "far": far, "near": near, "fg": fg}
 
 
 def _sky():
@@ -561,6 +595,7 @@ def _sky():
         cloud(far, rnd.randrange(400), rnd.randrange(116, 178),
               rnd.randrange(30, 62), rnd.randrange(9, 17), 0.5, 5050 + i)
     mist(far, 170, 30, 0.5)
+    horizon_haze(far, 130, 240, 0.58, 0.30, bands=4)
 
     # Near: one big limb across the top with its leaves, which is what tells you
     # you are up a tree rather than in one.
@@ -668,6 +703,7 @@ def _ruins():
     ridge(far, 216, 0.34, 6022, amp=7, step=15, thickness=40, crest=0.2,
           fade=0.3, rough=0.06)                      # silt drifted at the base
     mist(far, 120, 36, 0.42, dv=0.18)
+    horizon_haze(far, 120, 236, 0.55, 0.10, bands=5)   # bright above, black below
 
     # Near: the frame. Two fallen columns and the kelp growing on them, dark
     # enough that a green frog in front of it is still a green frog.
@@ -687,7 +723,20 @@ def _ruins():
              rnd.randrange(30, 150), 0.74, 6050 + i, ramp="foliage")
     canopy(near, 6, 0.5, 6060, count=9, rx=(14, 26), ry=(6, 12), spread=5,
            ramp="foliage")
-    return {"sky": sky, "far": far, "near": near}
+
+    # Fg: ruin silt wisps drifting through the lower water column. Thin and
+    # dark — this is the plane src/world/level.gd draws over the tiles and
+    # the light pools but behind every entity.
+    fg = Plane("water", (0.0, 1.3))
+    rnd = random.Random(6095)
+    for i in range(18):
+        x = rnd.randrange(400)
+        y0 = rnd.randrange(150, 232)
+        length = rnd.randrange(6, 15)
+        for k in range(length):
+            xx = x + int(1.6 * math.sin(k / 3.0 + i))
+            fg.set(xx, y0 - k, 0.25 + 0.55 * (k / float(length)))
+    return {"sky": sky, "far": far, "near": near, "fg": fg}
 
 
 # ------------------------------------------------------- 3. THERMAL HEIGHTS
@@ -747,6 +796,10 @@ def _heights():
               rnd.randrange(34, 70), rnd.randrange(10, 18), 0.42, 7060 + i,
               ramp="metal")
     mist(far, 168, 40, 0.42, dv=0.16)
+    # Dirt's own window (2.2, 3.4) already clears the fish-camouflage floor
+    # the note above measures; a blank-fill stays inside that window exactly
+    # like everything else on this plane, so the reading is untouched.
+    horizon_haze(far, 150, 240, 0.50, 0.26, bands=4)
 
     # Near: the cliff you are actually on, running up both edges of the screen.
     # Dark, because everything behind it is pale and the play field sits on it.
@@ -777,7 +830,22 @@ def _heights():
                 px = (34 + x) if left else (366 - x)
                 near.set(px, y + k, 0.62 if k == 0 else 0.26)
     spires(near, 250, 5, 0.3, 7080, height=(18, 46), width=(16, 40))
-    return {"sky": sky, "far": far, "near": near}
+
+    # Fg: wind-blown spindrift streaks, low and thin. Held well under the
+    # near cliff's own window so a streak crossing in front of the fish never
+    # comes close to its gold-ramp outline — it is drawn over the tiles, not
+    # over her, but duller is cheaper than re-measuring the camouflage floor.
+    fg = Plane("metal", (0.1, 1.1))
+    rnd = random.Random(7095)
+    for i in range(16):
+        y = rnd.randrange(185, 236)
+        x0 = rnd.randrange(400)
+        length = rnd.randrange(10, 28)
+        for k in range(length):
+            xx = (x0 + k) % 400
+            yy = y + int(1.1 * math.sin(k / 4.0 + i))
+            fg.set(xx, yy, 0.35 + 0.35 * math.sin(k / 5.0 + i))
+    return {"sky": sky, "far": far, "near": near, "fg": fg}
 
 
 # --------------------------------------------------------- 4. TERMITE DEEPS
@@ -825,6 +893,7 @@ def _deeps():
             if rnd.random() < 0.14:
                 glow(far, x, y, 12, 0.5, 8050 + cx + cy, frac=0.8)
     mist(far, 140, 64, 0.34, dv=0.14)
+    horizon_haze(far, 20, 220, 0.70, 0.35, ramp="purple", bands=5)
 
     # Near: two great roots coming down through everything, and the mycelium
     # strung between them.
@@ -848,7 +917,20 @@ def _deeps():
     for i in range(6):
         glow(near, rnd.randrange(400), rnd.randrange(0, 240),
              rnd.randrange(10, 22), 0.4, 8080 + i, frac=0.7)
-    return {"sky": sky, "far": far, "near": near}
+
+    # Fg: root fringe hanging from the tunnel roof — unlike the other worlds'
+    # fg planes this one reads top-down rather than ground-up, because roots
+    # hang. Sparse, dark `wood`, same depth slot as every other world's fg
+    # (drawn over the tiles and the light pools, behind every entity).
+    fg = Plane("wood", (0.0, 1.2))
+    rnd = random.Random(8095)
+    for i in range(12):
+        x = rnd.randrange(400)
+        length = rnd.randrange(16, 36)
+        for k in range(length):
+            xx = x + int(2.2 * math.sin(k / 5.0 + i))
+            fg.set(xx, k, 0.20 + 0.55 * (1.0 - k / float(length)))
+    return {"sky": sky, "far": far, "near": near, "fg": fg}
 
 
 # ----------------------------------------------------- 5. THE OBSIDIAN NEST
@@ -886,6 +968,7 @@ def _obsidian():
         glow(far, rnd.randrange(400), rnd.randrange(198, 224),
              rnd.randrange(16, 36), 0.5, 9060 + i, frac=0.8)
     mist(far, 176, 42, 0.36, dv=0.16)
+    horizon_haze(far, 120, 240, 0.20, 0.55, bands=4)     # dark above, hot below
 
     # Near: the flues. Black columns with the heat still running up the inside,
     # and nothing else — the Nest is the last world and it is meant to be bare.
@@ -906,7 +989,21 @@ def _obsidian():
     for i in range(7):
         glow(near, rnd.randrange(400), rnd.randrange(214, 240),
              rnd.randrange(12, 28), 0.42, 9090 + i, frac=0.7)
-    return {"sky": sky, "far": far, "near": near}
+
+    # Fg: nest glass shards, small and glinting near the floor — the last
+    # world's near-foreground plane, same depth slot as the other four.
+    fg = Plane("stone", (0.0, 1.3), windows={"ember": (0.6, 2.4)})
+    rnd = random.Random(9095)
+    for i in range(14):
+        x = rnd.randrange(400)
+        y = rnd.randrange(208, 238)
+        h = rnd.randrange(6, 15)
+        for k in range(h):
+            t = k / float(h)
+            fg.set(x, y - k, 0.25 + 0.5 * (1.0 - t))
+        if rnd.random() < 0.55:                      # a glint at the tip
+            fg.set(x, y - h, 0.9, "ember")
+    return {"sky": sky, "far": far, "near": near, "fg": fg}
 
 
 WORLDS = {"jungle": _jungle, "sky": _sky, "ruins": _ruins,
@@ -936,11 +1033,14 @@ def build_backdrops():
     """
     for world, make in sorted(WORLDS.items()):
         planes = make()
-        for name in ("sky", "far", "near"):
+        for name in ("sky", "far", "near", "fg"):
+            if name not in planes:
+                continue      # "fg" is optional -- phase C, not every world has one
             p = planes[name]
             p.render().save(os.path.join(SPRITES, "bg_%s_%s.png" % (world, name)))
-        print("bg_%s_{sky,far,near}.png  contrast budget %.1f/%.1f/%.1f steps"
-              % (world, planes["sky"].contrast(), planes["far"].contrast(),
+        print("bg_%s_{sky,far,near%s}.png  contrast budget %.1f/%.1f/%.1f steps"
+              % (world, ",fg" if "fg" in planes else "",
+                 planes["sky"].contrast(), planes["far"].contrast(),
                  planes["near"].contrast()))
     # The phase 1 strips are gone; nothing may keep loading them.
     for stale in ("bg_far.png", "bg_near.png"):

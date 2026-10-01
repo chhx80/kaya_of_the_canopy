@@ -385,6 +385,29 @@ def water_frame(src, f):
     return out
 
 
+def water_sparkle_frame(src, f):
+    """Phase C, docs/plan-art-motion.md: sparkle + shoreline foam on
+    `water_top`, expressed as four MORE frames of the same tile rather than a
+    new id — "if a new tile id would be needed, do NOT add one". Built on top
+    of `water_frame()`'s own wave so the surface keeps moving underneath: a
+    ragged foam fleck along the crest row, brighter and wider than the plain
+    1.35x crest pick-out, plus two single-pixel glints that walk the tile a
+    different, deterministic way each frame so the cycle still repeats.
+    """
+    out = water_frame(src, f).copy()
+    for x in range(TS):                      # foam: a ragged bright crest
+        c = out.getpixel((x, 0))
+        if c[3] and (x * 7 + f * 5) % 11 < 4:
+            out.putpixel((x, 0), scale(c, 1.55))
+    for i in range(2):                        # sparkle: two glints, drifting
+        sx = (f * 11 + i * 23 + 3) % TS
+        sy = (f * 7 + i * 13 + 2) % TS
+        c = out.getpixel((sx, sy))
+        if c[3]:
+            out.putpixel((sx, sy), scale(c, 1.8))
+    return out
+
+
 def lava_frame(src, f):
     """One frame of lava: the whole body creeps upward and pulses brighter.
 
@@ -409,10 +432,15 @@ def lava_frame(src, f):
 def build_tile_anim():
     water = load_tile(WATER_TOP_ID) or flat((0x3b, 0x6e, 0xa5, 255))
     lava = load_tile(LAVA_ID) or flat((0xc0, 0x4a, 0x3a, 255))
-    img = Image.new("RGBA", (TS * FRAMES, TS * 2), (0, 0, 0, 0))
+    # Row 0: the plain wave (frames 0-3). Row 1: lava (frames 4-7), unchanged.
+    # Row 2: the sparkle+foam phase of the SAME water_top tile (frames 8-11) —
+    # data/tile_anim.json's "7" entry cycles through both rows, so a shoreline
+    # run of water_top gets its glint without a second tile id anywhere.
+    img = Image.new("RGBA", (TS * FRAMES, TS * 3), (0, 0, 0, 0))
     for f in range(FRAMES):
         img.paste(water_frame(water, f), (f * TS, 0))
         img.paste(lava_frame(lava, f), (f * TS, TS))
+        img.paste(water_sparkle_frame(water, f), (f * TS, TS * 2))
     img.save(os.path.join(FX, "tile_anim.png"))
     print("tile_anim.png (%dx%d)" % img.size)
 

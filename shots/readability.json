@@ -1,15 +1,36 @@
 {
  "_cutoff": 28.6,
  "deeps": {
-  "fg_minus_bg_luma": 28.6,
+  "fg_minus_bg_luma": 28.5,
   "forms": {
    "bird": {
     "hole_pct": 0,
     "lost_pct": 0.0
    },
    "fish": {
-    "hole_pct": 5.0,
-    "lost_pct": 10.4
+    "hole_pct": 20.0,
+    "lost_pct": 20.7
+   },
+   "frog": {
+    "hole_pct": 0,
+    "lost_pct": 0.0
+   },
+   "human": {
+    "hole_pct": 0.9,
+    "lost_pct": 0.8
+   }
+  }
+ },
+ "heights": {
+  "fg_minus_bg_luma": 35.1,
+  "forms": {
+   "bird": {
+    "hole_pct": 0,
+    "lost_pct": 0.0
+   },
+   "fish": {
+    "hole_pct": 7.5,
+    "lost_pct": 10.7
    },
    "frog": {
     "hole_pct": 0,
@@ -21,29 +42,8 @@
    }
   }
  },
- "heights": {
-  "fg_minus_bg_luma": 35.2,
-  "forms": {
-   "bird": {
-    "hole_pct": 0,
-    "lost_pct": 0.0
-   },
-   "fish": {
-    "hole_pct": 2.5,
-    "lost_pct": 2.9
-   },
-   "frog": {
-    "hole_pct": 0,
-    "lost_pct": 0.0
-   },
-   "human": {
-    "hole_pct": 0,
-    "lost_pct": 0.0
-   }
-  }
- },
  "jungle": {
-  "fg_minus_bg_luma": 23.1,
+  "fg_minus_bg_luma": 23.0,
   "forms": {
    "bird": {
     "hole_pct": 0,
@@ -54,8 +54,8 @@
     "lost_pct": 0.7
    },
    "frog": {
-    "hole_pct": 10.4,
-    "lost_pct": 15.2
+    "hole_pct": 6.2,
+    "lost_pct": 8.3
    },
    "human": {
     "hole_pct": 1.8,
@@ -64,7 +64,7 @@
   }
  },
  "obsidian": {
-  "fg_minus_bg_luma": 20.6,
+  "fg_minus_bg_luma": 20.4,
   "forms": {
    "bird": {
     "hole_pct": 0,
@@ -96,8 +96,8 @@
     "lost_pct": 0.0
    },
    "frog": {
-    "hole_pct": 4.2,
-    "lost_pct": 4.8
+    "hole_pct": 8.3,
+    "lost_pct": 6.5
    },
    "human": {
     "hole_pct": 0.9,
@@ -106,7 +106,7 @@
   }
  },
  "sky": {
-  "fg_minus_bg_luma": 42.3,
+  "fg_minus_bg_luma": 42.2,
   "forms": {
    "bird": {
     "hole_pct": 6.9,
@@ -117,8 +117,8 @@
     "lost_pct": 0.7
    },
    "frog": {
-    "hole_pct": 6.2,
-    "lost_pct": 10.7
+    "hole_pct": 10.4,
+    "lost_pct": 7.7
    },
    "human": {
     "hole_pct": 0.9,

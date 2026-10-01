@@ -36,9 +36,17 @@ RAMPS = {
     "dirt":    [(0x27, 0x17, 0x0e), (0x3a, 0x23, 0x14), (0x52, 0x33, 0x1d),
                 (0x6b, 0x43, 0x26), (0x87, 0x58, 0x33), (0xa6, 0x72, 0x45),
                 (0xc2, 0x8f, 0x5d)],
+    # Phase C ramp hue audit (docs/plan-art-motion.md, tools/art/ramp_audit.py):
+    # flagged "merely darkens" -- every step stayed a flat blue-grey from
+    # shadow to highlight, with nothing rotating toward warm as it brightened.
+    # Steps 5 and 6 nudged a conservative +6/-6 and +10/-10 on R/B (G
+    # untouched): the shadow end is left alone (it already reads correctly as
+    # the cool end), luminance still climbs monotonically, and the material
+    # is still unmistakably "stone" -- this is a tilt toward neutral at the
+    # bright end, not a repaint.
     "stone":   [(0x1b, 0x1c, 0x24), (0x2b, 0x2d, 0x38), (0x40, 0x43, 0x50),
-                (0x58, 0x5c, 0x69), (0x73, 0x77, 0x83), (0x94, 0x98, 0xa2),
-                (0xb8, 0xbc, 0xc4)],
+                (0x58, 0x5c, 0x69), (0x73, 0x77, 0x83), (0x9a, 0x98, 0x9c),
+                (0xc2, 0xbc, 0xba)],
     "wood":    [(0x2a, 0x18, 0x0d), (0x40, 0x26, 0x14), (0x5c, 0x38, 0x1e),
                 (0x7a, 0x4c, 0x29), (0x99, 0x64, 0x38), (0xb8, 0x81, 0x4f),
                 (0xd4, 0xa1, 0x6e)],
@@ -191,8 +199,15 @@ def image(rows):
     return img
 
 
-def sheet(name, cells, cw, ch, cols=None, folder=SPRITES):
-    """cells: ASCII-row-lists or PIL images. Packs them left to right."""
+def sheet(name, cells, cw, ch, cols=None, folder=SPRITES, selout=False):
+    """cells: ASCII-row-lists or PIL images. Packs them left to right.
+
+    `selout=True` runs `selective_outline()` on the packed sheet before it is
+    saved — phase C, docs/plan-art-motion.md. It is a generator-entry-point
+    switch rather than something `sheet()` does for everyone: tiles never pass
+    it (they are not silhouettes against a background the way a character is),
+    and neither do the small icon sheets (blade, pickups, props, projectiles).
+    """
     cols = cols or len(cells)
     rows = (len(cells) + cols - 1) // cols
     img = Image.new("RGBA", (cw * cols, ch * rows), (0, 0, 0, 0))
@@ -202,8 +217,83 @@ def sheet(name, cells, cw, ch, cols=None, folder=SPRITES):
             img.alpha_composite(cell, (ox, oy))
         else:
             blit(img, ox, oy, grid(cell))
+    if selout:
+        n = selective_outline(img)
+        print("  selout %-20s %d edge pixels" % (name + ".png", n))
     img.save(os.path.join(folder, name + ".png"))
     return img
+
+
+# ------------------------------------------------------------------ selout
+# Phase C, docs/plan-art-motion.md: "selective outline on sprite sheets: edge
+# pixels of each sprite's silhouette darken toward the darkest ramp step IN
+# USE on that sprite (selout, not a black box; corners softer than edges;
+# transparent background untouched)."
+#
+# Every character sheet in this project is already drawn with a one-pixel ink
+# ('k') line around its silhouette (see the ASCII grids in tools/art/sprites.py)
+# — so the true edge against transparency is *already* outlined, and a second
+# flat ring on top of that would be exactly the "black box" the brief rejects.
+# What selout adds is new: the band of *material* pixels running immediately
+# inside that ink line (or, for a sheet with no hand-drawn ink border, the
+# material pixels that meet transparency directly) step toward the darkest
+# shade of their own ramp already present on the sheet. The hue and the
+# material survive; only the value drops — a rim shadow, not a sticker cutout.
+def selective_outline(img, edge_frac=0.6, corner_frac=0.3):
+    """In-place. Returns the number of pixels it changed."""
+    w, h = img.size
+    px = img.load()
+    lookup = {}
+    for name, steps in RAMPS.items():
+        for i, c in enumerate(steps):
+            lookup[c] = (name, i)
+
+    def exposed(x, y):
+        if not (0 <= x < w and 0 <= y < h):
+            return True
+        p = px[x, y]
+        return p[3] == 0 or (p[0], p[1], p[2]) == INK
+
+    # The darkest step of each ramp actually painted on this sheet — "in use
+    # on that sprite", not the ramp's own step 0, which may be far darker than
+    # anything this particular sheet ever draws.
+    darkest = {}
+    for y in range(h):
+        for x in range(w):
+            p = px[x, y]
+            if p[3] == 0 or (p[0], p[1], p[2]) == INK:
+                continue
+            key = lookup.get((p[0], p[1], p[2]))
+            if key is None:
+                continue
+            ramp, i = key
+            if ramp not in darkest or i < darkest[ramp]:
+                darkest[ramp] = i
+
+    edits = []
+    for y in range(h):
+        for x in range(w):
+            p = px[x, y]
+            if p[3] == 0 or (p[0], p[1], p[2]) == INK:
+                continue
+            key = lookup.get((p[0], p[1], p[2]))
+            if key is None:
+                continue
+            ramp, i = key
+            dark_i = darkest.get(ramp, i)
+            if i <= dark_i:
+                continue                     # already the darkest shade in use
+            n = sum(1 for dx, dy in ((0, -1), (0, 1), (-1, 0), (1, 0))
+                    if exposed(x + dx, y + dy))
+            if n == 0:
+                continue                     # interior: not a silhouette edge
+            frac = corner_frac if n >= 2 else edge_frac
+            new_i = max(dark_i, i - int(round((i - dark_i) * frac)))
+            if new_i != i:
+                edits.append((x, y, RAMPS[ramp][new_i] + (p[3],)))
+    for x, y, col in edits:
+        px[x, y] = col
+    return len(edits)
 
 
 # ---------------------------------------------------------------- structure

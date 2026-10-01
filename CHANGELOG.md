@@ -2225,3 +2225,120 @@ unfixed: boss attack fairness is explicitly outside render-only scope.
 Full stack: 334 unit tests, 791 integration checks, 26 tapes (21
 proved, 5 partial by design) — every count unchanged except the unit
 total, which only grew with new guard tests.
+
+## Phase C — the beauty pass
+
+All render/asset-side, per the plan's invariant: no collision flag, current
+vector, tile id or its gameplay meaning changed, and all 26 proof tapes still
+replay bit-identically against the pre-phase baseline.
+
+**Selective outline** (`palette.selective_outline()`): a post-pass run at
+build time on every player form, enemy and boss sheet (`sheet(..., selout=
+True)` in `tools/art/sprites.py` and `sprites_enemies_v2.py` — the icon
+sheets, blade/pickups/props/projectiles, are left out on purpose). Every
+sheet already carries a hand-drawn ink outline around its silhouette; selout
+darkens the *material* pixels running just inside that line — toward the
+darkest step of their own ramp already in use on the sheet, never a flat
+black — with edge pixels (one exposed side) moving further than corners (two
+or more), so it reads as a rim shadow, not a sticker cutout. Verified with an
+inline before/after pixel diff confined to the silhouette: 24,639 pixels
+changed across the 16 sheets (2,711 on `kaya_human`, up to 7,607 on
+`boss_brood_queen`), **0 of them further than one pixel from transparency or
+ink** — every single edit is the edge treatment and nothing else. Read
+upscaled before/after on `kaya_human`, `enemy_walker` and `boss_grove`: the
+silhouettes pop a little more without reading as plastic.
+
+**Ramp hue audit** (`tools/art/ramp_audit.py`, standalone): converts every
+ramp's seven steps to HSV and scores it on the pixel-beauty rule "shadows
+shift cool, highlights shift warm" — the shadow step has to sit closer to a
+reference blue (240°) than the highlight does, and the highlight closer to a
+reference amber (45°) than the shadow, with the total rotation clearing a
+4° floor so a ramp cannot pass by merely not having enough contrast to fail.
+11 of 12 ramps already passed. `stone` was flagged ("merely darkens": shadow
+233.3°, highlight 220.0°, 13.3° drift, wrong direction) — every step stayed
+flat blue-grey from dark to light. Fixed by nudging only steps 5 and 6
+(`+6/-6` and `+10/-10` on R/B, G untouched): highlight hue moves from 220.0°
+to 15.0°, luminance stays strictly monotonic, and the material is still
+unmistakably grey stone, not a repaint. Re-audited clean (0/12 flagged) and
+re-read on the tileset and in `heights_1`/`ruins_1`/`nest_1` shots.
+
+**Tile edge light** (`tiles.py::edge_light_course`, called from
+`paint_edges`): a uniform, discrete pass — not the existing hand-tuned
+per-material rim gradients, which stay as they were — adding exactly one
+ramp step of highlight on an exposed top row and one step of
+ambient-occlusion on an exposed bottom row, for every autotiled *standable*
+group (`earth`, `stone`, `hub_grass`, `hub_path`, `ruin`, `heights`, `deeps`,
+`nest`; the `*_bg` groups are never walked on and are left alone). Additive
+by construction: a material whose rim already sets `top: null` — the six
+hand-authored capped variants (`grass_top`, `stone_mossy`, `ruin` algae,
+`heights` sun, `deeps` crust, `nest` hot) whose *base art* already paints a
+sunlit cap — is skipped, so the course never stacks on art that already has
+one. The `MASK_FULL` interior case is untouched by construction (both bits
+are set), so `build_variants()`'s own byte-identity assertion against the
+gameplay tile still holds. Re-generated and re-read against the pre-phase
+tileset: a clean, deliberate highlight line sits on every exposed ledge top
+that did not already have one.
+
+**Backdrops**: one new near-foreground parallax plane per world (`fg` in
+`tools/art/backdrops.py`'s world builders — jungle canopy grasses, ruins silt
+wisps, heights spindrift streaks, deeps root fringe hanging from the tunnel
+roof, nest glass shards; `sky` has none, reusing jungle's biome rather than
+getting its own) plus `horizon_haze()`, a Bayer-dithered *banded* gradient
+(discrete steps, not `vband`'s continuous curve) that only fills pixels a
+world's far plane left blank, so it reads as atmosphere behind a colonnade's
+arches or a comb's cells without ever painting over the silhouette. `fg`
+plane count was hardcoded in `src/world/level.gd` (`bg_sky`/`bg_far`/
+`bg_near` were three fixed nodes), so the minimal render-only change the plan
+allows was taken: a fourth `ParallaxBg` built in code (`PARALLAX_FG = 0.82`),
+added last in `_ready()` and moved to sit exactly where `Entities` was —
+drawn over the tiles, the vignette and the light pools, strictly behind every
+entity. Missing `bg_sky_fg.png` degrades the same way every other optional
+plane does (a `push_warning`, not an error), confirmed by the full itest run.
+Judged one in-game capture per world (`art_phase3`/`heights_1`/`ruins_1`/
+`deeps_1`/`nest_1` seqs): subtle, correctly layered, nothing competes with
+the tiles.
+
+**Water and weather** (`tile_anim.json` + `gen_fx.py::build_tile_anim`):
+`water_top` (tile 7) gains a sparkle+foam phase — four more frames of the
+*same* tile (`water_sparkle_frame()`, a third row in `tile_anim.png`) rather
+than a new id, exactly as the plan requires ("if a new tile id would be
+needed, do NOT add one"); the 8-frame cycle alternates the plain wave with
+the glinting one. `obsidian_hot` (281) gets the M4-style tint pulse world 5
+never had — 0.6 Hz / 0.12 amount, between `deep_spore`'s calm breath and
+`lava`'s open-flame pulse, because it is molten glass under a crust and not
+either of those things. Canopy leaf-sway for world 1 turned out to already
+exist (`vine` and `bg_leaves` both carry a `sway` entry predating this
+phase) — confirmed rather than duplicated. Both new entries verified with
+the M3 pixel-diff method: `water_top` frame 0→9 differs on 163/256 pixels,
+negative control (entry stripped, same frame twice) 0; `obsidian_hot` tint
+1.000→1.120 differs on all 256/256 pixels (a brightness pulse touches every
+opaque pixel by construction), negative control 0.
+
+**Motes**: per-world ambient drift (`Ambience.MOTE_SPECS` — canopy pollen,
+ruin silt, heights spindrift, nest embers; deeps is left out on purpose, its
+spore tiles already carry the motif). No ambient-emitter mechanism existed,
+so the plan's fallback applies: the minimal render-only addition sits in
+`AmbienceLayer`'s existing LIGHT pass (`_draw_motes()`, additive, same draw
+call as the light pools), reading only `_t` and a mote's own index — no RNG,
+nothing read from the world or the player, so it is not a second source of
+truth anything a replay tape could disagree with. Single-digit counts (5-6)
+per world, confirmed in the `heights_1` and `nest_1` captures as a handful of
+drifting flecks and nowhere near the player's silhouette.
+
+**Re-pin**: `tests/test_tileset_probes.gd` turns out not to pin an exact
+pixel hash anywhere — every `_digest()` use there is a *differential* check
+(ruins cell vs. heights cell, deeps vs. heights, etc., asserted unequal), not
+a stored value, so there was nothing to re-pin. That guard, and every other
+one in `test_art_palette.gd`/`test_art_depth.gd`/`test_tile_variants.gd`
+(ramp purity, luminance monotonicity, shade-depth floor/ceiling, backdrop
+contrast budget, frame-exists, readable-layer), passes unchanged.
+
+Full stack, all green: `tools/test.sh` 334 tests / 107,847 assertions, 0
+failed; `tools/validate.sh` OK; `tools/prove.sh --verify-tapes` 26/26,
+byte-identical to the pre-phase baseline; the full `tools/itest.sh` 791
+checks, ALL PASSED (run twice); `tools/bossgate.sh --quick` on THE TIDE MAW
+(ruins_5), 26 checks, ALL PASSED (run twice). Captures: a before/after pair
+per world at a signature location from the committed seqs
+(`art_phase3`/`heights_1`/`ruins_1`/`deeps_1`/`nest_1`), the per-world
+`--preview` art sheets, and `shots/phaseC_world_contact_sheet.png`, a
+5-wide grid of all five worlds.

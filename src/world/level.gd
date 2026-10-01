@@ -10,6 +10,12 @@ signal level_ready()
 const PARALLAX_SKY := 0.10
 const PARALLAX_FAR := 0.28
 const PARALLAX_NEAR := 0.58
+## Phase C, docs/plan-art-motion.md: the near-foreground plane -- closer than
+## "near", so it scrolls closer to the rate the tiles themselves do. Optional
+## per world (bg_<world>_fg.png; see ParallaxBg's missing-art fallback) and
+## drawn in front of the tiles and the light pools but behind every entity —
+## see where BgFg is inserted in _ready().
+const PARALLAX_FG := 0.82
 
 ## Entity types of the form `enemy_<id>` are dispatched to
 ## res://src/enemies/<id>.gd. The ids are listed rather than globbed off the
@@ -32,6 +38,8 @@ var player: Player = null
 ## three ambience layers have to be inserted at exact depths between nodes that
 ## are already there.
 var bg_sky: ParallaxBg = null
+## Phase C's near-foreground plane. Also built in code: see _ready().
+var bg_fg: ParallaxBg = null
 var air: AmbienceLayer = null
 var shade: AmbienceLayer = null
 var lights: AmbienceLayer = null
@@ -54,6 +62,15 @@ func _ready() -> void:
 	air = _make_layer("Air", AmbienceLayer.Role.AIR, bg_near.get_index() + 1)
 	shade = _make_layer("Shade", AmbienceLayer.Role.SHADE, tiles_fg.get_index() + 1)
 	lights = _make_layer("Lights", AmbienceLayer.Role.LIGHT, shade.get_index() + 1)
+	# Added last and moved explicitly to sit right where Entities currently
+	# is: that pushes Entities (and Particles, Camera) one slot later, so BgFg
+	# ends up drawn over the tiles, the vignette and the light pools, and
+	# still strictly behind every entity -- "drifting past below the action",
+	# never over it.
+	bg_fg = ParallaxBg.new()
+	bg_fg.name = "BgFg"
+	add_child(bg_fg)
+	move_child(bg_fg, entities.get_index())
 
 func _make_layer(n: String, role: AmbienceLayer.Role, at: int) -> AmbienceLayer:
 	var l := AmbienceLayer.new()
@@ -69,7 +86,7 @@ func _apply_ambience() -> void:
 	amb = Ambience.for_level(def.id)
 	var planes := {
 		bg_sky: ["sky", PARALLAX_SKY], bg_far: ["far", PARALLAX_FAR],
-		bg_near: ["near", PARALLAX_NEAR],
+		bg_near: ["near", PARALLAX_NEAR], bg_fg: ["fg", PARALLAX_FG],
 	}
 	for node: ParallaxBg in planes.keys():
 		var spec: Array = planes[node]
