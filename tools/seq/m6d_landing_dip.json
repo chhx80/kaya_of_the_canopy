@@ -1,0 +1,8 @@
+[
+  {"scenario": "level:test_arena", "settle": 60},
+  {"teleport": [3, 3], "settle": 0},
+  {"wait": 29},
+  {"shot": "shots/m6d_landing_dip_before.png"},
+  {"wait": 3},
+  {"shot": "shots/m6d_landing_dip_during.png"}
+]

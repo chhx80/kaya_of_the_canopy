@@ -7,6 +7,15 @@ signal killed(enemy: Enemy)
 
 const FLASH_TIME := 0.12
 const DEATH_TIME := 0.35
+## Phase D, docs/plan-art-motion.md: sprite-local hit-hold. A non-lethal blade
+## hit holds the struck enemy's anim clock for a few render frames while the
+## sim — `pos`, `vel`, `health`, `_flash`, every timer above — walks on
+## untouched. This is the honest substitute for classic hit-stop the plan
+## rejects by name: `_hold_t` is read in exactly one place, `_update_anim()`
+## below, and only to zero the delta fed to the frame-advance arithmetic.
+## Bosses get it for free — none of them override `_update_anim()` without
+## calling `super()` first (see brood_queen.gd).
+const HIT_HOLD_TIME := 3.0 / 60.0
 
 var cfg: Dictionary = {}
 var enemy_id := ""
@@ -24,6 +33,7 @@ var _anim_t := 0.0
 var _anim_i := 0
 var _flash := 0.0
 var _dying := 0.0
+var _hold_t := 0.0     ## Phase D sprite-local hit-hold — see HIT_HOLD_TIME above.
 
 var home_screen := Vector2i.ZERO
 var spawn_pos := Vector2.ZERO
@@ -87,6 +97,7 @@ func respawn() -> void:
 	health = max_health
 	_dying = 0.0
 	_flash = 0.0
+	_hold_t = 0.0
 	visible = true
 	on_respawn()
 
@@ -144,6 +155,7 @@ func hurt(amount: int, from: Vector2 = Vector2.ZERO) -> void:
 		AudioManager.play("enemy_hit")
 		Fx.burst("spark", center(), center() - from)
 		vel.x += signf(center().x - from.x) * 40.0
+		_hold_t = HIT_HOLD_TIME
 
 func die(_from: Vector2 = Vector2.ZERO) -> void:
 	if _dying > 0.0:
@@ -183,12 +195,21 @@ func set_anim(name: String) -> void:
 		_anim_i = 0
 
 func _update_anim(delta: float) -> void:
+	# Phase D: the hit-hold freezes only the frame-advance arithmetic below —
+	# `anim_delta` is the sole place `_hold_t` is read, so a struck enemy's
+	# position, velocity, health and every other timer (all set by `think()`
+	# and `hurt()`, both called before this) are bit-identical whether or not
+	# the hold is active. See tests/test_enemy_hit_hold.gd.
+	var anim_delta := delta
+	if _hold_t > 0.0:
+		_hold_t = maxf(0.0, _hold_t - delta)
+		anim_delta = 0.0
 	var anims: Dictionary = cfg.get("anim", {})
 	var a: Dictionary = anims.get(_anim, {"frames": [0], "fps": 1})
 	var frames: Array = a.get("frames", [0])
 	var fps := float(a.get("fps", 1))
 	if fps > 0.0 and frames.size() > 1:
-		_anim_t += delta
+		_anim_t += anim_delta
 		while _anim_t >= 1.0 / fps:
 			_anim_t -= 1.0 / fps
 			_anim_i += 1

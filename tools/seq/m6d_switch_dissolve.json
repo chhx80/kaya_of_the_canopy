@@ -1,0 +1,8 @@
+[
+  {"scenario": "level:jungle_2", "settle": 60},
+  {"teleport": [10, 11], "settle": 20},
+  {"call": "debug_toggle_switch"},
+  {"shot": "shots/m6d_switch_dissolve_a.png"},
+  {"wait": 1},
+  {"shot": "shots/m6d_switch_dissolve_b.png"}
+]

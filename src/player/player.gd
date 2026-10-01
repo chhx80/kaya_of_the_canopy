@@ -128,6 +128,7 @@ func _physics_process(delta: float) -> void:
 		var land_min := Fx.timing("land_dust_min_fall", 170.0)
 		if fall_speed >= land_min:
 			Fx.burst("dust", feet())
+			Fx.landing_dip()
 			# Proportional: a kerb-height landing barely squashes, a fall from
 			# terminal velocity hits the cap. Render-only — the hitbox (`box`)
 			# never moves, only `sprite.scale` in _update_anim().

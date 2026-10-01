@@ -17,6 +17,18 @@ var _hit_this_throw: Array[int] = []
 var _tripped_this_throw: Array[int] = []
 var _spark_cd := 0.0
 
+## Phase D, docs/plan-art-motion.md: blade afterimage. A render-history
+## buffer of past node positions — nothing fed back into flight, catch or
+## damage, read only by `_draw()` below. Sampled every tick and thinned to
+## `AFTERIMAGE_COUNT` ghosts spaced `TRAIL_STRIDE` ticks apart, which is what
+## keeps the trail legible instead of a smear at the blade's top speed.
+## `queue_free()` on the catch (below) takes the whole buffer with it — there
+## is no separate ghost node to leak or to kill explicitly.
+const AFTERIMAGE_COUNT := 2
+const AFTERIMAGE_ALPHAS: Array[float] = [0.40, 0.20]
+const TRAIL_STRIDE := 3
+var _trail: Array[Vector2] = []
+
 func setup(config: Dictionary, p: Player) -> void:
 	cfg = config
 	owner_player = p
@@ -86,6 +98,33 @@ func _physics_process(delta: float) -> void:
 	var f := int(frames[int(_spin * fps) % frames.size()])
 	sprite.region_rect = Rect2(f * _frame_size.x, 0, _frame_size.x, _frame_size.y)
 	_sync_render_position()
+	_record_trail()
+
+## One sample per tick, capped to just enough history for the furthest ghost.
+func _record_trail() -> void:
+	_trail.append(position)
+	var cap := TRAIL_STRIDE * AFTERIMAGE_COUNT + 1
+	while _trail.size() > cap:
+		_trail.pop_front()
+	queue_redraw()
+
+## Drawn in the blade's own `_draw()`, which paints behind `sprite` (a child
+## node always renders after its parent's own draw calls) — "drawn behind the
+## blade" falls out of the node order for free, with no z-index to keep in
+## sync. Positions are past node positions, converted to this tick's local
+## space; the source region is the blade's CURRENT spin frame, which reads as
+## a trail of the same spinning shape rather than a second animation to keep
+## in step.
+func _draw() -> void:
+	for i in AFTERIMAGE_COUNT:
+		var back := TRAIL_STRIDE * (i + 1)
+		var idx := _trail.size() - 1 - back
+		if idx < 0:
+			continue
+		var local := _trail[idx] - position
+		draw_texture_rect_region(sprite.texture,
+			Rect2(local + sprite.offset, Vector2(_frame_size.x, _frame_size.y)),
+			sprite.region_rect, Color(1.0, 1.0, 1.0, AFTERIMAGE_ALPHAS[i]))
 
 func _turn_back() -> void:
 	st = St.BACK

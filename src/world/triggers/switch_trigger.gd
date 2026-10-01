@@ -49,6 +49,12 @@ func toggle() -> void:
 		world.set_switch(group, on)
 	_refresh()
 	AudioManager.play("switch")
+	# Phase D, docs/plan-art-motion.md: the hit-spark fires here rather than off
+	# the blade's own wall-contact spark (blade.gd's `_sparks()`) because this
+	# trigger is an Area, not solid geometry — a lever tripped by walking into
+	# it never touches `_sparks()` at all, and one tripped from range by the
+	# blade passing clean through would be silent too.
+	Fx.burst("spark", pos + SIZE * 0.5)
 	if level != null:
 		level.on_switch_toggled(group)
 

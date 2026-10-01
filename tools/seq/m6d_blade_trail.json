@@ -1,0 +1,7 @@
+[
+  {"scenario": "level:test_arena", "settle": 60},
+  {"teleport": [3, 10], "settle": 16},
+  {"press": "attack", "frames": 4},
+  {"wait": 8},
+  {"shot": "shots/m6d_blade_trail.png"}
+]

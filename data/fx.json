@@ -100,6 +100,8 @@
   "timings": {
     "land_dust_min_fall": 170.0,
     "gem_shimmer_interval": 0.85,
-    "blade_spark_interval": 0.09
+    "blade_spark_interval": 0.09,
+    "landing_dip_px": 2.0,
+    "landing_dip_frames": 3.0
   }
 }

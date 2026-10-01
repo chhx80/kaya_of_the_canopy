@@ -116,6 +116,7 @@ func run_all() -> void:
 		"t_blade_only_one_in_flight",
 		"t_blade_damages_an_enemy_once_per_throw",
 		"t_two_hits_kill_a_walker_and_award_score",
+		"t_a_non_lethal_hit_holds_the_enemy_sprite_but_not_its_timers",
 		"t_blade_breaks_a_crate",
 		"t_enemy_contact_damages_the_player",
 		"t_offscreen_enemies_are_frozen",
@@ -124,6 +125,7 @@ func run_all() -> void:
 		"t_locked_door_stays_shut_without_the_key",
 		"t_the_matching_key_opens_the_door_and_is_consumed",
 		"t_switch_blocks_swap_which_half_is_solid",
+		"t_a_switch_flip_dissolves_the_art_but_collision_changes_on_the_flip_frame",
 		"t_the_blade_can_trip_a_switch_from_range",
 		"t_hub_loads_its_doors",
 		"t_hub_door_is_locked_until_its_prerequisite_is_cleared",
@@ -660,6 +662,49 @@ func t_two_hits_kill_a_walker_and_award_score() -> void:
 	check(not is_instance_valid(e) or e.health <= 0, "two throws kill a 2 HP walker")
 	check_eq(Game.score, score_before + value, "score goes up by the enemy's value")
 
+## Phase D, docs/plan-art-motion.md: a non-lethal hit arms the sprite-local
+## hit-hold (tests/test_enemy_hit_hold.gd proves `_update_anim()` itself never
+## writes sim state); this proves the real thing end to end, in the actual
+## running game. `_flash` and `_hold_t` are both plain countdowns ticked in
+## the same `_physics_process()` that calls `think()` and `step_motion()` —
+## if either stopped advancing while held, the hold would be freezing more
+## than the sprite, which is exactly what this catches.
+func t_a_non_lethal_hit_holds_the_enemy_sprite_but_not_its_timers() -> void:
+	await place(13, 10)
+	var p := player()
+	var e: Enemy = enemies()[0] as Enemy
+	e.pos = Vector2(9 * TS, p.pos.y + p.box.y - e.box.y)
+	e.speed = 0.0
+	e.contact_damage = 0
+	var health_before := e.health
+	p.facing = -1
+	p.pos.x = 13 * TS
+	p.weapon.try_attack(p)
+	var hit := false
+	for i in 200:
+		await get_tree().physics_frame
+		if is_instance_valid(e) and e.health < health_before:
+			hit = true
+			break
+	check(hit, "the throw connected")
+	if not is_instance_valid(e) or not hit:
+		return
+	check(e.health > 0, "sanity: one hit must not kill a 2 HP walker")
+	check(e._hold_t > 0.0, "the hit armed the sprite-local hold")
+	var flash_before := e._flash
+	var hold_before := e._hold_t
+	var health_mid := e.health
+	await frames(1)
+	check(is_instance_valid(e), "the enemy survives the held tick")
+	if not is_instance_valid(e):
+		return
+	check(e._flash < flash_before, "the damage-flash timer keeps ticking down while held")
+	check(e._hold_t < hold_before, "the hold timer itself keeps ticking down")
+	check_eq(e.health, health_mid, "and no extra damage sneaks in during the hold")
+	await frames(6)
+	check(not is_instance_valid(e) or e._hold_t <= 0.0,
+		"the hold releases itself within a handful of frames")
+
 func t_blade_breaks_a_crate() -> void:
 	await place(14, 10)
 	var w: TileWorld = level().world
@@ -775,6 +820,34 @@ func t_switch_blocks_swap_which_half_is_solid() -> void:
 	await frames(2)
 	check(not w.is_solid(SWITCH_A_BLOCK.x, SWITCH_A_BLOCK.y), "flipping swaps them")
 	check(w.is_solid(SWITCH_A_GHOST.x, SWITCH_A_GHOST.y), "the ghost half becomes solid")
+
+## Phase D, docs/plan-art-motion.md: the switch-flip dissolve. The fairness
+## argument is that collision never waits on the fade — this proves collision
+## flips on the exact toggle frame while the renderer is still mid-dissolve,
+## and that the dissolve itself cannot outlive a handful of frames.
+func t_a_switch_flip_dissolves_the_art_but_collision_changes_on_the_flip_frame() -> void:
+	await enter(HOLLOW)
+	var w: TileWorld = level().world
+	var tiles_fg: TileRenderer = level().tiles_fg
+	check_eq(tiles_fg.dissolving_count(), 0, "sanity: nothing dissolving before the flip")
+	var sw: SwitchTrigger = null
+	for n in find_in_group(&"switches"):
+		if (n as SwitchTrigger).group == 1:
+			sw = n
+			break
+	check(sw != null, "level has a group 1 switch")
+	if sw == null:
+		return
+	var was_solid := w.is_solid(SWITCH_A_BLOCK.x, SWITCH_A_BLOCK.y)
+	sw.toggle()
+	check_eq(w.is_solid(SWITCH_A_BLOCK.x, SWITCH_A_BLOCK.y), not was_solid,
+		"collision flips the instant the switch is toggled, not after a fade")
+	check(tiles_fg.dissolving_count() > 0, "the renderer now has tiles mid-dissolve")
+	await frames(2)
+	check_eq(w.is_solid(SWITCH_A_BLOCK.x, SWITCH_A_BLOCK.y), not was_solid,
+		"collision stays flipped two frames later, mid-fade")
+	await frames(10)
+	check_eq(tiles_fg.dissolving_count(), 0, "the dissolve completes within a handful of frames")
 
 func t_the_blade_can_trip_a_switch_from_range() -> void:
 	# Group 2's lever sits three tiles along a ledge in ROOT HOLLOW: far enough

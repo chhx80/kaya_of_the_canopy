@@ -11,8 +11,18 @@ extends Node2D
 ## Tile *variants* (assets/tiles/variants.json) are resolved once at setup, for
 ## the same reason and with the same guarantee: the id stays authored, only the
 ## atlas cell moves. See src/world/tile_variants.gd.
+##
+## Phase D, docs/plan-art-motion.md: switch-flip dissolve. `begin_dissolve()`
+## is called by Level the instant a switch group flips (collision has already
+## changed by then — `TileWorld.set_switch()` is synchronous) and cross-fades
+## only the tiles that actually changed from their old ghost/solid art to the
+## new one over DISSOLVE_TIME. Nothing here delays or previews collision: a
+## body can stand on a tile mid-dissolve exactly as if the art had snapped.
 
 const TS := TileData4.TILE_SIZE
+## 4 render frames at 60Hz — comfortably inside the Obsidian Heart's shortest
+## reforge telegraph (1.05s, data/enemies/obsidian_heart.json's reforge_time).
+const DISSOLVE_TIME := 4.0 / 60.0
 
 var world: TileWorld = null
 var layer := "fg"                       ## "fg" or "bg"
@@ -29,6 +39,9 @@ var _live: PackedInt32Array = PackedInt32Array()
 var _live_bounds := Rect2i()
 var _live_valid := false
 var _signature := 0
+## Tile index (ty * world.width + tx) -> seconds remaining of its dissolve.
+## Only ever populated for the fg layer — see begin_dissolve().
+var _dissolve: Dictionary = {}
 
 func setup(w: TileWorld, which: String) -> void:
 	world = w
@@ -57,6 +70,43 @@ func set_view(r: Rect2) -> void:
 		view = r
 		_refresh_live()
 		queue_redraw()
+
+## Called by Level.on_switch_toggled() right after TileWorld.set_switch() has
+## already flipped collision for `group`. Every SWITCHED tile tied to that
+## group just swapped solid <-> ghost; `is_solid()` now answers with the NEW
+## state, so the OLD art is simply the other half of the pair — see `_draw()`.
+func begin_dissolve(group: int) -> void:
+	if world == null or layer != "fg":
+		return
+	var any := false
+	for ty in world.height:
+		for tx in world.width:
+			var id := world.get_fg(tx, ty)
+			if id <= 0 or world.data.flags_of(id) & TileData4.Flag.SWITCHED == 0:
+				continue
+			if world.data.switch_group[id] != group:
+				continue
+			_dissolve[ty * world.width + tx] = DISSOLVE_TIME
+			any = true
+	if any:
+		queue_redraw()
+
+func _physics_process(delta: float) -> void:
+	# Consistent with TileAnim (see level.gd's _process): a hitstop or a
+	# screen-flip slide freezes every render clock together, so a dissolve
+	# never finishes "early" relative to a world that is itself held still.
+	if _dissolve.is_empty() or Game.sim_paused:
+		return
+	var done: Array = []
+	for k: int in _dissolve.keys():
+		var t: float = float(_dissolve[k]) - delta
+		if t <= 0.0:
+			done.append(k)
+		else:
+			_dissolve[k] = t
+	for k in done:
+		_dissolve.erase(k)
+	queue_redraw()
 
 func _bounds() -> Rect2i:
 	if world == null:
@@ -115,7 +165,24 @@ func _draw() -> void:
 				# Ghost the inactive half of a switch pair instead of hiding it.
 				# The authored id may be either half (the `_off` tiles' art is
 				# the ghost), so pick art by solidity rather than swapping.
-				art = _solid_of(id) if world.is_solid(tx, ty) else _ghost_of(id)
+				var cur_solid := world.is_solid(tx, ty)
+				art = _solid_of(id) if cur_solid else _ghost_of(id)
+				var remain: float = float(_dissolve.get(vi, 0.0))
+				if remain > 0.0:
+					# Cross-fade the half this tile just left (OLD) into the
+					# half it just became (NEW, already `art`) — collision
+					# switched on the flip frame; only the paint catches up.
+					var old_art := _ghost_of(id) if cur_solid else _solid_of(id)
+					var k := clampf(remain / DISSOLVE_TIME, 0.0, 1.0)
+					var dst2 := Vector2(tx * TS, ty * TS)
+					var old_src := Rect2(float((old_art % cols) * TS), float((old_art / cols) * TS), TS, TS)
+					var new_src := Rect2(float((art % cols) * TS), float((art / cols) * TS), TS, TS)
+					var c := modulate_color
+					draw_texture_rect_region(atlas, Rect2(dst2, Vector2(TS, TS)), old_src,
+						Color(c.r, c.g, c.b, c.a * k))
+					draw_texture_rect_region(atlas, Rect2(dst2, Vector2(TS, TS)), new_src,
+						Color(c.r, c.g, c.b, c.a * (1.0 - k)))
+					continue
 			var tex := atlas
 			var src := Rect2(float((art % cols) * TS), float((art / cols) * TS), TS, TS)
 			var dst := Vector2(tx * TS, ty * TS)
@@ -135,6 +202,13 @@ func _draw() -> void:
 ## costs nothing per frame.
 func live_animated_ids() -> PackedInt32Array:
 	return _live
+
+## How many tiles are mid-dissolve right now. Like `live_animated_ids()`, this
+## is for the integration suite, which cannot see a draw call but can see the
+## work behind one — tests/integration/integration_tests.gd uses it to prove
+## the dissolve is running without reaching into `_dissolve` directly.
+func dissolving_count() -> int:
+	return _dissolve.size()
 
 func _ghost_of(id: int) -> int:
 	match id:

@@ -28,6 +28,12 @@ var locked := false
 ## `position`, so the two cannot fight over the same property.
 var base_pos := Vector2.ZERO
 var shake_offset := Vector2.ZERO
+## Phase D, docs/plan-art-motion.md: the 2px landing dip. A second render
+## offset, independent of `shake_offset`, so the existing shake-decay
+## guarantees (tests/integration/integration_tests.gd's
+## t_shake_moves_the_camera_and_puts_it_back_exactly) stay exactly as they
+## were — nothing about this field changes what a shake does.
+var dip_offset := Vector2.ZERO
 var _sliding := false
 
 func setup(w: TileWorld, t: Node2D) -> void:
@@ -73,8 +79,14 @@ func set_shake(offset: Vector2) -> void:
 	shake_offset = offset.limit_length(MAX_SHAKE_PX)
 	_apply_position()
 
+## Same bound as set_shake(), for the same reason: a render offset must never
+## be able to expose an unpainted edge past the tile cull's margin.
+func set_dip(offset: Vector2) -> void:
+	dip_offset = offset.limit_length(MAX_SHAKE_PX)
+	_apply_position()
+
 func _apply_position() -> void:
-	position = (base_pos + shake_offset).round()
+	position = (base_pos + shake_offset + dip_offset).round()
 
 func _target_point() -> Vector2:
 	if target is Actor:

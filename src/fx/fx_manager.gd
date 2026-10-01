@@ -29,6 +29,14 @@ var _shake_vertical := 1.0
 var _hitstop_left := 0.0
 var _hitstop_owned := false
 
+## Phase D, docs/plan-art-motion.md: the landing dip. A flat render offset
+## (not a decaying oscillation like shake) that eases back to zero over its
+## own short span — the camera's counterpart to the sprite squash it is timed
+## beside (player.gd gates both off the same `land_dust_min_fall` threshold).
+var _dip_left := 0.0
+var _dip_total := 0.0
+var _dip_amp := 0.0
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS   # a freeze must tick itself back out
 	_load_config()
@@ -87,8 +95,10 @@ func reset() -> void:
 	_release_hitstop()
 	_shake_left = 0.0
 	_shake_amp = 0.0
+	_dip_left = 0.0
 	if _cam != null and is_instance_valid(_cam):
 		_cam.set_shake(Vector2.ZERO)
+		_cam.set_dip(Vector2.ZERO)
 	if _field != null and is_instance_valid(_field):
 		_field.clear()
 
@@ -143,6 +153,22 @@ func shake(preset_name: String) -> void:
 
 func shake_strength() -> float:
 	return _current_shake_strength()
+
+# ---------------------------------------------------------------- landing dip
+## A couple of px of camera offset on a heavy landing, held then eased back to
+## zero — render-only, and it never touches `base_pos` or the screen index
+## any more than shake does. Called from the same branch in player.gd that
+## already bursts the landing dust and squashes the sprite.
+func landing_dip() -> void:
+	if _cam == null or not is_instance_valid(_cam):
+		return
+	var amp := timing("landing_dip_px", 2.0)
+	var frames := timing("landing_dip_frames", 3.0)
+	if amp <= 0.0 or frames <= 0.0:
+		return
+	_dip_amp = amp
+	_dip_total = frames / 60.0
+	_dip_left = _dip_total
 
 func _current_shake_strength() -> float:
 	if _shake_total <= 0.0:
@@ -201,12 +227,19 @@ func _physics_process(delta: float) -> void:
 		_hitstop_left -= delta
 		if _hitstop_left <= 0.0:
 			_release_hitstop()
-	if _shake_left <= 0.0:
-		return
-	_shake_left = maxf(0.0, _shake_left - delta)
-	if _cam == null or not is_instance_valid(_cam):
-		_shake_left = 0.0
-		return
-	# Note the explicit zero on the last tick: the camera must land back on the
-	# exact screen origin, not near it.
-	_cam.set_shake(Vector2.ZERO if _shake_left <= 0.0 else _shake_offset())
+	if _shake_left > 0.0:
+		_shake_left = maxf(0.0, _shake_left - delta)
+		if _cam == null or not is_instance_valid(_cam):
+			_shake_left = 0.0
+		else:
+			# Note the explicit zero on the last tick: the camera must land
+			# back on the exact screen origin, not near it.
+			_cam.set_shake(Vector2.ZERO if _shake_left <= 0.0 else _shake_offset())
+	if _dip_left > 0.0:
+		_dip_left = maxf(0.0, _dip_left - delta)
+		if _cam == null or not is_instance_valid(_cam):
+			_dip_left = 0.0
+		else:
+			var off := Vector2.ZERO if _dip_left <= 0.0 \
+				else Vector2(0.0, _dip_amp * (_dip_left / _dip_total))
+			_cam.set_dip(off)

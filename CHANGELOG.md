@@ -2342,3 +2342,91 @@ per world at a signature location from the committed seqs
 (`art_phase3`/`heights_1`/`ruins_1`/`deeps_1`/`nest_1`), the per-world
 `--preview` art sheets, and `shots/phaseC_world_contact_sheet.png`, a
 5-wide grid of all five worlds.
+
+## Phase D — juice, render-only
+
+Everything in this phase lives in rendering: nothing writes `facing`, `vel`,
+`pos`, `health`, a tile id or collision. The one idea the plan rejects by
+name — classic hit-stop (pausing the sim on impact) — is not here; its
+honest substitute is sprite-local.
+
+- **Sprite-local hit-hold** (`Enemy.HIT_HOLD_TIME`, `enemy_base.gd`): a
+  non-lethal blade hit arms `_hold_t` (3 render frames), which
+  `_update_anim()` reads in exactly one place — to zero the delta fed to the
+  frame-advance arithmetic — so the struck enemy's pose holds while `think()`,
+  `step_motion()`, `health`, `_flash` and every other timer keep running
+  untouched, bosses included (`brood_queen.gd` calls `super._update_anim()`
+  first, so it inherits this for free). Guarded two ways: a unit suite
+  (`tests/test_enemy_hit_hold.gd`) drives `_update_anim()` directly on two
+  enemies with identical starting state, one held and one not, and pins a
+  bit-identical `pos`/`vel`/`health`/`_flash` trace across both; an
+  integration test (`t_a_non_lethal_hit_holds_the_enemy_sprite_but_not_its_timers`)
+  lands a real throw on a real walker and watches `_flash`/`_hold_t` keep
+  ticking down tick over tick while the hold is active.
+- **Hit spark**: turns out to already exist almost everywhere it was asked
+  for — the "spark" emitter (`data/fx.json`, a white-hot core through the
+  gold ramp) already bursts on every enemy hit (`enemy_base.gd`) and every
+  blade-on-crate contact (`blade.gd`'s `_sparks()`, since a breaking crate is
+  also a wall hit the same tick). The one missing case was a switch tripped
+  by the blade flying *through* its trigger area (an `Area`, not solid
+  geometry, so `_sparks()` never saw it) — `SwitchTrigger.toggle()` now
+  bursts "spark" at the lever itself, covering the walked-into case too.
+- **Blade afterimage** (`blade.gd`): a render-history ring buffer of the
+  node's own past positions, sampled once a tick and thinned to two ghosts
+  (`TRAIL_STRIDE` ticks apart) at 40%/20% alpha. Drawn in the blade's own
+  `_draw()`, which paints *before* its child `sprite` renders — "behind the
+  blade" falls out of node order for free, no z-index to keep in sync. Dies
+  with the node on the catch (`queue_free()` already there); no separate
+  ghost entities exist to leak.
+- **Switch-flip dissolve** (`tile_renderer.gd`): `Level.on_switch_toggled()`
+  now calls `TileRenderer.begin_dissolve(group)`, which finds every tile tied
+  to that group and cross-fades its OLD art (the other half of the
+  ghost/solid pair — collision already flipped by the time this runs, so
+  "old" is just "not what `is_solid()` says now") into the NEW art over
+  `DISSOLVE_TIME` (4 render frames). Collision is read, never delayed — the
+  dissolve is `_draw()`-only. Comfortably inside the Obsidian Heart's 1.05s
+  reforge telegraph, confirmed by the boss's own 72-check gate suite plus a
+  dedicated integration test
+  (`t_a_switch_flip_dissolves_the_art_but_collision_changes_on_the_flip_frame`)
+  that flips a lever and asserts `is_solid()` already answers differently on
+  the flip tick while `dissolving_count() > 0`.
+- **Landing dip** (`CameraController.dip_offset`, `Fx.landing_dip()`): a 2px
+  render-only camera offset on the same heavy-landing branch that already
+  bursts dust and squashes the sprite (`land_dust_min_fall` threshold),
+  easing back to zero over 3 frames. Lives beside `shake_offset`, not
+  inside it, so the existing shake-decay guarantee
+  (`t_shake_moves_the_camera_and_puts_it_back_exactly`) is untouched.
+  Audited the existing shake for consistency while in there: every call site
+  across five bosses and the player already used exactly one of the two
+  presets (`hurt`, `boss_slam`) correctly — nothing to fix.
+- **Transitions**: the scene fade (`main.gd`'s `Fade/Rect`) gains a shader
+  (`fade_dissolve.gdshader`) that reveals the same 4x4 Bayer matrix
+  `tools/art/palette.py` dithers with, quantised into 4 discrete reveal
+  bands rather than a smooth alpha ramp — a "4-frame" effect in the same
+  vocabulary as any other one-shot in the game, not 4 physics ticks. The
+  victory screen (`victory.gd`) gets a slow ember drift behind its text,
+  reusing Phase C's `Ambience.MOTE_SPECS["obsidian"]` recipe outright (the
+  same embers the Nest backdrop drifts) rather than inventing a second
+  mechanism — a pure function of its own `_t` and a mote's index, no RNG.
+
+Full stack, all green: `tools/test.sh` 341 tests / 107,912 assertions, 0
+failed; `tools/validate.sh` OK; `tools/prove.sh --verify-tapes` 26/26 (21
+`ok`, 5 boss levels `partial` by design — traversal proved, the boss gate
+owns the rest, per ADR 005); the full `tools/itest.sh` 805 checks, ALL
+PASSED; a dedicated `--only=t_boss_obsidian_heart` run, 72 checks, ALL
+PASSED, as the spot check on the world whose arena exercises the dissolve
+hardest. Captures: `shots/m6d_hit_hold.png` (a blade connecting with a
+walker, flash and hold visible), `shots/m6d_blade_trail.png` (the blade
+mid-flight with both ghost positions visible behind it),
+`shots/m6d_switch_dissolve_{a,b}.png` (a lever flip, two frames apart,
+mid-cross-fade), `shots/m6d_landing_dip_{before,during}.png` (a heavy
+landing, 1px of the 2px dip visible against the background — brief and
+subtle by design), `shots/m6d_transition.png` (the Bayer dissolve mid-reveal,
+triggered on demand via a debug hook since the real scene-swap fade is too
+early in boot for a capture to safely settle on), `shots/m6d_victory_embers.png`
+(the ending screen with its ember drift). `tools/dev_capture.gd` gained two
+small authoring aids used to stage these: `{"log": ...}` now also prints the
+nearest enemy's `health`/`_flash`/`_hold_t` and the camera's `position`/
+`dip_offset`; `level.gd` gained `debug_toggle_switch()` and
+`debug_flash_fade()`, mirroring the existing `debug_kill_nearest_enemy()`/
+`debug_shake_boss_slam()` pattern.

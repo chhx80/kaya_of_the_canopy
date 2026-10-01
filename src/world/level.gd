@@ -261,9 +261,13 @@ func _spawn_enemy(id: String, p: Vector2, e: Dictionary) -> Enemy:
 func on_tile_broken(_t: Vector2i) -> void:
 	tiles_fg.queue_redraw()
 
-## Switch blocks change solidity, so the layer has to be repainted.
-func on_switch_toggled(_group: int) -> void:
-	tiles_fg.queue_redraw()
+## Switch blocks change solidity, so the layer has to be repainted. Collision
+## already changed (TileWorld.set_switch() is synchronous, called by the
+## trigger or the boss before this runs) — begin_dissolve() only decides how
+## the CHANGED tiles cross-fade from their old art to the new art; see
+## tile_renderer.gd, Phase D of docs/plan-art-motion.md.
+func on_switch_toggled(group: int) -> void:
+	tiles_fg.begin_dissolve(group)
 
 ## Beating the boss opens the way out rather than ending the level outright, so
 ## the player still gets to walk through the gate.
@@ -364,6 +368,23 @@ func debug_advance_boss_phase() -> void:
 			continue
 		var target := int((phases[cur] as Dictionary).get("until_health", 0))
 		b.hurt(maxi(1, b.health - target), b.center() + Vector2(48.0, 0.0))
+
+## Debug-only, for captures of the Phase D transition dissolve: the initial
+## scene-swap fade is over by the time a capture sequence can safely settle,
+## so this fires the same shader-driven fade on demand instead.
+func debug_flash_fade() -> void:
+	if Game.main != null:
+		Game.main.flash_fade()
+
+## Debug-only, for captures of the Phase D switch dissolve: flips a named
+## switch group directly, so a shot does not need to stage a walk to the lever
+## or a thrown blade first. Mirrors debug_kill_nearest_enemy()'s shape.
+func debug_toggle_switch(group: int = 1) -> void:
+	for n in get_tree().get_nodes_in_group(&"switches"):
+		var sw := n as SwitchTrigger
+		if sw != null and sw.level == self and sw.group == group:
+			sw.toggle()
+			return
 
 ## And again: fires the slam shake on demand. The Warden's own slam is on a
 ## timer the capture harness cannot see, and one frame either side of it the
