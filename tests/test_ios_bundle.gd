@@ -76,14 +76,49 @@ func test_the_pck_contains_the_current_stretch_mode() -> void:
 			% m.get_string(1))
 
 func test_the_pck_contains_the_current_level_geometry() -> void:
-	# The ROOT HOLLOW doorway row: this is the exact content that shipped broken.
-	var f := FileAccess.open("res://levels/jungle_2.json", FileAccess.READ)
-	var d: Variant = JSON.parse_string(f.get_as_text())
+	# The original version of this check probed jungle_2 row 24 alone — the
+	# exact content that had shipped broken once. The guard then slept for
+	# seven weeks while four worlds landed, because the one row it pinned
+	# never changed again. A sentinel pinned to what was current when it was
+	# written rots the day the game grows past it; this one enumerates the
+	# levels directory instead, so a level the pck has never heard of is a
+	# failure by construction.
+	var dir := DirAccess.open("res://levels")
+	ok(dir != null, "cannot open res://levels")
+	if dir == null:
+		return
+	for name in dir.get_files():
+		if not name.ends_with(".json"):
+			continue
+		var f := FileAccess.open("res://levels/%s" % name, FileAccess.READ)
+		var d: Variant = JSON.parse_string(f.get_as_text())
+		f.close()
+		var rows: Array = (d as Dictionary).get("fg", [])
+		if rows.is_empty():
+			continue
+		# The middle row is reliably long and distinctive for every level.
+		var probe := String(rows[rows.size() / 2])
+		ok(_pck_contains(probe),
+			"the .pck does not contain %s's current geometry — the shipped game "
+			% name + "differs from the source. Run tools/sync_ios_project.sh.")
+
+func test_the_pck_contains_the_current_player_animation_data() -> void:
+	# Levels cover content breadth; this covers the newest system depth. The
+	# probe is an exact byte slice of the form file on disk (files ship
+	# verbatim in the pck), anchored at the dance block the art-and-motion
+	# plan added — if a later change renames it, re-anchor on whatever is
+	# newest, which is the point of the exercise.
+	var f := FileAccess.open("res://data/forms/human.json", FileAccess.READ)
+	var text := f.get_as_text()
 	f.close()
-	var rows: Array = (d as Dictionary)["fg"]
-	ok(_pck_contains(String(rows[24])),
-		"the .pck does not contain jungle_2 row 24 — the shipped level differs "
-		+ "from the source. Run tools/sync_ios_project.sh.")
+	var at := text.find("\"dance\"")
+	ok(at >= 0, "data/forms/human.json no longer declares a dance block — re-anchor this probe")
+	if at < 0:
+		return
+	ok(_pck_contains(text.substr(at, 60)),
+		"the .pck does not contain the human form's current animation data — "
+		+ "the shipped game predates the art-and-motion pass. "
+		+ "Run tools/sync_ios_project.sh.")
 
 func test_the_committed_ios_pck_is_present() -> void:
 	ok(FileAccess.file_exists(PCK),
