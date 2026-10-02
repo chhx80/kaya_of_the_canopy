@@ -128,99 +128,105 @@
     },
     "windup_p1": {
       "frames": [
-        3
+        3,
+        4
       ],
-      "fps": 1
+      "fps": 6,
+      "loop": false
     },
     "air_p1": {
       "frames": [
-        4
+        5
       ],
       "fps": 1
     },
     "land_p1": {
       "frames": [
-        5
+        6
       ],
       "fps": 1
     },
     "hurt_p1": {
       "frames": [
-        5
+        6
       ],
       "fps": 1
     },
     "idle_p2": {
       "frames": [
-        6
+        7
       ],
       "fps": 1
     },
     "walk_p2": {
       "frames": [
-        7,
-        8
+        8,
+        9
       ],
       "fps": 8
     },
     "windup_p2": {
       "frames": [
-        9
+        10,
+        11
       ],
-      "fps": 1
+      "fps": 6,
+      "loop": false
     },
     "air_p2": {
-      "frames": [
-        10
-      ],
-      "fps": 1
-    },
-    "land_p2": {
-      "frames": [
-        11
-      ],
-      "fps": 1
-    },
-    "hurt_p2": {
-      "frames": [
-        11
-      ],
-      "fps": 1
-    },
-    "idle_p3": {
       "frames": [
         12
       ],
       "fps": 1
     },
+    "land_p2": {
+      "frames": [
+        13
+      ],
+      "fps": 1
+    },
+    "hurt_p2": {
+      "frames": [
+        13
+      ],
+      "fps": 1
+    },
+    "idle_p3": {
+      "frames": [
+        14
+      ],
+      "fps": 1
+    },
     "walk_p3": {
       "frames": [
-        13,
-        14
+        15,
+        16
       ],
       "fps": 10
     },
     "windup_p3": {
       "frames": [
-        15
+        17,
+        18
       ],
-      "fps": 1
+      "fps": 6,
+      "loop": false
     },
     "air_p3": {
       "frames": [
-        16
+        19
       ],
       "fps": 1
     },
     "land_p3": {
       "frames": [
-        17
+        20
       ],
       "fps": 1
     },
     "hurt_p3": {
       "frames": [
-        17
+        20
       ],
       "fps": 1
     },
@@ -239,25 +245,27 @@
     },
     "windup": {
       "frames": [
-        3
+        3,
+        4
       ],
-      "fps": 1
+      "fps": 6,
+      "loop": false
     },
     "air": {
       "frames": [
-        4
+        5
       ],
       "fps": 1
     },
     "land": {
       "frames": [
-        5
+        6
       ],
       "fps": 1
     },
     "hurt": {
       "frames": [
-        5
+        6
       ],
       "fps": 1
     }

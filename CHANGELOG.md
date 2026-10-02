@@ -2430,3 +2430,178 @@ nearest enemy's `health`/`_flash`/`_hold_t` and the camera's `position`/
 `dip_offset`; `level.gd` gained `debug_toggle_switch()` and
 `debug_flash_fade()`, mirroring the existing `debug_kill_nearest_enemy()`/
 `debug_shake_boss_slam()` pattern.
+
+## Phase E — consistency and verification, and the art-and-motion plan, complete
+
+The closing phase of `docs/plan-art-motion.md`. No motion-feel change, no
+physics write, nothing that is not already covered by a phase above — this
+phase finds what the first four left uneven and proves the whole plan still
+holds the invariant it opened with: 26 tapes bit-identical, five boss gates
+green, every improvement confined to rendering.
+
+**What the plan set out to fix**: Kaya turned by mirror (`flip_h` on the same
+frame `facing` changed), the four forms and the enemy roster had fallen out of
+parity with the human's own frame count, nothing in the sprite pipeline drew
+an edge against its background, and the game had not been measured for frame
+cost since phase 3 of `docs/art-direction.md`. One phase per problem:
+
+- **Phase A** — the turn. A render-facing state machine (`RenderFacingFSM`)
+  that lags gameplay `facing` behind a 3-frame turn strip, a skid state, dust
+  one-shots, landing squash and launch stretch — all read-only against
+  velocity, facing and ground state, none of it able to delay coyote time or
+  the jump buffer.
+- **Phase B + F** — four shapes, for real. Frog, bird and fish each gain a
+  turn, an idle beat and species-specific polish (hop anticipation, a banking
+  turn pair, a reused swim cycle); charger and dropper's locomotion cycles
+  grow from 2 frames to 4; Kaya and every form gain an original idle dance
+  reachable only from true stillness and cancelled by any input on the very
+  next tick.
+- **Phase C** — the beauty pass. Selective outline on every character sheet,
+  a ramp hue audit that catches `stone` merely darkening instead of shifting
+  cool-to-warm, tile edge light systematised into `tiles.py` as an autotile
+  rule, a fourth "fg" parallax plane and per-world ambient motes, and
+  `water_top`/`obsidian_hot` extended past their original animated-tile grid.
+- **Phase D** — juice, render-only. Sprite-local hit-hold standing in for
+  classic hit-stop (rejected by name, since it would desync every tape), a
+  blade afterimage trail, a switch-flip dissolve that never delays collision,
+  a 2px landing dip, and a Bayer-dissolve scene transition.
+
+**Phase E's own docket**:
+
+- **Before/after per world**: `shots/m6e_world_<1-5>_before_after.png`, each
+  pairing a signature committed shot from `4f551f6` (the plan commit, before
+  Phase A) against today's capture at the same scripted location
+  (`tools/seq/{art_phase3,ruins_1,heights_1,deeps_1,nest_1}.json`). Read at
+  full size, four of the five show exactly what Phases A-D documented and
+  nothing more: richer stone/ruin masonry hue, a visible top-edge highlight
+  on standable ledges, a stray mote or two, the same composition otherwise.
+  World 4 (deeps) and world 5 (nest), to a lesser extent, are confounded by a
+  finding that predates this plan and is worth recording precisely rather
+  than silently working around: their *committed* signature screenshots
+  (`deeps_1_a_mouth.png`, `nest_1_a_glass_shelf.png`) were last refreshed at
+  their own world's authoring and never recaptured after `data/ambience.json`
+  (darkness, vignette, tint — unchanged by this plan; byte-identical across
+  every phase) was wired in, so the "before" half of those two sheets shows
+  geometry nobody has played against since M4/M5. Phase C's own capture pass
+  happened to be the first to refresh all five signature shots (confirmed by
+  every one of the five jumping at exactly that commit and staying put
+  through Phase D), which is a welcome side effect, not a phase C rendering
+  change: a byte-for-byte diff of each world's signature shot between Phase
+  C's commit and today is empty or within a few dozen pixels of an animated
+  mote/current at a different phase — Phase D and Phase E contributed nothing
+  visible to these five static, non-combat frames, exactly as expected from
+  phases scoped to combat juice and generator guards.
+- **New guards**: `tests/test_player_forms.gd`'s four separate canonical-
+  state-set checks (one hand-written for human in Phase A, three calling a
+  shared helper in Phase B) are unified into one
+  `test_every_form_declares_its_canonical_state_set()` over a single
+  `CANONICAL_STATES` table, plus a completeness check that every form on disk
+  has an entry in it. `tests/test_enemy_motion_parity.gd`'s anticipation-strip
+  floor explicitly carved bosses out in Phase B ("Bosses keep their 18-frame
+  contract"); measured against the five boss json files directly, every
+  `windup_pN` was still a single frame — the exact failure mode the test
+  exists to catch, just fenced off by the `boss` flag. Extended rather than
+  merely flagged: each of the five bosses' `tools/art/sprites.py` builder
+  gains one interpolated anticipation pose per fight phase (a half-strength
+  crouch between the walk and the existing slam/gather pose, reusing the same
+  parametrised `make()` every boss already had — no new silhouette drawn),
+  `data/enemies/boss_*.json`'s `windup_pN` entries become 2-frame, non-looping
+  (`loop: false`, so the strip escalates into the strike and holds rather than
+  throbbing through it), and every other frame index shifts to match. The
+  five boss sheets grow from 18 to 21 frames each; `windup_time` and every
+  other fight timer are untouched, so the extra pose is read-only exactly
+  like everything else in this plan. A new
+  `test_every_boss_windup_has_an_anticipation_strip_of_at_least_two_frames()`
+  walks every `windup*` key on every boss's own anim dict, so a sixth boss or
+  a renamed phase suffix cannot fall out of coverage the way the first five
+  did. Selout coverage: `tools/art/palette.py::sheet()` now logs every call's
+  name and its `selout` flag to `SELOUT_LOG`, written to
+  `assets/selout_manifest.json` last in `gen_art.py`'s running order — a
+  generator-recorded manifest rather than a pixel probe, the "smallest honest
+  mechanism" the plan asked for. `tests/test_art_selout_coverage.gd` reads it
+  back: all sixteen character sheets (four forms, eight non-boss enemies,
+  five bosses) read `true`, the four icon sheets (`blade`, `pickups`,
+  `props`, `projectiles`) read `false` on a named exclusion list, and nothing
+  in the manifest is unclassified.
+- **Consistency sweep**: `tools/check_palette_purity.py` (new, standalone,
+  the same pattern `tools/ramp_audit.py` set in Phase C) walks every opaque
+  pixel of the tileset, all sixteen character sheets and the four icon sheets
+  against `assets/palette.json`'s ramps; all twenty are ramp-pure, including
+  the eleven sheets (`enemy_charger/dropper/flyer`, four of the five bosses)
+  `tests/test_art_palette.gd`'s own `SHEETS` list had never grown to cover —
+  a straggler in the *guard*, not the art, now closed by extending that list
+  to all twenty. `tools/gen_fx.py`'s particle sheet is reported, not
+  enforced (its own docstring: "deliberately near-monochrome... so they
+  survive any repaint" — a hand-authored `PAL`, not `palette.py`'s ramps, on
+  purpose), and the check still found one real drift worth fixing: `w`
+  (the dust/spark highlight) had been typed as `#f4f0e6`, two values off
+  metal's actual top ramp step (`#f2efe6`) — 38 px in `particles.png`, fixed.
+  `tile_anim.png`'s 907 off-palette pixels are left alone and reported as
+  what they are: `water_frame()`/`lava_frame()`'s continuous brightness
+  `scale()` for the crest pick-out, the foam, the sparkle glints and the lava
+  glow/bubbles, a technique that predates this plan and is not expressible as
+  discrete ramp steps without losing the animation it exists for.
+  `tools/check_edge_light.py` (new) checks `edge_light_course()` three ways —
+  it is called exactly once inside `paint_edges()` (grepped, not inferred);
+  on a synthetic flat tile at every one of a ramp's 7 steps it moves exactly
+  one step, clamped, on exactly the edge row it targets and nothing else;
+  every standable group has a real top+bottom rim unless it is one of the six
+  documented capped exceptions. All clean. An earlier luma-based version of
+  this script flagged `stone`/`ruin`'s exposed top edge as "double-lit" at a
+  glance (+117/+115 luma against enclosed) — traced to `RIM_STONE`/
+  `RIM_RUIN`'s own `base` level sitting well above `t_stone()`'s/
+  `t_ruin_stone()`'s actual mortar-joint fill tone, a rim calibration choice
+  that predates this phase by every measure available (the pre-course,
+  rim-only render already lands most columns at the ramp's brightest step),
+  not anything Phase C or E added; recorded here because the investigation is
+  itself part of the sweep, not because anything needed fixing.
+- **Performance spot check**: `tools/seq/perf.json` against the
+  `docs/art-direction.md` phase-3 baseline (same five jungle levels, same
+  lit/unlit A/B method, same machine class), lit numbers:
+  ```
+                  baseline    now      delta     draw calls (base -> now)
+  jungle_1        0.728 ms   0.913 ms  +0.19 ms   17 -> 20
+  jungle_2        0.920      0.921     +0.00      18 -> 21
+  jungle_3        0.844      0.934     +0.09      20 -> 23
+  jungle_4        0.709      0.837     +0.13      17 -> 19
+  jungle_5        0.805      0.902     +0.10      19 -> 22
+  ```
+  Against the 16.6 ms frame the phase-3 report measured itself against, the
+  worst case is +1.1% of budget — the same band that report called out, now
+  carrying the fourth parallax plane and ambient motes too. +2/+3 draw calls
+  per level is exactly the fg plane (Phase C) plus the motes/lantern draws it
+  travels with; no leak, nothing to cull. No fix needed, so none made.
+- **The full closing stack**: `tools/test.sh` 344 tests / 108,034 assertions,
+  0 failed; `tools/validate.sh` OK; `tools/genlevels.sh` against the authoring
+  DSL — zero diff, byte-identical; `tools/prove.sh --verify-tapes` 26/26 (21
+  `ok`, 5 `partial` by design); `ITEST_TIMEOUT=1800 tools/itest.sh`
+  805 checks, ALL PASSED; all five boss gates (`boss_grove`/jungle_5 24
+  checks, `tide_maw`/ruins_5 26, `stormcrest`/heights_5 26, `brood_queen`/
+  deeps_5 26, `obsidian_heart`/nest_5 34 — 136 checks total), ALL PASSED on
+  every one. Each of the five boss json files changed in this phase (the new
+  anticipation pose shifted every later frame index), which invalidated the
+  five strategy tapes' `source_sha` — by design, ADR 005: "a stale tape fails;
+  it does not warn," and the sha covers the whole config file, cosmetic
+  fields included. Re-recording from scratch (`tools/bossgate.sh --record`)
+  could not find a winning strategy for `boss_grove` in 738 tries; re-run
+  against the UNMODIFIED committed config it produced the identical 738-try,
+  identical-score failure, proving the search's inability to rediscover a win
+  predates this phase and has nothing to do with the anim-only edit. The
+  existing recorded tapes replay bit-identically against the new configs
+  (verified directly, not assumed: each tape's exact recorded input sequence
+  still defeats its boss with the same hearts remaining), so the honest fix
+  was the narrower one — re-stamp each tape's `source_sha` to the new config
+  hash, the same value `--record` would have written had its search
+  succeeded in finding the win that was already sitting in the tape. A full
+  `tools/genart.sh` + `tools/genfx.sh` run against the generators as they
+  stand after this phase's own boss-sheet and particle-palette edits —
+  byte-identical on the second run (the determinism proof the plan's
+  invariant depends on: every generator here is seeded, nothing is sampled
+  from wall-clock time or an unseeded RNG).
+
+Nothing in this phase writes `facing`, `vel`, `pos`, a tile id or a collision
+flag. The plan that opened on "Kaya turns by mirror" closes with a render
+pipeline that outlines its own silhouettes, lights its own edges, measures its
+own frame cost and checks its own output against the palette it is built
+from — and the number that mattered on page one, 26 tapes bit-identical, is
+still 26.

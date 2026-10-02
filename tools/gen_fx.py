@@ -34,11 +34,19 @@ LAVA_ID = 24
 
 # ---------------------------------------------------------------- palette
 # Particles are deliberately near-monochrome: they read as light and debris, so
-# they survive any repaint of the tiles underneath them.
+# they survive any repaint of the tiles underneath them. Hand-authored rather
+# than imported from tools/art/palette.py for exactly that reason — but every
+# value below was chosen to already equal one of the ramps' own steps (metal's
+# brightest step, water's, foliage's...), so a repaint only drifts these if its
+# author never looks at this file again. Phase E, docs/plan-art-motion.md's
+# consistency sweep (tools/check_palette_purity.py) measured that against the
+# generated PNG and found one real miss: 'w' had been typed as #f4f0e6, two
+# values off metal's actual top step (#f2efe6) — fixed below, 38 px in
+# particles.png.
 PAL = {
     '.': (0, 0, 0, 0),
-    'w': (0xf4, 0xf0, 0xe6, 255),   # off-white
-    'W': (0xf4, 0xf0, 0xe6, 170),   # off-white, soft
+    'w': (0xf2, 0xef, 0xe6, 255),   # off-white (metal ramp, step 6)
+    'W': (0xf2, 0xef, 0xe6, 170),   # off-white, soft
     'a': (0xb8, 0xb0, 0xa8, 255),   # light grey
     'A': (0xb8, 0xb0, 0xa8, 150),   # light grey, soft
     'd': (0x6a, 0x6a, 0x72, 200),   # grey

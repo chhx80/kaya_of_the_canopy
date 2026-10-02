@@ -451,6 +451,9 @@ def main():
     backdrops.build_light_art()
     backdrops.build_icon()
     backdrops.build_store_icons()
+    # Phase E, docs/plan-art-motion.md: selout coverage. Last, so every
+    # sheet() call above (every builder, every module) is already logged.
+    palette.write_selout_manifest()
     print("done")
 
 

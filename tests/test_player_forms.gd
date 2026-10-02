@@ -40,52 +40,56 @@ func test_hitbox_fits_inside_a_one_tile_corridor() -> void:
 	lt(float(hb["w"]), TS, "must fit a 1-tile wide gap")
 	lt(float(hb["h"]), 2.0 * TS, "must fit a 2-tile high corridor")
 
-func test_every_animation_referenced_by_the_controller_exists() -> void:
-	var f := FormBase.load_form("human")
-	for name in ["idle", "run", "jump", "fall", "land", "climb", "hurt",
-			# Phase A, docs/plan-art-motion.md: player.gd's render-only overlay
-			# states. The human form is the first to declare all of them.
-			"turn", "skid", "push", "throw", "catch", "fidget",
-			# Phase F: the idle dance.
-			"dance"]:
-		var a: Dictionary = f.anim(name)
-		ok(a.has("frames"), "anim '%s' needs frames" % name)
-		gt(float((a["frames"] as Array).size()), 0.0, "anim '%s' is empty" % name)
-		ok(f.has_anim(name), "has_anim('%s') must agree with anim()" % name)
-
 func test_has_anim_is_false_for_a_state_the_form_never_declared() -> void:
 	var f := FormBase.load_form("human")
 	not_ok(f.has_anim("there_is_no_such_state"))
 
 ## Phase B, docs/plan-art-motion.md, guard tests: every form's canonical state
-## set. `_assert_states()` is the same check `test_every_animation_referenced_
-## by_the_controller_exists()` runs for human, generalised — each form must
-## declare `turn` and `dance` (the two cross-form overlays player.gd gates on
-## generically, see player.gd's _resolve_anim_state()) plus the states its own
-## `anim_for()` can return.
-func _assert_states(id: String, names: PackedStringArray) -> void:
-	var f := FormBase.load_form(id)
-	ok(f != null, "%s.json must exist" % id)
-	if f == null:
-		return
-	for name: String in names:
-		var a: Dictionary = f.anim(name)
-		ok(a.has("frames"), "%s anim '%s' needs frames" % [id, name])
-		gt(float((a.get("frames", []) as Array).size()), 0.0,
-			"%s anim '%s' is empty" % [id, name])
-		ok(f.has_anim(name), "%s: has_anim('%s') must agree with anim()" % [id, name])
+## set — the states player.gd's `_resolve_anim_state()` can ask the form for,
+## either the two cross-form render overlays (`turn`, `dance`) it gates on
+## generically, or the states each form's own `anim_for()` returns.
+##
+## Phase E, docs/plan-art-motion.md: this used to be four separate test
+## functions — one bespoke check for human (written in Phase A, before the
+## animal forms existed) plus a shared `_assert_states()` helper called once
+## per animal form in Phase B. Measured: the four were already identical in
+## everything but the form id and its expected name list, so this is that,
+## unified into the one canonical-set test over all four forms the plan asks
+## for — one failure clearly says which form and which state regressed,
+## nothing is lost by folding the human case in alongside the other three.
+const CANONICAL_STATES: Dictionary = {
+	"human": ["idle", "run", "jump", "fall", "land", "climb", "hurt",
+		"turn", "skid", "push", "throw", "catch", "fidget", "dance"],
+	"frog": ["idle", "jump", "fall", "cling", "hurt", "turn", "wallkick",
+		"dance"],
+	"bird": ["idle", "run", "jump", "fall", "fly", "glide", "hurt", "turn",
+		"stall", "dance"],
+	"fish": ["idle", "swim", "run", "jump", "fall", "flop", "hurt", "turn",
+		"burst", "dance"],
+}
 
-func test_frog_declares_its_canonical_state_set() -> void:
-	_assert_states("frog", ["idle", "jump", "fall", "cling", "hurt",
-		"turn", "wallkick", "dance"])
+func test_every_form_declares_its_canonical_state_set() -> void:
+	for id: String in CANONICAL_STATES.keys():
+		var f := FormBase.load_form(id)
+		ok(f != null, "%s.json must exist" % id)
+		if f == null:
+			continue
+		for name: String in (CANONICAL_STATES[id] as Array):
+			var a: Dictionary = f.anim(name)
+			ok(a.has("frames"), "%s anim '%s' needs frames" % [id, name])
+			gt(float((a.get("frames", []) as Array).size()), 0.0,
+				"%s anim '%s' is empty" % [id, name])
+			ok(f.has_anim(name), "%s: has_anim('%s') must agree with anim()" % [id, name])
 
-func test_bird_declares_its_canonical_state_set() -> void:
-	_assert_states("bird", ["idle", "run", "jump", "fall", "fly", "glide",
-		"hurt", "turn", "stall", "dance"])
-
-func test_fish_declares_its_canonical_state_set() -> void:
-	_assert_states("fish", ["idle", "swim", "run", "jump", "fall", "flop",
-		"hurt", "turn", "burst", "dance"])
+## Every form this test suite knows about must have a bespoke entry above —
+## a canonical-set test that silently skips a new form is worse than no test,
+## because it reports green while covering nothing. `test_sprite_sheet_for_
+## each_form_exists_on_disk()` below already enumerates every form on disk the
+## same way; this mirrors it so the two can never drift apart.
+func test_every_form_on_disk_has_a_canonical_state_set_entry() -> void:
+	for id in _form_ids():
+		ok(CANONICAL_STATES.has(id),
+			"form '%s' exists on disk but CANONICAL_STATES has no entry for it" % id)
 
 func test_every_form_declares_turn_and_dance() -> void:
 	## The two overlays player.gd's _resolve_anim_state() gates on generically

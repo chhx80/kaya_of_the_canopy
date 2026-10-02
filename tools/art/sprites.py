@@ -1482,10 +1482,13 @@ def build_boss():
              back, ember light shows through the cracks, the jaw hangs open and
              the eyes have gone white.
 
-    Within a phase the six frames are idle, two walk beats, the slam crouch,
-    the airborne extension and the landing splay. data/enemies/boss_grove.json
-    names them <anim>_p1/_p2/_p3 and src/enemies/boss_grove.gd picks the suffix
-    for the phase it is in.
+    Within a phase the seven frames are idle, two walk beats, a two-frame
+    windup (an anticipation crouch, then the slam crouch itself — Phase E,
+    docs/plan-art-motion.md, closes the gap `test_enemy_motion_parity.gd`
+    flags: every attack anim needs >= 2 frames of anticipation, bosses
+    included), the airborne extension and the landing splay.
+    data/enemies/boss_grove.json names them <anim>_p1/_p2/_p3 and
+    src/enemies/boss_grove.gd picks the suffix for the phase it is in.
 
     The hitbox is 26x42 at (11, 4) in the frame: the feet still land on row 46,
     the crown still overhangs the top of the box, but the box is now as tall as
@@ -1544,11 +1547,16 @@ def build_boss():
              leg=(17, 9, 2), spread=1.25, horn=(11, 7), jaw=6,
              spines=1, cracks=1, wings=0),
     ]
-    # idle, walk A, walk B, slam crouch, airborne, landing splay
+    # idle, walk A, walk B, anticipation, slam crouch, airborne, landing splay.
+    # Phase E, docs/plan-art-motion.md: the windup anticipation strip. Index 3
+    # is a half-strength crouch interpolated from walk B and the slam crouch
+    # (now index 4), so the gather into the slam reads as two beats rather
+    # than a single pose snapping onto the floor.
     POSES = [
         dict(dy=0, step=0, jaw=0, coil=1.0),
         dict(dy=0, step=3, jaw=0, coil=1.0),
         dict(dy=1, step=-3, jaw=0, coil=0.9),
+        dict(dy=2, step=0, jaw=1, coil=0.75),
         dict(dy=4, step=0, jaw=2, coil=0.6),
         dict(dy=-6, step=0, jaw=3, coil=1.5),
         dict(dy=3, step=6, jaw=3, coil=0.55),
@@ -1665,7 +1673,8 @@ def build_boss_stormcrest():
     the six poses `<pose>_p1/_p2/_p3`, and src/enemies/stormcrest.gd picks the
     suffix for the phase it is in:
 
-        0 idle (perched)  1-2 the stalk  3 windup  4 airborne  5 landing splay
+        0 idle (perched)  1-2 the stalk  3-4 windup (anticipation, then the
+        full gather)  5 airborne  6 landing splay
 
     The fight's one idea is that it is only vulnerable while it is *roosting*,
     so the art has one job above all others: the player must be able to tell,
@@ -1709,10 +1718,14 @@ def build_boss_stormcrest():
     # step    the stalking leg slide
     # fanned  extra spread on the crest
     # legs    whether feet are on the floor at all
+    # Phase E, docs/plan-art-motion.md: the windup grows an anticipation pose
+    # (index 3) interpolated from stalk B and the full gather (now index 4),
+    # so the bird visibly settles before it launches.
     POSES = [
         dict(dy=0, ang=0, open=0.0, step=0, fanned=0.0, legs=1),   # idle
         dict(dy=1, ang=0, open=0.2, step=3, fanned=0.2, legs=1),   # stalk A
         dict(dy=0, ang=0, open=0.3, step=-3, fanned=0.0, legs=1),  # stalk B
+        dict(dy=2, ang=0, open=0.4, step=-2, fanned=0.5, legs=1),  # anticipation
         dict(dy=4, ang=0, open=0.5, step=0, fanned=1.0, legs=1),   # windup
         dict(dy=-8, ang=34, open=1.0, step=0, fanned=0.6, legs=0),  # airborne
         dict(dy=2, ang=0, open=1.0, step=5, fanned=0.8, legs=1),   # landing
@@ -1888,7 +1901,8 @@ def build_boss_tide_maw():
     six poses `<pose>_p1/_p2/_p3`, and src/enemies/tide_maw.gd picks the suffix
     for the phase it is in:
 
-        0 idle  1-2 the walk  3 windup  4 airborne  5 landing
+        0 idle  1-2 the walk  3-4 windup (anticipation, then the full
+        gather)  5 airborne  6 landing
 
     The fight's one idea is the tide: the arena floods and drains under the
     player, and the boss is the thing that is doing it. So the art has two jobs.
@@ -1928,10 +1942,13 @@ def build_boss_tide_maw():
     # tilt   where the tip of the mouth points, + is down
     # stalk  how much of the lure's arc is extended, 0 folded .. 1 full
     # swing  sideways drift of the bulb, so the lure is never quite still
+    # Phase E, docs/plan-art-motion.md: the windup grows an anticipation pose
+    # (index 3) interpolated from walk B and the full gather (now index 4).
     POSES = [
         dict(dy=0, gape=5, tilt=0, stalk=1.0, swing=0),     # idle
         dict(dy=-1, gape=5, tilt=0, stalk=1.0, swing=1),    # walk A
         dict(dy=0, gape=4, tilt=1, stalk=0.95, swing=-1),   # walk B
+        dict(dy=-2, gape=4, tilt=1, stalk=0.6, swing=-1),   # anticipation
         dict(dy=-4, gape=4, tilt=1, stalk=0.28, swing=0),   # windup
         dict(dy=-3, gape=13, tilt=-3, stalk=1.0, swing=2),  # airborne
         dict(dy=3, gape=10, tilt=4, stalk=0.9, swing=-2),   # landing
@@ -2109,16 +2126,21 @@ def build_boss_brood_queen():
     the six poses `<pose>_p1/_p2/_p3`, and src/enemies/brood_queen.gd picks the
     suffix for the phase it is in:
 
-        0 idle   1-2 the crawl   3 windup   4 the burrow charge   5 the slam
+        0 idle   1-2 the crawl   3-4 windup (anticipation, then the full
+        gather)   5 the burrow charge   6 the slam
 
     **The brightness is the mechanic, not the mood.** This is the one boss in the
     game that is not always drawn: `brood_queen.gd` fades her sprite towards
     `dark_alpha` on every frame she is not attacking, and back to full on the
-    frames she is. So the three *attack* poses — windup, charge, slam — carry a
-    rim of the brightest character in the map along the abdomen's crown, the
-    thorax plate and the jaws, and the crawl beats carry none. At 12 % alpha over
-    a dark chamber the crawl is a suggestion and the slam is a white-hot flash of
-    a body, which is the fight's sentence made out of pixels rather than a tint.
+    frames she is. So the four *attack* poses — the windup's anticipation beat,
+    the full windup, the charge and the slam — carry a rim of the brightest
+    character in the map along the abdomen's crown, the thorax plate and the
+    jaws, and the crawl beats carry none. At 12 % alpha over a dark chamber the
+    crawl is a suggestion and the slam is a white-hot flash of a body, which is
+    the fight's sentence made out of pixels rather than a tint. Phase E,
+    docs/plan-art-motion.md, is what adds the anticipation beat — the brood
+    light has to start showing *before* the strike for an attack telegraph to
+    mean anything, not light up on the same frame as the strike itself.
 
     Phases differ in silhouette as well as in value, the rule the plan set for
     the Grove Warden:
@@ -2175,10 +2197,15 @@ def build_boss_brood_queen():
     # lit     the highlight character for THIS pose, or None. The three attack
     #         poses are the lit ones; see the docstring.
     # dust    how many flung specks of earth sit under her
+    # Phase E, docs/plan-art-motion.md: the windup grows an anticipation pose
+    # (index 3) interpolated from crawl B and the full gather (now index 4) —
+    # already lit, per the docstring above, because the brightness IS the
+    # telegraph and it has to start before the strike.
     POSES = [
         dict(dy=0, arch=0, reach=0, legs=0, lit=None, dust=0),     # idle
         dict(dy=-1, arch=1, reach=1, legs=-1, lit=None, dust=0),   # crawl A
         dict(dy=0, arch=-1, reach=-1, legs=1, lit=None, dust=0),   # crawl B
+        dict(dy=-2, arch=2, reach=-2, legs=1, lit='w', dust=1),    # anticipation
         dict(dy=-3, arch=4, reach=-2, legs=0, lit='w', dust=3),    # windup
         dict(dy=1, arch=-2, reach=4, legs=1, lit='w', dust=6),     # charge
         dict(dy=2, arch=-3, reach=1, legs=-1, lit='w', dust=8),    # slam
@@ -2386,7 +2413,8 @@ def build_boss_obsidian_heart():
     names the six poses `<pose>_p1/_p2/_p3`, and src/enemies/obsidian_heart.gd
     picks the suffix for the phase it is in:
 
-        0 idle   1-2 the walk   3 windup   4 the leap   5 the slam
+        0 idle   1-2 the walk   3-4 windup (anticipation, then the full
+        gather)   5 the leap   6 the slam
 
     **The glass is the phase.** The other four bosses change silhouette between
     phases; this one changes how much of itself is still opaque. SEALED is a
@@ -2441,14 +2469,20 @@ def build_boss_obsidian_heart():
     # squash  + is squat and wide, - is stretched and narrow
     # lean    how far the crown is thrown forward (+ is toward the facing)
     # roots   the leg phase, -1 / 0 / +1
-    # flare   how much the core is overdriven for THIS pose. The three attack
+    # flare   how much the core is overdriven for THIS pose. The four attack
     #         poses are the flared ones, which is the telegraph: this boss
     #         brightens before it hits you and the nest changes with it.
+    #         Phase E, docs/plan-art-motion.md: the windup grows an
+    #         anticipation pose (index 3), interpolated from walk B and the
+    #         full gather (now index 4), already half-flared — the brighten
+    #         has to start before the strike, same reasoning as the Brood
+    #         Queen's "lit" pose a few builders up.
     # dust    flung glass chips under it
     POSES = [
         dict(dy=0, squash=0.0, lean=0.0, roots=0, flare=0.0, dust=0),   # idle
         dict(dy=-1, squash=-0.4, lean=0.6, roots=-1, flare=0.0, dust=0),  # walk A
         dict(dy=0, squash=0.5, lean=-0.4, roots=1, flare=0.0, dust=1),   # walk B
+        dict(dy=-1, squash=1.0, lean=-1.1, roots=1, flare=0.5, dust=2),  # anticipation
         dict(dy=-2, squash=1.6, lean=-1.8, roots=0, flare=1.0, dust=3),  # windup
         dict(dy=-4, squash=-1.8, lean=2.4, roots=1, flare=1.5, dust=5),  # leap
         dict(dy=2, squash=2.4, lean=0.8, roots=-1, flare=2.0, dust=8),   # slam

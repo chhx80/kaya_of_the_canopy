@@ -3,14 +3,29 @@ extends TestCase
 ## for by name: every enemy's primary locomotion cycle reads as 4 real frames
 ## rather than 2, and every attack this diagnosis found already telegraphed in
 ## *behaviour* now telegraphs in *art* too — at least 2 frames of anticipation
-## before the strike. Bosses are explicitly out of scope: "Bosses keep their
-## 18-frame contract; they gain only edge discipline from Phase C."
+## before the strike.
 ##
 ## Measured before this phase (see the Phase B report): walker's "move",
 ## jumper/shooter's "windup", swimmer's "swim" and flyer's "fly" already met
 ## both floors — only charger's "move" and dropper's "walk" were still
 ## 2-frame. This test pins the floor so neither regresses and catches a new
 ## enemy that ships without it.
+##
+## Bosses were explicitly out of scope in Phase B: "Bosses keep their
+## 18-frame contract; they gain only edge discipline from Phase C." Phase E,
+## docs/plan-art-motion.md, measured that scope limit against this test's own
+## rule and found it did not hold: every one of the five bosses' `windup_pN`
+## anims was still a single frame — the strike pose appearing with no
+## anticipation at all, the exact failure mode this file exists to catch,
+## just fenced off by the `boss` flag. `test_every_non_boss_*` above is left
+## alone (bosses keep their 2-frame walk cycle by design — a different,
+## deliberate floor), but anticipation is the one rule with no boss carve-out
+## in the plan text, so `test_every_boss_windup_has_an_anticipation_strip_of_
+## at_least_two_frames()` below covers them: the five boss sheets grew from
+## 18 to 21 frames (one new interpolated anticipation pose per phase, see
+## tools/art/sprites.py), `windup_pN` is now 2 frames at every phase, and
+## `loop: false` so the strip escalates into the strike and holds rather than
+## throbbing through it.
 
 const DIR := "res://data/enemies"
 
@@ -66,6 +81,30 @@ func test_every_attack_has_an_anticipation_strip_of_at_least_two_frames() -> voi
 			ok(frames.size() >= 2,
 				"%s anim '%s' has only %d frames, want >= 2 of anticipation" \
 					% [path, key, frames.size()])
+
+## Phase E, docs/plan-art-motion.md: the boss half of the anticipation floor.
+## Every boss names its windup `windup`, `windup_p1`, `windup_p2`, `windup_p3`
+## (see tools/art/sprites.py's boss builders and src/enemies/*.gd's
+## `set_anim()`, which picks the phase suffix) — walk through every key on a
+## boss's own "anim" dict and check the ones that start with "windup" rather
+## than relying on the fixed ANTICIPATION_KEYS list, so a sixth boss or a
+## renamed phase suffix cannot silently fall out of coverage.
+func test_every_boss_windup_has_an_anticipation_strip_of_at_least_two_frames() -> void:
+	var saw_a_boss := false
+	for path in _enemy_files():
+		var d := _json(path)
+		if d.is_empty() or not bool(d.get("boss", false)):
+			continue
+		saw_a_boss = true
+		var anims: Dictionary = d.get("anim", {})
+		for key: String in anims.keys():
+			if not key.begins_with("windup"):
+				continue
+			var frames: Array = (anims[key] as Dictionary).get("frames", [])
+			ok(frames.size() >= 2,
+				"%s anim '%s' has only %d frames, want >= 2 of anticipation" \
+					% [path, key, frames.size()])
+	ok(saw_a_boss, "no boss enemy json found — this test would pass vacuously")
 
 ## The unified death poof: every non-boss enemy that does not override
 ## `death_fx` falls back to "scatter" (src/enemies/enemy_base.gd), and every
