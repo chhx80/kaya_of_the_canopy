@@ -2605,3 +2605,23 @@ pipeline that outlines its own silhouettes, lights its own edges, measures its
 own frame cost and checks its own output against the palette it is built
 from — and the number that mattered on page one, 26 tapes bit-identical, is
 still 26.
+
+## The iOS pack catches up, and the sentinel learns to stay awake
+
+Why an iOS build looked unchanged after three milestones of work: Xcode
+Cloud archives the *committed* `ios/KayaOfTheCanopy.pck`, and that pack
+had not been re-synced since September 15 — before World 2 existed.
+Every ipa since was a new build number wrapped around a seven-week-old
+game. The guard built for exactly this, `test_ios_bundle.gd`, slept
+through it: its byte probes were pinned to content that was current
+when it was written (jungle_2's row 24, the root scene) and none of it
+changed a byte while four worlds landed around it.
+
+The guard now enumerates: every level's current geometry must be in the
+pack (a level the pack has never heard of fails by construction), the
+newest system's data is probed by exact byte slice, and `tools/test.sh`
+finally makes the comparison the hash file always implied —
+`hash_game_data.py`'s current output against the recorded
+`ios/.pck_source_hash`, covering `src/` and everything the probes
+cannot see. All three proven to fire against the stale pack before the
+fix. The pack is re-synced and carries the whole game.
