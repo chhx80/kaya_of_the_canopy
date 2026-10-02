@@ -1,0 +1,36 @@
+[
+  {"_": "Phase F, docs/plan-art-motion.md: the idle dance, human. test_arena,",
+   "__": "same safe spot tools/seq/m6a_fidget.json found: (19, 11), past the",
+   "___": "SOLID crate at (18, 11), which blocks the walker's patrol so it",
+   "____": "never wanders in and breaks the idle window.",
+   "_____": "GOTCHA (inherited from m6a_fidget.json): the idle clock starts the",
+   "______": "moment the level loads, not at the teleport -- the spot settles",
+   "_______": "around absolute frame ~104, so DANCE_IDLE_TIME=5s (300 ticks) opens",
+   "________": "around absolute frame ~300-320, i.e. about 200-220 ticks after the",
+   "_________": "spot settles. Re-run with:",
+   "__________": "tools/shot.sh --seq=tools/seq/m6b_dance_human.json"},
+
+  {"scenario": "level:test_arena", "settle": 90},
+  {"teleport": [19, 11], "settle": 10},
+  {"log": "spot"},
+
+  {"wait": 210},
+  {"log": "dance_start"},
+  {"shot": "shots/m6b_dance_a.png"},
+  {"wait": 4},
+  {"shot": "shots/m6b_dance_b.png"},
+  {"wait": 4},
+  {"shot": "shots/m6b_dance_c.png"},
+  {"wait": 4},
+  {"shot": "shots/m6b_dance_d.png"},
+  {"wait": 4},
+  {"shot": "shots/m6b_dance_e.png"},
+  {"wait": 4},
+  {"shot": "shots/m6b_dance_f.png"},
+
+  {"_": "E -- input cancels the dance on the very next frame."},
+  {"hold": "move_right", "frames": 2},
+  {"log": "cancelled"},
+  {"shot": "shots/m6b_dance_cancel.png"},
+  {"release": "move_right"}
+]

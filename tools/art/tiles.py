@@ -18,7 +18,8 @@ import random
 
 from PIL import Image
 
-from .palette import (TILES, auto_shade, blob, crack, put, put_ink, speckle)
+from .palette import (RAMPS, TILES, auto_shade, blob, crack, put, put_ink,
+                       speckle)
 
 TS = 16
 
@@ -2161,7 +2162,7 @@ def convex_corner(img, ramp, rnd, corner, base, lift):
         put(img, px, py, ramp, base + d + rnd.uniform(-0.2, 0.2))
 
 
-def paint_edges(img, mask, rim, rnd):
+def paint_edges(img, mask, rim, rnd, group=None):
     """Turn an interior fill into the blob case `mask`."""
     ramp = rim["ramp"]
     base = rim["base"]
@@ -2182,6 +2183,55 @@ def paint_edges(img, mask, rim, rnd):
     deco = rim.get("decorate")
     if deco is not None:
         deco(img, mask, rnd)
+    edge_light_course(img, mask, rim, group)
+
+
+# ------------------------------------------------- phase C: tile edge light
+# docs/plan-art-motion.md: "top edges of standable solid runs get a +1
+# ramp-step highlight course; a 1 px ambient-occlusion row under overhangs."
+#
+# The RIM_* dicts above already carry hand-tuned `top=`/`bottom=` gradients
+# per material -- this is the systematised, uniform course on top of them:
+# one discrete ramp STEP (not a fractional dither blend) on the exposed top
+# row, one discrete step darker on the exposed bottom row, the same rule for
+# every standable solid material rather than whatever its own rim happened to
+# specify. ADDITIVE, reusing a signal the rim dicts already encode: a spec
+# whose `top` is already `None` (RIM_SOD, RIM_STONE_MOSSY, RIM_RUIN_ALGAE,
+# RIM_HEIGHTS_SUN, RIM_DEEPS_CRUST, RIM_NEST_HOT) is the capped variant of a
+# material -- t_grass_top(), t_stone(mossy=True) and the rest paint their own
+# sunlit cap into the base art before the rim ever runs, which is exactly the
+# hand-placed `solid_alt` cap the brief says not to double-light. Background
+# materials (the `*_bg` groups) are never standable and are left alone.
+STANDABLE_GROUPS = {"earth", "stone", "hub_grass", "hub_path",
+                     "ruin", "heights", "deeps", "nest"}
+
+
+def _step_at(img, x, y, ramp):
+    """The ramp-step index already painted at (x, y), or the ramp's middle
+    step if the pixel is not currently one of that ramp's own colours (it is
+    ink, transparent, or a different material) -- a safe, visible fallback
+    rather than a crash on a texture this function was not meant to touch."""
+    c = img.getpixel((x, y))[:3]
+    steps = RAMPS[ramp]
+    for i, s in enumerate(steps):
+        if s == c:
+            return i
+    return len(steps) // 2
+
+
+def edge_light_course(img, mask, rim, group):
+    if group not in STANDABLE_GROUPS:
+        return
+    ramp = rim["ramp"]
+    top_capped = rim.get("top") is None
+    if not mask & BIT_N and not top_capped:
+        for x in range(TS):
+            i = _step_at(img, x, 0, ramp)
+            put(img, x, 0, ramp, min(len(RAMPS[ramp]) - 1, i + 1))
+    if not mask & BIT_S:
+        for x in range(TS):
+            i = _step_at(img, x, TS - 1, ramp)
+            put(img, x, TS - 1, ramp, max(0, i - 1))
 
 
 # ------------------------------------------------------------ edge dressing
@@ -2786,7 +2836,8 @@ def _cases_for(spec):
         for i, interior in enumerate(interiors):
             img = interior.copy()
             paint_edges(img, m, rim,
-                        random.Random(spec["seeds"][0] * 131 + m * 17 + i))
+                        random.Random(spec["seeds"][0] * 131 + m * 17 + i),
+                        group=spec["group"])
             imgs.append(img)
         cases[m] = imgs
     return cases

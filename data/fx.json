@@ -43,6 +43,27 @@
         "count": [5, 8], "life": [0.34, 0.58], "speed": [40, 105],
         "angle_deg": [-150, -30], "aim": false,
         "gravity": 380.0, "drag": 1.1, "spread_px": 3.0, "fade": true
+      },
+      "turn_scuff": {
+        "_comment": "Phase A, docs/plan-art-motion.md — player.gd bursts this once when RenderFacingFSM enters State.TURN on the ground, aimed opposite the new facing.",
+        "row": 4, "frames": [0, 1, 2, 3], "fps": 14.0,
+        "count": [2, 3], "life": [0.12, 0.2], "speed": [10, 30],
+        "angle_deg": [-20, 20], "aim": true,
+        "gravity": 40.0, "drag": 5.0, "spread_px": 2.0, "fade": true
+      },
+      "takeoff_kick": {
+        "_comment": "Phase A — player.gd bursts this once when vel.y goes negative on the same tick the player leaves the ground: a jump, not a walk off a ledge.",
+        "row": 5, "frames": [0, 1, 2, 3], "fps": 13.0,
+        "count": [3, 5], "life": [0.2, 0.32], "speed": [30, 70],
+        "angle_deg": [-170, -10], "aim": false,
+        "gravity": 150.0, "drag": 2.5, "spread_px": 3.0, "fade": true
+      },
+      "splash": {
+        "_comment": "Phase B, docs/plan-art-motion.md — form_fish.gd bursts this once when the fish breaks the surface (the jump-out hop), read-only off the same surface_hop branch that already sets vel.y.",
+        "row": 6, "frames": [0, 1, 2, 3], "fps": 12.0,
+        "count": [4, 6], "life": [0.22, 0.34], "speed": [24, 60],
+        "angle_deg": [-170, -10], "aim": false,
+        "gravity": 220.0, "drag": 2.0, "spread_px": 4.0, "fade": true
       }
     }
   },
@@ -79,6 +100,8 @@
   "timings": {
     "land_dust_min_fall": 170.0,
     "gem_shimmer_interval": 0.85,
-    "blade_spark_interval": 0.09
+    "blade_spark_interval": 0.09,
+    "landing_dip_px": 2.0,
+    "landing_dip_frames": 3.0
   }
 }

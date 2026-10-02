@@ -99,6 +99,17 @@ func test_no_shake_preset_can_out_reach_the_cull_margin() -> void:
 		lt(float(p.get("seconds", 0.0)), 1.0, "shake '%s' outstays its welcome" % name)
 		gt(float(p.get("hz", 0.0)), 0.0, "shake '%s' has no frequency" % name)
 
+## Phase D, docs/plan-art-motion.md: same structural bound as the shake cap
+## test above — a render offset that could out-reach the tile cull margin
+## would expose an unpainted edge, whatever put it there.
+func test_the_landing_dip_cannot_out_reach_the_cull_margin() -> void:
+	var timings: Dictionary = (_json(FX_PATH).get("timings", {}) as Dictionary)
+	var px := float(timings.get("landing_dip_px", 0.0))
+	gt(px, 0.0, "the landing dip would not move")
+	ok(px <= CameraController.MAX_SHAKE_PX,
+		"landing_dip_px %f exceeds the camera's shake cap %f" % [px, CameraController.MAX_SHAKE_PX])
+	gt(float(timings.get("landing_dip_frames", 0.0)), 0.0, "the landing dip needs a duration")
+
 # ---------------------------------------------------------------- hitstop
 func test_hitstop_is_bounded_both_in_data_and_in_code() -> void:
 	var hs: Dictionary = (_json(FX_PATH).get("hitstop", {}) as Dictionary)
@@ -114,7 +125,8 @@ func test_hitstop_is_bounded_both_in_data_and_in_code() -> void:
 
 func test_every_timing_the_call_sites_read_is_present() -> void:
 	var timings: Dictionary = (_json(FX_PATH).get("timings", {}) as Dictionary)
-	for key in ["land_dust_min_fall", "gem_shimmer_interval", "blade_spark_interval"]:
+	for key in ["land_dust_min_fall", "gem_shimmer_interval", "blade_spark_interval",
+			"landing_dip_px", "landing_dip_frames"]:
 		ok(timings.has(key), "missing timing '%s'" % key)
 		gt(float(timings.get(key, 0.0)), 0.0, "timing '%s' must be positive" % key)
 

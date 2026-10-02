@@ -307,6 +307,62 @@ K_CLIMB1 = _kaya(K_T_UP, L_CLIMB_A, 0, head=K_HEAD_CLIMB)
 K_CLIMB2 = _kaya(K_T_UP, L_STAND, 0, head=K_HEAD_CLIMB)
 K_CLIMB3 = _kaya(K_T_UP, _swap(L_CLIMB_A), 0, head=K_HEAD_CLIMB)
 
+# ---- Phase A, docs/plan-art-motion.md: the turn. New poses are built the same
+# way the run cycle is — recomposing the existing head/torso/leg blocks into
+# combinations the first 20 frames never used — except for the half-turn's
+# head, which is genuinely new: every other frame in this sheet is drawn in
+# profile, and the half-turn is the one beat that has to look at the camera.
+#
+# Eyes brought together and centred rather than offset toward the leading
+# edge (as K_HEAD's profile eyes are), and the hairline swept off-centre, so
+# the frame reads as a body caught mid-pivot rather than a second idle pose.
+K_HEAD_TURN = list(K_HEAD)
+K_HEAD_TURN[0] = ".....kkkkk......"    # hair caught mid-swing, off the part
+K_HEAD_TURN[5] = "....kswkkwsk...."    # both eyes toward the camera, a two-
+                                       # pixel nose bridge keeping them apart
+
+# plant: braced backward lean, wide low stance (shared with the land pose's
+# legs, but K_T_BACK's trailing arm reads as resisting rather than absorbing).
+K_TURN_PLANT = _kaya(K_T_BACK, L_LAND, 3)
+# half-turn: the pivot itself, face-on. Also played alone (held, no loop) for
+# an airborne or slow-speed reversal — see RenderFacingFSM.turn_frame_index().
+K_TURN_HALF = _kaya(K_T_BACK, L_PASS, 0, head=K_HEAD_TURN)
+# skid: full lean-back over a dug-in crouch.
+K_SKID = _kaya(K_T_OUT, L_CROUCH, 3)
+# push: shouldering a breakable wall. Two frames of the same forward drive the
+# run cycle already has the vocabulary for, cycling slowly while tick_break()
+# runs rather than striding.
+K_PUSH1 = _kaya(K_T_FWD, L_CONTACT, 1)
+K_PUSH2 = _kaya(K_T_FWD, L_DOWN, 2)
+# throw: the wind-up (reaching into the swing) and the follow-through (arms
+# thrown up and out, same silhouette family as the jump arc's K_T_UP beats).
+K_THROW1 = _kaya(K_T_FWD, L_STAND, 0)
+K_THROW2 = _kaya(K_T_UP, L_STAND, 0, head=K_HEAD_UP)
+# catch: arms out to take the blade back, planted.
+K_CATCH = _kaya(K_T_OUT, L_STAND, 0)
+# idle fidget: a small weight-shift, a settle, a stretch -- three beats, no
+# loop, back to idle. See RenderFacingFSM's sibling timers in player.gd.
+K_FIDGET1 = _kaya(K_T_BACK, L_STAND, 0)
+K_FIDGET2 = _kaya(K_T_MID, L_CONTACT, 1)
+K_FIDGET3 = _kaya(K_T_UP, L_APEX, 0, head=K_HEAD_UP)
+
+# ---- Phase F, docs/plan-art-motion.md: the idle dance. An original eight-beat
+# routine -- hip-sway into a two-step, an arm-wave, a little spin, settling
+# back toward camera -- built the same way every frame since the run cycle
+# has been: recomposing the existing head/torso/leg vocabulary into
+# combinations the first 31 frames never used, never drawing a new limb.
+# Player.gd plays this list twice through at 8fps (see data/forms/human.json)
+# and purely reads velocity/input/time to pick it; nothing here ever writes
+# `facing` or any physics state.
+K_DANCE1 = _kaya(K_T_BACK, L_CONTACT, 1)             # weight shifts right
+K_DANCE2 = _kaya(K_T_MID, L_DOWN, 2)                 # dips into the sway
+K_DANCE3 = _kaya(K_T_FWD, _swap(L_CONTACT), 1)       # weight shifts left
+K_DANCE4 = _kaya(K_T_MID, _swap(L_DOWN), 2)          # dips the other way
+K_DANCE5 = _kaya(K_T_UP, L_APEX, 0, head=K_HEAD_UP)  # the arm-wave, a little hop
+K_DANCE6 = _kaya(K_T_OUT, L_PASS, 0)                 # the spin begins, legs crossing
+K_DANCE7 = _kaya(K_T_BACK, _swap(L_PASS), 0)         # the spin continues
+K_DANCE8 = _kaya(K_T_MID, L_STAND, 0, head=K_HEAD_TURN)  # settle, face-on, back to idle
+
 
 # Everything from here down is 16x16, and authored through `cell()` so a row
 # only has to carry the pixels that are actually lit — trailing transparency is
@@ -418,7 +474,7 @@ F_REACH = cell([
     "g...gg....gg..g",
     "...gg......gg",
 ])
-F_CLING = cell([
+_F_CLING_ROWS = [
     "",
     "..gg........gg",
     ".gllg......gllg",
@@ -433,6 +489,50 @@ F_CLING = cell([
     "glgggllllllggglg",
     "gg.gg.gggg.gg.gg",
     "g..gg......gg..g",
+]
+F_CLING = cell(_F_CLING_ROWS)
+# Phase B, docs/plan-art-motion.md: the breathing cling's second beat, built
+# the same way the human idle's one-pixel breath (K_IDLE_B) is -- drop the
+# leading blank row so the whole frog lifts one pixel, a chest-rising inhale.
+F_CLING_B = cell(_F_CLING_ROWS[1:])
+
+# Phase B: the apex tuck -- legs pulled up tight at the top of the hop,
+# between the leap (toe-off) and the reach (stretching for the landing).
+# Shares F_IDLE's head and body rows (the frog's silhouette does not change
+# above the hips mid-air) and replaces only the legs with a tight tuck.
+F_APEX = cell([
+    "...gg......gg",
+    "..gllg....gllg",
+    "..glwlgggglwlg",
+    "..gllllllllllg",
+    "..glllllllllllg",
+    ".gllGllllllGllg",
+    ".gllllllllllllg",
+    ".gllGGllllGGllg",
+    ".gGllllllllllGg",
+    ".gglllllllllggg",
+    "ggglllllllllggg",
+    ".ggg.gggg.ggg..",
+])
+
+# Phase B: the tongue-blink idle -- F_BREATHE with the tongue flicked out
+# across the mouth row.
+F_TONGUE = cell([
+    "",
+    "",
+    "...gg......gg",
+    "..gllg....gllg",
+    "..glglgggglglg",
+    "..gllllllllllg",
+    ".glllllllllllllg",
+    ".gllGllllllGllg",
+    "gllllrrllllllllg",
+    ".gllGGllllGGllg",
+    ".gGllllllllllGg",
+    ".gglllllllllggg",
+    "gglgggllllgggglg",
+    "glggg.gggg.ggglg",
+    "gg.............g",
 ])
 
 # --- fish form (16x16). Four beats of tail, plus a bite and a beached flop.
@@ -584,7 +684,7 @@ B_MIDB = cell([
     "........yy",
     "........kk",
 ])
-B_GLIDE = cell([
+_B_GLIDE_ROWS = [
     "",
     "",
     "",
@@ -598,7 +698,8 @@ B_GLIDE = cell([
     "........kkk",
     "........yy",
     "........kk",
-])
+]
+B_GLIDE = cell(_B_GLIDE_ROWS)
 B_PERCH = cell([
     "",
     "",
@@ -614,6 +715,64 @@ B_PERCH = cell([
     "........yy",
     "........kk",
 ])
+# Phase B, docs/plan-art-motion.md: the glide's feather-ruffle second beat --
+# the wing rows shifted one pixel, the body and feet held still, the same
+# economy the dropper's shiver (tools/art/sprites_enemies_v2.py) shifts a
+# whole body by.
+B_GLIDE2 = cell([
+    "",
+    "",
+    "",
+    "",
+    ".kkkk",
+    ".kyyyykkkk",
+    "..kyyoooooyyk",
+    "..kkoorrrkwrok",
+    "....kkrrrrrykk",
+    "......kkrryk",
+    "........kkk",
+    "........yy",
+    "........kk",
+])
+# Phase B: the perch's head-tilt second beat -- the head cap shifted one
+# pixel right against the still body.
+B_PERCH2 = cell([
+    "",
+    "",
+    "",
+    ".....kkkk",
+    "....kyyyyk",
+    "...kyyoookkk",
+    "...kyorrrrrok",
+    "...kkorrkwrok",
+    "....kkrrrrykk",
+    ".....kkrrryk",
+    "......kkkkk",
+    "........yy",
+    "........kk",
+])
+
+
+def _row_shift(row, n):
+    """`row` translated `n` pixels right (left if negative), clipped to width.
+
+    The same trick tools/art/sprites_enemies_v2.py's dropper shiver uses to
+    animate a whole silhouette by translation rather than redrawing it.
+    """
+    if n < 0:
+        return row[-n:] + "." * -n
+    if n > 0:
+        return "." * n + row[:-n]
+    return row
+
+
+# Phase B, docs/plan-art-motion.md: the banking turn pair -- the bird is the
+# form where turning reads most, so it banks into the new direction rather
+# than holding a static half-turn frame (see RenderFacingFSM's `flying`
+# parameter). Built by translating the glide silhouette, which is already the
+# wings-spread pose a bank naturally extends from.
+B_TURN1 = cell([_row_shift(r, -1) for r in _B_GLIDE_ROWS])
+B_TURN2 = cell([_row_shift(r, 1) for r in _B_GLIDE_ROWS])
 
 # ---------------------------------------------------------------- enemies
 # --- the bark beetle. Four legs positions, and the shell drops a pixel on the
@@ -1153,7 +1312,8 @@ KAYA = {'s': ("skin", 2.6), 'w': ("metal", 6.0),
         # read as a cycle if the leg behind the body is visibly behind it.
         'S': ("skin", 1.5), 'n': ("dirt", 0.5), 'N': ("dirt", 1.9)}
 FROG = {'g': ("foliage", 1.6), 'G': ("grass", 2.0),
-        'l': ("grass", 3.5), 'w': ("metal", 6.0)}
+        'l': ("grass", 3.5), 'w': ("metal", 6.0),
+        'r': ("ember", 3.0)}        # Phase B: the tongue-blink idle frame
 FISH = {'o': ("gold", 1.8), 'y': ("gold", 3.4)}
 BIRD = {'y': ("gold", 4.3), 'o': ("gold", 2.8),
         'r': ("ember", 3.2), 'w': ("metal", 6.0)}
@@ -1247,34 +1407,47 @@ def build_sprites():
     # Kaya's limbs are three pixels wide; the default occlusion term would
     # push their shaded column down two whole ramp steps and read as mud.
     # Frame order matches data/forms/human.json. 0-1 idle, 2-9 run, 10-15 the
-    # jump arc (anticipate, launch, rise, apex, fall, land), 16-18 climb,
-    # 19 hurt.
+    # jump arc (anticipate, launch, rise, apex, fall, land), 16-18 climb, 19
+    # hurt, 20-21 turn (plant, half-turn), 22 skid, 23-24 push, 25-26 throw,
+    # 27 catch, 28-30 idle fidget (Phase A), 31-38 the idle dance (Phase F).
     sheet("kaya_human",
           lit([K_IDLE, K_IDLE_B] + K_RUN
               + [K_CROUCH, K_LAUNCH, K_RISE, K_APEX, K_FALL, K_LAND,
-                 K_CLIMB1, K_CLIMB2, K_CLIMB3, K_HURT], KAYA, dark=0.75),
-          16, 24)
-    # 0 idle, 1 breath, 2 crouch, 3 leap, 4 reach, 5 cling
+                 K_CLIMB1, K_CLIMB2, K_CLIMB3, K_HURT,
+                 K_TURN_PLANT, K_TURN_HALF, K_SKID, K_PUSH1, K_PUSH2,
+                 K_THROW1, K_THROW2, K_CATCH,
+                 K_FIDGET1, K_FIDGET2, K_FIDGET3,
+                 K_DANCE1, K_DANCE2, K_DANCE3, K_DANCE4,
+                 K_DANCE5, K_DANCE6, K_DANCE7, K_DANCE8], KAYA, dark=0.75),
+          16, 24, selout=True)
+    # 0 idle, 1 breath, 2 crouch (anticipation; also reused as the turn frame),
+    # 3 leap (also reused as the wall-kick flash), 4 reach, 5 cling, 6 apex
+    # (mid-air tuck), 7 tongue-blink idle, 8 cling breathe. 6-8 are Phase B,
+    # docs/plan-art-motion.md.
     sheet("kaya_frog", lit([F_IDLE, F_BREATHE, F_CROUCH, F_LEAP,
-                            F_REACH, F_CLING], FROG), 16, 16)
+                            F_REACH, F_CLING, F_APEX, F_TONGUE,
+                            F_CLING_B], FROG), 16, 16, selout=True)
     # 0-3 the swim beat, 4 bite, 5 flop. Mirrored so the unflipped cell faces
     # right, which is the direction `facing == 1` draws.
     sheet("kaya_fish", lit([mirror(c) for c in
                             (FI_TAIL_MID, FI_TAIL_UP, FI_TAIL_MID2,
-                             FI_TAIL_DOWN, FI_BITE, FI_FLOP)], FISH), 16, 16)
-    # 0-3 the flap beat, 4 glide, 5 perch
+                             FI_TAIL_DOWN, FI_BITE, FI_FLOP)], FISH), 16, 16, selout=True)
+    # 0-3 the flap beat, 4 glide, 5 perch, 6 glide ruffle, 7 perch head-tilt,
+    # 8-9 the banking turn pair. 6-9 are Phase B, docs/plan-art-motion.md.
     sheet("kaya_bird", lit([B_UP, B_MIDA, B_DOWN, B_MIDB,
-                            B_GLIDE, B_PERCH], BIRD), 16, 16)
-    sheet("enemy_walker", lit([walker(i) for i in range(4)], WALKER), 16, 16)
+                            B_GLIDE, B_PERCH, B_GLIDE2, B_PERCH2,
+                            B_TURN1, B_TURN2], BIRD), 16, 16, selout=True)
+    sheet("enemy_walker", lit([walker(i) for i in range(4)], WALKER), 16, 16,
+          selout=True)
     # 0 idle, 1-2 the telegraph, 3 airborne, 4 the landing squash
     sheet("enemy_jumper", lit([E_J_IDLE, E_J_CROUCH, E_J_COIL,
-                               E_J_AIR, E_J_LAND], JUMPER), 16, 16)
+                               E_J_AIR, E_J_LAND], JUMPER), 16, 16, selout=True)
     # 0 closed, 1-3 the telegraph, 4 the spit
     sheet("enemy_shooter", lit([E_S_IDLE, E_S_STIR, E_S_INHALE,
-                                E_S_SWELL, E_S_FIRE], SHOOTER), 16, 16)
+                                E_S_SWELL, E_S_FIRE], SHOOTER), 16, 16, selout=True)
     sheet("enemy_swimmer", lit([mirror(cell(c)) for c in
                                 (E_SW_MID, E_SW_UP, E_SW_BITE, E_SW_DOWN)],
-                               SWIMMER), 16, 16)
+                               SWIMMER), 16, 16, selout=True)
     sheet("blade", lit([I_BLADE1, I_BLADE2], BLADE, depth=1), 16, 16)
     sheet("pickups", lit([I_GEM], GEM, depth=2)
                      + lit([I_HEART], HEART, depth=2)
@@ -1309,10 +1482,13 @@ def build_boss():
              back, ember light shows through the cracks, the jaw hangs open and
              the eyes have gone white.
 
-    Within a phase the six frames are idle, two walk beats, the slam crouch,
-    the airborne extension and the landing splay. data/enemies/boss_grove.json
-    names them <anim>_p1/_p2/_p3 and src/enemies/boss_grove.gd picks the suffix
-    for the phase it is in.
+    Within a phase the seven frames are idle, two walk beats, a two-frame
+    windup (an anticipation crouch, then the slam crouch itself — Phase E,
+    docs/plan-art-motion.md, closes the gap `test_enemy_motion_parity.gd`
+    flags: every attack anim needs >= 2 frames of anticipation, bosses
+    included), the airborne extension and the landing splay.
+    data/enemies/boss_grove.json names them <anim>_p1/_p2/_p3 and
+    src/enemies/boss_grove.gd picks the suffix for the phase it is in.
 
     The hitbox is 26x42 at (11, 4) in the frame: the feet still land on row 46,
     the crown still overhangs the top of the box, but the box is now as tall as
@@ -1371,11 +1547,16 @@ def build_boss():
              leg=(17, 9, 2), spread=1.25, horn=(11, 7), jaw=6,
              spines=1, cracks=1, wings=0),
     ]
-    # idle, walk A, walk B, slam crouch, airborne, landing splay
+    # idle, walk A, walk B, anticipation, slam crouch, airborne, landing splay.
+    # Phase E, docs/plan-art-motion.md: the windup anticipation strip. Index 3
+    # is a half-strength crouch interpolated from walk B and the slam crouch
+    # (now index 4), so the gather into the slam reads as two beats rather
+    # than a single pose snapping onto the floor.
     POSES = [
         dict(dy=0, step=0, jaw=0, coil=1.0),
         dict(dy=0, step=3, jaw=0, coil=1.0),
         dict(dy=1, step=-3, jaw=0, coil=0.9),
+        dict(dy=2, step=0, jaw=1, coil=0.75),
         dict(dy=4, step=0, jaw=2, coil=0.6),
         dict(dy=-6, step=0, jaw=3, coil=1.5),
         dict(dy=3, step=6, jaw=3, coil=0.55),
@@ -1477,7 +1658,7 @@ def build_boss():
         return ["".join(r) for r in outline(px)]
 
     cells = [make(ph, pose) for ph in PHASES for pose in POSES]
-    sheet("boss_grove", lit(cells, BOSS), 48, 48)
+    sheet("boss_grove", lit(cells, BOSS), 48, 48, selout=True)
     print("boss_grove.png  %d frames" % len(cells))
 
 
@@ -1492,7 +1673,8 @@ def build_boss_stormcrest():
     the six poses `<pose>_p1/_p2/_p3`, and src/enemies/stormcrest.gd picks the
     suffix for the phase it is in:
 
-        0 idle (perched)  1-2 the stalk  3 windup  4 airborne  5 landing splay
+        0 idle (perched)  1-2 the stalk  3-4 windup (anticipation, then the
+        full gather)  5 airborne  6 landing splay
 
     The fight's one idea is that it is only vulnerable while it is *roosting*,
     so the art has one job above all others: the player must be able to tell,
@@ -1536,10 +1718,14 @@ def build_boss_stormcrest():
     # step    the stalking leg slide
     # fanned  extra spread on the crest
     # legs    whether feet are on the floor at all
+    # Phase E, docs/plan-art-motion.md: the windup grows an anticipation pose
+    # (index 3) interpolated from stalk B and the full gather (now index 4),
+    # so the bird visibly settles before it launches.
     POSES = [
         dict(dy=0, ang=0, open=0.0, step=0, fanned=0.0, legs=1),   # idle
         dict(dy=1, ang=0, open=0.2, step=3, fanned=0.2, legs=1),   # stalk A
         dict(dy=0, ang=0, open=0.3, step=-3, fanned=0.0, legs=1),  # stalk B
+        dict(dy=2, ang=0, open=0.4, step=-2, fanned=0.5, legs=1),  # anticipation
         dict(dy=4, ang=0, open=0.5, step=0, fanned=1.0, legs=1),   # windup
         dict(dy=-8, ang=34, open=1.0, step=0, fanned=0.6, legs=0),  # airborne
         dict(dy=2, ang=0, open=1.0, step=5, fanned=0.8, legs=1),   # landing
@@ -1697,7 +1883,7 @@ def build_boss_stormcrest():
         return ["".join(r) for r in out]
 
     cells = [make(ph, pose) for ph in PHASES for pose in POSES]
-    sheet("boss_stormcrest", lit(cells, STORM), 48, 48)
+    sheet("boss_stormcrest", lit(cells, STORM), 48, 48, selout=True)
     print("boss_stormcrest.png  %d frames" % len(cells))
 
 
@@ -1715,7 +1901,8 @@ def build_boss_tide_maw():
     six poses `<pose>_p1/_p2/_p3`, and src/enemies/tide_maw.gd picks the suffix
     for the phase it is in:
 
-        0 idle  1-2 the walk  3 windup  4 airborne  5 landing
+        0 idle  1-2 the walk  3-4 windup (anticipation, then the full
+        gather)  5 airborne  6 landing
 
     The fight's one idea is the tide: the arena floods and drains under the
     player, and the boss is the thing that is doing it. So the art has two jobs.
@@ -1755,10 +1942,13 @@ def build_boss_tide_maw():
     # tilt   where the tip of the mouth points, + is down
     # stalk  how much of the lure's arc is extended, 0 folded .. 1 full
     # swing  sideways drift of the bulb, so the lure is never quite still
+    # Phase E, docs/plan-art-motion.md: the windup grows an anticipation pose
+    # (index 3) interpolated from walk B and the full gather (now index 4).
     POSES = [
         dict(dy=0, gape=5, tilt=0, stalk=1.0, swing=0),     # idle
         dict(dy=-1, gape=5, tilt=0, stalk=1.0, swing=1),    # walk A
         dict(dy=0, gape=4, tilt=1, stalk=0.95, swing=-1),   # walk B
+        dict(dy=-2, gape=4, tilt=1, stalk=0.6, swing=-1),   # anticipation
         dict(dy=-4, gape=4, tilt=1, stalk=0.28, swing=0),   # windup
         dict(dy=-3, gape=13, tilt=-3, stalk=1.0, swing=2),  # airborne
         dict(dy=3, gape=10, tilt=4, stalk=0.9, swing=-2),   # landing
@@ -1917,7 +2107,8 @@ def build_boss_tide_maw():
     # puts a checkerboard across half the frame. Whole steps give the four flat
     # tones the rest of the ruins art is drawn in.
     sheet("boss_tide_maw",
-          lit(cells, TIDE, depth=2, rate=1.0, lit=1.0, dark=1.0), 48, 48)
+          lit(cells, TIDE, depth=2, rate=1.0, lit=1.0, dark=1.0), 48, 48,
+          selout=True)
     print("boss_tide_maw.png  %d frames" % len(cells))
 
 
@@ -1935,16 +2126,21 @@ def build_boss_brood_queen():
     the six poses `<pose>_p1/_p2/_p3`, and src/enemies/brood_queen.gd picks the
     suffix for the phase it is in:
 
-        0 idle   1-2 the crawl   3 windup   4 the burrow charge   5 the slam
+        0 idle   1-2 the crawl   3-4 windup (anticipation, then the full
+        gather)   5 the burrow charge   6 the slam
 
     **The brightness is the mechanic, not the mood.** This is the one boss in the
     game that is not always drawn: `brood_queen.gd` fades her sprite towards
     `dark_alpha` on every frame she is not attacking, and back to full on the
-    frames she is. So the three *attack* poses — windup, charge, slam — carry a
-    rim of the brightest character in the map along the abdomen's crown, the
-    thorax plate and the jaws, and the crawl beats carry none. At 12 % alpha over
-    a dark chamber the crawl is a suggestion and the slam is a white-hot flash of
-    a body, which is the fight's sentence made out of pixels rather than a tint.
+    frames she is. So the four *attack* poses — the windup's anticipation beat,
+    the full windup, the charge and the slam — carry a rim of the brightest
+    character in the map along the abdomen's crown, the thorax plate and the
+    jaws, and the crawl beats carry none. At 12 % alpha over a dark chamber the
+    crawl is a suggestion and the slam is a white-hot flash of a body, which is
+    the fight's sentence made out of pixels rather than a tint. Phase E,
+    docs/plan-art-motion.md, is what adds the anticipation beat — the brood
+    light has to start showing *before* the strike for an attack telegraph to
+    mean anything, not light up on the same frame as the strike itself.
 
     Phases differ in silhouette as well as in value, the rule the plan set for
     the Grove Warden:
@@ -2001,10 +2197,15 @@ def build_boss_brood_queen():
     # lit     the highlight character for THIS pose, or None. The three attack
     #         poses are the lit ones; see the docstring.
     # dust    how many flung specks of earth sit under her
+    # Phase E, docs/plan-art-motion.md: the windup grows an anticipation pose
+    # (index 3) interpolated from crawl B and the full gather (now index 4) —
+    # already lit, per the docstring above, because the brightness IS the
+    # telegraph and it has to start before the strike.
     POSES = [
         dict(dy=0, arch=0, reach=0, legs=0, lit=None, dust=0),     # idle
         dict(dy=-1, arch=1, reach=1, legs=-1, lit=None, dust=0),   # crawl A
         dict(dy=0, arch=-1, reach=-1, legs=1, lit=None, dust=0),   # crawl B
+        dict(dy=-2, arch=2, reach=-2, legs=1, lit='w', dust=1),    # anticipation
         dict(dy=-3, arch=4, reach=-2, legs=0, lit='w', dust=3),    # windup
         dict(dy=1, arch=-2, reach=4, legs=1, lit='w', dust=6),     # charge
         dict(dy=2, arch=-3, reach=1, legs=-1, lit='w', dust=8),    # slam
@@ -2193,7 +2394,8 @@ def build_boss_brood_queen():
     # level is drawn as a dither, which puts a checkerboard across half of a
     # 26 px abdomen.
     sheet("boss_brood_queen",
-          lit(cells, QUEEN, depth=2, rate=1.0, lit=1.0, dark=1.0), 48, 48)
+          lit(cells, QUEEN, depth=2, rate=1.0, lit=1.0, dark=1.0), 48, 48,
+          selout=True)
     print("boss_brood_queen.png  %d frames" % len(cells))
 
 
@@ -2211,7 +2413,8 @@ def build_boss_obsidian_heart():
     names the six poses `<pose>_p1/_p2/_p3`, and src/enemies/obsidian_heart.gd
     picks the suffix for the phase it is in:
 
-        0 idle   1-2 the walk   3 windup   4 the leap   5 the slam
+        0 idle   1-2 the walk   3-4 windup (anticipation, then the full
+        gather)   5 the leap   6 the slam
 
     **The glass is the phase.** The other four bosses change silhouette between
     phases; this one changes how much of itself is still opaque. SEALED is a
@@ -2266,14 +2469,20 @@ def build_boss_obsidian_heart():
     # squash  + is squat and wide, - is stretched and narrow
     # lean    how far the crown is thrown forward (+ is toward the facing)
     # roots   the leg phase, -1 / 0 / +1
-    # flare   how much the core is overdriven for THIS pose. The three attack
+    # flare   how much the core is overdriven for THIS pose. The four attack
     #         poses are the flared ones, which is the telegraph: this boss
     #         brightens before it hits you and the nest changes with it.
+    #         Phase E, docs/plan-art-motion.md: the windup grows an
+    #         anticipation pose (index 3), interpolated from walk B and the
+    #         full gather (now index 4), already half-flared — the brighten
+    #         has to start before the strike, same reasoning as the Brood
+    #         Queen's "lit" pose a few builders up.
     # dust    flung glass chips under it
     POSES = [
         dict(dy=0, squash=0.0, lean=0.0, roots=0, flare=0.0, dust=0),   # idle
         dict(dy=-1, squash=-0.4, lean=0.6, roots=-1, flare=0.0, dust=0),  # walk A
         dict(dy=0, squash=0.5, lean=-0.4, roots=1, flare=0.0, dust=1),   # walk B
+        dict(dy=-1, squash=1.0, lean=-1.1, roots=1, flare=0.5, dust=2),  # anticipation
         dict(dy=-2, squash=1.6, lean=-1.8, roots=0, flare=1.0, dust=3),  # windup
         dict(dy=-4, squash=-1.8, lean=2.4, roots=1, flare=1.5, dust=5),  # leap
         dict(dy=2, squash=2.4, lean=0.8, roots=-1, flare=2.0, dust=8),   # slam
@@ -2490,5 +2699,6 @@ def build_boss_obsidian_heart():
     # fractional ramp level is drawn as a dither, which puts a checkerboard
     # across half of a 40 px stone.
     sheet("boss_obsidian_heart",
-          lit(cells, OBSIDIAN, depth=2, rate=1.0, lit=1.0, dark=1.0), 48, 48)
+          lit(cells, OBSIDIAN, depth=2, rate=1.0, lit=1.0, dark=1.0), 48, 48,
+          selout=True)
     print("boss_obsidian_heart.png  %d frames" % len(cells))

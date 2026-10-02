@@ -1,4 +1,5 @@
 {
+  "_comment": "Phase B, docs/plan-art-motion.md: frame order is 0 idle, 1 breathe, 2 crouch (anticipation — also the turn frame), 3 leap (also the wall-kick flash), 4 reach, 5 cling, 6 apex (mid-air tuck), 7 tongue-blink idle, 8 cling breathe. turn/wallkick are deliberately single reused frames, the same economy human.json's own turn strip uses for its push-off (frame 5, the run cycle) — a flash is a flash, not new art.",
   "id": "frog",
   "display_name": "FROG",
   "sprite": "res://assets/sprites/kaya_frog.png",
@@ -36,7 +37,8 @@
     "idle": {
       "frames": [
         0,
-        1
+        1,
+        7
       ],
       "fps": 2
     },
@@ -57,21 +59,27 @@
     },
     "fall": {
       "frames": [
+        6,
         4
       ],
-      "fps": 1
+      "fps": 6
     },
     "cling": {
       "frames": [
-        5
+        5,
+        8
       ],
-      "fps": 1
+      "fps": 3
     },
     "hurt": {
       "frames": [
         0
       ],
       "fps": 1
-    }
+    },
+
+    "turn": { "frames": [2], "fps": 1 },
+    "wallkick": { "frames": [3], "fps": 1 },
+    "dance": { "frames": [1, 2, 0, 3, 1, 2, 0, 3], "fps": 8, "loop": false }
   }
 }

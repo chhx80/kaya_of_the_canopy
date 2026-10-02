@@ -1,0 +1,10 @@
+[
+  {"scenario": "level:test_arena", "settle": 60},
+  {"teleport": [15, 11], "settle": 10},
+  {"hold": "move_left", "frames": 3},
+  {"release": "move_left"},
+  {"wait": 2},
+  {"press": "attack", "frames": 4},
+  {"wait": 1},
+  {"shot": "shots/m6d_hit_hold.png"}
+]

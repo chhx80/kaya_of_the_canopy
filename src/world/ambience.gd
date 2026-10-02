@@ -62,6 +62,25 @@ var lantern_flicker := 0.0
 var lantern_rate := 1.0
 var pools: Array = []              ## Array[Pool], placed by hand
 var emissive: Dictionary = {}      ## tile id -> {colour, radius, lift}
+var motes: Dictionary = {}         ## this world's MOTE_SPECS entry, or {}
+
+## Phase C, docs/plan-art-motion.md: per-world ambient drift motes (canopy
+## pollen, ruin silt, heights spindrift, nest embers -- deeps already has its
+## own motif in the spore tiles, so it is left out here). Keyed by backdrop
+## `world`, not by level, so every level of a world gets the same treatment
+## with nothing to author per level. Deliberately not a mechanism of its own:
+## `AmbienceLayer._draw_motes()` draws these in the same additive LIGHT pass
+## the light pools already use, which is "the minimal render-only addition to
+## the ambience layer" the plan allows when no ambient-emitter mechanism
+## exists yet. "Subtle: single-digit particle counts on screen" is the brief;
+## every count below is in single digits.
+const MOTE_SPECS: Dictionary = {
+	"jungle":   {"ramp": "gold", "step": 5, "count": 6, "alpha": 0.45, "size": 1.6, "speed": 7.0},
+	"sky":      {"ramp": "gold", "step": 5, "count": 6, "alpha": 0.40, "size": 1.6, "speed": 8.0},
+	"ruins":    {"ramp": "water", "step": 5, "count": 5, "alpha": 0.38, "size": 1.4, "speed": 5.0},
+	"heights":  {"ramp": "metal", "step": 6, "count": 6, "alpha": 0.42, "size": 1.6, "speed": 15.0},
+	"obsidian": {"ramp": "ember", "step": 5, "count": 5, "alpha": 0.50, "size": 1.6, "speed": 6.0},
+}
 
 static var _ramps: Dictionary = {}
 static var _table: Dictionary = {}
@@ -180,12 +199,14 @@ static func for_level(level_id: String) -> Ambience:
 		a.darkness = 0.0
 		a.shade.a = 0.0
 		a.lantern_radius = 0.0
+		a.motes = {}
 	return a
 
 static func from_dict(level_id: String, d: Dictionary) -> Ambience:
 	var a := Ambience.new()
 	a.id = level_id
 	a.world = String(d.get("world", "jungle"))
+	a.motes = MOTE_SPECS.get(a.world, {})
 	a.air = _colour(d.get("air", {}), 0.0)
 	a.bg_tint = _tint(d.get("bg_tint", {}))
 	a.fg_tint = _tint(d.get("fg_tint", {}))

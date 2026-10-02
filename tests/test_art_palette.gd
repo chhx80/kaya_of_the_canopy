@@ -18,7 +18,19 @@ const TILE_DATA := "res://data/tiles.json"
 const TILE_SIZE := 16
 
 ## Sheets that must be pure ramp output. Backdrops are excluded on purpose:
-## phase 3 owns them and they blend rather than index.
+## phase 3 owns them and they blend rather than index; same for
+## light_pool.png/vignette.png (phase C's dithered falloffs) and the FX
+## sheets (tools/gen_fx.py's own PAL dict and continuous brightness scaling —
+## see tools/check_palette_purity.py's docstring).
+##
+## Phase E, docs/plan-art-motion.md, consistency sweep: this list had not
+## grown since phase 1. `enemy_charger`/`enemy_dropper`/`enemy_flyer` (the
+## twenty-level plan's enemies, tools/art/sprites_enemies_v2.py) and four of
+## the five bosses (`boss_grove` was the only one this list ever named) were
+## generated correctly — tools/check_palette_purity.py found them ramp-pure —
+## but a straggler that happened to ship clean is still a gap in the guard
+## that would not have caught it going wrong. All sixteen character sheets
+## `tests/test_art_selout_coverage.gd` enumerates are here now.
 const SHEETS: Array[String] = [
 	"res://assets/tiles/tileset.png",
 	"res://assets/sprites/kaya_human.png",
@@ -29,7 +41,14 @@ const SHEETS: Array[String] = [
 	"res://assets/sprites/enemy_jumper.png",
 	"res://assets/sprites/enemy_shooter.png",
 	"res://assets/sprites/enemy_swimmer.png",
+	"res://assets/sprites/enemy_charger.png",
+	"res://assets/sprites/enemy_dropper.png",
+	"res://assets/sprites/enemy_flyer.png",
 	"res://assets/sprites/boss_grove.png",
+	"res://assets/sprites/boss_stormcrest.png",
+	"res://assets/sprites/boss_tide_maw.png",
+	"res://assets/sprites/boss_brood_queen.png",
+	"res://assets/sprites/boss_obsidian_heart.png",
 	"res://assets/sprites/blade.png",
 	"res://assets/sprites/pickups.png",
 	"res://assets/sprites/props.png",

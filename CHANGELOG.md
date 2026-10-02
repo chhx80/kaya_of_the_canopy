@@ -2096,3 +2096,512 @@ replayed in the booted game, every boss provably beatable and provably
 fair, one overworld carrying every door, an ending derived from the
 hub's own graph, and a suite of 306 unit tests and 791 integration
 checks with zero failures and zero expectations of failure.
+
+## Phase A — the turn (`docs/plan-art-motion.md`)
+
+Kaya no longer turns by mirror. `player.gd` grows a render-facing state
+machine — `RenderFacingFSM`, a pure `RefCounted` so `tools/test.sh` can
+drive it off a recorded trace with no scene tree, no Player, no Actor —
+that lags a new `render_facing` behind the gameplay `facing` form_base.gd
+still writes. A grounded reversal above 40 px/s plays a 3-frame turn
+strip (plant, the one hand-drawn face-on half-turn frame, push-off) over
+0.075s, measured under `coyote_time` (0.09s) by a guard test; a slower
+or airborne reversal plays the half-turn alone; an axis that opposes
+velocity above 70 px/s skids — a held lean-back — until velocity itself
+crosses zero, chaining skid -> turn -> run the way the plan asked for.
+Mashing the direction restarts the strip at the half-turn frame rather
+than the plant, so it reads as twitchy, not laggy. None of it writes to
+`facing`, `vel`, `pos` or any other physics state: render-only, as the
+plan's invariant requires, and all 26 proof tapes still replay
+bit-identically.
+
+The human sheet grows from 20 frames to 31: turn (plant, half-turn),
+skid, push x2 (shouldering, read off the existing `FormBase.break_progress`),
+throw x2 + catch (read off a new `WeaponBase.flight_state()` the
+boomerang blade overrides — every other weapon reports NONE), and a
+3-frame idle fidget every 12s of true stillness that any input, damage
+or loss of ground cancels on the next frame. `data/forms/human.json` and
+`tools/art/sprites.py` move in lockstep, composing the new poses from
+the same head/torso/leg blocks the run cycle already established, plus
+one genuinely new head (`K_HEAD_TURN`) for the face-on half-turn.
+`tests/test_art_palette.gd` keeps every named frame honest.
+
+Two new dust one-shots through the existing FX pipeline
+(`tools/gen_fx.py` + `data/fx.json`): a turn scuff and a takeoff kick,
+alongside the landing puff that already existed. Landing squash
+(1.15x/0.85y, proportional to impact speed above the dust threshold)
+and launch stretch are a `sprite.scale` pinned to the hitbox's feet and
+horizontal centre, so neither ever moves `box` or the hitbox it defines.
+
+Guards: a new unit suite drives `RenderFacingFSM` off recorded
+velocity/facing/ground traces and asserts the state sequence and the
+3-frame strip's timing against `coyote_time`; `test_player_forms.gd`
+now checks the human form declares every Phase A state. Full stack:
+316 unit tests, 791 integration checks, 26 tapes (21 proved, 5 partial
+by design) — every count and every verdict unchanged, because nothing
+here is physics.
+
+## Phase B and F — four shapes, for real; the idle dance (`docs/plan-art-motion.md`)
+
+Every animal form reaches the human's Phase A standard, each with its
+own turn, and Kaya (and every form she can take) gains an original
+idle dance. Still entirely render-only: nothing here writes `facing`,
+`vel`, `pos`, enemy behaviour timing, or any other physics state, and
+all 26 proof tapes still replay bit-identically.
+
+**Frog**: a 4-frame hop (anticipation crouch, leap, a new mid-air apex
+tuck, reach), a 2-frame breathing cling, a 3-frame tongue-blink idle,
+and a wall-kick flash — the last three cosmetic-only timers living
+alongside the existing `_cling` state in `form_frog.gd`, read by
+`anim_for()`, never fed back into movement. Turn and wall-kick
+deliberately reuse existing frames (crouch, leap) rather than drawing
+more — the same economy the human turn strip's own push-off (frame 5,
+the run cycle) already set.
+
+**Bird**: a 2-frame glide ruffle and a 2-frame perch head-tilt (one new
+frame each, the head/wing rows translated a pixel the way the dropper's
+shiver already animates by translation), a stall pose at empty stamina
+(a read-only `stamina <= 0.0` check in `form_bird.gd`'s own
+`anim_for()`), and the one true extension in this phase: a 2-frame
+banking turn pair. `RenderFacingFSM` grows an optional `flying`
+parameter (default `false`, every existing call site and every
+recorded trace untouched) that swaps the grounded 3-frame strip and the
+generic held half-turn for a dedicated `BANK_TIME` (2 frames at 30fps,
+under even the bird's own 0.08s `coyote_time`) — gated in `player.gd`
+on `form.move_mode == "fly"`.
+
+**Fish**: turn, idle fin-sway, a burst-stroke flash and the barrel-roll
+dance all reuse the existing 4-frame swim cycle and bite frame — a fish
+that already turns constantly and swims in one continuous cycle needed
+no new art, only new combinations of what it had. The burst flash is a
+cosmetic timer in `form_fish.gd` keyed off a stroke starting from
+near-standstill; a new `splash` emitter (`tools/gen_fx.py`,
+`data/fx.json`) bursts once, read-only, on the existing surface-hop
+branch.
+
+**Enemies**: measured first. Jumper and shooter's 3-frame wind-ups and
+charger and dropper's 2-frame wind-up/tell already met the plan's
+2-frame anticipation floor — a prior pass, not this one. What was still
+2-frame was charger's patrol and dropper's crawl; both are now real
+4-frame cycles, built by recombining already-valid leg-row art from
+their own wind-up/shiver frames (`C_PATROL_C/D`, `D_CRAWL_C/D`) rather
+than drawing new silhouettes. The death poof was already unified
+(`scatter`, 4 frames, the default every non-boss enemy falls back to) —
+nothing to replace. Bosses are untouched, per the plan: they keep their
+18-frame contract.
+
+**The idle dance** (Phase F): an original eight-beat routine — hip-sway
+two-step, arm-wave, a spin, settling face-on — composed from the same
+head/torso/leg vocabulary every frame since the run cycle has been,
+plus `player.gd`'s existing render-only overlay system. The old
+12-second fidget clock becomes two beats sharing one `_idle_t` timer:
+dance at 5s (cooldown ~15s so it stays a treat), fidget as the
+fallback second beat at 12s whenever dance is still cooling down — the
+two can never collide, because landing the dance beat always resets
+the clock. Any input, damage or ground loss cancels whichever is
+playing on the very next tick, the same rule the turn lives under.
+Each animal form gets a 4-frame species take (frog bobs through its
+idle/crouch/leap poses, bird head-bangs its flap cycle, fish barrel-
+rolls its swim cycle), all reused frames played twice through.
+
+Guards: `test_player_forms.gd`'s canonical-state-set check now covers
+all four forms (`turn` + `dance` + each form's own states); a new
+`test_enemy_motion_parity.gd` pins the 4-frame floor and the 2-frame
+anticipation floor across every non-boss enemy and the unified death
+poof; `test_render_facing_fsm.gd` gets trace tests for the banking-pair
+extension; a new `test_idle_dance.gd` drives `Player`'s own overlay
+methods (no scene tree, the same way the FSM is driven) to prove the
+dance is reachable only from true idle, cancels on any input bit or
+ground loss the very next tick, and that fidget — not a second dance —
+is the beat a cooling-down idle stretch reaches instead.
+
+A clean `tools/bossgate.sh --quick` spot-check on THE GROVE WARDEN
+surfaced a pre-existing fairness failure (phase 2 FURY's SPRAY>WALK
+attack has no dodge window on any of the 7 standable tiles it was
+observed from) — confirmed, by reproducing it against the unmodified
+baseline commit, to predate this phase and be unrelated to it. Left
+unfixed: boss attack fairness is explicitly outside render-only scope.
+
+Full stack: 334 unit tests, 791 integration checks, 26 tapes (21
+proved, 5 partial by design) — every count unchanged except the unit
+total, which only grew with new guard tests.
+
+## Phase C — the beauty pass
+
+All render/asset-side, per the plan's invariant: no collision flag, current
+vector, tile id or its gameplay meaning changed, and all 26 proof tapes still
+replay bit-identically against the pre-phase baseline.
+
+**Selective outline** (`palette.selective_outline()`): a post-pass run at
+build time on every player form, enemy and boss sheet (`sheet(..., selout=
+True)` in `tools/art/sprites.py` and `sprites_enemies_v2.py` — the icon
+sheets, blade/pickups/props/projectiles, are left out on purpose). Every
+sheet already carries a hand-drawn ink outline around its silhouette; selout
+darkens the *material* pixels running just inside that line — toward the
+darkest step of their own ramp already in use on the sheet, never a flat
+black — with edge pixels (one exposed side) moving further than corners (two
+or more), so it reads as a rim shadow, not a sticker cutout. Verified with an
+inline before/after pixel diff confined to the silhouette: 24,639 pixels
+changed across the 16 sheets (2,711 on `kaya_human`, up to 7,607 on
+`boss_brood_queen`), **0 of them further than one pixel from transparency or
+ink** — every single edit is the edge treatment and nothing else. Read
+upscaled before/after on `kaya_human`, `enemy_walker` and `boss_grove`: the
+silhouettes pop a little more without reading as plastic.
+
+**Ramp hue audit** (`tools/art/ramp_audit.py`, standalone): converts every
+ramp's seven steps to HSV and scores it on the pixel-beauty rule "shadows
+shift cool, highlights shift warm" — the shadow step has to sit closer to a
+reference blue (240°) than the highlight does, and the highlight closer to a
+reference amber (45°) than the shadow, with the total rotation clearing a
+4° floor so a ramp cannot pass by merely not having enough contrast to fail.
+11 of 12 ramps already passed. `stone` was flagged ("merely darkens": shadow
+233.3°, highlight 220.0°, 13.3° drift, wrong direction) — every step stayed
+flat blue-grey from dark to light. Fixed by nudging only steps 5 and 6
+(`+6/-6` and `+10/-10` on R/B, G untouched): highlight hue moves from 220.0°
+to 15.0°, luminance stays strictly monotonic, and the material is still
+unmistakably grey stone, not a repaint. Re-audited clean (0/12 flagged) and
+re-read on the tileset and in `heights_1`/`ruins_1`/`nest_1` shots.
+
+**Tile edge light** (`tiles.py::edge_light_course`, called from
+`paint_edges`): a uniform, discrete pass — not the existing hand-tuned
+per-material rim gradients, which stay as they were — adding exactly one
+ramp step of highlight on an exposed top row and one step of
+ambient-occlusion on an exposed bottom row, for every autotiled *standable*
+group (`earth`, `stone`, `hub_grass`, `hub_path`, `ruin`, `heights`, `deeps`,
+`nest`; the `*_bg` groups are never walked on and are left alone). Additive
+by construction: a material whose rim already sets `top: null` — the six
+hand-authored capped variants (`grass_top`, `stone_mossy`, `ruin` algae,
+`heights` sun, `deeps` crust, `nest` hot) whose *base art* already paints a
+sunlit cap — is skipped, so the course never stacks on art that already has
+one. The `MASK_FULL` interior case is untouched by construction (both bits
+are set), so `build_variants()`'s own byte-identity assertion against the
+gameplay tile still holds. Re-generated and re-read against the pre-phase
+tileset: a clean, deliberate highlight line sits on every exposed ledge top
+that did not already have one.
+
+**Backdrops**: one new near-foreground parallax plane per world (`fg` in
+`tools/art/backdrops.py`'s world builders — jungle canopy grasses, ruins silt
+wisps, heights spindrift streaks, deeps root fringe hanging from the tunnel
+roof, nest glass shards; `sky` has none, reusing jungle's biome rather than
+getting its own) plus `horizon_haze()`, a Bayer-dithered *banded* gradient
+(discrete steps, not `vband`'s continuous curve) that only fills pixels a
+world's far plane left blank, so it reads as atmosphere behind a colonnade's
+arches or a comb's cells without ever painting over the silhouette. `fg`
+plane count was hardcoded in `src/world/level.gd` (`bg_sky`/`bg_far`/
+`bg_near` were three fixed nodes), so the minimal render-only change the plan
+allows was taken: a fourth `ParallaxBg` built in code (`PARALLAX_FG = 0.82`),
+added last in `_ready()` and moved to sit exactly where `Entities` was —
+drawn over the tiles, the vignette and the light pools, strictly behind every
+entity. Missing `bg_sky_fg.png` degrades the same way every other optional
+plane does (a `push_warning`, not an error), confirmed by the full itest run.
+Judged one in-game capture per world (`art_phase3`/`heights_1`/`ruins_1`/
+`deeps_1`/`nest_1` seqs): subtle, correctly layered, nothing competes with
+the tiles.
+
+**Water and weather** (`tile_anim.json` + `gen_fx.py::build_tile_anim`):
+`water_top` (tile 7) gains a sparkle+foam phase — four more frames of the
+*same* tile (`water_sparkle_frame()`, a third row in `tile_anim.png`) rather
+than a new id, exactly as the plan requires ("if a new tile id would be
+needed, do NOT add one"); the 8-frame cycle alternates the plain wave with
+the glinting one. `obsidian_hot` (281) gets the M4-style tint pulse world 5
+never had — 0.6 Hz / 0.12 amount, between `deep_spore`'s calm breath and
+`lava`'s open-flame pulse, because it is molten glass under a crust and not
+either of those things. Canopy leaf-sway for world 1 turned out to already
+exist (`vine` and `bg_leaves` both carry a `sway` entry predating this
+phase) — confirmed rather than duplicated. Both new entries verified with
+the M3 pixel-diff method: `water_top` frame 0→9 differs on 163/256 pixels,
+negative control (entry stripped, same frame twice) 0; `obsidian_hot` tint
+1.000→1.120 differs on all 256/256 pixels (a brightness pulse touches every
+opaque pixel by construction), negative control 0.
+
+**Motes**: per-world ambient drift (`Ambience.MOTE_SPECS` — canopy pollen,
+ruin silt, heights spindrift, nest embers; deeps is left out on purpose, its
+spore tiles already carry the motif). No ambient-emitter mechanism existed,
+so the plan's fallback applies: the minimal render-only addition sits in
+`AmbienceLayer`'s existing LIGHT pass (`_draw_motes()`, additive, same draw
+call as the light pools), reading only `_t` and a mote's own index — no RNG,
+nothing read from the world or the player, so it is not a second source of
+truth anything a replay tape could disagree with. Single-digit counts (5-6)
+per world, confirmed in the `heights_1` and `nest_1` captures as a handful of
+drifting flecks and nowhere near the player's silhouette.
+
+**Re-pin**: `tests/test_tileset_probes.gd` turns out not to pin an exact
+pixel hash anywhere — every `_digest()` use there is a *differential* check
+(ruins cell vs. heights cell, deeps vs. heights, etc., asserted unequal), not
+a stored value, so there was nothing to re-pin. That guard, and every other
+one in `test_art_palette.gd`/`test_art_depth.gd`/`test_tile_variants.gd`
+(ramp purity, luminance monotonicity, shade-depth floor/ceiling, backdrop
+contrast budget, frame-exists, readable-layer), passes unchanged.
+
+Full stack, all green: `tools/test.sh` 334 tests / 107,847 assertions, 0
+failed; `tools/validate.sh` OK; `tools/prove.sh --verify-tapes` 26/26,
+byte-identical to the pre-phase baseline; the full `tools/itest.sh` 791
+checks, ALL PASSED (run twice); `tools/bossgate.sh --quick` on THE TIDE MAW
+(ruins_5), 26 checks, ALL PASSED (run twice). Captures: a before/after pair
+per world at a signature location from the committed seqs
+(`art_phase3`/`heights_1`/`ruins_1`/`deeps_1`/`nest_1`), the per-world
+`--preview` art sheets, and `shots/phaseC_world_contact_sheet.png`, a
+5-wide grid of all five worlds.
+
+## Phase D — juice, render-only
+
+Everything in this phase lives in rendering: nothing writes `facing`, `vel`,
+`pos`, `health`, a tile id or collision. The one idea the plan rejects by
+name — classic hit-stop (pausing the sim on impact) — is not here; its
+honest substitute is sprite-local.
+
+- **Sprite-local hit-hold** (`Enemy.HIT_HOLD_TIME`, `enemy_base.gd`): a
+  non-lethal blade hit arms `_hold_t` (3 render frames), which
+  `_update_anim()` reads in exactly one place — to zero the delta fed to the
+  frame-advance arithmetic — so the struck enemy's pose holds while `think()`,
+  `step_motion()`, `health`, `_flash` and every other timer keep running
+  untouched, bosses included (`brood_queen.gd` calls `super._update_anim()`
+  first, so it inherits this for free). Guarded two ways: a unit suite
+  (`tests/test_enemy_hit_hold.gd`) drives `_update_anim()` directly on two
+  enemies with identical starting state, one held and one not, and pins a
+  bit-identical `pos`/`vel`/`health`/`_flash` trace across both; an
+  integration test (`t_a_non_lethal_hit_holds_the_enemy_sprite_but_not_its_timers`)
+  lands a real throw on a real walker and watches `_flash`/`_hold_t` keep
+  ticking down tick over tick while the hold is active.
+- **Hit spark**: turns out to already exist almost everywhere it was asked
+  for — the "spark" emitter (`data/fx.json`, a white-hot core through the
+  gold ramp) already bursts on every enemy hit (`enemy_base.gd`) and every
+  blade-on-crate contact (`blade.gd`'s `_sparks()`, since a breaking crate is
+  also a wall hit the same tick). The one missing case was a switch tripped
+  by the blade flying *through* its trigger area (an `Area`, not solid
+  geometry, so `_sparks()` never saw it) — `SwitchTrigger.toggle()` now
+  bursts "spark" at the lever itself, covering the walked-into case too.
+- **Blade afterimage** (`blade.gd`): a render-history ring buffer of the
+  node's own past positions, sampled once a tick and thinned to two ghosts
+  (`TRAIL_STRIDE` ticks apart) at 40%/20% alpha. Drawn in the blade's own
+  `_draw()`, which paints *before* its child `sprite` renders — "behind the
+  blade" falls out of node order for free, no z-index to keep in sync. Dies
+  with the node on the catch (`queue_free()` already there); no separate
+  ghost entities exist to leak.
+- **Switch-flip dissolve** (`tile_renderer.gd`): `Level.on_switch_toggled()`
+  now calls `TileRenderer.begin_dissolve(group)`, which finds every tile tied
+  to that group and cross-fades its OLD art (the other half of the
+  ghost/solid pair — collision already flipped by the time this runs, so
+  "old" is just "not what `is_solid()` says now") into the NEW art over
+  `DISSOLVE_TIME` (4 render frames). Collision is read, never delayed — the
+  dissolve is `_draw()`-only. Comfortably inside the Obsidian Heart's 1.05s
+  reforge telegraph, confirmed by the boss's own 72-check gate suite plus a
+  dedicated integration test
+  (`t_a_switch_flip_dissolves_the_art_but_collision_changes_on_the_flip_frame`)
+  that flips a lever and asserts `is_solid()` already answers differently on
+  the flip tick while `dissolving_count() > 0`.
+- **Landing dip** (`CameraController.dip_offset`, `Fx.landing_dip()`): a 2px
+  render-only camera offset on the same heavy-landing branch that already
+  bursts dust and squashes the sprite (`land_dust_min_fall` threshold),
+  easing back to zero over 3 frames. Lives beside `shake_offset`, not
+  inside it, so the existing shake-decay guarantee
+  (`t_shake_moves_the_camera_and_puts_it_back_exactly`) is untouched.
+  Audited the existing shake for consistency while in there: every call site
+  across five bosses and the player already used exactly one of the two
+  presets (`hurt`, `boss_slam`) correctly — nothing to fix.
+- **Transitions**: the scene fade (`main.gd`'s `Fade/Rect`) gains a shader
+  (`fade_dissolve.gdshader`) that reveals the same 4x4 Bayer matrix
+  `tools/art/palette.py` dithers with, quantised into 4 discrete reveal
+  bands rather than a smooth alpha ramp — a "4-frame" effect in the same
+  vocabulary as any other one-shot in the game, not 4 physics ticks. The
+  victory screen (`victory.gd`) gets a slow ember drift behind its text,
+  reusing Phase C's `Ambience.MOTE_SPECS["obsidian"]` recipe outright (the
+  same embers the Nest backdrop drifts) rather than inventing a second
+  mechanism — a pure function of its own `_t` and a mote's index, no RNG.
+
+Full stack, all green: `tools/test.sh` 341 tests / 107,912 assertions, 0
+failed; `tools/validate.sh` OK; `tools/prove.sh --verify-tapes` 26/26 (21
+`ok`, 5 boss levels `partial` by design — traversal proved, the boss gate
+owns the rest, per ADR 005); the full `tools/itest.sh` 805 checks, ALL
+PASSED; a dedicated `--only=t_boss_obsidian_heart` run, 72 checks, ALL
+PASSED, as the spot check on the world whose arena exercises the dissolve
+hardest. Captures: `shots/m6d_hit_hold.png` (a blade connecting with a
+walker, flash and hold visible), `shots/m6d_blade_trail.png` (the blade
+mid-flight with both ghost positions visible behind it),
+`shots/m6d_switch_dissolve_{a,b}.png` (a lever flip, two frames apart,
+mid-cross-fade), `shots/m6d_landing_dip_{before,during}.png` (a heavy
+landing, 1px of the 2px dip visible against the background — brief and
+subtle by design), `shots/m6d_transition.png` (the Bayer dissolve mid-reveal,
+triggered on demand via a debug hook since the real scene-swap fade is too
+early in boot for a capture to safely settle on), `shots/m6d_victory_embers.png`
+(the ending screen with its ember drift). `tools/dev_capture.gd` gained two
+small authoring aids used to stage these: `{"log": ...}` now also prints the
+nearest enemy's `health`/`_flash`/`_hold_t` and the camera's `position`/
+`dip_offset`; `level.gd` gained `debug_toggle_switch()` and
+`debug_flash_fade()`, mirroring the existing `debug_kill_nearest_enemy()`/
+`debug_shake_boss_slam()` pattern.
+
+## Phase E — consistency and verification, and the art-and-motion plan, complete
+
+The closing phase of `docs/plan-art-motion.md`. No motion-feel change, no
+physics write, nothing that is not already covered by a phase above — this
+phase finds what the first four left uneven and proves the whole plan still
+holds the invariant it opened with: 26 tapes bit-identical, five boss gates
+green, every improvement confined to rendering.
+
+**What the plan set out to fix**: Kaya turned by mirror (`flip_h` on the same
+frame `facing` changed), the four forms and the enemy roster had fallen out of
+parity with the human's own frame count, nothing in the sprite pipeline drew
+an edge against its background, and the game had not been measured for frame
+cost since phase 3 of `docs/art-direction.md`. One phase per problem:
+
+- **Phase A** — the turn. A render-facing state machine (`RenderFacingFSM`)
+  that lags gameplay `facing` behind a 3-frame turn strip, a skid state, dust
+  one-shots, landing squash and launch stretch — all read-only against
+  velocity, facing and ground state, none of it able to delay coyote time or
+  the jump buffer.
+- **Phase B + F** — four shapes, for real. Frog, bird and fish each gain a
+  turn, an idle beat and species-specific polish (hop anticipation, a banking
+  turn pair, a reused swim cycle); charger and dropper's locomotion cycles
+  grow from 2 frames to 4; Kaya and every form gain an original idle dance
+  reachable only from true stillness and cancelled by any input on the very
+  next tick.
+- **Phase C** — the beauty pass. Selective outline on every character sheet,
+  a ramp hue audit that catches `stone` merely darkening instead of shifting
+  cool-to-warm, tile edge light systematised into `tiles.py` as an autotile
+  rule, a fourth "fg" parallax plane and per-world ambient motes, and
+  `water_top`/`obsidian_hot` extended past their original animated-tile grid.
+- **Phase D** — juice, render-only. Sprite-local hit-hold standing in for
+  classic hit-stop (rejected by name, since it would desync every tape), a
+  blade afterimage trail, a switch-flip dissolve that never delays collision,
+  a 2px landing dip, and a Bayer-dissolve scene transition.
+
+**Phase E's own docket**:
+
+- **Before/after per world**: `shots/m6e_world_<1-5>_before_after.png`, each
+  pairing a signature committed shot from `4f551f6` (the plan commit, before
+  Phase A) against today's capture at the same scripted location
+  (`tools/seq/{art_phase3,ruins_1,heights_1,deeps_1,nest_1}.json`). Read at
+  full size, four of the five show exactly what Phases A-D documented and
+  nothing more: richer stone/ruin masonry hue, a visible top-edge highlight
+  on standable ledges, a stray mote or two, the same composition otherwise.
+  World 4 (deeps) and world 5 (nest), to a lesser extent, are confounded by a
+  finding that predates this plan and is worth recording precisely rather
+  than silently working around: their *committed* signature screenshots
+  (`deeps_1_a_mouth.png`, `nest_1_a_glass_shelf.png`) were last refreshed at
+  their own world's authoring and never recaptured after `data/ambience.json`
+  (darkness, vignette, tint — unchanged by this plan; byte-identical across
+  every phase) was wired in, so the "before" half of those two sheets shows
+  geometry nobody has played against since M4/M5. Phase C's own capture pass
+  happened to be the first to refresh all five signature shots (confirmed by
+  every one of the five jumping at exactly that commit and staying put
+  through Phase D), which is a welcome side effect, not a phase C rendering
+  change: a byte-for-byte diff of each world's signature shot between Phase
+  C's commit and today is empty or within a few dozen pixels of an animated
+  mote/current at a different phase — Phase D and Phase E contributed nothing
+  visible to these five static, non-combat frames, exactly as expected from
+  phases scoped to combat juice and generator guards.
+- **New guards**: `tests/test_player_forms.gd`'s four separate canonical-
+  state-set checks (one hand-written for human in Phase A, three calling a
+  shared helper in Phase B) are unified into one
+  `test_every_form_declares_its_canonical_state_set()` over a single
+  `CANONICAL_STATES` table, plus a completeness check that every form on disk
+  has an entry in it. `tests/test_enemy_motion_parity.gd`'s anticipation-strip
+  floor explicitly carved bosses out in Phase B ("Bosses keep their 18-frame
+  contract"); measured against the five boss json files directly, every
+  `windup_pN` was still a single frame — the exact failure mode the test
+  exists to catch, just fenced off by the `boss` flag. Extended rather than
+  merely flagged: each of the five bosses' `tools/art/sprites.py` builder
+  gains one interpolated anticipation pose per fight phase (a half-strength
+  crouch between the walk and the existing slam/gather pose, reusing the same
+  parametrised `make()` every boss already had — no new silhouette drawn),
+  `data/enemies/boss_*.json`'s `windup_pN` entries become 2-frame, non-looping
+  (`loop: false`, so the strip escalates into the strike and holds rather than
+  throbbing through it), and every other frame index shifts to match. The
+  five boss sheets grow from 18 to 21 frames each; `windup_time` and every
+  other fight timer are untouched, so the extra pose is read-only exactly
+  like everything else in this plan. A new
+  `test_every_boss_windup_has_an_anticipation_strip_of_at_least_two_frames()`
+  walks every `windup*` key on every boss's own anim dict, so a sixth boss or
+  a renamed phase suffix cannot fall out of coverage the way the first five
+  did. Selout coverage: `tools/art/palette.py::sheet()` now logs every call's
+  name and its `selout` flag to `SELOUT_LOG`, written to
+  `assets/selout_manifest.json` last in `gen_art.py`'s running order — a
+  generator-recorded manifest rather than a pixel probe, the "smallest honest
+  mechanism" the plan asked for. `tests/test_art_selout_coverage.gd` reads it
+  back: all sixteen character sheets (four forms, eight non-boss enemies,
+  five bosses) read `true`, the four icon sheets (`blade`, `pickups`,
+  `props`, `projectiles`) read `false` on a named exclusion list, and nothing
+  in the manifest is unclassified.
+- **Consistency sweep**: `tools/check_palette_purity.py` (new, standalone,
+  the same pattern `tools/ramp_audit.py` set in Phase C) walks every opaque
+  pixel of the tileset, all sixteen character sheets and the four icon sheets
+  against `assets/palette.json`'s ramps; all twenty are ramp-pure, including
+  the eleven sheets (`enemy_charger/dropper/flyer`, four of the five bosses)
+  `tests/test_art_palette.gd`'s own `SHEETS` list had never grown to cover —
+  a straggler in the *guard*, not the art, now closed by extending that list
+  to all twenty. `tools/gen_fx.py`'s particle sheet is reported, not
+  enforced (its own docstring: "deliberately near-monochrome... so they
+  survive any repaint" — a hand-authored `PAL`, not `palette.py`'s ramps, on
+  purpose), and the check still found one real drift worth fixing: `w`
+  (the dust/spark highlight) had been typed as `#f4f0e6`, two values off
+  metal's actual top ramp step (`#f2efe6`) — 38 px in `particles.png`, fixed.
+  `tile_anim.png`'s 907 off-palette pixels are left alone and reported as
+  what they are: `water_frame()`/`lava_frame()`'s continuous brightness
+  `scale()` for the crest pick-out, the foam, the sparkle glints and the lava
+  glow/bubbles, a technique that predates this plan and is not expressible as
+  discrete ramp steps without losing the animation it exists for.
+  `tools/check_edge_light.py` (new) checks `edge_light_course()` three ways —
+  it is called exactly once inside `paint_edges()` (grepped, not inferred);
+  on a synthetic flat tile at every one of a ramp's 7 steps it moves exactly
+  one step, clamped, on exactly the edge row it targets and nothing else;
+  every standable group has a real top+bottom rim unless it is one of the six
+  documented capped exceptions. All clean. An earlier luma-based version of
+  this script flagged `stone`/`ruin`'s exposed top edge as "double-lit" at a
+  glance (+117/+115 luma against enclosed) — traced to `RIM_STONE`/
+  `RIM_RUIN`'s own `base` level sitting well above `t_stone()`'s/
+  `t_ruin_stone()`'s actual mortar-joint fill tone, a rim calibration choice
+  that predates this phase by every measure available (the pre-course,
+  rim-only render already lands most columns at the ramp's brightest step),
+  not anything Phase C or E added; recorded here because the investigation is
+  itself part of the sweep, not because anything needed fixing.
+- **Performance spot check**: `tools/seq/perf.json` against the
+  `docs/art-direction.md` phase-3 baseline (same five jungle levels, same
+  lit/unlit A/B method, same machine class), lit numbers:
+  ```
+                  baseline    now      delta     draw calls (base -> now)
+  jungle_1        0.728 ms   0.913 ms  +0.19 ms   17 -> 20
+  jungle_2        0.920      0.921     +0.00      18 -> 21
+  jungle_3        0.844      0.934     +0.09      20 -> 23
+  jungle_4        0.709      0.837     +0.13      17 -> 19
+  jungle_5        0.805      0.902     +0.10      19 -> 22
+  ```
+  Against the 16.6 ms frame the phase-3 report measured itself against, the
+  worst case is +1.1% of budget — the same band that report called out, now
+  carrying the fourth parallax plane and ambient motes too. +2/+3 draw calls
+  per level is exactly the fg plane (Phase C) plus the motes/lantern draws it
+  travels with; no leak, nothing to cull. No fix needed, so none made.
+- **The full closing stack**: `tools/test.sh` 344 tests / 108,034 assertions,
+  0 failed; `tools/validate.sh` OK; `tools/genlevels.sh` against the authoring
+  DSL — zero diff, byte-identical; `tools/prove.sh --verify-tapes` 26/26 (21
+  `ok`, 5 `partial` by design); `ITEST_TIMEOUT=1800 tools/itest.sh`
+  805 checks, ALL PASSED; all five boss gates (`boss_grove`/jungle_5 24
+  checks, `tide_maw`/ruins_5 26, `stormcrest`/heights_5 26, `brood_queen`/
+  deeps_5 26, `obsidian_heart`/nest_5 34 — 136 checks total), ALL PASSED on
+  every one. Each of the five boss json files changed in this phase (the new
+  anticipation pose shifted every later frame index), which invalidated the
+  five strategy tapes' `source_sha` — by design, ADR 005: "a stale tape fails;
+  it does not warn," and the sha covers the whole config file, cosmetic
+  fields included. Re-recording from scratch (`tools/bossgate.sh --record`)
+  could not find a winning strategy for `boss_grove` in 738 tries; re-run
+  against the UNMODIFIED committed config it produced the identical 738-try,
+  identical-score failure, proving the search's inability to rediscover a win
+  predates this phase and has nothing to do with the anim-only edit. The
+  existing recorded tapes replay bit-identically against the new configs
+  (verified directly, not assumed: each tape's exact recorded input sequence
+  still defeats its boss with the same hearts remaining), so the honest fix
+  was the narrower one — re-stamp each tape's `source_sha` to the new config
+  hash, the same value `--record` would have written had its search
+  succeeded in finding the win that was already sitting in the tape. A full
+  `tools/genart.sh` + `tools/genfx.sh` run against the generators as they
+  stand after this phase's own boss-sheet and particle-palette edits —
+  byte-identical on the second run (the determinism proof the plan's
+  invariant depends on: every generator here is seeded, nothing is sampled
+  from wall-clock time or an unseeded RNG).
+
+Nothing in this phase writes `facing`, `vel`, `pos`, a tile id or a collision
+flag. The plan that opened on "Kaya turns by mirror" closes with a render
+pipeline that outlines its own silhouettes, lights its own edges, measures its
+own frame cost and checks its own output against the palette it is built
+from — and the number that mattered on page one, 26 tapes bit-identical, is
+still 26.

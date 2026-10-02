@@ -151,9 +151,17 @@ func _process(delta: float) -> void:
 		if here != _lantern_px:
 			_lantern_px = here
 			queue_redraw()
-	if not _flickers and amb.lantern_flicker <= 0.0:
+	var has_motes: bool = not amb.motes.is_empty()
+	if not _flickers and amb.lantern_flicker <= 0.0 and not has_motes:
 		return
 	_t += delta
+	if has_motes:
+		# Motes drift continuously, not in flicker's quantised steps -- a
+		# handful of extra redraws a frame is the whole cost (single-digit
+		# particle counts, no texture beyond a filled rect), and it is what
+		# keeps the drift smooth rather than stepping once every 1/16 s.
+		queue_redraw()
+		return
 	# Quantised: a flicker that redraws on every frame costs more than the
 	# lights do. Sixteen steps is finer than the eye reads at this scale.
 	var ph := int(_t * 16.0)
@@ -202,3 +210,28 @@ func _draw() -> void:
 					c.a *= 1.0 - p.flicker * (0.5 + 0.5 * sin(_t * TAU * p.rate))
 				draw_texture_rect(_pool_tex,
 					Rect2((p.pos - p.half).round(), p.half * 2.0), false, c)
+			_draw_motes()
+
+## Phase C, docs/plan-art-motion.md: a handful of ambient drift specks, one
+## recipe per backdrop world (Ambience.MOTE_SPECS). Screen-space and purely a
+## function of `_t` and the mote's own index -- no RNG, nothing read from the
+## world or the player -- so this never becomes a second source of truth for
+## anything a replay tape could disagree with; it is drawn, and nothing reads
+## it back. Additive, like the pools it is drawn beside, which is why a speck
+## of pollen or an ember reads as light rather than as a sprite pasted on.
+func _draw_motes() -> void:
+	var spec: Dictionary = amb.motes
+	if spec.is_empty() or _pool_tex == null:
+		return
+	var n := int(spec.get("count", 0))
+	var sz: float = float(spec.get("size", 1.5))
+	var spd: float = float(spec.get("speed", 8.0))
+	var col := Ambience.ramp_colour(String(spec.get("ramp", "gold")), int(spec.get("step", 5)))
+	col.a = float(spec.get("alpha", 0.4))
+	for i in n:
+		var seed := float(i) * 91.7
+		var wx := view.size.x + sz * 4.0
+		var px := fmod(seed * 13.0 + _t * spd * (0.6 + 0.08 * float(i % 3)), wx) - sz * 2.0
+		var py := fmod(seed * 37.0 + sin(_t * 0.5 + seed) * 10.0, view.size.y)
+		var at := (view.position + Vector2(px, py)).round()
+		draw_rect(Rect2(at, Vector2(sz, sz)), col)

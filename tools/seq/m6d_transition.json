@@ -1,0 +1,6 @@
+[
+  {"scenario": "level:test_arena", "settle": 30},
+  {"call": "debug_flash_fade"},
+  {"wait": 5},
+  {"shot": "shots/m6d_transition.png"}
+]

@@ -17,7 +17,11 @@ extends Node
 ##   {"shot": "shots/foo.png"}           capture the viewport
 ##   {"call": "toggle_debug"}            call a method on the current scene
 ##   {"teleport": [21, 24]}              move the player to a tile coordinate
-##   {"log": "note"}                     print player tile + camera screen
+##   {"log": "note"}                     print player/camera state and the
+##                                        nearest enemy's health/_flash/_hold_t
+##                                        (Phase D: staging a hit-hold or
+##                                        landing-dip capture without guessing
+##                                        a frame count from outside)
 ##   {"perf": "label", "frames": 240}    measure frame cost and print it
 ##   {"lighting": false}                 phase 3 ambience off, for an A/B perf run
 ##   {"cleared": ["jungle_1", ...]}      stage a save: those flags set, rest wiped
@@ -157,9 +161,28 @@ func _run_step(step: Dictionary) -> bool:
 		if lvl0 and lvl0.get("player") != null:
 			var pl0: Actor = lvl0.player
 			var t0 := (pl0.center() / TileData4.TILE_SIZE).floor()
-			print("[log] %s player_tile=%v pos=%v vel=%v on_floor=%s screen=%v frozen=%s" % [
+			print("[log] %s player_tile=%v pos=%v vel=%v on_floor=%s screen=%v frozen=%s cam=%v dip=%v" % [
 				String(step["log"]), t0, pl0.pos.round(), pl0.vel.round(),
-				str(pl0.on_floor), lvl0.cam.screen, str(Game.sim_paused)])
+				str(pl0.on_floor), lvl0.cam.screen, str(Game.sim_paused),
+				lvl0.cam.position, lvl0.cam.dip_offset])
+		# Phase D authoring aid: the nearest enemy's own combat state, so a hit
+		# -hold/hit-spark capture can be staged by watching health/_flash/
+		# _hold_t tick instead of guessing a frame count from outside.
+		var nearest: Enemy = null
+		var best := INF
+		for n in get_tree().get_nodes_in_group(&"enemies"):
+			var e := n as Enemy
+			if e == null or not is_instance_valid(e):
+				continue
+			var d := 0.0
+			if lvl0 and lvl0.get("player") != null:
+				d = e.center().distance_to((lvl0.player as Actor).center())
+			if d < best:
+				best = d
+				nearest = e
+		if nearest != null:
+			print("[log]   nearest enemy health=%d _flash=%.3f _hold_t=%.3f pos=%v" % [
+				nearest.health, nearest._flash, nearest._hold_t, nearest.pos.round()])
 		return false
 	if step.has("teleport"):
 		var t: Array = step["teleport"]

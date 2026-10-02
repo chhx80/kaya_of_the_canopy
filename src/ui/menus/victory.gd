@@ -29,10 +29,40 @@ func _physics_process(delta: float) -> void:
 		Game.goto_title()
 	queue_redraw()
 
+## Phase D, docs/plan-art-motion.md: "it is the last thing a player sees, make
+## it dignified" — a slow ember drift behind the text. Reuses Phase C's mote
+## recipe outright (Ambience.MOTE_SPECS["obsidian"], the same embers the Nest
+## backdrop already drifts) rather than inventing a second mechanism; the
+## maths is AmbienceLayer._draw_motes()'s, inlined because this screen has no
+## AmbienceLayer of its own to ask — a pure function of `_t` and the mote's
+## index, screen-space, no RNG, so there is nothing here a replay could ever
+## disagree with (the victory screen is not simulated, but the discipline is
+## the same one the rest of the plan holds to).
+func _draw_embers() -> void:
+	var spec: Dictionary = Ambience.MOTE_SPECS.get("obsidian", {})
+	if spec.is_empty():
+		return
+	var n := int(spec.get("count", 5))
+	var sz: float = float(spec.get("size", 1.6))
+	var spd: float = float(spec.get("speed", 6.0)) * 0.5   # slower: a drift, not a breeze
+	var col := Ambience.ramp_colour(String(spec.get("ramp", "ember")), int(spec.get("step", 5)))
+	col.a = float(spec.get("alpha", 0.5))
+	var w := float(Screen.W)
+	var h := float(Screen.H)
+	for i in n:
+		var seed := float(i) * 91.7
+		var px := fmod(seed * 13.0 + sin(_t * 0.3 + seed) * 10.0, w)
+		# Embers rise rather than drift sideways, which is the one change that
+		# makes this read as embers behind her and not pollen blowing past.
+		var py := fposmod(seed * 37.0 - _t * spd, h)
+		var at := Vector2(px, py).round()
+		draw_rect(Rect2(at, Vector2(sz, sz)), col)
+
 func _draw() -> void:
 	var W := float(Screen.W)
 	if _bg:
 		draw_texture(_bg, Vector2.ZERO, Color(0.75, 0.8, 0.85))
+	_draw_embers()
 	PixelFont.draw_centered(self, W * 0.5, 40.0, "THE NEST IS COLD", Color(1, 0.86, 0.33), 2, 2)
 	PixelFont.draw_centered(self, W * 0.5, 64.0, "KAYA COMES HOME", Color(1, 0.86, 0.33), 2, 2)
 	PixelFont.draw_centered(self, W * 0.5, 92.0, "FIVE WORLDS BEHIND HER",

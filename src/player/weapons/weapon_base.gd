@@ -9,6 +9,17 @@ var cooldown := 0.25
 var _cd := 0.0
 var ammo := -1            ## -1 = unlimited
 
+## Read-only signal for the render layer (docs/plan-art-motion.md, Phase A):
+## whether this weapon currently has a projectile out and, if so, whether it is
+## still travelling away or already homing back. Most weapons have no such
+## state, so the base answer is NONE; the boomerang blade is the one that
+## overrides it. Nothing in the render layer may write back through this —
+## it only ever reads.
+enum FlightState { NONE, OUT, BACK }
+
+func flight_state() -> int:
+	return FlightState.NONE
+
 static func load_weapon(weapon_id: String) -> WeaponBase:
 	var path := "res://data/weapons/%s.json" % weapon_id
 	var f := FileAccess.open(path, FileAccess.READ)

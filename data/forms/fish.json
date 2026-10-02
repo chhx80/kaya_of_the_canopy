@@ -1,4 +1,5 @@
 {
+  "_comment": "Phase B, docs/plan-art-motion.md: turn/idle-sway/burst/dance deliberately reuse the existing 0-3 swim-cycle and bite frames rather than drawing more — a fish that turns constantly and swims in one continuous cycle already has every pose this needs. turn reuses the curled tail-up frame (1), idle adds the near-identical secondary tail frame (2) for a fin-sway, burst reuses the most extended tail frame (3) for the first stroke, dance reuses the whole swim cycle twice through for a barrel roll.",
   "id": "fish",
   "display_name": "FISH",
   "sprite": "res://assets/sprites/kaya_fish.png",
@@ -34,9 +35,10 @@
   "anim": {
     "idle": {
       "frames": [
-        0
+        0,
+        2
       ],
-      "fps": 1
+      "fps": 2
     },
     "swim": {
       "frames": [
@@ -78,7 +80,11 @@
         4
       ],
       "fps": 1
-    }
+    },
+
+    "turn": { "frames": [1], "fps": 1 },
+    "burst": { "frames": [3], "fps": 1 },
+    "dance": { "frames": [0, 1, 2, 3, 0, 1, 2, 3], "fps": 8, "loop": false }
   },
   "out_of_water": "revert"
 }

@@ -1,0 +1,25 @@
+[
+  {"_": "Phase B, docs/plan-art-motion.md: jumper and shooter were already at",
+   "__": "parity before this phase (windup 3 frames each, >= the 2-frame",
+   "___": "anticipation floor) -- captured here for completeness, unchanged.",
+   "____": "jungle_5 has a jumper at (20, 9) and a shooter at (28, 9).",
+   "_____": "Re-run with: tools/shot.sh --seq=tools/seq/m6b_enemy_telegraphs.json"},
+
+  {"scenario": "level:jungle_5", "settle": 90},
+  {"teleport": [24, 9], "settle": 20},
+  {"log": "jumper_idle"},
+  {"shot": "shots/m6b_jumper_idle.png"},
+  {"wait": 40},
+  {"log": "jumper_windup"},
+  {"shot": "shots/m6b_jumper_windup.png"},
+  {"wait": 10},
+  {"log": "jumper_air"},
+  {"shot": "shots/m6b_jumper_air.png"},
+
+  {"teleport": [25, 9], "settle": 20},
+  {"log": "shooter_idle"},
+  {"shot": "shots/m6b_shooter_idle.png"},
+  {"wait": 10},
+  {"log": "shooter_windup"},
+  {"shot": "shots/m6b_shooter_windup.png"}
+]

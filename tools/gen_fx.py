@@ -34,11 +34,19 @@ LAVA_ID = 24
 
 # ---------------------------------------------------------------- palette
 # Particles are deliberately near-monochrome: they read as light and debris, so
-# they survive any repaint of the tiles underneath them.
+# they survive any repaint of the tiles underneath them. Hand-authored rather
+# than imported from tools/art/palette.py for exactly that reason — but every
+# value below was chosen to already equal one of the ramps' own steps (metal's
+# brightest step, water's, foliage's...), so a repaint only drifts these if its
+# author never looks at this file again. Phase E, docs/plan-art-motion.md's
+# consistency sweep (tools/check_palette_purity.py) measured that against the
+# generated PNG and found one real miss: 'w' had been typed as #f4f0e6, two
+# values off metal's actual top step (#f2efe6) — fixed below, 38 px in
+# particles.png.
 PAL = {
     '.': (0, 0, 0, 0),
-    'w': (0xf4, 0xf0, 0xe6, 255),   # off-white
-    'W': (0xf4, 0xf0, 0xe6, 170),   # off-white, soft
+    'w': (0xf2, 0xef, 0xe6, 255),   # off-white (metal ramp, step 6)
+    'W': (0xf2, 0xef, 0xe6, 170),   # off-white, soft
     'a': (0xb8, 0xb0, 0xa8, 255),   # light grey
     'A': (0xb8, 0xb0, 0xa8, 150),   # light grey, soft
     'd': (0x6a, 0x6a, 0x72, 200),   # grey
@@ -207,7 +215,122 @@ SCATTER = [
      "........"],
 ]
 
-ROWS = [DUST, SPARK, SHIMMER, SCATTER]
+# Row 4 — turn scuff: a low, flat heel-streak that fades fast. Phase A,
+# docs/plan-art-motion.md — spawned once when RenderFacingFSM enters State.TURN
+# on the ground, kicked opposite the new facing.
+TURN_SCUFF = [
+    ["........",
+     "........",
+     "........",
+     "........",
+     "........",
+     ".addda..",
+     "adddada.",
+     "........"],
+    ["........",
+     "........",
+     "........",
+     "........",
+     "........",
+     "a.ddd.a.",
+     ".adada..",
+     "........"],
+    ["........",
+     "........",
+     "........",
+     "........",
+     "........",
+     "..a.a...",
+     ".a...a..",
+     "........"],
+    ["........",
+     "........",
+     "........",
+     "........",
+     "........",
+     "........",
+     "...a....",
+     "........"],
+]
+
+# Row 5 — takeoff kick: a brighter, wider version of the landing dust, spawned
+# once on the tick a jump leaves the ground (vel.y < 0), not on an ordinary
+# walk off a ledge.
+TAKEOFF_KICK = [
+    ["........",
+     "........",
+     "..add...",
+     ".adAda..",
+     "adAAAda.",
+     ".adada..",
+     "..add...",
+     "........"],
+    ["........",
+     ".a....a.",
+     "a.adda.a",
+     ".adAAda.",
+     "a.adda.a",
+     ".a....a.",
+     "........",
+     "........"],
+    ["a......a",
+     ".a....a.",
+     "..a..a..",
+     "...aa...",
+     "..a..a..",
+     ".a....a.",
+     "a......a",
+     "........"],
+    [".a....a.",
+     "..a..a..",
+     "...aa...",
+     "........",
+     "........",
+     "........",
+     "........",
+     "........"],
+]
+
+# Row 6 — surface-break splash: Phase B, docs/plan-art-motion.md. Spawned
+# once by form_fish.gd when the fish breaks the surface (the jump-out hop) --
+# a ring that pops open and falls back as droplets, cyan rather than the
+# off-white every other burst uses, so it reads as water and not dust.
+SPLASH = [
+    ["........",
+     "........",
+     "..c..c..",
+     ".c.CC.c.",
+     "..CwwC..",
+     ".c.CC.c.",
+     "..c..c..",
+     "........"],
+    ["........",
+     ".c....c.",
+     "c.C..C.c",
+     "..Cwwc..",
+     "..cwwC..",
+     "c.C..C.c",
+     ".c....c.",
+     "........"],
+    ["c......c",
+     "........",
+     ".C....C.",
+     "....c...",
+     "..C.....",
+     ".C....C.",
+     "........",
+     "c......c"],
+    ["........",
+     "c......c",
+     "........",
+     ".C......",
+     "......C.",
+     "........",
+     "c......c",
+     "........"],
+]
+
+ROWS = [DUST, SPARK, SHIMMER, SCATTER, TURN_SCUFF, TAKEOFF_KICK, SPLASH]
 
 
 def build_particles():
@@ -270,6 +393,29 @@ def water_frame(src, f):
     return out
 
 
+def water_sparkle_frame(src, f):
+    """Phase C, docs/plan-art-motion.md: sparkle + shoreline foam on
+    `water_top`, expressed as four MORE frames of the same tile rather than a
+    new id — "if a new tile id would be needed, do NOT add one". Built on top
+    of `water_frame()`'s own wave so the surface keeps moving underneath: a
+    ragged foam fleck along the crest row, brighter and wider than the plain
+    1.35x crest pick-out, plus two single-pixel glints that walk the tile a
+    different, deterministic way each frame so the cycle still repeats.
+    """
+    out = water_frame(src, f).copy()
+    for x in range(TS):                      # foam: a ragged bright crest
+        c = out.getpixel((x, 0))
+        if c[3] and (x * 7 + f * 5) % 11 < 4:
+            out.putpixel((x, 0), scale(c, 1.55))
+    for i in range(2):                        # sparkle: two glints, drifting
+        sx = (f * 11 + i * 23 + 3) % TS
+        sy = (f * 7 + i * 13 + 2) % TS
+        c = out.getpixel((sx, sy))
+        if c[3]:
+            out.putpixel((sx, sy), scale(c, 1.8))
+    return out
+
+
 def lava_frame(src, f):
     """One frame of lava: the whole body creeps upward and pulses brighter.
 
@@ -294,10 +440,15 @@ def lava_frame(src, f):
 def build_tile_anim():
     water = load_tile(WATER_TOP_ID) or flat((0x3b, 0x6e, 0xa5, 255))
     lava = load_tile(LAVA_ID) or flat((0xc0, 0x4a, 0x3a, 255))
-    img = Image.new("RGBA", (TS * FRAMES, TS * 2), (0, 0, 0, 0))
+    # Row 0: the plain wave (frames 0-3). Row 1: lava (frames 4-7), unchanged.
+    # Row 2: the sparkle+foam phase of the SAME water_top tile (frames 8-11) —
+    # data/tile_anim.json's "7" entry cycles through both rows, so a shoreline
+    # run of water_top gets its glint without a second tile id anywhere.
+    img = Image.new("RGBA", (TS * FRAMES, TS * 3), (0, 0, 0, 0))
     for f in range(FRAMES):
         img.paste(water_frame(water, f), (f * TS, 0))
         img.paste(lava_frame(lava, f), (f * TS, TS))
+        img.paste(water_sparkle_frame(water, f), (f * TS, TS * 2))
     img.save(os.path.join(FX, "tile_anim.png"))
     print("tile_anim.png (%dx%d)" % img.size)
 

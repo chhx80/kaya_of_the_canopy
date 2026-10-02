@@ -1,6 +1,13 @@
 extends Node
 ## Root of the running game. Holds the world slot, the UI layer and the fader.
 
+## Phase D, docs/plan-art-motion.md: the scene fade's pixel-dissolve mask. See
+## src/core/fade_dissolve.gdshader for the shader itself; FADE_STEPS is what
+## turns its continuous `progress` uniform into a 4-frame effect — the same
+## vocabulary as a particle one-shot's 4 frames, not 4 physics ticks.
+const FADE_SHADER := preload("res://src/core/fade_dissolve.gdshader")
+const FADE_STEPS := 4
+
 @onready var world: Node2D = $WorldFrame/WorldView/WorldViewport/World
 @onready var world_view: SubViewportContainer = $WorldFrame/WorldView
 @onready var world_viewport: SubViewport = $WorldFrame/WorldView/WorldViewport
@@ -17,7 +24,11 @@ func _ready() -> void:
 	# every actor underneath it. The pause overlay and the touch layer opt in
 	# individually instead.
 	Game.main = self
+	var fade_mat := ShaderMaterial.new()
+	fade_mat.shader = FADE_SHADER
+	fade.material = fade_mat
 	fade.color = Color(0, 0, 0, 0)
+	_set_fade_progress(1.0)   # idle: fully revealed, nothing hidden
 	_layout_world_view()
 	get_viewport().size_changed.connect(_layout_world_view)
 	touch = (load("res://src/ui/touch_controls.gd") as GDScript).new()
@@ -84,13 +95,25 @@ func swap_world(scene_path: String) -> Node:
 	_transition_in()
 	return inst
 
+## Quantised to FADE_STEPS discrete bands rather than a smooth ramp — a
+## dither-threshold dissolve read as 4 frames, the same vocabulary as any
+## other "4-frame" one-shot in the game (see fade_dissolve.gdshader).
+func _set_fade_progress(p: float) -> void:
+	var mat := fade.material as ShaderMaterial
+	if mat != null:
+		mat.set_shader_parameter("progress",
+			floor(clampf(p, 0.0, 1.0) * float(FADE_STEPS)) / float(FADE_STEPS))
+
 ## Every scene arrives out of black. Cheap, and it hides the one-frame pop while
-## a level builds its tile layers.
+## a level builds its tile layers. `fade.color` stays flat opaque black for the
+## whole transition now — the shader owns the reveal, dissolving it in rather
+## than blending it out.
 func _transition_in(duration: float = 0.22) -> void:
 	fade.color = Color(0, 0, 0, 1)
+	_set_fade_progress(0.0)
 	var t := create_tween()
 	t.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	t.tween_property(fade, "color", Color(0, 0, 0, 0), duration)
+	t.tween_method(_set_fade_progress, 0.0, 1.0, duration)
 
 ## Static caches (the bitmap font texture, the tile flag table) are not owned by
 ## the tree, so they have to be dropped explicitly or the engine reports them as
@@ -105,7 +128,8 @@ func current_scene() -> Node:
 
 ## Short fade used between screens. Awaited by callers that care.
 func flash_fade(duration: float = 0.25) -> void:
-	var t := create_tween()
 	fade.color = Color(0, 0, 0, 1)
-	t.tween_property(fade, "color", Color(0, 0, 0, 0), duration)
+	_set_fade_progress(0.0)
+	var t := create_tween()
+	t.tween_method(_set_fade_progress, 0.0, 1.0, duration)
 	await t.finished

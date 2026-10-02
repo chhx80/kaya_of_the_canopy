@@ -1,4 +1,5 @@
 {
+  "_comment": "Frames 20-30 are Phase A, docs/plan-art-motion.md: turn, skid, push, throw, catch, fidget. The 'turn' strip's timing is NOT driven by its fps/loop below — RenderFacingFSM in src/player/render_facing_fsm.gd paces it instead, guarded against coyote_time by tests/test_render_facing_fsm.gd. Frames 31-38 are Phase F: the idle dance, 8 original frames played twice through (player.gd repeats the list) at 8fps.",
   "id": "human",
   "display_name": "KAYA",
   "sprite": "res://assets/sprites/kaya_human.png",
@@ -39,6 +40,16 @@
     "fall":  { "frames": [14], "fps": 1 },
     "land":  { "frames": [15], "fps": 1 },
     "climb": { "frames": [16, 17, 18, 17], "fps": 8 },
-    "hurt":  { "frames": [19], "fps": 1 }
+    "hurt":  { "frames": [19], "fps": 1 },
+
+    "turn":   { "frames": [20, 21, 5], "fps": 30, "loop": false },
+    "skid":   { "frames": [22], "fps": 1 },
+    "push":   { "frames": [23, 24], "fps": 6 },
+    "throw":  { "frames": [25, 26], "fps": 12, "loop": false },
+    "catch":  { "frames": [27], "fps": 1 },
+    "fidget": { "frames": [28, 29, 30], "fps": 6, "loop": false },
+
+    "dance":  { "frames": [31, 32, 33, 34, 35, 36, 37, 38,
+                            31, 32, 33, 34, 35, 36, 37, 38], "fps": 8, "loop": false }
   }
 }

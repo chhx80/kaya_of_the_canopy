@@ -1,0 +1,35 @@
+[
+  {"_": "Phase A: throw / catch, driven read-only off WeaponBase.flight_state().",
+   "__": "Thrown from spawn (2,11) rather than deeper into the arena: the",
+   "___": "enemy_walker spawns at (9,11) with a 96px chase_range, and the first",
+   "____": "pass of this file teleported INTO it and got hit mid-sequence (the",
+   "_____": "HUD showed a lost heart, not a catch). Spawn is 112px from the",
+   "______": "walker -- just outside chase_range -- and the lane ahead (cols",
+   "_______": "8-13) has nothing breakable, so the blade flies its full arc and",
+   "________": "returns. Re-run with: tools/shot.sh --seq=tools/seq/m6a_throw.json"},
+
+  {"scenario": "level:test_arena", "settle": 90},
+  {"log": "lane"},
+
+  {"_": "A -- press attack. THROW_TIME=0.17s (~10 ticks) holds the throw pose",
+   "__": "before the base animation would take back over; shoot inside it."},
+  {"press": ["attack"], "frames": 3},
+  {"log": "throw_press"},
+  {"shot": "shots/m6a_a_throw.png"},
+
+  {"_": "B -- mid-flight: speed 205 px/s, max_range 118 px, so the OUT leg",
+   "__": "alone is ~0.58s (~35 ticks) -- comfortably past THROW_TIME, so the",
+   "___": "player is back to idle/run and the blade is the only thing moving."},
+  {"wait": 20},
+  {"log": "blade_out"},
+  {"shot": "shots/m6a_b_blade_flight.png"},
+
+  {"_": "C -- the catch. CATCH_TIME=0.12s (~7 ticks) after flight_state() drops",
+   "__": "to NONE, which lags the blade's own queue_free() by up to a tick.",
+   "___": "Measured empirically (round trip of a 205 px/s out-leg and an",
+   "____": "accelerating return leg does not reduce to a clean formula): the",
+   "_____": "window opens about 63 ticks after the press and is gone by 70."},
+  {"wait": 37},
+  {"log": "catch_watch"},
+  {"shot": "shots/m6a_c_catch.png"}
+]

@@ -1,4 +1,5 @@
 {
+  "_comment": "Phase B, docs/plan-art-motion.md: frame order is 0-3 the flap beat, 4 glide, 5 perch, 6 glide ruffle, 7 perch head-tilt, 8-9 the banking turn pair. turn/stall/dance deliberately reuse existing frames where a held pose already reads right — stall reuses the wings-tucked-down flap frame (2), dance reuses the flap beat itself at a jaunty tempo, the same economy frog.json's turn/wallkick use.",
   "id": "bird",
   "display_name": "BIRD",
   "sprite": "res://assets/sprites/kaya_bird.png",
@@ -38,9 +39,10 @@
   "anim": {
     "idle": {
       "frames": [
-        5
+        5,
+        7
       ],
-      "fps": 1
+      "fps": 2
     },
     "run": {
       "frames": [
@@ -72,15 +74,20 @@
     },
     "glide": {
       "frames": [
-        4
+        4,
+        6
       ],
-      "fps": 1
+      "fps": 6
     },
     "hurt": {
       "frames": [
         5
       ],
       "fps": 1
-    }
+    },
+
+    "turn": { "frames": [8, 9], "fps": 1 },
+    "stall": { "frames": [2], "fps": 1 },
+    "dance": { "frames": [0, 1, 2, 3, 0, 1, 2, 3], "fps": 8, "loop": false }
   }
 }

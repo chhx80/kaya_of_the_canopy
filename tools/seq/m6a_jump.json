@@ -1,0 +1,30 @@
+[
+  {"_": "Phase A: launch stretch + landing squash + the takeoff/landing dust.",
+   "__": "test_arena's spawn sits on flat ground, and a human jump is",
+   "___": "symmetric and well below max_fall (jump_vel -260, apex ~44px), so an",
+   "____": "ordinary jump that returns to the same floor already lands at",
+   "_____": "~260 px/s -- comfortably past both the dust/squash threshold (170)",
+   "______": "and the land-pose threshold (130). No platform needed.",
+   "_______": "Airtime = 2*260/760 =~ 0.68s =~ 41 ticks from the jump press.",
+   "________": "Re-run with: tools/shot.sh --seq=tools/seq/m6a_jump.json"},
+
+  {"scenario": "level:test_arena", "settle": 90},
+  {"log": "spawn"},
+
+  {"_": "A -- takeoff. STRETCH_TIME=0.10s (~6 ticks) after vel.y goes negative."},
+  {"press": ["jump"], "frames": 3},
+  {"log": "takeoff"},
+  {"shot": "shots/m6a_a_takeoff.png"},
+
+  {"_": "B -- the landing, ~41 ticks after the press."},
+  {"wait": 36},
+  {"log": "pre_land"},
+  {"wait": 4},
+  {"log": "landing"},
+  {"shot": "shots/m6a_b_land_squash.png"},
+
+  {"_": "C -- a beat later: squash eased back out, back to idle."},
+  {"wait": 12},
+  {"log": "after_land"},
+  {"shot": "shots/m6a_c_land_after.png"}
+]

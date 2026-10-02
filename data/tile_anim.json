@@ -15,7 +15,8 @@
     },
     "7": {
       "name": "water_top",
-      "frames": [0, 1, 2, 3],
+      "_note": "Phase C, docs/plan-art-motion.md: frames 8-11 are a sparkle+foam phase of the SAME wave (tools/gen_fx.py::water_sparkle_frame), not a second tile -- 'if a new tile id would be needed, do NOT add one' ruled out a shoreline-foam variant tile outright, so foam is four more frames on water_top instead. The 8-frame cycle alternates plain crest (0-3) with the glinting one (8-11), which is what makes a long run of water_top shimmer rather than just scroll.",
+      "frames": [0, 1, 2, 3, 8, 9, 10, 11],
       "fps": 6.0
     },
     "8": {
@@ -56,6 +57,11 @@
       "name": "deep_spore",
       "_note": "deep_spore. World 4's hazard, and the first one in this table that is lit from inside rather than on fire - data/ambience.json gives 267 an emissive pool in THE LIGHTLESS, because a dark hazard you cannot see is not a lesson, it is a coin toss. So it breathes rather than moves: a tint and not a sway, because a hazard that slides a pixel sideways is a hazard whose edge lies about where it is, and the whole point of the spore pit is that you see it coming. 0.10 at 0.42 Hz is a two-and-a-half second breath - an eighth of the lava's rate and well under its amount, which is the difference between a spore mat exhaling and something burning.",
       "tint": { "hz": 0.42, "amount": 0.1 }
+    },
+    "281": {
+      "name": "obsidian_hot",
+      "_note": "Phase C, docs/plan-art-motion.md: world 5's turn at the M4-established tint pattern (267's spore breath, 24's lava pulse) -- the one hazard tile the M4/M5 passes left un-animated. obsidian_hot is molten glass under a crust, not an open flame and not a lightless hazard either, so its pulse sits between the two it is modelled on: faster than the spore's 0.42 Hz (this is actively hot, not a slow exhale) but nowhere near the lava's 3.1 Hz (it is glass over the heat, not the heat itself) and held to 0.12 amount, under spore's headroom and well under lava's 0.16, so a whole wall of it breathes without burning through data/ambience.json's own emissive pool on the same tile.",
+      "tint": { "hz": 0.6, "amount": 0.12 }
     }
   }
 }
