@@ -36,7 +36,8 @@
 	<false/>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>iphone-ipad-minimum-performance-a12</string>
+		<string>gamekit</string>
+<string>iphone-ipad-minimum-performance-a12</string>
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string></string>

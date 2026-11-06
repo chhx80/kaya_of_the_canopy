@@ -43,7 +43,7 @@ fi
 # repo owns (the compressed frameworks, the CI hooks, .gdignore). An earlier
 # version wiped ios/ wholesale and silently deleted seven tracked files, so the
 # curated set is preserved explicitly.
-CURATED=(frameworks ci_scripts .gdignore)
+CURATED=(frameworks ci_scripts plugins .gdignore)
 KEEP="$(mktemp -d -t kaya_keep)"
 for c in "${CURATED[@]}"; do
   [ -e "ios/$c" ] && cp -R "ios/$c" "$KEEP/" || true

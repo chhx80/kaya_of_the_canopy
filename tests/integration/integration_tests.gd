@@ -1,4 +1,24 @@
 extends Node
+
+
+## The GameCenter plugin's surface (godot-ios-plugins, plugins/gamecenter):
+## authenticate, award_achievement, and results as a pending-event queue whose
+## award events do not name the achievement. Records every award it is given.
+class FakeGameCenter extends RefCounted:
+	var events: Array = []
+	var awarded: Array = []
+	func authenticate() -> void:
+		pass
+	func get_pending_event_count() -> int:
+		return events.size()
+	func pop_pending_event() -> Dictionary:
+		return events.pop_front()
+	func award_achievement(d: Dictionary) -> int:
+		awarded.append(d.duplicate())
+		events.append({"type": "award_achievement", "result": "ok"})
+		return OK
+	func sign_in() -> void:
+		events.append({"type": "authentication", "result": "ok"})
 ## In-game integration suite. The headless unit runner has no autoloads and no
 ## scene tree, so anything involving nodes — the blade, enemies, pickups,
 ## triggers, respawn — is verified here instead, driving the real game.
@@ -200,6 +220,8 @@ func run_all() -> void:
 		"t_pause_freezes_the_level_and_resumes_it",
 		"t_a_phone_can_pause_and_leave_a_level_for_its_door_on_the_map",
 		"t_the_map_pause_menu_has_no_level_rows",
+		"t_beating_a_boss_unlocks_its_world_achievement_in_game_center",
+		"t_a_boss_beaten_before_achievements_existed_is_put_right_quietly",
 		"t_options_write_straight_through_to_the_save_file",
 		"t_touch_stick_drives_the_same_actions_as_a_keyboard",
 		"t_touch_overlay_hides_itself_when_a_gamepad_is_present",
@@ -1723,6 +1745,75 @@ func t_the_map_pause_menu_has_no_level_rows() -> void:
 	check(not items.has("RESTART LEVEL"), "no RESTART LEVEL on the map, where it did nothing")
 	menu.queue_free()
 	await frames(4)
+
+const W1 := "com.cateira.kayaofthecanopy.world1"
+const W3 := "com.cateira.kayaofthecanopy.world3"
+
+func t_beating_a_boss_unlocks_its_world_achievement_in_game_center() -> void:
+	var saved: Dictionary = SaveManager.data.duplicate(true)
+	var ach: Node = get_tree().root.get_node("Achievements")
+	SaveManager.data["achievements"] = {}
+	SaveManager.set_flag("jungle_5", false)
+	var gc := FakeGameCenter.new()
+	ach.use_backend(gc)
+	await frames(2)
+	check(not ach.signed_in, "nothing is reported before the player signs in")
+	gc.sign_in()
+	await frames(3)
+	check(ach.signed_in, "the sign-in event is read")
+	var cleared_before: int = SaveManager.completed_count()
+	Game.reset_run()
+	Game.complete_level("jungle_5")
+	await frames(6)
+	check(SaveManager.has_achievement(W1), "clearing jungle_5 records world 1")
+	check_eq(SaveManager.completed_count(), cleared_before + 1,
+		"the CLEARED counter moves by the level alone, not by the achievement too")
+	check_eq(gc.awarded.size(), 1, "exactly one award reaches Game Center")
+	if gc.awarded.size() == 1:
+		var a: Dictionary = gc.awarded[0]
+		check_eq(String(a.get("name", "")), W1, "for world 1")
+		near(float(a.get("progress", 0.0)), 100.0, 0.01, "at 100 percent")
+		check(bool(a.get("show_completion_banner", false)), "with the banner, earned just now")
+	# Signing in again re-reports what is held, silently: the plugin's results
+	# do not say which award they answer, so re-sending is how nothing is lost.
+	gc.awarded.clear()
+	gc.sign_in()
+	await frames(3)
+	check_eq(gc.awarded.size(), 1, "a later sign-in re-reports the held achievement")
+	if gc.awarded.size() == 1:
+		check(not bool((gc.awarded[0] as Dictionary).get("show_completion_banner", true)),
+			"without a second banner")
+	# NEW GAME keeps achievements; it only wipes progress.
+	SaveManager.wipe()
+	check(SaveManager.has_achievement(W1), "NEW GAME keeps the achievement")
+	check(not SaveManager.get_flag("jungle_5"), "but wipes the level clear")
+	ach.use_backend(null)
+	SaveManager.data = saved
+	SaveManager.save()
+	await frames(2)
+
+func t_a_boss_beaten_before_achievements_existed_is_put_right_quietly() -> void:
+	var saved: Dictionary = SaveManager.data.duplicate(true)
+	var ach: Node = get_tree().root.get_node("Achievements")
+	SaveManager.data["achievements"] = {}
+	SaveManager.set_flag("heights_5", true)       # an old save: boss already beaten
+	var gc := FakeGameCenter.new()
+	ach.use_backend(gc)
+	ach.call("_backfill")
+	check(SaveManager.has_achievement(W3), "the old clear earns world 3")
+	gc.sign_in()
+	await frames(3)
+	var sent := false
+	for a: Variant in gc.awarded:
+		if String((a as Dictionary).get("name", "")) == W3:
+			sent = true
+			check(not bool((a as Dictionary).get("show_completion_banner", true)),
+				"reported without a banner: nothing was just achieved")
+	check(sent, "and is reported once the player signs in")
+	ach.use_backend(null)
+	SaveManager.data = saved
+	SaveManager.save()
+	await frames(2)
 
 func t_options_write_straight_through_to_the_save_file() -> void:
 	var old := float(SaveManager.setting("music", 0.7))

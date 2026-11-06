@@ -52,7 +52,11 @@
 		90DD2D9D24B36E8000717FE1 = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-		
+		589384010000000000000001 = {isa = PBXBuildFile; fileRef = 589384010000000000000002; };
+589384010000000000000002 = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = "gamecenter.xcframework"; path = "KayaOfTheCanopy/dylibs/ios/plugins/gamecenter.xcframework"; sourceTree = "<group>"; };
+589384010000000000000003 = {isa = PBXBuildFile; fileRef = 589384010000000000000004; };
+589384010000000000000004 = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = "GameKit.framework"; path = "/System/Library/Frameworks/GameKit.framework"; sourceTree = "<group>"; };
+
 
 /* Begin PBXFrameworksBuildPhase section */
 		D0BCFE3118AEBDA2004A7AAE /* Frameworks */ = {
@@ -62,7 +66,8 @@
                 9039D3BE24C093AC0020482C /* MoltenVK.xcframework in Frameworks */,
 				DEADBEEF2F582BE20003B888 /* KayaOfTheCanopy.xcframework */,
 				
-				
+				589384010000000000000001,
+589384010000000000000003
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -96,7 +101,8 @@
                 9039D3BD24C093AC0020482C /* MoltenVK.xcframework */,
 				DEADBEEF1F582BE20003B888 /* KayaOfTheCanopy.xcframework */,
 				
-				
+				589384010000000000000002,
+589384010000000000000004
 			);
 			name = Frameworks;
 			sourceTree = "<group>";

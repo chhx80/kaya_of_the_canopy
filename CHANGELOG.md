@@ -3051,3 +3051,40 @@ Two mistakes on the way, both caught before shipping: `round()` typed as Variant
 broke the whole touch overlay under warnings-as-errors (the suite hung rather
 than failing), and the two new tests were not registered in the suite's
 explicit list, so they had silently never run.
+
+## Game Center achievements: one per world
+
+Five achievements, each earned by clearing a world's boss level
+(`data/achievements.json`). Every boss door needs that world's level 4 and each
+world needs the previous boss, so a boss clear is a world clear.
+
+- **Game code:** `src/core/achievements.gd` (autoload) with the pure decisions in
+  `achievement_book.gd`. Unlocks are kept in their own `achievements` section of
+  the save, apart from the level flags: the map's CLEARED counter counts flags,
+  and NEW GAME wipes flags but keeps achievements.
+- **Reporting:** the plugin's result events do not name the achievement they
+  answer, so every unlocked achievement is re-reported after each sign-in
+  (idempotent in GameKit); nothing earned offline is lost. The banner shows the
+  first time an achievement reaches Game Center and never again. A boss beaten
+  before this update earns its achievement silently on next launch.
+- **Native plugin:** the official `godot-ios-plugins` GameCenter plugin, MIT,
+  unmodified, built here from source against Godot 4.7.2 headers, in
+  `ios/plugins/` with its licence and a build note. `sync_ios_project.sh` keeps
+  that folder. The export enables it and `entitlements/game_center`; verified in
+  the generated Xcode project: library and GameKit in the Frameworks phase,
+  `register_gamecenter_types` called, entitlement and `gamekit` capability set.
+- **App Store Connect:** `docs/game-center.md` has the exact ids, names,
+  descriptions and points; `tools/art/achievement_art.py` makes the 1024x1024
+  images in `export/achievements/` (not shipped in the game).
+
+Tests: `tests/test_achievements.gd` checks every id against the game (each
+points at a level holding exactly one boss, one per world, ids unique and
+prefixed with the bundle id) and failed as it should when an achievement was
+pointed at an ordinary level. Integration drives a fake with the plugin's exact
+surface: sign-in, boss clear, one award at 100% with a banner, a silent re-report
+on the next sign-in, NEW GAME keeping it, and the back-fill. It caught a bug:
+the banner replayed on a second sign-in in the same session.
+
+Not verifiable on this Mac (iOS 18 SDK; Godot 4.7.2 device builds need 26.1):
+the native link is first proven by Xcode Cloud, and achievements only work once
+they exist in App Store Connect.

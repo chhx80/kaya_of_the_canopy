@@ -1,0 +1,10 @@
+{
+  "_comment": "Game Center achievements: one per world, earned when that world's boss level is cleared. Each world's doors open in order (every boss door requires level 4, every world's first door requires the previous boss), so clearing the boss level means the world is complete. The id is what App Store Connect must be given, exactly. Reported at 100% only.",
+  "achievements": [
+    {"id": "com.cateira.kayaofthecanopy.world1", "level": "jungle_5",  "world": "CANOPY TRAIL",    "title": "WARDEN FELLED",  "description": "Defeat the Grove Warden and clear the Canopy Trail."},
+    {"id": "com.cateira.kayaofthecanopy.world2", "level": "ruins_5",   "world": "SUNKEN RUINS",    "title": "TIDE TURNED",    "description": "Defeat the Tide Maw and clear the Sunken Ruins."},
+    {"id": "com.cateira.kayaofthecanopy.world3", "level": "heights_5", "world": "THERMAL HEIGHTS", "title": "STORM STILLED",  "description": "Defeat the Stormcrest and clear the Thermal Heights."},
+    {"id": "com.cateira.kayaofthecanopy.world4", "level": "deeps_5",   "world": "TERMITE DEEPS",   "title": "QUEEN TOPPLED",  "description": "Defeat the Brood Queen and clear the Termite Deeps."},
+    {"id": "com.cateira.kayaofthecanopy.world5", "level": "nest_5",    "world": "OBSIDIAN NEST",   "title": "HEART OF GLASS", "description": "Defeat the Obsidian Heart and clear the Obsidian Nest."}
+  ]
+}

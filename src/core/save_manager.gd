@@ -13,6 +13,10 @@ static func default_data() -> Dictionary:
 	return {
 		"version": CURRENT_VERSION,
 		"flags": {},                 ## level_id -> true when completed
+		## achievement id -> true. Kept apart from "flags" on purpose: flags are
+		## progress (the hub counts them for CLEARED n/25, NEW GAME wipes them);
+		## achievements are permanent, as they are in Game Center itself.
+		"achievements": {},
 		"best_score": 0,
 		"total_gems": 0,
 		"settings": {
@@ -94,6 +98,14 @@ func set_flag(id: String, value: bool) -> void:
 	flags[id] = value
 	data["flags"] = flags
 
+func has_achievement(id: String) -> bool:
+	return bool((data.get("achievements", {}) as Dictionary).get(id, false))
+
+func set_achievement(id: String) -> void:
+	var a: Dictionary = data.get("achievements", {})
+	a[id] = true
+	data["achievements"] = a
+
 func completed_count() -> int:
 	var n := 0
 	for k: String in (data.get("flags", {}) as Dictionary).keys():
@@ -112,6 +124,10 @@ func set_setting(key: String, value: Variant) -> void:
 	s[key] = value
 	data["settings"] = s
 
+## NEW GAME. Progress goes; achievements stay, because a player who earned one
+## has earned it, and re-earning it would replay Game Center's banner.
 func wipe() -> void:
+	var kept: Dictionary = data.get("achievements", {})
 	data = default_data()
+	data["achievements"] = kept
 	save()

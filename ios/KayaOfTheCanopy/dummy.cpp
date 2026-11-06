@@ -34,11 +34,17 @@ void godot_apple_embedded_plugins_initialize();
 void godot_apple_embedded_plugins_deinitialize();
 // Exported Plugins
 
+// Plugin: GameCenter
+extern void register_gamecenter_types();
+extern void unregister_gamecenter_types();
+
 // Use Plugins
 void godot_apple_embedded_plugins_initialize() {
+	register_gamecenter_types();
 }
 
 void godot_apple_embedded_plugins_deinitialize() {
+	unregister_gamecenter_types();
 }
 
 
