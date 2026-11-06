@@ -239,5 +239,9 @@ func test_every_declared_tile_id_is_painted() -> void:
 		var painted := _colours(img, x0, y0, TILE_SIZE, TILE_SIZE).size()
 		if id == 0:
 			eq(painted, 0, "tile 0 (empty) must stay fully transparent")
+		elif bool((decl[key] as Dictionary).get("see_through", false)):
+			# The flag and the art must agree: a see-through tile that paints
+			# anything hides the backdrop it exists to reveal.
+			eq(painted, 0, "tile %d is flagged see_through but is painted" % id)
 		else:
 			gt(float(painted), 0.0, "tile %d (%s) is blank" % [id, str(decl[key])])

@@ -162,6 +162,7 @@ func run_all() -> void:
 		"t_the_matching_key_opens_the_door_and_is_consumed",
 		"t_switch_blocks_swap_which_half_is_solid",
 		"t_a_switch_flip_dissolves_the_art_but_collision_changes_on_the_flip_frame",
+		"t_contact_shadows_fall_on_the_background_and_nowhere_else",
 		"t_the_blade_can_trip_a_switch_from_range",
 		"t_hub_loads_its_doors",
 		"t_the_overworld_is_followed_by_the_same_camera",
@@ -878,6 +879,26 @@ func t_switch_blocks_swap_which_half_is_solid() -> void:
 	await frames(2)
 	check(not w.is_solid(SWITCH_A_BLOCK.x, SWITCH_A_BLOCK.y), "flipping swaps them")
 	check(w.is_solid(SWITCH_A_GHOST.x, SWITCH_A_GHOST.y), "the ghost half becomes solid")
+
+## Kaya Refit phase 3: contact shadows. ROOT HOLLOW is walled in background
+## rock behind every screen, so its foreground layer must lay shadows; the
+## background layer and the top-down hub never do, and drawing them moves no
+## id, so the level's solidity is what it was.
+func t_contact_shadows_fall_on_the_background_and_nowhere_else() -> void:
+	await enter(HOLLOW)
+	var w: TileWorld = level().world
+	var before: PackedInt32Array = w.fg.duplicate()
+	var tiles_fg: TileRenderer = level().tiles_fg
+	var tiles_bg: TileRenderer = level().tiles_bg
+	gt_check(tiles_fg.contact_shadow_count(), 100, "ROOT HOLLOW lays contact shadows")
+	check_eq(tiles_bg.contact_shadow_count(), 0, "the background layer draws none itself")
+	check_eq(w.fg, before, "drawing them changed no foreground id")
+	await enter_hub()
+	var hub: Node = Game.main.current_scene()
+	var hub_fg: TileRenderer = hub.get("tiles_fg") if hub != null else null
+	check(hub_fg != null, "the hub has a foreground tile layer")
+	if hub_fg != null:
+		check_eq(hub_fg.contact_shadow_count(), 0, "the top-down hub draws none")
 
 ## Phase D, docs/plan-art-motion.md: the switch-flip dissolve. The fairness
 ## argument is that collision never waits on the fade — this proves collision

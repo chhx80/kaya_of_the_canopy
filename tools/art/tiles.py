@@ -18,10 +18,17 @@ import random
 
 from PIL import Image
 
+from . import tiles_p3
 from .palette import (RAMPS, TILES, auto_shade, blob, crack, put, put_ink,
                        speckle)
 
 TS = 16
+#: Kaya Refit phase 3: a fill resolves its grain to whole ramp steps instead of
+#: through the Bayer matrix. Fractional grain on a flat slab came out as a
+#: checkerboard, and beside the 40 px Kaya — whose shading is clean steps — a
+#: screen of checkerboard read as noise rather than material. The grain's random
+#: stream is unchanged, so every structure drawn over a fill lands where it did.
+CLEAN_FILL = True
 
 
 def tile(alpha=0):
@@ -42,7 +49,7 @@ def fill(img, ramp, base, rnd=None, grain=0.32, bevel=None):
                 lvl += bevel(x, y)
             if rnd is not None and grain:
                 lvl += rnd.uniform(-grain, grain)
-            put(img, x, y, ramp, lvl)
+            put(img, x, y, ramp, round(lvl) if CLEAN_FILL else lvl)
     return img
 
 
@@ -1057,18 +1064,11 @@ def t_heights_scree(seed):
 def t_heights_air(seed):
     """The pale fill for a room the parallax cannot reach — a gallery cut into
     the cliff, with nothing behind it but sky. Bright, and therefore flat:
-    every step of structure in here is a step stolen from the tiles in front."""
-    rnd = random.Random(seed)
-    # Base sits on a whole ramp step rather than between two. A fractional
-    # level here resolves through the Bayer matrix, and a Bayer checkerboard
-    # over 400x240 of flat fill is the most visible thing on the screen.
-    img = fill(tile(255), "metal", 5.0, rnd, grain=0.0)
-    for _ in range(4):                              # soft shadow in the haze
-        wrap_blob(img, "metal", rnd.randrange(TS), rnd.randrange(TS),
-                  rnd.uniform(3.0, 5.5), rnd.uniform(2.0, 3.4), 4.55,
-                  lit=0.0, dark=0.0)
-    speckle(img, "metal", rnd, 6, 5.0, (-0.45, 0.0))
-    return img
+    every step of structure in here is a step stolen from the tiles in front.
+
+    Kaya Refit phase 3 re-valued it (it sat at the value of her straw hat);
+    the painting lives in tools/art/tiles_p3.py."""
+    return tiles_p3.t_heights_air_refit(seed)
 
 
 def t_heights_stack(seed):
@@ -1195,17 +1195,8 @@ def t_heights_basalt(seed):
 def t_heights_cloud(seed):
     """The cloud deck, as a *tile*: what a level lays down when the floor gives
     out and there is nothing below but weather. Pale, and almost structureless
-    for the same reason t_heights_air() is."""
-    rnd = random.Random(seed)
-    img = fill(tile(255), "metal", 5.0, rnd, grain=0.0)
-    for _ in range(6):
-        cx, cy = rnd.randrange(TS), rnd.randrange(TS)
-        for dx in (-TS, 0, TS):
-            for dy in (-TS, 0, TS):
-                blob(img, "metal", cx + dx, cy + dy, rnd.uniform(2.4, 4.0),
-                     rnd.uniform(1.4, 2.4), 4.9, lit=0.55, dark=0.55)
-    speckle(img, "metal", rnd, 8, 5.0, (-0.4, 0.0))
-    return img
+    for the same reason t_heights_air() is. Re-valued with it in phase 3."""
+    return tiles_p3.t_heights_cloud_refit(seed)
 
 
 def t_heights_shell(seed):
@@ -1713,8 +1704,13 @@ def t_nest_shard(seed):
                 if t < -0.55:                       # the one lit facet
                     put(img, x, y, "stone", 2.2)
             put_ink(img, hi, y)
-        put(img, int(cx), top, "metal", 5.0)        # glint on the point
-        put(img, int(cx) - 1, top + 1, "metal", 3.4)
+        # Hot points (Kaya Refit phase 3): the shards were the quietest hazard
+        # in the game, dark glass on a dark wall. Glass this close to the
+        # Nest's heat glows at the tip, and a glowing tip says "do not land".
+        put(img, int(cx), top, "ember", 6.0)
+        put(img, int(cx), top + 1, "ember", 5.0)
+        put(img, int(cx) - 1, top + 1, "ember", 4.0)
+        put(img, int(cx), top + 2, "ember", 3.0)
     return img
 
 
@@ -1971,12 +1967,15 @@ T_AT(214, t_luminous_wall(2141))                      # luminous wall
 T_AT(215, t_rubble(2151))                             # rubble
 
 
+# The void tile of each new world (224, 244, 264, 284) is painted empty and
+# flagged see_through in data/tiles.json: it is where the world's parallax
+# backdrop shows. Back-walls stay solid art, so caves still read as enclosed.
 # 2. SUNKEN RUINS
 T_AT(220, t_ruin_stone(2201))                         # waterlogged ashlar
 T_AT(221, t_ruin_stone(2211, algae=True))             # ... capped with algae
 T_AT(222, t_ruin_wall(2221))                          # background masonry
 T_AT(223, t_ruin_silt(2231))                          # cold silt
-T_AT(224, t_ruin_deep(2241))                          # the flooded void
+T_AT(224, tile(0))  # flooded void: see-through, the world's parallax shows here
 T_AT(225, t_ruin_column(2251))                        # fluted column (bg)
 T_AT(226, t_ruin_slab(2261))                          # one-way slab
 T_AT(227, t_ruin_urchin(2271))                        # urchins (hazard)
@@ -1990,7 +1989,7 @@ T_AT(240, t_heights_rock(2401))                       # highland rock
 T_AT(241, t_heights_rock(2411, sun=True))             # ... sun-bleached crust
 T_AT(242, t_heights_wall(2421))                       # background cliff
 T_AT(243, t_heights_scree(2431))                      # loose scree
-T_AT(244, t_heights_air(2441))                        # pale sky fill (bg)
+T_AT(244, tile(0))  # pale sky fill (bg): see-through, the world's parallax shows here
 T_AT(245, t_heights_stack(2451))                      # basalt stack (bg)
 T_AT(246, t_heights_plank(2461))                      # one-way walkway
 T_AT(247, t_heights_vent(2471))                       # fumarole (hazard)
@@ -2004,7 +2003,7 @@ T_AT(260, t_deep_earth(2601))                         # packed spoil
 T_AT(261, t_deep_crust(2611))                         # ... capped with chitin
 T_AT(262, t_deep_comb(2621))                          # background comb
 T_AT(263, t_deep_chitin(2631))                        # chitin plate block
-T_AT(264, t_deep_void(2641))                          # tunnel void (bg)
+T_AT(264, tile(0))  # tunnel void (bg): see-through, the world's parallax shows here
 T_AT(265, t_deep_root(2651))                          # great root (bg)
 T_AT(266, t_deep_shelf(2661))                         # one-way chitin shelf
 T_AT(267, t_deep_spore(2671))                         # spore vent (hazard)
@@ -2018,7 +2017,7 @@ T_AT(280, t_nest_glass(2801))                         # obsidian
 T_AT(281, t_nest_glass(2811, hot=True))               # ... still cooling
 T_AT(282, t_nest_wall(2821))                          # background glass
 T_AT(283, t_nest_block(2831))                         # cut basalt masonry
-T_AT(284, t_nest_void(2841))                          # the void (bg)
+T_AT(284, tile(0))  # the void (bg): see-through, the world's parallax shows here
 T_AT(285, t_nest_flue(2851))                          # flue (bg)
 T_AT(286, t_nest_ledge(2861))                         # one-way ledge
 T_AT(287, t_nest_shard(2871))                         # obsidian shards (hazard)
@@ -2027,6 +2026,13 @@ T_AT(289, t_nest_vein(2891))                          # ember-veined flow (bg)
 T_AT(290, t_nest_plate(2901))                         # riveted plate
 T_AT(291, t_nest_crust(2911))                         # bubble crust (breakable)
 
+
+
+# Kaya Refit phase 3: every ladder, one-way and hazard is inked — see
+# tiles_p3.ink_interactive(). Done here, once every id is placed, and again to
+# each variant interior in _cases_for(), so variant 0 still equals the base.
+for _tid in sorted(tiles_p3.INKED):
+    tiles_p3.ink_interactive(TILE_DEFS[_tid])
 
 
 # ================================================================== phase 2
@@ -2162,7 +2168,7 @@ def convex_corner(img, ramp, rnd, corner, base, lift):
         put(img, px, py, ramp, base + d + rnd.uniform(-0.2, 0.2))
 
 
-def paint_edges(img, mask, rim, rnd, group=None):
+def paint_edges(img, mask, rim, rnd, group=None, tid=None):
     """Turn an interior fill into the blob case `mask`."""
     ramp = rim["ramp"]
     base = rim["base"]
@@ -2184,6 +2190,8 @@ def paint_edges(img, mask, rim, rnd, group=None):
     if deco is not None:
         deco(img, mask, rnd)
     edge_light_course(img, mask, rim, group)
+    # Kaya Refit phase 3: the absolute rim that has to read under a 40 px hero.
+    tiles_p3.refit_rim(img, mask, group, tid, random.Random(rnd.random()))
 
 
 # ------------------------------------------------- phase C: tile edge light
@@ -2714,6 +2722,30 @@ DECOR = {
 }
 
 
+# Kaya Refit phase 3: extra paintings for the cases a level is made of.
+# Counted over all 27 levels, the exposed case a player sees most is the top of
+# a floor (124) and then the one-tile-thick strip (68); both had three
+# paintings, so a ledge was a three-cell stamp. Each standable material gets
+# four more of each — two plain, two carrying one accent — and every background
+# wall gets three more interiors, because 255 is ~80% of every wall. Budgeted:
+# 63 cells, four atlas rows, well inside the 4096 px the sheet must fit in.
+CASE_TOP, CASE_STRIP = 124, 68
+EXTRA_TOP = ((None, 0), (None, 1), (0, 2), (1, 3))       # (accent, seed slot)
+EXTRA_BG = 3
+REFIT_BG = {"bg_rock", "ruin_bg", "heights_bg", "deeps_bg", "nest_bg"}
+
+
+def _extras(tid, seeds, group):
+    if group in tiles_p3.RIM:
+        out = {}
+        for m in (CASE_TOP, CASE_STRIP):
+            out[m] = [(seeds[0] * 7 + m * 13 + k, a) for a, k in EXTRA_TOP]
+        return out
+    if group in REFIT_BG:
+        return {MASK_FULL: [(seeds[0] * 11 + k, None) for k in range(EXTRA_BG)]}
+    return {}
+
+
 def V(tid, build, seeds, group=None, rim=None):
     """One variant-capable tile. `seeds[0]` must reproduce the base tile
     exactly — the base atlas cell is reused as variant 0, and build_variants()
@@ -2721,7 +2753,8 @@ def V(tid, build, seeds, group=None, rim=None):
     change what an authored level looks like."""
     permille, decor = DECOR.get(tid, (0, []))
     return dict(id=tid, build=build, seeds=seeds, group=group, rim=rim,
-                decor=decor, decor_permille=permille)
+                decor=decor, decor_permille=permille,
+                extra=_extras(tid, seeds, group) if rim is not None else {})
 
 
 #: Four paintings of every fill, and the 47-case blob set for the seven
@@ -2764,7 +2797,6 @@ VARIANT_SPECS = [
       "ruin", RIM_RUIN_ALGAE),
     V(222, t_ruin_wall, [2221, 22211, 22212], "ruin_bg", RIM_RUIN_BG),
     V(223, t_ruin_silt, [2231, 22311, 22312, 22313]),
-    V(224, t_ruin_deep, [2241, 22411, 22412, 22413, 22414, 22415]),
     V(225, t_ruin_column, [2251, 22511, 22512, 22513]),
     V(226, t_ruin_slab, [2261, 22611, 22612, 22613]),
     V(228, t_ruin_grate, [2281, 22811, 22812]),
@@ -2778,7 +2810,6 @@ VARIANT_SPECS = [
       "heights", RIM_HEIGHTS_SUN),
     V(242, t_heights_wall, [2421, 24211, 24212], "heights_bg", RIM_HEIGHTS_BG),
     V(243, t_heights_scree, [2431, 24311, 24312, 24313]),
-    V(244, t_heights_air, [2441, 24411, 24412, 24413, 24414, 24415]),
     V(245, t_heights_stack, [2451, 24511, 24512, 24513]),
     V(246, t_heights_plank, [2461, 24611, 24612, 24613]),
     V(248, t_heights_chain, [2481, 24811, 24812]),
@@ -2791,7 +2822,6 @@ VARIANT_SPECS = [
     V(261, t_deep_crust, [2611, 26111, 26112], "deeps", RIM_DEEPS_CRUST),
     V(262, t_deep_comb, [2621, 26211, 26212], "deeps_bg", RIM_DEEPS_BG),
     V(263, t_deep_chitin, [2631, 26311, 26312, 26313]),
-    V(264, t_deep_void, [2641, 26411, 26412, 26413, 26414, 26415]),
     V(265, t_deep_root, [2651, 26511, 26512, 26513]),
     V(266, t_deep_shelf, [2661, 26611, 26612, 26613]),
     V(268, t_deep_ladder, [2681, 26811, 26812]),
@@ -2805,7 +2835,6 @@ VARIANT_SPECS = [
       "nest", RIM_NEST_HOT),
     V(282, t_nest_wall, [2821, 28211, 28212], "nest_bg", RIM_NEST_BG),
     V(283, t_nest_block, [2831, 28311, 28312, 28313]),
-    V(284, t_nest_void, [2841, 28411, 28412, 28413, 28414, 28415]),
     V(285, t_nest_flue, [2851, 28511, 28512, 28513]),
     V(286, t_nest_ledge, [2861, 28611, 28612, 28613]),
     V(288, t_nest_chain, [2881, 28811, 28812]),
@@ -2820,6 +2849,9 @@ def _cases_for(spec):
     interior case; autotiled ones have all 47, each built by dressing the edges
     of one of the interior paintings."""
     interiors = [spec["build"](s) for s in spec["seeds"]]
+    if spec["id"] in tiles_p3.INKED:
+        for img in interiors:
+            tiles_p3.ink_interactive(img)
     cases = {MASK_FULL: interiors}
     rim = spec["rim"]
     if rim is None:
@@ -2837,9 +2869,20 @@ def _cases_for(spec):
             img = interior.copy()
             paint_edges(img, m, rim,
                         random.Random(spec["seeds"][0] * 131 + m * 17 + i),
-                        group=spec["group"])
+                        group=spec["group"], tid=spec["id"])
             imgs.append(img)
         cases[m] = imgs
+    # Phase 3's extra paintings, appended after the originals so every index
+    # an earlier build handed out still names the painting it always did.
+    for m, extra in sorted(spec.get("extra", {}).items()):
+        for seed, acc in extra:
+            img = spec["build"](seed)
+            if m != MASK_FULL:
+                paint_edges(img, m, rim, random.Random(seed * 131 + m * 17),
+                            group=spec["group"], tid=spec["id"])
+            if acc is not None:
+                tiles_p3.accent(img, spec["group"], spec["id"], acc, seed + 5)
+            cases[m].append(img)
     return cases
 
 
@@ -2894,6 +2937,7 @@ def build_variants():
         "groups": groups,
         "group_members": {k: sorted(v) for k, v in sorted(GROUPS.items())},
         "tiles": tiles,
+        "contact_shadow": tiles_p3.contact_shadow_manifest(),
     }
     return extra, manifest
 
@@ -2911,6 +2955,7 @@ def build_tileset():
         i = VARIANT_BASE + j
         img.alpha_composite(t, ((i % cols) * TS, (i // cols) * TS))
     img.save(os.path.join(TILES, "tileset.png"))
+    tiles_p3.contact_shadow_sheet().save(os.path.join(TILES, "contact_shadow.png"))
     path = os.path.join(TILES, "variants.json")
     with open(path, "w") as f:
         json.dump(manifest, f, indent=1, sort_keys=False)

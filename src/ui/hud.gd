@@ -1,11 +1,27 @@
 extends Control
-## In-level HUD: hearts, score, gems, keys and a level-name banner on entry.
+## In-level HUD: Kaya's portrait, hearts, score, gems, keys and a level-name
+## banner on entry.
 
 const HEART_FULL := Rect2(16, 0, 16, 16)      ## frame 1 of pickups.png
 const GEM := Rect2(0, 0, 16, 16)              ## frame 0
 const KEY_FRAMES := {"yellow": 2, "red": 3, "cyan": 4}
+## Kaya Refit phase 3: her portrait, cut from the 40 px puppet by
+## tools/art/hud_portrait.py. Frame 0 smiling, frame 1 eyes shut. Top-left of
+## the world rect, which no touch layout ever draws on: on a phone the controls
+## sit in the side margins, on a tablet in the bottom margin, and with no
+## margin at all they fall back to the bottom corners (src/ui/touch_controls.gd).
+const PORTRAIT_PATH := "res://assets/sprites/hud_portrait.png"
+const PORTRAIT_SIZE := 24
+const PORTRAIT_AT := Vector2(3, 3)
+## How long the eyes-shut frame holds after a hit.
+const PORTRAIT_WINCE_S := 0.6
+## The hearts and keys start right of the portrait.
+const ROW_X := 30.0
 
 var _pickups: Texture2D = null
+var _portrait: Texture2D = null
+var _wince_t := 0.0
+var _last_health := -1
 var _banner := ""
 var _banner_t := 0.0
 var _msg := ""
@@ -15,7 +31,23 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	_pickups = load("res://assets/sprites/pickups.png")
-	Game.stats_changed.connect(queue_redraw)
+	_portrait = load(PORTRAIT_PATH)
+	_last_health = Game.health
+	Game.stats_changed.connect(_on_stats_changed)
+
+func _on_stats_changed() -> void:
+	if Game.health < _last_health:
+		_wince_t = PORTRAIT_WINCE_S
+	_last_health = Game.health
+	queue_redraw()
+
+## The portrait's rect in the world rect, for the touch-layout tests.
+static func portrait_rect() -> Rect2:
+	return Rect2(PORTRAIT_AT, Vector2(PORTRAIT_SIZE, PORTRAIT_SIZE))
+
+## Which portrait frame is showing: 1 (eyes shut) while wincing or down.
+func portrait_frame() -> int:
+	return 1 if _wince_t > 0.0 or Game.health <= 0 else 0
 
 func set_level_name(n: String) -> void:
 	_banner = n
@@ -30,6 +62,7 @@ func flash_message(m: String, seconds: float = 1.4) -> void:
 func _process(delta: float) -> void:
 	_banner_t = maxf(0.0, _banner_t - delta)
 	_msg_t = maxf(0.0, _msg_t - delta)
+	_wince_t = maxf(0.0, _wince_t - delta)
 	# The boss bar and the form meter track live values, so the HUD redraws
 	# every frame. At 400x240 that is a handful of quads.
 	queue_redraw()
@@ -41,9 +74,14 @@ func _draw() -> void:
 	var origin := Screen.world_rect_in_ui(get_viewport()).position
 	draw_set_transform(origin, 0.0, Vector2.ONE)
 	var W := float(Game.SCREEN_W)
+	# portrait
+	if _portrait != null:
+		var sz := float(PORTRAIT_SIZE)
+		draw_texture_rect_region(_portrait, portrait_rect(),
+			Rect2(float(portrait_frame()) * sz, 0.0, sz, sz))
 	# hearts
 	for i in Game.max_health:
-		var p := Vector2(4 + i * 11, 4)
+		var p := Vector2(ROW_X + i * 11, 4)
 		var col := Color(1, 1, 1, 1) if i < Game.health else Color(0.12, 0.12, 0.16, 0.85)
 		draw_texture_rect_region(_pickups, Rect2(p, Vector2(16, 16)), HEART_FULL, col)
 	# gems
@@ -54,7 +92,7 @@ func _draw() -> void:
 	PixelFont.draw_shadowed(self, Vector2(W - 54, 8), "%06d" % Game.score,
 		Color(0.96, 0.86, 0.4))
 	# keys
-	var kx := 4.0
+	var kx := ROW_X
 	for color: String in ["yellow", "red", "cyan"]:
 		var n := int(Game.keys.get(color, 0))
 		if n <= 0:

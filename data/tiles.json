@@ -252,7 +252,8 @@
       "solid": true
     },
     "224": {
-      "name": "ruin_deep"
+      "name": "ruin_deep",
+      "see_through": true
     },
     "225": {
       "name": "ruin_column"
@@ -297,7 +298,8 @@
       "solid": true
     },
     "244": {
-      "name": "heights_air"
+      "name": "heights_air",
+      "see_through": true
     },
     "245": {
       "name": "heights_stack"
@@ -342,7 +344,8 @@
       "solid": true
     },
     "264": {
-      "name": "deep_void"
+      "name": "deep_void",
+      "see_through": true
     },
     "265": {
       "name": "deep_root"
@@ -387,7 +390,8 @@
       "solid": true
     },
     "284": {
-      "name": "nest_void"
+      "name": "nest_void",
+      "see_through": true
     },
     "285": {
       "name": "nest_flue"

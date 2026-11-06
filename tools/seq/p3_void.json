@@ -1,0 +1,7 @@
+[
+  {"_": "Phase 3: each new world's void is see-through, so its parallax shows. One frame per world, framed on open space."},
+  {"scenario": "level:heights_1", "settle": 120}, {"shot": "shots/p3_void_heights.png"},
+  {"scenario": "level:nest_2", "settle": 120}, {"shot": "shots/p3_void_nest.png"},
+  {"scenario": "level:deeps_2", "settle": 120}, {"shot": "shots/p3_void_deeps.png"},
+  {"scenario": "level:ruins_3", "settle": 120}, {"shot": "shots/p3_void_ruins.png"}
+]

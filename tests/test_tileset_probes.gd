@@ -1,4 +1,22 @@
 extends TestCase
+
+
+## Tiles flagged `see_through` in data/tiles.json are blank on purpose: they are
+## where a world's parallax backdrop shows (refit phase 3). The "has art" and
+## "is not another world's art" checks below exist to catch a role left blank
+## or borrowed by accident, so they skip exactly these ids and nothing else;
+## tests/test_art_palette.gd separately requires that a see-through tile IS blank.
+static var _see_through_ids: Dictionary = {}
+
+static func _see_through(id: int) -> bool:
+	if _see_through_ids.is_empty():
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/tiles.json"))
+		var tiles: Dictionary = (parsed as Dictionary).get("tiles", {})
+		for k: String in tiles.keys():
+			if bool((tiles[k] as Dictionary).get("see_through", false)):
+				_see_through_ids[int(k)] = true
+		_see_through_ids[-1] = false      # loaded marker, never a real id
+	return _see_through_ids.has(id) and bool(_see_through_ids[id])
 ## Tileset probes: the smallest artefact that proves a world's art and data are
 ## actually wired to each other.
 ##
@@ -661,6 +679,8 @@ func test_the_deeps_art_is_not_the_jungle_wearing_a_different_id() -> void:
 			continue
 		var d := int(DEEPS_IDS[ch])
 		var j := int(jungle[ch])
+		if _see_through(d):
+			continue
 		gt(float(_painted(img, d, cols)), 0.0,
 			"deeps role '%s' (cell %d) has no art at all" % [ch, d])
 		ne(_digest(img, d, cols), _digest(img, j, cols),
@@ -1050,6 +1070,8 @@ func test_the_nest_art_is_not_another_world_wearing_a_different_id() -> void:
 	var jungle := LevelLoader.legend_for("jungle")
 	for ch: String in NEST_IDS.keys():
 		var n := int(NEST_IDS[ch])
+		if _see_through(n):
+			continue
 		gt(float(_painted(img, n, cols)), 0.0,
 			"nest role '%s' (cell %d) has no art at all" % [ch, n])
 		if jungle.has(ch):
@@ -1100,7 +1122,7 @@ func test_every_probe_resolves_to_atlas_cells_that_exist_and_are_painted() -> vo
 					continue
 				seen[c] = true
 				lt(float(c), float(cells), "%s %s resolves cell %d off the sheet" % [name, layer, c])
-				if c < cells:
+				if c < cells and not _see_through(c):
 					gt(float(_painted(img, c, cols)), 0.0,
 						"%s %s draws blank atlas cell %d" % [name, layer, c])
 	gt(float(seen.size()), 20.0, "the probes are not a stub: %d distinct paintings" % seen.size())
@@ -1120,6 +1142,8 @@ func test_the_heights_art_is_not_the_jungle_wearing_a_different_id() -> void:
 			continue
 		var h := int(HEIGHTS_IDS[ch])
 		var j := int(jungle[ch])
+		if _see_through(h):
+			continue
 		gt(float(_painted(img, h, cols)), 0.0,
 			"heights role '%s' (cell %d) has no art at all" % [ch, h])
 		ne(_digest(img, h, cols), _digest(img, j, cols),

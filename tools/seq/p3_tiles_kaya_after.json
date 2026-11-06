@@ -1,0 +1,150 @@
+[
+ {
+  "_": "Kaya Refit phase 3, tiles: the phase 1 contrast sequence (refit_hero_contrast.json), idle and run at each world's start, after the tile pass. Settles 300 frames, so the level-name banner has gone."
+ },
+ {
+  "scenario": "level:jungle_1",
+  "settle": 300
+ },
+ {
+  "log": "shots/p3_tiles_kaya_after_jungle_idle.png"
+ },
+ {
+  "shot": "shots/p3_tiles_kaya_after_jungle_idle.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "hold": "move_right",
+  "frames": 26
+ },
+ {
+  "log": "shots/p3_tiles_kaya_after_jungle_run.png"
+ },
+ {
+  "shot": "shots/p3_tiles_kaya_after_jungle_run.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "release": "move_right"
+ },
+ {
+  "scenario": "level:ruins_1",
+  "settle": 300
+ },
+ {
+  "log": "shots/p3_tiles_kaya_after_ruins_idle.png"
+ },
+ {
+  "shot": "shots/p3_tiles_kaya_after_ruins_idle.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "hold": "move_right",
+  "frames": 26
+ },
+ {
+  "log": "shots/p3_tiles_kaya_after_ruins_run.png"
+ },
+ {
+  "shot": "shots/p3_tiles_kaya_after_ruins_run.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "release": "move_right"
+ },
+ {
+  "scenario": "level:heights_1",
+  "settle": 300
+ },
+ {
+  "log": "shots/p3_tiles_kaya_after_heights_idle.png"
+ },
+ {
+  "shot": "shots/p3_tiles_kaya_after_heights_idle.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "hold": "move_right",
+  "frames": 26
+ },
+ {
+  "log": "shots/p3_tiles_kaya_after_heights_run.png"
+ },
+ {
+  "shot": "shots/p3_tiles_kaya_after_heights_run.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "release": "move_right"
+ },
+ {
+  "scenario": "level:deeps_1",
+  "settle": 300
+ },
+ {
+  "log": "shots/p3_tiles_kaya_after_deeps_idle.png"
+ },
+ {
+  "shot": "shots/p3_tiles_kaya_after_deeps_idle.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "hold": "move_right",
+  "frames": 26
+ },
+ {
+  "log": "shots/p3_tiles_kaya_after_deeps_run.png"
+ },
+ {
+  "shot": "shots/p3_tiles_kaya_after_deeps_run.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "release": "move_right"
+ },
+ {
+  "scenario": "level:nest_1",
+  "settle": 300
+ },
+ {
+  "log": "shots/p3_tiles_kaya_after_nest_idle.png"
+ },
+ {
+  "shot": "shots/p3_tiles_kaya_after_nest_idle.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "hold": "move_right",
+  "frames": 12
+ },
+ {
+  "log": "shots/p3_tiles_kaya_after_nest_run.png"
+ },
+ {
+  "shot": "shots/p3_tiles_kaya_after_nest_run.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "release": "move_right"
+ }
+]

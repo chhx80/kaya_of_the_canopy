@@ -247,6 +247,22 @@ static func allows_scale(anim: String, chosen: String) -> bool:
 	return anim == chosen
 
 
+## Whether a vertical stretch of `scale_y` still fits under the ceiling. The
+## stretch is pinned at the feet, so the whole drawn height (hitbox plus the
+## frame's rise above it) grows by `scale_y`. `choose()` and `nudge_y()` reason
+## about the UNscaled rise, so without this the launch stretch drew 1-2 px into
+## the rock exactly where the headroom equals the frame: five frames across
+## deeps_2, heights_3 and ruins_4 in `tools/clipgate.sh --all-forms`.
+static func allows_stretch(form: FormBase, anim: String, world: TileWorld, pos: Vector2,
+		box: Vector2, scale_y: float) -> bool:
+	if not enabled or scale_y <= 1.0 or world == null:
+		return true
+	var pose: Dictionary = form.cfg.get("pose", {})
+	var r := rise(form, anim, box)
+	var need := (box.y + r) * scale_y - box.y
+	return headroom(world, pos, box, need, float(pose.get("headroom_reach", 0.0))) >= need
+
+
 ## Per-frame, per-row opaque extents of a sheet, from the `.bounds.json` the art
 ## generator writes beside it (tools/art/kaya40.py write_bounds). Cached; an
 ## empty array when the form has none, which turns the wall nudge off.

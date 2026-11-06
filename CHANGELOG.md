@@ -2811,3 +2811,220 @@ checked the exit code. Fixed here by `tools/sync_ios_project.sh`.
 Still unverified: frame rate on an iPhone (Mac only so far: worst physics tick
 ~1.9 ms, +0.15 ms per uncapped frame), and how continuous parallax looks in
 motion to a person.
+
+## Refit phase 3 — Kaya's animal forms (branch `p3/forms`)
+
+**The frog, fish and bird are redrawn to stand beside the 40 px Kaya.** They
+were 16x16 hand-written grids from the first art pass; now they come from
+`tools/art/forms40.py`, built the way she is (parts placed by coordinates,
+inked, lit by `auto_shade` with her settings, selective outline) and from her
+materials, so each reads as *her*, transformed: the green of her top, the
+yellow of her shorts, the bead necklace, red sandals as the bird's feet, her
+long dark hair as the bird's tail, and her straw hat, shrunk, on every one.
+Cells are 24x16 (frog, bird) and 24x14 (fish), drawings 19-22 px across.
+Every frame index the data used before still means the same beat.
+
+**Collision did not change.** Hitboxes are 12x11 / 14x9 / 12x9 as before; only
+`frame_w`, `frame_h` and the render anchor `ox`/`oy` moved (the hitbox is now
+centred at the bottom of the cell: its bottom row is the feet).
+
+**A bigger drawing on the same small hitbox, handled the way hers is.** Each
+form's json gains a `pose` block and `forms40.py` writes a `.bounds.json` beside
+each sheet, so `KayaPose` (unchanged) nudges the drawn frame off a wall or down
+from a ceiling. Rules the generator asserts and `tests/test_forms40.gd` checks
+on the shipped sheets: nothing below the hitbox; at most 16 - 1 - h px above
+it (a one-tile tunnel, with kaya40's pixel of rounding spare); the frog's cling
+entirely inside the hitbox's columns (in game it is drawn front-to-the-wall,
+flipped or not -- the gate showed it); narrow frames at most 16 px wide. New
+frames after the old indices: frog 9-10 (a back view for one-tile shafts, also
+its `stoop`), fish 6-7 (curled, for shafts).
+
+**`tools/clipgate.sh --all-forms`: from 19 failing tapes to 3.** It had never
+passed: the old 16 px art drew below its own hitbox (1,261 frog-idle frames
+in the floor) and had no wall or ceiling handling -- 19 of 26 tapes clipped.
+Now 5 frames in 3 tapes clip, all the same mechanism outside this branch: the
+launch stretch (`Player.STRETCH_MAX`, up to 1.15 tall) under a ceiling whose
+headroom equals the frame's unscaled rise. `KayaPose`'s headroom test ignores
+the stretch. With the stretch switched off locally (not committed) all three
+tapes pass. See REPORT.md for the proposed fix. Seen failing on purpose: 3 px
+painted into the cling frames' wall side fails all 11 tape cling frames.
+
+## Refit phase 3 — enemies and the five bosses at Kaya's scale (branch `p3/enemies`)
+
+**All seven enemies and all five bosses are redrawn** by a new module,
+`tools/art/enemies40.py`, the way `kaya40.py` draws Kaya: posed parts
+(ellipses, tapered capsules, polygons, two-bone IK limbs) placed by a few
+numbers per frame, rasterised into the character grid, lit by `auto_shade` and
+inked by the selective outline. Colours and identities are kept (purple beetle,
+ember hopper, purple bloom, cyan-and-red piranha, brown boar, grey tick, gold
+wasp; the five bosses' phase colours), and every sheet stays on the material
+ramps. `sprites.py` and `sprites_enemies_v2.py` changed only at their
+`sheet(...)` calls, which now hand off to `enemies40.build_sheet()`.
+
+- Enemies are 32x24 / 32x32 cells (were 16x16), with more frames: 6-frame walk,
+  swim and wing cycles; the charger has a 3-beat wind-up, 4-frame charge and
+  2-frame daze; the dropper a 4-frame shiver, 2-frame fall and 6-frame crawl;
+  the shooter an idle sway; the jumper a second air and a landing recovery.
+- Bosses are 64x64 (were 48x48), ten poses per phase (30 frames, were 21):
+  idle is now two frames (a breath), walk four.
+- Each telegraph is drawn as a change of outline first:
+  charger: crest stands up gold, head drops, hoof paws, eye goes red;
+  jumper: hind knees fold up above the back; shooter: petals flare, throat
+  lights; dropper: legs come off the ceiling, eyes go red; bosses keep their
+  tells (Warden's slam crouch, the Maw's gape, Stormcrest's legless diagonal
+  in the air, the Queen's and the Heart's lit attack frames).
+
+**Collision did not move.** Every `hitbox` in `data/enemies/*.json` is
+byte-for-byte what it was. The bigger frame is anchored by a new `render`
+block (`ox`/`oy`), read by `src/enemies/enemy_base.gd` in place of the
+hitbox's own anchor (with the hitbox as fallback). The JSON changes are
+`frame_w`, `frame_h`, `render` and the `anim` frame lists, nothing else.
+
+**`tests/test_enemies40.gd`** measures the shipped sheets: the anchor centres
+each box; every frame still fills its hurtbox (floors set at or above the
+sheets they replaced, except the Warden 0.72→0.68 and the Queen 0.64→0.61);
+no frame is mostly outside its box; and each named tell is a number: the
+charger's held crest tops every patrol, charge and daze frame; the coiled
+jumper is taller than the sitting one; the flared bloom is wider than any
+sway; every shiver frame grips the ceiling less than the cling; the
+Stormcrest's airborne frames have no pixels on the floor rows and every roost
+frame does; every Queen and Heart attack frame is brighter than every rest
+frame of its phase. Two things the test caught while it was being written:
+the dazed boar's stars floated as high as its raised crest (lowered), and the
+Queen's 64 px shading made her pale body as bright as her attack rim (body
+steps lowered; her phase-2/3 attack frames now outshine her rest frames,
+which the 48 px sheet's did not). `test_combat_data.gd` reads the anchor
+from `render`.
+
+Screenshots: `shots/p3_enemies_*.png` (sheets with hitboxes drawn, in-game
+1x frames of every tell, and zoomed strips of them).
+
+## Refit phase 3 — the five tilesets (branch `p3/tiles`)
+
+The tiles were authored for a 16 px hero; under the 40 px Kaya their edges
+were the weakest thing on the screen. Collision is untouched: no id, flag,
+size or hitbox moved, and `data/tiles.json`, `level_legend.json` and
+`levels/**` are byte-identical. New drawing code lives in
+`tools/art/tiles_p3.py`; `tools/art/tiles.py` only calls it.
+
+**The refit rim.** Every standable material's exposed edges are now set to
+*named* ramp steps rather than nudged by one: a two-row lip on a top face with
+sparse glints above it, the underside at the bottom of its ramp, the shadow
+cheek a step down, and a 1 px chip off each convex corner. The phase C course
+(`edge_light_course`, and `tools/check_edge_light.py`'s contract on it) is
+unchanged; the rim runs after it.
+
+**Contact shadows.** `assets/tiles/contact_shadow.png` (generated: ink at
+partial alpha, five cells) is laid by the *foreground* renderer into every
+empty cell with a background tile behind it, on the sides where static solid
+ground touches it: cast deep from above and from the left, shallow occlusion
+from below and the right, and the corner a lone solid up-left throws.
+`TileVariants.contact_bits()` decides it (pure, unit-tested); switch blocks
+and breakables never cast, because they can vanish without their neighbours
+re-recording. `TileRenderer.refresh_tile()` now re-records the neighbouring
+chunks too, so an opened door takes its shadow with it. Off in the top-down
+hub. Absent manifest block, absent shadows.
+
+**Variety.** The commonest exposed cases, counted over all 27 levels — the top
+of a floor (mask 124) and the one-tile-thick strip (68) — get four more
+paintings per standable material, two of them carrying one accent (a pebble
+set in the lip, a chip out of it, a crack, a root breaking the surface, a
+flower on the sod, a flake of glass, an ember seam). Every background wall gets
+three more interiors. Appended after the existing paintings, 63 cells; the
+atlas is 256x3776, inside the 4096 px limit.
+
+**Clean fills.** `fill()` resolves its grain to whole ramp steps instead of
+through the Bayer matrix; the grain's random stream is unchanged, so every
+structure drawn over a fill is where it was. The flat backgrounds behind Kaya
+(18, 264, 284, 15) lose their checkerboard.
+
+**THERMAL HEIGHTS re-valued.** The gallery fill (244) was `metal` 5 — under
+heights' gold tint it landed at the value and hue of her straw hat. It is now
+cool `stone` 4 with `stone` 5 wind streaks; the cloud accent (250) moved with
+it. Measured on the in-game frames (`tools/p3_tiles_sheets.py kaya`, hat minus
+the scenery 3-5 px around it): idle +42 → +72 luma, run +4 → +54, saturation
+separation +0.47 → +0.55 and +0.48 → +0.62. Kaya was not changed.
+
+**Inked interactables.** The legibility sheet measured ladders 12-24 luma off
+their walls and the Nest's shards 18. Every ladder, one-way and hazard is now
+lifted one ramp step and inked with a 1 px halo — Kaya's own language: things
+you act on are inked, scenery is not. The Nest's shards have glowing tips.
+
+**Proof.** `tools/p3_tiles_legend.py` (run as `tools/p3_tiles_sheets.py
+legend`) composites every gameplay role of each world side by side on its own
+wall, at 1x and 3x, under the world's real ambient tints and contact shadows:
+`shots/p3_tiles_legibility_<world>.png`, `_all.png`. Before/after in the
+running game: `shots/p3_tiles_kaya_sheet.png` (Kaya at each world's start,
+same frame, HEAD's tiles vs these), `shots/p3_tiles_{before,after}_*.png`
+(mid-run on each level's real proof tape), `shots/p3_tiles_zoom_3x.png`.
+Tests: seven unit tests in `test_tile_variants.gd` (contact bits, the sheet,
+casters, accents) and one integration check (ROOT HOLLOW lays >100 shadow
+strips, the background layer and the hub none, no id moved).
+
+## Kaya Refit phase 3 — parallax backdrops for all worlds, and the HUD portrait
+
+**Parallax ran backwards, and has since art phase 3.** `ParallaxBg` computed a
+plane's screen offset from `view.x * (1 - factor)`, so the sky (0.10) scrolled
+at 90% of the tiles and the near-foreground grass (0.82) at 18%: the furthest
+plane moved fastest. The screen flip hid it; the follow camera made it the
+biggest thing on screen. Fixed to `view.x * factor`, which is what the doc
+comment and level.gd's factors always meant, and pinned by
+`tests/test_parallax_bg.gd` as numbers, because no screenshot can show it.
+
+**Strips with slack.** Every strip was exactly one screen, so it could only be
+locked to the view vertically and a near plane repeated every two thirds of a
+screen. `data/parallax.json` now sizes each plane: wider than the view plus
+one level of its own travel (sky 448, far 512, near 640, fg 736), and taller
+by its factor times a screen of vertical travel (264 / 307 / 379 / 437). The
+slack is mapped across the level height, so on the two-screen levels every
+plane scrolls vertically at its own factor and its edge never shows; a
+one-screen level shows the strip's floor. Wraps are seamless and draw counts
+are unchanged (at most two copies per plane, tested).
+
+**The art.** `tools/art/parallax_worlds.py` repaints all six backdrop sets
+(jungle, sky, ruins, heights, deeps, obsidian) with brushes drawn at Kaya's
+scale — leaves rather than blobs, bark, buttress roots, lianas, fronds,
+cumulus with lit tops, coursed masonry, gullied peaks, smoke. Depth is still
+held by each plane's ramp window (no plane may out-contrast the tiles), and no
+ramps were added: the palette test pins the count. Backdrop trunks stay on
+`foliage`, never the warm `wood` the level's climbable trunks are made of.
+The old one-screen painters are gone from `backdrops.py`.
+
+**HUD portrait.** Kaya's head and shoulders beside the hearts, cut from the
+puppet's own front view by `tools/art/hud_portrait.py` (frame 0 smiling,
+frame 1 eyes shut for 0.6 s after a hit). Top-left of the world rect, clear of
+every touch layout; tested against the overlay fallback at the largest touch
+size.
+
+**Not visible in play:** every ruins, heights, deeps and nest level fills its
+background layer with wall tiles (0 open cells), so only jungle_1, jungle_4
+and jungle_5 show a backdrop. `tools/bg_preview.gd` renders a world's planes
+through the real `ParallaxBg` so the others can be seen at all.
+
+## Refit phase 3 integrated — forms, enemies, tiles and backdrops at Kaya's level
+
+Four parallel branches merged and verified together, every gate by exit code:
+validate 0, itest 0 (968 checks), prove 0 (21 PROVED + 5 PARTIAL boss levels),
+`clipgate --all-forms` 0 (24,683 tape frames + 370,094 swept), all five
+bossgates 0, `sync_ios_project.sh` 0, then test 0 (430 tests).
+
+Three defects found at integration and fixed here:
+
+1. **Take-off stretch drew the animal forms into low ceilings.** `player.gd`
+   stretches the sprite up to 15% on launch, but the pose decision measured
+   headroom against the unstretched frame. `KayaPose.allows_stretch` now drops
+   the stretch for the tick when the stretched frame would not fit. The forms
+   gate went from 5 clipping frames to none.
+2. **Boss strategy tapes went stale on a render-only edit.** Their hash covers
+   the raw boss JSON, so changing a sprite's frame size staled all five.
+   Re-stamped; each tape still kills its boss on unchanged inputs with hearts
+   to spare, which is the gate's own `defeatable` replay. The hash covering
+   render fields is worth narrowing later.
+3. **Four worlds of new backdrop art were never visible.** Levels in worlds
+   2-5 fill their background with void and back-wall tiles. By the user's
+   choice the void tile of each world (224, 244, 264, 284) is now painted empty
+   and flagged `see_through` in `data/tiles.json`; back-walls stay solid, so
+   caves still read as enclosed. Coverage is uneven by design: heights and nest
+   open up widely (heights_1 696 void vs 636 wall), ruins and deeps barely
+   (ruins_1 59 vs 1,324). `test_art_palette` requires a see-through tile to be
+   blank, and the tileset-probe tests skip exactly those ids.

@@ -1,0 +1,47 @@
+[
+ {
+  "_": "Phase 3 tiles: Kaya mid-run over each tileset on the level's real proof tape, before the tile pass. Same tape, same frames, so before/after compare pixel-for-pixel."
+ },
+ {
+  "tape": "jungle_2",
+  "shots": "shots/p3_tiles_before_jungle_2_%d.png",
+  "every": 240,
+  "max": 5,
+  "skip": 120
+ },
+ {
+  "tape": "ruins_1",
+  "shots": "shots/p3_tiles_before_ruins_1_%d.png",
+  "every": 240,
+  "max": 5,
+  "skip": 120
+ },
+ {
+  "tape": "heights_1",
+  "shots": "shots/p3_tiles_before_heights_1_%d.png",
+  "every": 240,
+  "max": 5,
+  "skip": 120
+ },
+ {
+  "tape": "heights_2",
+  "shots": "shots/p3_tiles_before_heights_2_%d.png",
+  "every": 240,
+  "max": 5,
+  "skip": 120
+ },
+ {
+  "tape": "deeps_2",
+  "shots": "shots/p3_tiles_before_deeps_2_%d.png",
+  "every": 240,
+  "max": 5,
+  "skip": 120
+ },
+ {
+  "tape": "nest_1",
+  "shots": "shots/p3_tiles_before_nest_1_%d.png",
+  "every": 240,
+  "max": 5,
+  "skip": 120
+ }
+]

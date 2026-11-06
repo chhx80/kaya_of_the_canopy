@@ -266,7 +266,10 @@ func _update_anim(delta: float) -> void:
 	var frame := int(frames[_anim_i % frames.size()])
 	sprite.region_rect = Rect2(frame * _frame_size.x, 0, _frame_size.x, _frame_size.y)
 	sprite.flip_h = facing < 0
-	var hb: Dictionary = cfg.get("hitbox", {})
+	# Refit phase 3: the art's anchor is the `render` block (where the box sits
+	# in the frame), so a bigger frame never meant touching a hitbox. A config
+	# without one anchors on the hitbox's own ox/oy, as every enemy used to.
+	var hb: Dictionary = cfg.get("render", cfg.get("hitbox", {}))
 	var ox := -float(hb.get("ox", 1))
 	var oy := -float(hb.get("oy", 2))
 	sprite.offset = Vector2(ox, oy)

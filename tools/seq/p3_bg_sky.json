@@ -1,0 +1,11 @@
+[
+  {"_": "Phase 3 backdrops on SKY BRANCH, top and floor of the level. tools/shot.sh --seq=tools/seq/p3_bg_sky.json"},
+  {"scenario": "level:jungle_4", "settle": 160},
+  {"shot": "shots/p3_bg_sky_0.png"},
+  {"teleport": [30, 3], "settle": 30},
+  {"shot": "shots/p3_bg_sky_1.png"},
+  {"teleport": [8, 24], "settle": 30},
+  {"shot": "shots/p3_bg_sky_2.png"},
+  {"teleport": [40, 24], "settle": 30},
+  {"shot": "shots/p3_bg_sky_3.png"}
+]
