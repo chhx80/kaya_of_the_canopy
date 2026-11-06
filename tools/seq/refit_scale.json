@@ -1,0 +1,9 @@
+[
+  {"_": "Kaya refit phase 0: real frames to composite the 40px hero onto for scale."},
+  {"scenario": "level:jungle_1", "settle": 90},
+  {"log": "jungle_1 spawn"},
+  {"shot": "shots/refit_01_bg_jungle.png"},
+  {"scenario": "level:deeps_2", "settle": 90},
+  {"log": "deeps_2 spawn"},
+  {"shot": "shots/refit_01_bg_deeps.png"}
+]

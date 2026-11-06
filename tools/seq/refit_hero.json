@@ -1,0 +1,158 @@
+[
+ {
+  "_": "Kaya refit phase 1: the 40px hero in the running game. Idle, run, the stoop in deeps_2's spawn tunnel, the slung hat in its one-tile vine shaft, the swim, the hub."
+ },
+ {
+  "scenario": "level:jungle_1",
+  "settle": 90
+ },
+ {
+  "log": "shots/refit_10_idle.png"
+ },
+ {
+  "shot": "shots/refit_10_idle.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "hold": "move_right",
+  "frames": 26
+ },
+ {
+  "log": "shots/refit_10_run.png"
+ },
+ {
+  "shot": "shots/refit_10_run.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "release": "move_right"
+ },
+ {
+  "scenario": "level:deeps_2",
+  "settle": 90
+ },
+ {
+  "log": "shots/refit_11_stoop.png"
+ },
+ {
+  "shot": "shots/refit_11_stoop.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "hold": "move_right",
+  "frames": 12
+ },
+ {
+  "log": "shots/refit_11_stoop_walk.png"
+ },
+ {
+  "shot": "shots/refit_11_stoop_walk.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "release": "move_right"
+ },
+ {
+  "teleport": [
+   6.1,
+   8.5
+  ],
+  "settle": 2
+ },
+ {
+  "hold": "move_up",
+  "frames": 22
+ },
+ {
+  "log": "shots/refit_12_narrow_climb.png"
+ },
+ {
+  "shot": "shots/refit_12_narrow_climb.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "release": "move_up"
+ },
+ {
+  "scenario": "level:jungle_5",
+  "settle": 90
+ },
+ {
+  "teleport": [
+   10.2,
+   25.2
+  ],
+  "settle": 8
+ },
+ {
+  "log": "shots/refit_13_swim.png"
+ },
+ {
+  "shot": "shots/refit_13_swim.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "scenario": "level:ruins_4",
+  "settle": 90
+ },
+ {
+  "teleport": [
+   1.0,
+   12.625
+  ],
+  "settle": 6
+ },
+ {
+  "press": [
+   "move_left"
+  ],
+  "frames": 3
+ },
+ {
+  "release": "move_left"
+ },
+ {
+  "wait": 6
+ },
+ {
+  "log": "shots/refit_18_narrow_stoop.png"
+ },
+ {
+  "shot": "shots/refit_18_narrow_stoop.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "scenario": "hub",
+  "settle": 60
+ },
+ {
+  "hold": "move_right",
+  "frames": 20
+ },
+ {
+  "log": "shots/refit_14_hub.png"
+ },
+ {
+  "shot": "shots/refit_14_hub.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "release": "move_right"
+ }
+]

@@ -17,6 +17,7 @@
     "kaya_bird": true,
     "kaya_fish": true,
     "kaya_frog": true,
+    "kaya_hub": true,
     "kaya_human": true,
     "pickups": false,
     "projectiles": false,

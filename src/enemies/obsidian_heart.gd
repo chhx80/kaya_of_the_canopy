@@ -131,7 +131,7 @@ func _ready() -> void:
 	# inside the Heart, or the Heart could be standing in a bay that is about to
 	# close, and a boss stuck inside its own moving wall is the failure this
 	# number exists to make impossible.
-	var origin := Screen.origin(home_screen)
+	var origin := arena.position
 	var cols: Array = cfg.get("arena_cols", [])
 	if cols.size() == 2:
 		# An EXPLICIT column span, not a symmetric inset, and this is the one
@@ -146,12 +146,12 @@ func _ready() -> void:
 	else:
 		var inset := float(cfg.get("arena_inset", 8.0))
 		arena_min = origin.x + inset
-		arena_max = origin.x + Screen.W - inset - box.x
+		arena_max = origin.x + arena.size.x - inset - box.x
 	_floor_y = spawn_pos.y + box.y
 	t = 0.9
 
-## `Enemy.set_active_screen()` respawns a boss the first time the camera lands
-## on its screen, which is the moment the fight starts — and therefore the
+## `Level._update_arena()` respawns a boss the moment the camera locks to its
+## arena, which is the moment the fight starts — and therefore the
 ## moment the nest has to be in the configuration phase 1 names. It already is,
 ## because phase 1 IS `TileWorld`'s seeded default, but asserting it here rather
 ## than assuming it is what lets an approach with its own levers be added to
@@ -296,11 +296,11 @@ func _make_room_for_player() -> void:
 	if not _rect_hits_solid(p.aabb()):
 		return
 	var ts := float(TileData4.TILE_SIZE)
-	var origin := Screen.origin(home_screen)
+	var origin := arena.position
 	var col := int(floor(p.center().x / ts))
 	var col0 := int(origin.x / ts)
-	var col1 := col0 + int(Screen.W / ts) - 1
-	for step in int(Screen.W / ts):
+	var col1 := col0 + int(arena.size.x / ts) - 1
+	for step in int(arena.size.x / ts):
 		for dir in [1, -1]:
 			var c: int = col + dir * step
 			if c < col0 or c > col1:
@@ -579,16 +579,16 @@ func _slam() -> void:
 		if level == null or live >= cap:
 			continue
 		live += 1
-		var origin := Screen.origin(home_screen)
+		var origin := arena.position
 		level.spawn_entity({
 			"type": add_type,
-			"px": origin.x + 48.0 + float(i) * (Screen.W - 112.0),
+			"px": origin.x + 48.0 + float(i) * (arena.size.x - 112.0),
 			"py": pos.y - 8.0,
 		})
 
 ## How many hostile bodies are standing in the arena. Counted from the live
 ## scene rather than tallied on spawn, so one that walks into the blade comes
-## off the books — and counted BY SCREEN, because every other enemy in the level
+## off the books — and counted BY ARENA, because every other enemy in the level
 ## is in the same `enemies` group and counting the ones out in the flues would
 ## mean the garrison was full before the fight started.
 func live_adds() -> int:
@@ -597,7 +597,7 @@ func live_adds() -> int:
 		var e := node as Enemy
 		if e == null or e == self or not is_instance_valid(e) or e.level != level:
 			continue
-		if Screen.index_of(e.center(), Vector2i(999, 999)) != home_screen:
+		if not arena.has_point(e.center()):
 			continue
 		n += 1
 	return n

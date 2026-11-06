@@ -7,9 +7,10 @@ extends Node
 ## value the game needs, so an effect that fails to load costs a warning and
 ## nothing else. That is deliberate: juice must never be on the critical path.
 ##
-## Hitstop reuses `Game.sim_paused`, the flag the camera already freezes the
-## simulation with, and is careful never to take that flag away from the camera:
-## if a screen flip is mid-slide when the freeze ends, the slide keeps ownership.
+## Hitstop owns `Game.sim_paused`. The screen-flip camera used to share that
+## flag for its 120 ms slide; the follow camera never freezes anything, so the
+## only rule left is the one that matters: never clear a freeze this did not
+## set (a level transition, a debug freeze).
 
 const CONFIG_PATH := "res://data/fx.json"
 ## The freeze is bounded twice — here and in data — because a hitstop that never
@@ -113,7 +114,7 @@ func burst(kind: String, at: Vector2, dir: Vector2 = Vector2.ZERO) -> int:
 		return 0
 	return _field.burst(kind, at, dir)
 
-## Whether a point is on the screen the player is looking at. Bursts outside it
+## Whether a point is in the view the player is looking at. Bursts outside it
 ## are dropped rather than pooled: an off-screen gem must never be the reason a
 ## landing raises no dust. With no camera to ask, everything counts as visible.
 func in_view(at: Vector2) -> bool:
@@ -215,10 +216,6 @@ func _release_hitstop() -> void:
 	if not _hitstop_owned:
 		return
 	_hitstop_owned = false
-	# If a screen flip began while we were frozen, the slide now owns the flag
-	# and will clear it when it lands. Taking it back would unfreeze mid-slide.
-	if _cam != null and is_instance_valid(_cam) and _cam.is_sliding():
-		return
 	Game.sim_paused = false
 
 # ---------------------------------------------------------------- tick

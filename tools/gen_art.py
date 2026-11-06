@@ -256,7 +256,10 @@ def _form_frame(name):
     from PIL import Image
     img = Image.open(os.path.join(palette.SPRITES, "kaya_%s.png" % name))
     img = img.convert("RGBA")
-    w = img.height          # the sheets are one row of square-ish cells
+    # The animal sheets are one row of square cells; the 40 px Kaya's are
+    # 32x40 (tools/art/kaya40.py), and a square crop would take in 8 px of
+    # her second frame.
+    w = sprites.kaya40.W if name == "human" else img.height
     cells = img.width // w
     assert cells >= 1
     return img.crop((0, 0, w, img.height))

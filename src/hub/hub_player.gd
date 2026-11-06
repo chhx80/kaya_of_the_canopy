@@ -18,7 +18,9 @@ func _ready() -> void:
 	sprite = Sprite2D.new()
 	sprite.centered = false
 	sprite.region_enabled = true
-	sprite.texture = load("res://assets/sprites/kaya_human.png")
+	# The overworld keeps the 16x24 Kaya: the platformer's 40 px sprite would
+	# stand taller than the huts on a top-down map. tools/art/sprites.py.
+	sprite.texture = load("res://assets/sprites/kaya_hub.png")
 	sprite.offset = Vector2(-3, -14)
 	add_child(sprite)
 	_sync_render_position()
@@ -50,7 +52,7 @@ func _physics_process(delta: float) -> void:
 
 func _animate(delta: float) -> void:
 	var moving := vel.length() > 8.0
-	# Frames 2-9 of kaya_human.png are the eight-frame run cycle; 0 is the idle.
+	# Frames 2-9 of kaya_hub.png are the eight-frame run cycle; 0 is the idle.
 	var frames := [2, 3, 4, 5, 6, 7, 8, 9] if moving else [0]
 	if moving:
 		_anim_t += delta

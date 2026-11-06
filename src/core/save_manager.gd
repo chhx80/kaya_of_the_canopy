@@ -20,7 +20,6 @@ static func default_data() -> Dictionary:
 			"sfx": 0.8,
 			"touch_opacity": 0.5,
 			"touch_scale": 1.0,
-			"screen_flip": true,
 		},
 	}
 
@@ -62,7 +61,9 @@ static func migrate(old: Dictionary) -> Dictionary:
 		var settings: Dictionary = d.get("settings", {})
 		settings["touch_opacity"] = float(settings.get("touch_opacity", 0.5))
 		settings["touch_scale"] = float(settings.get("touch_scale", 1.0))
-		settings["screen_flip"] = bool(settings.get("screen_flip", true))
+		# The screen flip was retired by the refit; the camera always follows.
+		# An old save may still carry the key, and it is dropped, not obeyed.
+		settings.erase("screen_flip")
 		settings["music"] = float(settings.get("music", 0.7))
 		settings["sfx"] = float(settings.get("sfx", 0.8))
 		d["settings"] = settings

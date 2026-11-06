@@ -1,11 +1,11 @@
 {
-  "_comment": "Frames 20-30 are Phase A, docs/plan-art-motion.md: turn, skid, push, throw, catch, fidget. The 'turn' strip's timing is NOT driven by its fps/loop below — RenderFacingFSM in src/player/render_facing_fsm.gd paces it instead, guarded against coyote_time by tests/test_render_facing_fsm.gd. Frames 31-38 are Phase F: the idle dance, 8 original frames played twice through (player.gd repeats the list) at 8fps.",
+  "_comment": "Cells are 32x40 (tools/art/kaya40.py), feet on row 39 centred on column 16, so the unchanged 10x22 hitbox sits at ox 11, oy 18. Frames 39-45 are the stoop drawn under a ceiling lower than the sprite, 46-49 the swim, and 50-58 the slung-hat narrow set drawn where the space is narrower than the frame (a one-tile shaft is 16 px, the brim 21), 58 being its crouch for a space both low and narrow; src/player/kaya_pose.gd chooses them, render-only, using `pose` below, and tools/clipgate.sh proves the choice against every proof tape. Frames 20-30 are Phase A, docs/plan-art-motion.md: turn, skid, push, throw, catch, fidget. The 'turn' strip's timing is NOT driven by its fps/loop below — RenderFacingFSM in src/player/render_facing_fsm.gd paces it instead, guarded against coyote_time by tests/test_render_facing_fsm.gd. Frames 31-38 are Phase F: the idle dance, 8 original frames played twice through (player.gd repeats the list) at 8fps.",
   "id": "human",
   "display_name": "KAYA",
   "sprite": "res://assets/sprites/kaya_human.png",
-  "frame_w": 16,
-  "frame_h": 24,
-  "hitbox": { "w": 10, "h": 22, "ox": 3, "oy": 2 },
+  "frame_w": 32,
+  "frame_h": 40,
+  "hitbox": { "w": 10, "h": 22, "ox": 11, "oy": 18 },
 
   "move_mode": "ground",
   "can_attack": true,
@@ -50,6 +50,24 @@
     "fidget": { "frames": [28, 29, 30], "fps": 6, "loop": false },
 
     "dance":  { "frames": [31, 32, 33, 34, 35, 36, 37, 38,
-                            31, 32, 33, 34, 35, 36, 37, 38], "fps": 8, "loop": false }
+                            31, 32, 33, 34, 35, 36, 37, 38], "fps": 8, "loop": false },
+
+    "stoop":      { "frames": [39], "fps": 1 },
+    "stoop_walk": { "frames": [40, 41, 42, 43, 44, 45], "fps": 10 },
+    "swim":       { "frames": [46, 47, 48, 49], "fps": 7 },
+
+    "narrow":       { "frames": [50], "fps": 1 },
+    "narrow_climb": { "frames": [51, 52, 53, 52], "fps": 8 },
+    "narrow_jump":  { "frames": [54], "fps": 1 },
+    "narrow_fall":  { "frames": [55], "fps": 1 },
+    "narrow_swim":  { "frames": [56, 57], "fps": 6 },
+    "narrow_stoop": { "frames": [58], "fps": 1 }
+  },
+
+  "pose": {
+    "bounds": "res://assets/sprites/kaya_human.bounds.json",
+    "max_nudge_x": 8.0,
+    "headroom_reach": 7.0,
+    "swim_anims": ["jump", "fall"]
   }
 }

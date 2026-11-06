@@ -1,6 +1,7 @@
 extends Node2D
 ## The overworld hub: a top-down map of gateways into the levels.
-## Screen-flips like a level, but nothing here can hurt you.
+## Followed by the same camera as a level (top-down: no floor anchor, no
+## look-ahead), but nothing here can hurt you.
 
 const HUB_ID := "hub"
 
@@ -59,9 +60,9 @@ func _load() -> void:
 		return
 	if _spawn_door != "":
 		_move_player_to_door(_spawn_door)
-	cam.setup(world, player)
-	cam.screen_changed.connect(_on_screen_changed)
-	_on_screen_changed(cam.screen)
+	cam.setup(world, player, true)
+	cam.view_changed.connect(_on_view_changed)
+	_on_view_changed(cam.view_rect())
 
 func _move_player_to_door(level_id: String) -> void:
 	for d in doors:
@@ -71,8 +72,7 @@ func _move_player_to_door(level_id: String) -> void:
 				cam.snap_to_target()
 			return
 
-func _on_screen_changed(_s: Vector2i) -> void:
-	var r := cam.view_rect()
+func _on_view_changed(r: Rect2) -> void:
 	tiles_bg.set_view(r)
 	tiles_fg.set_view(r)
 

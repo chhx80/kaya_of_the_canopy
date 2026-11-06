@@ -1,0 +1,21 @@
+[
+ {
+  "_": "Refit phase 2: walking into a boss arena. The jungle_5 proof tape, shot every 10 sim frames over its last 120: the camera follows her, her centre crosses into the arena, and the view eases into the lock over arena_ease_s (data/camera.json) instead of snapping."
+ },
+ {
+  "tape": "jungle_5",
+  "shots": "shots/refit_2_arena_entry_%d.png",
+  "every": 10,
+  "max": 12,
+  "skip": 703
+ },
+ {
+  "log": "after the tape"
+ },
+ {
+  "wait": 40
+ },
+ {
+  "shot": "shots/refit_2_arena_entry_12.png"
+ }
+]

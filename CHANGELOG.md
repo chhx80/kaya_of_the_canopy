@@ -2625,3 +2625,189 @@ finally makes the comparison the hash file always implied —
 `ios/.pck_source_hash`, covering `src/` and everything the probes
 cannot see. All three proven to fire against the stale pack before the
 fix. The pack is re-synced and carries the whole game.
+
+## Refit phase 0 — look-and-feel spike (branch `refit/phase0`, awaiting approval)
+
+Plan: the "Kaya Refit" artifact. A 40 px hero on the unchanged 10x22 hitbox, a
+centred scrolling camera replacing the screen flip, and a matching art pass.
+
+**A 40 px Kaya, built as a puppet.** `tools/art/kaya40.py` draws her from parts
+posed by joint angles, with two-bone IK on the legs, and rasterises into the
+same character-grid format as the rest of `tools/art`, so `auto_shade` and the
+selective outline light and ink her like every other sprite. Two new colour
+ramps, `hair` and `straw`. Not wired into the game yet; `shots/refit_00` is the
+turnaround, idle and run cycle for review.
+
+**Measured, not assumed:** 465 of 2,619 standable tiles (17.8%) have exactly
+32 px of headroom, and in `shots/refit_02_scale_deeps.png` the standing 40 px
+sprite's hat visibly sinks into the rock there. The stoop pose fits.
+
+**Follow camera.** The existing smooth-follow setting gains a look-ahead in the
+facing direction and a vertical anchor on the last floor, so a jump no longer
+bounces the view. Tunables in `data/camera.json`. Still behind the
+`screen_flip` setting; flip stays the default until phase 2.
+
+**A latent bug in the existing smooth-follow mode, fixed:** enemies woke by
+screen index (`active = s == home_screen`), and in follow mode the camera's
+`screen` never changes, so every enemy outside the first screen stayed asleep.
+Enemies now wake by distance from the view in follow mode. Verified in play: a
+walker one screen west of a mid-level start moves.
+
+`tools/dev_capture.gd` gains a `{"setting": [key, value]}` step.
+
+## Refit phase 1 — the hero art (branch `refit/hero`)
+
+**Kaya is 40 px in the game.** `tools/art/kaya40.py` now builds the whole sheet:
+the 39 frames `data/forms/human.json` already indexed (idle, run, jump arc,
+climb, hurt, turn, skid, push, throw, catch, fidget, dance) plus a stoop and a
+six-frame stoop walk, a four-stroke swim and an eight-frame slung-hat set —
+58 cells of 32x40, feet on row 39 centred on column 16. The hitbox is the
+unchanged 10x22, now at `ox 11, oy 18`. The `hair` and `straw` ramps moved
+into `tools/art/palette.py`, so `assets/palette.json` has 14 ramps.
+
+**Polish on the approved look.** The stoop is a duck now rather than a squat:
+the hips stay over the feet and the shorts read in their shadow tone, so the
+backside is no longer the biggest shape on her. Standing legs are dead straight,
+with no one-pixel sag at the knee. The face drops a pixel under the brim, so the
+lash, brow, black pupil, nostril and two-pixel mouth are visible where they used
+to be painted under the straw. Run arms pump: folded forward, open behind, and
+leading the opposite leg by a frame.
+
+**`src/player/kaya_pose.gd`: which frame fits the space she is in.** It's pure,
+static and render-only, and collision never sees it:
+- under a ceiling lower than the sprite she is drawn stooped;
+- in water deep enough to swim, she swims;
+- where the space is narrower than the frame at any sideways shift up to
+  `max_nudge_x` (a one-tile shaft is 16 px; the brim is 21), she is drawn in
+  profile with the hat slung down her back on its cord;
+- a frame that only needs a few pixels is nudged instead: down while airborne
+  under a ceiling, sideways off a wall (the brim stops at the rock);
+- a landing squash that would widen her into a wall is dropped for the tick.
+
+The decision reads `assets/sprites/kaya_human.bounds.json`, the per-row opaque
+extents the generator writes beside the sheet, because a shipped build has no
+PNG to read back. Tunables are in `human.json`'s `pose` block.
+
+**The clip gate, `tools/clipgate.sh`.** It replays all 26 proof tapes through
+the prover's own simulation, mirrors the body each tick onto a real Player
+that is never stepped, and runs Player's own render path. It reads the frame,
+flip, offset, scale and nudges back off the Sprite2D, maps every world pixel
+back into the sheet's real alpha, and fails if one opaque pixel outside the
+hitbox lands on a solid tile, naming the level, frame, hop, animation and tile.
+PASS: 26 tapes, 13,119 human frames. Seen failing: `--no-stoop` fails 12 tapes
+(1,909 frames, every one a ceiling) and `--no-pose` fails 20 (3,409 frames).
+`--trace=N` prints what the decision saw on one frame.
+
+**The hub keeps the 16x24 Kaya** as `kaya_hub.png`; a 40 px walker would
+stand taller than the huts on a top-down map.
+
+**Contrast, measured** (`tools/gen_art.py --readability`, which now crops
+32-wide cells correctly): jungle is the weakest world for the 40 px Kaya
+(4.1% of the outline lost, largest hole 5.8%, against 0.9% / 1.8% for the
+16 px one). All of the loss is her ink outline against the canopy's darkest
+band. Every other world is under 2%. `shots/refit_15_contrast.png`.
+
+## Refit phase 2 — the scrolling camera (branch `refit/camera`)
+
+The screen flip is gone. The follow camera from phase 0 is the game's only
+camera, in every level and on the overworld, and nothing in the game freezes
+to move it: the 120 ms slide that held the simulation still on every screen
+edge no longer exists, and `Game.sim_paused` now belongs to hitstop alone.
+The `screen_flip` setting is no longer read by anything (its options row and
+save default sit in files this branch does not own — see REPORT.md).
+
+**The camera** (`src/world/camera_controller.gd`, maths in
+`src/world/camera_math.gd`, tunables in `data/camera.json`): centred, smoothed,
+a look-ahead in the facing direction, a vertical anchor on the last floor so a
+jump does not move the view by a pixel, clamped to the level. Two additions
+the tape audit forced:
+- a **hard keep-in zone** (`keep_in_x_px`/`keep_in_y_px`): smoothing lags by
+  speed ÷ rate, and on heights_1, heights_3, heights_4 and nest_4 a thermal or
+  a fall carried Kaya *out of the view* for up to 17 frames. Her centre now
+  never gets closer than 40 px to the top/bottom edge or 64 px to a side.
+- **pixel snapping on the gap, not the camera**: rounding camera and target
+  separately makes her shimmer a pixel against the screen while followed.
+  `CameraMath.snap` rounds the distance between them (half-up, so a still
+  camera is never nudged).
+
+**Boss arenas are rectangles** (`Enemy.arena`, default the 400×240 cell the
+boss spawns in, overridable per entity with `"arena": [tx, ty, tw, th]`). All
+five bosses fight inside `arena` instead of `Screen.origin(home_screen)`;
+`home_screen` is gone. The camera locks when Kaya's centre enters the arena and
+**eases** in over `arena_ease_s` (0.6 s, sine in-out) instead of cutting; it
+lets go once she is `arena_release_px` clear, a hysteresis so a jump on the rim
+cannot lock and unlock on alternate frames. The boss fights while the camera
+is locked and rests, reset, while it is not — walking out and back in restarts
+the fight, as the flip did.
+
+**Enemy wake-up by view distance is the only rule** (`src/enemies/wake_rule.gd`):
+awake while the body overlaps the view + 96 px; beyond that it *despawns*
+(hidden, back on its spawn, not thinking, not hittable); it *respawns* fresh
+when its spawn comes within view + 32 px — already moving before its first
+pixel shows — but only after that spawn has been out of range once, so an
+enemy that wandered off in plain sight never pops back in there. Killed is
+killed. Bosses are exempt: they wake with their arena.
+
+**Everything that used to update on a flip, now updated every frame without
+costing every frame.** Measured first: with the old per-view repaint, the
+worst physics tick while running across deeps_2 went from 3.4 ms to 9.3 ms,
+because both tile layers re-recorded ~480 quads (~1.5 ms each) on the same
+tick every 16 px of travel. So:
+- `TileRenderer` draws in 8×8-tile **chunks**, each recorded once; scrolling
+  redraws nothing, the renderer culls off-view chunks, and a chunk is
+  re-recorded only when a tile in it changes (animated frame, dissolve, crate,
+  door).
+- `ParallaxBg` **moves** instead of redrawing; its offset is a whole-pixel
+  function of the whole-pixel view, so a slow plane cannot swim against the
+  tiles. Vertically every plane stays locked to the view: the strips are one
+  screen tall and have no slack, and locked is exactly how every screen looked
+  under the flip.
+- The haze and vignette move with the view; emissive light pools are found
+  once per level (broken at the old 25-tile screen columns, so lakes are lit by
+  the same lozenges as before and they stay put while the view scrolls).
+- **A pre-existing bug fixed on the way:** the near-foreground parallax plane
+  (`bg_fg`) was never sent a view, so since Phase C it drew only over each
+  level's first screen.
+
+**Tooling for a camera that never freezes.** The tape replay
+(`tests/integration/tape_replay.gd`) still holds a hitstop tick without
+spending tape, and now *audits the camera on every frame of all 27 tapes*: no
+freeze but hitstop, no view step over 12 px, Kaya never outside an unlocked
+view, no ordinary enemy awake more than 160 px off the view, none frozen in
+sight. Both enemy checks were shown to fire by mutation (a 5000 px sleep
+margin: 1,514 frames flagged on jungle_2; despawn-without-hiding: 145) — and
+the first version of the audit was caught reading its bound from the tunable
+it audits, which passes anything. The boss gate's rim rule is now "inside the
+arena grown by the release margin": those tiles used to flip the camera and
+freeze the boss; now the fight runs there, so they are swept.
+`tools/solver/diverge.gd` documents that a paused frame is hitstop only.
+`tools/dev_capture.gd` gains a `tape` step (play a level's real proof tape and
+shoot it mid-run, pausing at idle so a capture never costs the tape a frame)
+and a `cap` option on `perf` (measure at the phone's 60 Hz).
+
+## Refit phases 1 and 2 merged — the 40 px Kaya under a scrolling camera
+
+Both branches integrated on `refit/integration` and verified together; every
+gate's exit code recorded, not its last line:
+
+```
+test.sh      388 tests, 108,785 assertions, 0 failed      exit 0
+validate.sh  OK                                           exit 0
+itest.sh     963 checks, all passed                       exit 0
+prove.sh     21 PROVED, 5 PARTIAL (the boss levels)       exit 0
+clipgate.sh  26 tapes, 13,119 frames + 370,094 swept      exit 0
+bossgate.sh  all five bosses pass                         exit 0
+```
+
+At merge: the SCREEN FLIP option is removed from the options menu (nothing
+reads it any more) and an old save carrying the key has it dropped, not
+obeyed. The iOS pack is resynced.
+
+**A miss of mine, found by both agents:** the phase 0 commit changed `src/`
+without resyncing `ios/`, so `tools/test.sh` has exited 1 on the iOS pack hash
+since then. I verified phase 0 by reading for "ALL TESTS PASSED" and never
+checked the exit code. Fixed here by `tools/sync_ios_project.sh`.
+
+Still unverified: frame rate on an iPhone (Mac only so far: worst physics tick
+~1.9 ms, +0.15 ms per uncapped frame), and how continuous parallax looks in
+motion to a person.

@@ -463,7 +463,7 @@ func probe_blade(checks: Node) -> void:
 		pl.pos = gate.stand_pos(tile)
 		pl.vel = Vector2.ZERO
 		pl.invuln = 999.0
-		gate.lvl.cam.snap_to_target()
+		gate.lvl.settle_view()
 		Tape.release_all()
 		await gate.frames(2)
 		var blade_lo := 9999.0
@@ -515,7 +515,7 @@ func probe_adds(checks: Node) -> void:
 		pl.control_enabled = false
 		pl.dead = false
 		pl.invuln = 999.0
-		gate.lvl.cam.snap_to_target()
+		gate.lvl.settle_view()
 		var counts: PackedStringArray = PackedStringArray()
 		for f in 1800:
 			pl.invuln = 999.0

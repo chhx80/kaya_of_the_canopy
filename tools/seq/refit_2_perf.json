@@ -1,0 +1,18 @@
+[
+  {"_": "Refit phase 2: frame cost of the follow camera. deeps_2 has the longest clear run in the game (row 27, columns 4-47) and is a dark level, so the light layer, the lantern and the emissive scan are all live while the view scrolls. Run the same file on the pre-refit build for the before-numbers. cap=60 is how a phone runs it: every frame carries a physics tick."},
+  {"scenario": "level:deeps_2", "settle": 90},
+  {"teleport": [5, 26], "settle": 40},
+  {"perf": "deeps_2 standing", "frames": 240, "cap": 60},
+  {"teleport": [5, 26], "settle": 40},
+  {"hold": "move_right", "frames": 1},
+  {"perf": "deeps_2 running east", "frames": 300, "cap": 60},
+  {"release": "move_right"},
+  {"teleport": [5, 26], "settle": 40},
+  {"hold": "move_right", "frames": 1},
+  {"perf": "deeps_2 running east, uncapped", "frames": 1500},
+  {"release": "move_right"},
+  {"scenario": "hub", "settle": 60},
+  {"hold": "move_down", "frames": 1},
+  {"perf": "hub walking south", "frames": 240, "cap": 60},
+  {"release": "move_down"}
+]

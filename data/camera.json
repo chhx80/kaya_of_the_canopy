@@ -1,0 +1,18 @@
+{
+  "_comment": "The follow camera (refit phase 2). Pixels, seconds and per-second rates; the view is 400x240.",
+  "lead_px": 24.0,
+  "lead_rate": 4.0,
+  "follow_x_rate": 10.0,
+  "follow_y_rate": 6.0,
+  "air_band_up_px": 56.0,
+  "air_band_down_px": 8.0,
+  "_keep_in": "The hard zone: however fast she moves, her centre stays at least this far inside the view's edges (the smoothing alone let a thermal carry her out of frame).",
+  "keep_in_x_px": 64.0,
+  "keep_in_y_px": 40.0,
+  "_wake": "Ordinary enemies (src/enemies/wake_rule.gd): a despawned enemy respawns when its spawn comes within the view grown by enemy_wake_margin_px; an awake one despawns once its body is further out than enemy_sleep_margin_px.",
+  "enemy_wake_margin_px": 32.0,
+  "enemy_sleep_margin_px": 96.0,
+  "_arena": "Boss arenas: the camera locks when Kaya's centre enters the arena, eases into it over arena_ease_s, and lets go once she is arena_release_px clear of it.",
+  "arena_ease_s": 0.6,
+  "arena_release_px": 24.0
+}

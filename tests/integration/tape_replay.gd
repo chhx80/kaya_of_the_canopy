@@ -2,7 +2,7 @@ extends RefCounted
 ## Replays a proof tape (ADR 005 §3) against the real, booted Level.
 ##
 ## The prover proves the *geometry* is traversable. This proves the *level* —
-## enemies alive, doors shut, triggers armed, the screen flip freezing the sim —
+## enemies alive, doors shut, triggers armed, the real camera waking them —
 ## can actually be finished, because a machine finished it. Nothing here models
 ## anything: the tape's buttons go in through `InputState` exactly as a thumb's
 ## would, and the only thing asserted at the end is an outcome.
@@ -14,10 +14,20 @@ extends RefCounted
 ## `check_boss_arrival()` in integration_tests.gd.
 ##
 ## Frames are *simulation* frames. `Game.sim_paused` is true for the length of
-## every screen flip, and on those ticks the player does not read its input at
-## all — so a paused tick must not eat a tape frame, or every tape would desync
-## by the width of a screen transition. The buttons stay held across the freeze,
-## which is what a thumb does too.
+## every hitstop (a kill), and on those ticks the player does not read its input
+## at all — so a paused tick must not eat a tape frame, or a tape would desync by
+## the width of every freeze. The buttons stay held across it, which is what a
+## thumb does too. (The screen flip used to freeze the sim as well; the follow
+## camera never does, and the camera audit below fails a replay if anything but
+## hitstop ever freezes it.)
+##
+## THE CAMERA AUDIT. Every tape is a whole level played through the real
+## camera, which makes it the widest net the suite has for camera outcomes, so
+## each simulated frame is also checked for what a player would see go wrong:
+## a freeze that is not hitstop, a view that jumps instead of scrolling, Kaya
+## outside the view, an ordinary enemy awake and acting far off the view, and
+## one sitting frozen where she can see it. The counts land in the result and
+## the caller asserts them (integration_tests.gd, check_camera_audit()).
 
 const TAPE := "res://tests/integration/replay_tape.gd"
 const TS := 16.0
@@ -46,6 +56,16 @@ var _tree: SceneTree = null
 ## prove survival. Making that honest is the point of the flag; hiding it
 ## behind a passing gate is how six broken levels shipped.
 var invulnerable := true
+## A single-frame view move larger than this is a jump, not a scroll. The
+## fastest thing the camera follows is a falling body (340 px/s, 5.7 px a
+## frame) and the arena ease peaks at pi/2 x its distance over its duration;
+## both stay well inside it.
+const MAX_VIEW_STEP_PX := 12.0
+## The audit's own definition of "far off the view": ten tiles past the screen
+## edge. Deliberately NOT read from data/camera.json — an audit that took its
+## bound from the tunable it audits passes whatever the tunable says (measured:
+## a 5000 px sleep margin sailed through jungle_2 that way).
+const FAR_OFF_VIEW_PX := 160.0
 var _held: Array[StringName] = []
 var trace := false
 
@@ -72,6 +92,43 @@ func _set_actions(actions: Array) -> void:
 	for a: StringName in actions:
 		_press(a)
 
+# ------------------------------------------------------------------ audit
+var _last_view := Vector2(-1, -1)
+
+## Reads the live level rather than the one the replay booted: completing a
+## level frees it, and the audit runs on that frame too.
+func _audit(r: Dictionary) -> void:
+	var lvl: Node = Game.current_level
+	if lvl == null or not is_instance_valid(lvl) or lvl.get("cam") == null:
+		return
+	var cam: CameraController = lvl.get("cam")
+	var pl: Node = _player()
+	if cam == null or pl == null:
+		return
+	if Game.sim_paused and not Fx.hitstop_active():
+		r["cam_frozen"] = int(r["cam_frozen"]) + 1
+	var v := cam.view_rect()
+	if _last_view.x >= 0.0:
+		var step := (v.position - _last_view).length()
+		if step > float(r["cam_max_step"]):
+			r["cam_max_step"] = step
+	_last_view = v.position
+	# Locked in an arena the view stops at the arena edge and she may stand a
+	# few pixels past it before the lock lets go: only an unlocked view must
+	# always hold her.
+	if not cam.locked and not v.has_point((pl as Actor).center()):
+		r["cam_lost_kaya"] = int(r["cam_lost_kaya"]) + 1
+	for n in _tree.get_nodes_in_group(&"enemies"):
+		var e := n as Enemy
+		if e == null or e.level != lvl or e.is_in_group(&"bosses"):
+			continue
+		if e.active and not v.grow(FAR_OFF_VIEW_PX).intersects(e.aabb()):
+			r["enemy_awake_far"] = int(r["enemy_awake_far"]) + 1
+			r["cam_note"] = "%s awake at %s, view %s" % [e.enemy_id, str(e.pos.round()), str(v.position)]
+		elif not e.active and e.visible and v.intersects(e.aabb()):
+			r["enemy_frozen_visible"] = int(r["enemy_frozen_visible"]) + 1
+			r["cam_note"] = "%s frozen in view at %s" % [e.enemy_id, str(e.pos.round())]
+
 # ------------------------------------------------------------------ replay
 ## Returns a result dictionary. `completed` is the only thing a caller should
 ## treat as a pass; everything else exists to make a failure readable.
@@ -83,6 +140,8 @@ func replay(tape: RefCounted) -> Dictionary:
 		"hop_desc": "", "end_tile": Vector2i(-1, -1), "end_form": "",
 		"health": 0, "closest_px": -1.0, "goal_tile": Vector2i(-1, -1),
 		"note": "",
+		"cam_frozen": 0, "cam_max_step": 0.0, "cam_lost_kaya": 0,
+		"enemy_awake_far": 0, "enemy_frozen_visible": 0, "cam_note": "",
 	}
 
 	_release_all()
@@ -146,7 +205,8 @@ func replay(tape: RefCounted) -> Dictionary:
 						% [real_frames, tape.total_frames]
 					aborted = true
 					break
-				# A frozen sim is a screen flip. Hold the buttons, spend no tape.
+				_audit(r)
+				# A frozen sim is a hitstop. Hold the buttons, spend no tape.
 				if Game.sim_paused:
 					continue
 				left -= 1

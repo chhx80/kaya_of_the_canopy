@@ -1,51 +1,75 @@
 class_name ParallaxBg
 extends Node2D
-## Tiling parallax layer. A plain Sprite2D only covers one screen, so this draws
-## the strip enough times to cover the camera wherever the screen flip lands.
+## Tiling parallax layer, scrolled continuously by the follow camera.
 ##
-## Two properties of this are load-bearing and neither is obvious:
+## Three properties of this are load-bearing and none is obvious:
 ##
-## * **The strip is exactly one screen (400x240).** Horizontally that is what
-##   makes the wrap invisible — the art is generated to tile at 400 — and
-##   vertically it is what keeps a tall level seam-free. With `vertical_factor`
-##   at 0 the offset is always 0, so `start.y` lands on a multiple of 240, which
-##   is exactly where a screen boundary is: every screen row of a level draws the
-##   same backdrop from its own top edge. Give a layer a vertical factor and the
-##   wrap point drifts off the screen grid, and the join becomes a visible seam
-##   sliding down the level. Phase 3 keeps all three planes at 0.
-## * **`view` is the camera's *unshaken* rect** (CameraController.view_rect), so
-##   a screen shake cannot make the backdrop re-tile under itself.
+## * **Scrolling moves the node; it does not redraw it.** `set_view()` runs on
+##   every camera move, so it only sets `position`. The draw list (one copy of
+##   the strip per column the view touches, usually two) is re-recorded only
+##   when that count changes, which on a level it never does after the first
+##   frame.
+## * **The offset is a whole-pixel function of the whole-pixel view.** The
+##   camera hands over an integer view (CameraController.view_rect), and the
+##   plane's screen offset is `round(view.x * (1 - factor))`. Rounding the
+##   plane and the camera separately instead makes a slow plane step on an
+##   irregular beat against the tiles — the "swim" a scrolling backdrop is
+##   known for.
+## * **Vertically the strip is locked to the view** when it is no taller than
+##   the view, which every backdrop is (400x240, tests/test_art_depth.gd). A
+##   240px strip has no slack: any vertical offset at all exposes its top or
+##   bottom edge mid-screen. Locked, every view shows the whole strip exactly as
+##   every screen did under the flip. A taller strip would get its slack mapped
+##   across the level's height, so the edge can never show.
+##
+## `view` is the camera's *unshaken* rect, so a screen shake cannot make the
+## backdrop re-tile under itself.
 
 var texture: Texture2D = null
 var factor := 0.25          ## 0 = glued to the camera, 1 = glued to the world
 var tint := Color.WHITE
 var view := Rect2(0, 0, 400, 240)
-var vertical_factor := 0.0  ## usually flatter than horizontal, or 0 for locked
+## The level's pixel height, for a strip taller than the view. 0 = unknown.
+var level_h := 0.0
+var _cols := -1
 
-func setup(tex_path: String, f: float, vf: float = -1.0) -> void:
+## `_vf` is kept for the callers' signature; vertical motion is the lock rule
+## above, not a factor.
+func setup(tex_path: String, f: float, _vf: float = 0.0) -> void:
 	texture = load(tex_path)
 	factor = f
-	vertical_factor = f * 0.5 if vf < 0.0 else vf
-	queue_redraw()
+	_cols = -1
+	set_view(view)
 
 func set_view(r: Rect2) -> void:
 	view = r
-	queue_redraw()
+	if texture == null:
+		return
+	var ts := texture.get_size()
+	var sx := -fposmod(roundf(view.position.x * (1.0 - factor)), ts.x)
+	position = Vector2(view.position.x + sx, view.position.y - _slack_offset(ts.y))
+	var cols := int(ceil((view.size.x - sx) / ts.x))
+	if cols != _cols:
+		_cols = cols
+		queue_redraw()
+
+## How far down the strip's own height the view is looking, for a strip taller
+## than the view. Zero for every backdrop the game ships.
+func _slack_offset(tex_h: float) -> float:
+	var slack := tex_h - view.size.y
+	if slack <= 0.0 or level_h <= view.size.y:
+		return 0.0
+	var t := clampf(view.position.y / (level_h - view.size.y), 0.0, 1.0)
+	return roundf(slack * t)
+
+## How many copies of the strip are drawn. For the integration suite, which
+## cannot see a draw call but can see the work behind one.
+func copies() -> int:
+	return maxi(0, _cols)
 
 func _draw() -> void:
 	if texture == null:
 		return
-	var ts := texture.get_size()
-	var off := Vector2(view.position.x * factor, view.position.y * vertical_factor)
-	var start := Vector2(
-		view.position.x - fposmod(view.position.x - off.x, ts.x),
-		view.position.y - fposmod(view.position.y - off.y, ts.y))
-	# Exactly the copies the view touches. The old `+ 1` always drew a spare row
-	# and column; with three planes instead of two that was a third of the
-	# backdrop's draw calls spent entirely off-screen, and on the common case —
-	# a screen-aligned view and a screen-sized strip — the honest count is one.
-	var cols := int(ceil((view.size.x + view.position.x - start.x) / ts.x))
-	var rows := int(ceil((view.size.y + view.position.y - start.y) / ts.y))
-	for ry in rows:
-		for rx in cols:
-			draw_texture(texture, (start + Vector2(rx * ts.x, ry * ts.y)).round(), tint)
+	var w := texture.get_size().x
+	for c in _cols:
+		draw_texture(texture, Vector2(float(c) * w, 0.0), tint)

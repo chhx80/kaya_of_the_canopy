@@ -17,6 +17,7 @@ import random
 
 from PIL import Image
 
+from . import kaya40
 from .palette import SPRITES, auto_shade, blit, grid, sheet
 
 # ---------------------------------------------------------------- player
@@ -1404,13 +1405,21 @@ def lit(cells, mapping, **kw):
 
 
 def build_sprites():
+    # Kaya is the 40 px puppet (tools/art/kaya40.py), 32x40 cells, feet on row
+    # 39 centred on column 16. Frame order matches data/forms/human.json and is
+    # documented on kaya40.frames(): 0-1 idle, 2-9 run, 10-15 the jump arc
+    # (anticipate, launch, rise, apex, fall, land), 16-18 climb, 19 hurt,
+    # 20-21 turn (plant, half-turn), 22 skid, 23-24 push, 25-26 throw, 27
+    # catch, 28-30 idle fidget, 31-38 the idle dance, 39 stoop, 40-45 stoop
+    # walk, 46-49 swim.
+    sheet("kaya_human", kaya40.cells(), kaya40.W, kaya40.H, selout=True)
+    kaya40.write_bounds(os.path.join(SPRITES, "kaya_human.png"))
+    # The overworld is top-down and its scale is the old one: a 40 px Kaya
+    # there would stand taller than the huts. It keeps the 16x24 sheet under its
+    # own name; src/hub/hub_player.gd reads frames 0 and 2-9 of it.
     # Kaya's limbs are three pixels wide; the default occlusion term would
     # push their shaded column down two whole ramp steps and read as mud.
-    # Frame order matches data/forms/human.json. 0-1 idle, 2-9 run, 10-15 the
-    # jump arc (anticipate, launch, rise, apex, fall, land), 16-18 climb, 19
-    # hurt, 20-21 turn (plant, half-turn), 22 skid, 23-24 push, 25-26 throw,
-    # 27 catch, 28-30 idle fidget (Phase A), 31-38 the idle dance (Phase F).
-    sheet("kaya_human",
+    sheet("kaya_hub",
           lit([K_IDLE, K_IDLE_B] + K_RUN
               + [K_CROUCH, K_LAUNCH, K_RISE, K_APEX, K_FALL, K_LAND,
                  K_CLIMB1, K_CLIMB2, K_CLIMB3, K_HURT,

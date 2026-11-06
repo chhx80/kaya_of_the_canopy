@@ -25,7 +25,7 @@ extends TestCase
 const MANIFEST := "res://assets/selout_manifest.json"
 
 const CHARACTER_SHEETS: Array[String] = [
-	"kaya_human", "kaya_frog", "kaya_fish", "kaya_bird",
+	"kaya_human", "kaya_hub", "kaya_frog", "kaya_fish", "kaya_bird",
 	"enemy_walker", "enemy_jumper", "enemy_shooter", "enemy_swimmer",
 	"enemy_charger", "enemy_dropper", "enemy_flyer",
 	"boss_grove", "boss_stormcrest", "boss_tide_maw", "boss_brood_queen",

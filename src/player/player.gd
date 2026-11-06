@@ -36,7 +36,7 @@ var input := InputState.new()
 var control_enabled := true
 
 var sprite: Sprite2D = null
-var _frame_size := Vector2i(16, 24)
+var _frame_size := Vector2i(32, 40)
 var _anim := "idle"
 var _anim_t := 0.0
 var _anim_i := 0
@@ -124,6 +124,21 @@ func _physics_process(delta: float) -> void:
 
 	var fall_speed := vel.y
 	step_motion(delta)
+	_note_motion_events(fall_speed)
+
+	if touching_hazard():
+		take_damage(1, Vector2(-facing, 0))
+	if fell_out_of_world():
+		kill()
+
+	_update_anim(delta)
+	_sync_render_position()
+
+## The render beats a tick of motion sets off: landing dust and squash, takeoff
+## kick and stretch. Split out of _physics_process so tools/clipgate.sh can drive
+## the exact render path the game runs, against the prover's simulation, without
+## also running the damage and death rules.
+func _note_motion_events(fall_speed: float) -> void:
 	if on_floor and not was_on_floor:
 		var land_min := Fx.timing("land_dust_min_fall", 170.0)
 		if fall_speed >= land_min:
@@ -141,14 +156,6 @@ func _physics_process(delta: float) -> void:
 		# leaves vel.y at gravity's small positive nudge, not jump_vel).
 		Fx.burst("takeoff_kick", feet())
 		_stretch_t = STRETCH_TIME
-
-	if touching_hazard():
-		take_damage(1, Vector2(-facing, 0))
-	if fell_out_of_world():
-		kill()
-
-	_update_anim(delta)
-	_sync_render_position()
 
 # ---------------------------------------------------------------- damage
 func take_damage(amount: int, from_dir: Vector2 = Vector2.ZERO) -> void:
@@ -209,7 +216,8 @@ func _update_anim(delta: float) -> void:
 		Fx.burst("dust", feet())   # the lean-back's heel puff — the existing emitter
 	_update_overlays(delta)
 
-	_set_anim(_resolve_anim_state())
+	var wanted := _resolve_anim_state()
+	_set_anim(_pose_anim(wanted))
 	var a: Dictionary = form.anim(_anim)
 	var frames: Array = a.get("frames", [0])
 	var fps := float(a.get("fps", 1))
@@ -232,6 +240,41 @@ func _update_anim(delta: float) -> void:
 	else:
 		_anim_i = 0
 	var frame := int(frames[_anim_i % frames.size()])
+	_show_frame(frame)
+	# Flash while invulnerable.
+	sprite.visible = not (invuln > 0.0 and fmod(invuln, 0.16) < 0.08)
+	_apply_squash_stretch(delta, KayaPose.allows_scale(wanted, _anim))
+	_place_against_walls(frame)
+
+## The render-only nudges that keep the drawn frame out of the rock: down under a
+## ceiling while airborne, sideways off a wall. A squash is 15% wider than the
+## frame; where that much more cannot be shifted clear, the squash is dropped
+## for the tick rather than drawn into the wall. See KayaPose.
+func _place_against_walls(frame: int) -> void:
+	var pose: Dictionary = form.cfg.get("pose", {})
+	var dy := KayaPose.nudge_y(_anim, form, world, pos, box, on_floor)
+	sprite.position.y += dy
+	var rows := KayaPose.bounds(String(pose.get("bounds", "")))
+	if frame >= rows.size() or world == null:
+		return
+	var cap := float(pose.get("max_nudge_x", 0.0))
+	var hb := Rect2(pos.round(), box)
+	var org := pos.round() + sprite.position + sprite.offset * sprite.scale
+	var dx := KayaPose.nudge_x(rows[frame], sprite.flip_h, _frame_size.x, org, sprite.scale,
+		world, hb, cap)
+	if dx == 0.0 and sprite.scale != Vector2.ONE and KayaPose.wall_overlap(rows[frame],
+			sprite.flip_h, _frame_size.x, org, sprite.scale, world, hb) != Vector2.ZERO:
+		sprite.scale = Vector2.ONE
+		sprite.position = Vector2(0.0, dy)
+		org = pos.round() + sprite.position + sprite.offset
+		dx = KayaPose.nudge_x(rows[frame], sprite.flip_h, _frame_size.x, org, Vector2.ONE,
+			world, hb, cap)
+	sprite.position.x += dx
+
+## Point the sprite at sheet cell `frame`, facing the way render_facing says,
+## with the cell placed so the hitbox sits at its feet. tools/clipgate.sh's sweep
+## calls this directly to draw frames no proof tape reaches.
+func _show_frame(frame: int) -> void:
 	sprite.region_rect = Rect2(frame * _frame_size.x, 0, _frame_size.x, _frame_size.y)
 	sprite.flip_h = _render_fsm.render_facing < 0
 	# Sprite is wider than the hitbox; centre it and sit it on the feet.
@@ -241,9 +284,12 @@ func _update_anim(delta: float) -> void:
 	sprite.offset = Vector2(ox, oy)
 	if sprite.flip_h:
 		sprite.offset.x = -(float(_frame_size.x) + ox - box.x)
-	# Flash while invulnerable.
-	sprite.visible = not (invuln > 0.0 and fmod(invuln, 0.16) < 0.08)
-	_apply_squash_stretch(delta)
+
+## The animation actually drawn: `wanted` unless the space she is in says
+## otherwise. Render-only; see KayaPose.
+func _pose_anim(wanted: String) -> String:
+	return KayaPose.choose(wanted, form, world, pos, box, on_floor,
+		world != null and submerged(), _render_fsm.render_facing < 0)
 
 ## Which animation state to show this tick, highest priority first. Hurt and
 ## the weapon-driven throw/catch beats pre-empt everything; shouldering and
@@ -331,9 +377,12 @@ func _is_truly_idle() -> bool:
 ## Landing squash / launch stretch: a render-space scale on `sprite` only,
 ## eased back to 1.0. The hitbox (`box`) is never touched — see step_motion()
 ## in actor.gd, which this never calls into.
-func _apply_squash_stretch(delta: float) -> void:
+func _apply_squash_stretch(delta: float, allowed: bool = true) -> void:
 	var scale := Vector2.ONE
-	if _squash_t > 0.0:
+	if not allowed:
+		_squash_t = maxf(0.0, _squash_t - delta)
+		_stretch_t = maxf(0.0, _stretch_t - delta)
+	elif _squash_t > 0.0:
 		var t := _squash_t / SQUASH_EASE_TIME
 		scale = Vector2.ONE.lerp(_squash_scale, t)
 		_squash_t = maxf(0.0, _squash_t - delta)

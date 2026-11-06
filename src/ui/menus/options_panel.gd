@@ -26,7 +26,6 @@ func _ready() -> void:
 		Row.new("sfx", "SOUND"),
 		Row.new("touch_opacity", "TOUCH OPACITY"),
 		Row.new("touch_scale", "TOUCH SIZE", "float", 0.1),
-		Row.new("screen_flip", "SCREEN FLIP", "bool"),
 		Row.new("", "BACK", "action"),
 	]
 
