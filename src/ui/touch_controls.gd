@@ -11,6 +11,9 @@ extends Control
 const DEAD_ZONE := 9.0
 const STICK_RADIUS := 26.0
 const BTN_R := 21.0
+## The pause button is smaller than A and B: it is pressed rarely and on
+## purpose, so it should not compete with them for the thumb.
+const PAUSE_R := 11.0
 const DIR_ACTIONS := [&"move_right", &"move_down", &"move_left", &"move_up"]
 
 var enabled := true
@@ -30,6 +33,10 @@ var _held: Dictionary = {}           ## action -> true
 var _jump_centre := Vector2(Screen.W - 44, Screen.H - 40)
 var _attack_centre := Vector2(Screen.W - 88, Screen.H - 62)
 var _stick_home := Vector2(62, Screen.H - 54)
+## Without this a phone has no way to open the pause menu at all -- the overlay
+## used to be a stick, A and B, and the menu (resume, restart, leave level,
+## options) was reachable only from a keyboard or a gamepad.
+var _pause_centre := Vector2(Screen.W * 0.5, 14)
 var _in_margin := false
 
 func _ready() -> void:
@@ -63,6 +70,8 @@ func _layout() -> void:
 		_jump_centre = Vector2(cx, ui.y * 0.5 + r + 4.0)
 		_attack_centre = Vector2(cx, ui.y * 0.5 - r - 4.0)
 		_stick_home = Vector2(side * 0.5, ui.y * 0.5)
+		# Top of the right margin, well clear of B below it.
+		_pause_centre = Vector2(cx, PAUSE_R * ui_scale + 10.0)
 	elif vert >= r + 2.0:
 		# Tall-ish display (iPad): use the bottom margin.
 		_in_margin = true
@@ -70,12 +79,16 @@ func _layout() -> void:
 		_jump_centre = Vector2(ui.x - r - 6.0, cy)
 		_attack_centre = Vector2(ui.x - r * 3.0 - 12.0, cy)
 		_stick_home = Vector2(r + 6.0, cy)
+		# The middle of the bottom margin, between the stick and the buttons.
+		_pause_centre = Vector2(ui.x * 0.5, cy)
 	else:
 		# No margin to use — fall back to overlaying the play area.
 		_in_margin = false
 		_jump_centre = Vector2(ui.x - 44.0 * ui_scale, ui.y - 40.0 * ui_scale)
 		_attack_centre = Vector2(ui.x - 88.0 * ui_scale, ui.y - 62.0 * ui_scale)
 		_stick_home = Vector2(62.0 * ui_scale, ui.y - 54.0 * ui_scale)
+		# Over the play area: top centre, away from the hearts and the score.
+		_pause_centre = Vector2(ui.x * 0.5, PAUSE_R * ui_scale + 4.0)
 
 ## True when the buttons sit outside the play area.
 func buttons_clear_of_play_area() -> bool:
@@ -149,6 +162,8 @@ func _button_at(p: Vector2) -> StringName:
 		return &"jump"
 	if p.distance_to(_attack_centre) <= r + 6.0:
 		return &"attack"
+	if p.distance_to(_pause_centre) <= PAUSE_R * ui_scale + 6.0:
+		return &"pause"
 	return &""
 
 func _apply_stick() -> void:
@@ -204,6 +219,7 @@ func _draw() -> void:
 	_disc(origin + d, 8.0 * ui_scale, Color(1, 1, 1, a * 0.8 * live))
 	_button(_jump_centre, "A", &"jump", a)
 	_button(_attack_centre, "B", &"attack", a)
+	_pause_button(_pause_centre, a)
 
 func _button(c: Vector2, label: String, action: StringName, a: float) -> void:
 	var pressed := _held.has(action)
@@ -211,6 +227,23 @@ func _button(c: Vector2, label: String, action: StringName, a: float) -> void:
 	_disc(c, r, Color(1, 1, 1, a * (0.42 if pressed else 0.2)))
 	_ring(c, r, Color(1, 1, 1, a * 0.7))
 	PixelFont.draw_centered(self, c.x, c.y - 4.0, label, Color(1, 1, 1, a + 0.25), 1, 0, false)
+
+## Two bars, the universal pause glyph, drawn rather than typed so it reads at
+## any scale.
+func _pause_button(c: Vector2, a: float) -> void:
+	var pressed := _held.has(&"pause")
+	var r := PAUSE_R * ui_scale
+	_disc(c, r, Color(1, 1, 1, a * (0.42 if pressed else 0.2)))
+	_ring(c, r, Color(1, 1, 1, a * 0.7))
+	var bw: float = maxf(2.0, roundf(r * 0.22))
+	var bh: float = roundf(r * 0.9)
+	var col := Color(1, 1, 1, minf(1.0, a + 0.25))
+	draw_rect(Rect2(roundf(c.x - bw * 1.5), roundf(c.y - bh * 0.5), bw, bh), col)
+	draw_rect(Rect2(roundf(c.x + bw * 0.5), roundf(c.y - bh * 0.5), bw, bh), col)
+
+## Where the pause button sits, for tests and the capture harness.
+func pause_button_centre() -> Vector2:
+	return _pause_centre
 
 func _disc(c: Vector2, r: float, col: Color) -> void:
 	draw_circle(c, r, col)

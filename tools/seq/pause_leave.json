@@ -1,0 +1,14 @@
+[
+  {"_": "The new Kaya on the world map, the touch pause button, and the pause menu with LEAVE LEVEL."},
+  {"scenario": "hub", "settle": 90},
+  {"shot": "shots/ui_hub_new_kaya.png"},
+  {"hold": "move_right", "frames": 20}, {"release": "move_right"}, {"wait": 2},
+  {"shot": "shots/ui_hub_new_kaya_run.png"},
+  {"scenario": "level:jungle_1", "settle": 90},
+  {"touch": true}, {"wait": 4},
+  {"shot": "shots/ui_touch_pause_button.png"},
+  {"press": "pause", "frames": 2}, {"wait": 10},
+  {"shot": "shots/ui_pause_menu_level.png"},
+  {"press": "pause", "frames": 2}, {"wait": 6},
+  {"touch": false}
+]

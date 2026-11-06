@@ -198,6 +198,8 @@ func run_all() -> void:
 		"t_effects_are_inert_when_nothing_is_attached",
 		"t_animated_tiles_repaint_without_changing_the_level",
 		"t_pause_freezes_the_level_and_resumes_it",
+		"t_a_phone_can_pause_and_leave_a_level_for_its_door_on_the_map",
+		"t_the_map_pause_menu_has_no_level_rows",
 		"t_options_write_straight_through_to_the_save_file",
 		"t_touch_stick_drives_the_same_actions_as_a_keyboard",
 		"t_touch_overlay_hides_itself_when_a_gamepad_is_present",
@@ -1653,6 +1655,74 @@ func t_pause_freezes_the_level_and_resumes_it() -> void:
 	pause_node.queue_free()
 	await frames(4)
 	check(not get_tree().paused, "closing it resumes the tree")
+
+## A touch on the screen, pressed then released. The overlay and the pause menu
+## both read InputEventScreenTouch, so this is the phone's path, not a shortcut.
+func tap(at: Vector2) -> void:
+	var down := InputEventScreenTouch.new()
+	down.index = 3
+	down.position = at
+	down.pressed = true
+	Input.parse_input_event(down)
+	await frames(2)
+	var up := InputEventScreenTouch.new()
+	up.index = 3
+	up.position = at
+	up.pressed = false
+	Input.parse_input_event(up)
+	await frames(3)
+
+## Before this there was no pause button on a touchscreen at all, so a phone
+## could never reach the menu; and the menu had no way back to the world map.
+func t_a_phone_can_pause_and_leave_a_level_for_its_door_on_the_map() -> void:
+	await enter("jungle_1")
+	var touch: Control = Game.main.touch
+	check(touch != null, "the overlay exists")
+	if touch == null:
+		return
+	touch.force_enable(true)
+	await frames(2)
+	await tap(touch.pause_button_centre())
+	check(Game.main.ui.has_node("PauseScreen"), "tapping the pause button opens the menu")
+	check(get_tree().paused, "and pauses the game")
+	var menu: Node = Game.main.ui.get_node("PauseScreen")
+	var items: Array = menu.ITEMS
+	check(items.has("LEAVE LEVEL"), "a level's menu offers LEAVE LEVEL")
+	var row: int = items.find("LEAVE LEVEL")
+	var W: float = Screen.ui_size(get_viewport()).x
+	var at := Vector2(W * 0.5, menu.ROW0_Y + menu.ROW_H * float(row) + menu.ROW_H * 0.5)
+	check_eq(menu.row_at(at), row, "the tap point is on the LEAVE LEVEL row as drawn")
+	await tap(at)
+	await frames(8)
+	check_eq(Game.state, Game.State.HUB, "tapping LEAVE LEVEL returns to the world map")
+	check(not get_tree().paused, "unpaused on the map")
+	check_eq(Game.current_level_id, "", "no level is current any more")
+	var hub: Node = Game.main.current_scene()
+	var door_pos := Vector2.INF
+	for d in hub.doors:
+		if d.level_id == "jungle_1":
+			door_pos = d.pos
+	check(door_pos != Vector2.INF, "the map has a door for the level just left")
+	if door_pos != Vector2.INF:
+		near(hub.player.pos.distance_to(door_pos + Vector2(3, 20)), 0.0, 2.0,
+			"and Kaya stands at that door")
+	touch.force_enable(false)
+
+func t_the_map_pause_menu_has_no_level_rows() -> void:
+	await enter_hub()
+	Input.action_press("pause")
+	await frames(2)
+	Input.action_release("pause")
+	await frames(2)
+	check(Game.main.ui.has_node("PauseScreen"), "pause opens on the map")
+	if not Game.main.ui.has_node("PauseScreen"):
+		return
+	var menu: Node = Game.main.ui.get_node("PauseScreen")
+	var items: Array = menu.ITEMS
+	check(not items.has("LEAVE LEVEL"), "no LEAVE LEVEL on the map")
+	check(not items.has("RESTART LEVEL"), "no RESTART LEVEL on the map, where it did nothing")
+	menu.queue_free()
+	await frames(4)
 
 func t_options_write_straight_through_to_the_save_file() -> void:
 	var old := float(SaveManager.setting("music", 0.7))

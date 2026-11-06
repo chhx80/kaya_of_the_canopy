@@ -1415,21 +1415,11 @@ def build_sprites():
     # walk, 46-49 swim.
     sheet("kaya_human", kaya40.cells(), kaya40.W, kaya40.H, selout=True)
     kaya40.write_bounds(os.path.join(SPRITES, "kaya_human.png"))
-    # The overworld is top-down and its scale is the old one: a 40 px Kaya
-    # there would stand taller than the huts. It keeps the 16x24 sheet under its
-    # own name; src/hub/hub_player.gd reads frames 0 and 2-9 of it.
-    # Kaya's limbs are three pixels wide; the default occlusion term would
-    # push their shaded column down two whole ramp steps and read as mud.
-    sheet("kaya_hub",
-          lit([K_IDLE, K_IDLE_B] + K_RUN
-              + [K_CROUCH, K_LAUNCH, K_RISE, K_APEX, K_FALL, K_LAND,
-                 K_CLIMB1, K_CLIMB2, K_CLIMB3, K_HURT,
-                 K_TURN_PLANT, K_TURN_HALF, K_SKID, K_PUSH1, K_PUSH2,
-                 K_THROW1, K_THROW2, K_CATCH,
-                 K_FIDGET1, K_FIDGET2, K_FIDGET3,
-                 K_DANCE1, K_DANCE2, K_DANCE3, K_DANCE4,
-                 K_DANCE5, K_DANCE6, K_DANCE7, K_DANCE8], KAYA, dark=0.75),
-          16, 24, selout=True)
+    # The overworld is top-down at the old 16 px scale, where the 40 px Kaya
+    # would stand taller than the huts. It draws the NEW Kaya from the same
+    # puppet poses, scaled before inking (tools/art/kaya40.py hub_cells):
+    # 24x28, 0 idle, 1 breath, 2-9 run, read by src/hub/hub_player.gd.
+    sheet("kaya_hub", kaya40.hub_cells(), kaya40.HUB_W, kaya40.HUB_H, selout=True)
     # The animal forms are the 40 px-era puppets in tools/art/forms40.py, frame
     # order unchanged. Frog 24x16: 0 idle, 1 breath, 2 crouch (anticipation;
     # also reused as the turn frame), 3 leap (also reused as the wall-kick

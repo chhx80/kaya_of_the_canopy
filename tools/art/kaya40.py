@@ -247,7 +247,7 @@ def _slung_hat(c, sh, hx, hy):
 
 
 # --------------------------------------------------------------- side view
-def side(p):
+def side(p, ink=True):
     """Profile facing right. `p` is a pose dict; missing keys take the stand."""
     q = dict(STAND)
     q.update(p)
@@ -313,7 +313,8 @@ def side(p):
     # near arm last, over the torso
     _limb(c, (sh[0] - 0.9, sh[1] + 1.0), q["near_sh"], 6.0, q["near_el"], 5.6, 1.2, 1.0, 's', rim='S')
 
-    c.outline()
+    if ink:
+        c.outline()
     return c.rows()
 
 
@@ -664,6 +665,50 @@ NARROW_FRAMES = range(50, 59)
 def cells():
     """Every frame lit and ready for `palette.sheet(..., selout=True)`."""
     return [palette.auto_shade(r, MAT, rate=0.45, lit=0.9, dark=0.8) for r in frames()]
+
+
+# ------------------------------------------------------------ the overworld
+# The hub is a top-down map at the old 16 px scale, where a 40 px Kaya would
+# stand taller than the huts. So she is drawn there from the SAME poses, the
+# body scaled before it is inked: the material grid is point-sampled down
+# about the feet, then given its one-pixel outline at the new size, so the
+# line stays crisp instead of being a shrunken copy of a thicker one.
+HUB_W, HUB_H = 24, 28
+HUB_SCALE = 0.68
+
+
+def _shrink(rows, scale=HUB_SCALE, w=HUB_W, h=HUB_H):
+    c = Canvas()
+    c.g = [['.'] * w for _ in range(h)]
+    for y in range(h):
+        for x in range(w):
+            sx = int((x + 0.5 - w * 0.5) / scale + CX)
+            sy = int((y + 0.5 - h) / scale + FOOT_Y + 1.0)
+            if 0 <= sx < W and 0 <= sy < H:
+                c.g[y][x] = rows[sy][sx]
+    # Canvas.outline() walks the module-wide W x H; this grid is smaller.
+    out = [row[:] for row in c.g]
+    for y in range(h):
+        for x in range(w):
+            if c.g[y][x] != '.':
+                continue
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < w and 0 <= ny < h and c.g[ny][nx] not in '.k':
+                    out[y][x] = 'k'
+                    break
+    return ["".join(r) for r in out]
+
+
+def hub_frames():
+    """Frame order the overworld reads (src/hub/hub_player.gd): 0 idle,
+    1 breath, 2-9 the run cycle."""
+    poses = [idle_pose(0), idle_pose(2)] + [run_pose(i) for i in range(8)]
+    return [_shrink(side(p, ink=False)) for p in poses]
+
+
+def hub_cells():
+    return [palette.auto_shade(r, MAT, rate=0.45, lit=0.9, dark=0.8) for r in hub_frames()]
 
 
 def write_bounds(sheet_path):

@@ -122,10 +122,15 @@ func test_the_bounds_file_matches_the_sheet() -> void:
 				bad += 1
 	eq(bad, 0, "rows where kaya_human.bounds.json disagrees with the sheet -- run tools/genart.sh")
 
-func test_the_hub_keeps_the_16_by_24_sheet() -> void:
+func test_the_hub_draws_the_new_kaya_at_its_own_scale() -> void:
+	## The overworld used to keep the old 16x24 Kaya; it now draws the new one
+	## from the same puppet poses, scaled to 24x28 so she still fits by the huts
+	## (tools/art/kaya40.py hub_cells). Smaller than the 32x40 platformer cell,
+	## or she would stand taller than the huts on a top-down map.
 	var tex: Texture2D = load(HUB_SHEET)
 	ok(tex != null, "kaya_hub loads")
 	if tex == null:
 		return
-	eq(tex.get_height(), 24, "the overworld Kaya is 24 px tall")
-	gt(float(tex.get_width() / 16), 9.5, "frames 0 and 2-9 exist (hub_player.gd reads them)")
+	eq(tex.get_height(), 28, "the overworld Kaya is 28 px tall")
+	lt(float(tex.get_height()), 40.0, "and shorter than the platformer's 40 px cell")
+	eq(int(tex.get_width() / 24), 10, "frames 0-9: idle, breath, eight run (hub_player.gd reads 0 and 2-9)")

@@ -3028,3 +3028,26 @@ Three defects found at integration and fixed here:
    open up widely (heights_1 696 void vs 636 wall), ruins and deeps barely
    (ruins_1 59 vs 1,324). `test_art_palette` requires a see-through tile to be
    blank, and the tileset-probe tests skip exactly those ids.
+
+## The world map gets the new Kaya, and levels get a way back to it
+
+**World map.** The overworld still drew the old 16x24 Kaya. She is now drawn
+from the same puppet poses as the platformer, scaled to 24x28 before she is
+inked so the outline stays crisp (`tools/art/kaya40.py` `hub_cells`). Still
+smaller than the 40 px platformer cell, so she fits beside the huts.
+
+**Pause button on touch.** The touch overlay was a stick, A and B: on a phone
+there was no way to open the pause menu at all. A small pause button now sits
+at the top of the right margin (iPhone), in the bottom margin (iPad) or at the
+top centre when there is no margin.
+
+**LEAVE LEVEL.** The pause menu in a level gains LEAVE LEVEL, which returns to
+the world map standing at that level's door. On the map the menu drops RESTART
+LEVEL, which was offered there and did nothing. Menu rows can be tapped.
+
+Verified by an integration test that drives it the phone's way: a real touch
+on the pause button, then on the LEAVE LEVEL row, then Kaya at the right door.
+Two mistakes on the way, both caught before shipping: `round()` typed as Variant
+broke the whole touch overlay under warnings-as-errors (the suite hung rather
+than failing), and the two new tests were not registered in the suite's
+explicit list, so they had silently never run.
