@@ -1967,12 +1967,15 @@ T_AT(214, t_luminous_wall(2141))                      # luminous wall
 T_AT(215, t_rubble(2151))                             # rubble
 
 
+# The void tile of each new world (224, 244, 264, 284) is painted empty and
+# flagged see_through in data/tiles.json: it is where the world's parallax
+# backdrop shows. Back-walls stay solid art, so caves still read as enclosed.
 # 2. SUNKEN RUINS
 T_AT(220, t_ruin_stone(2201))                         # waterlogged ashlar
 T_AT(221, t_ruin_stone(2211, algae=True))             # ... capped with algae
 T_AT(222, t_ruin_wall(2221))                          # background masonry
 T_AT(223, t_ruin_silt(2231))                          # cold silt
-T_AT(224, t_ruin_deep(2241))                          # the flooded void
+T_AT(224, tile(0))  # flooded void: see-through, the world's parallax shows here
 T_AT(225, t_ruin_column(2251))                        # fluted column (bg)
 T_AT(226, t_ruin_slab(2261))                          # one-way slab
 T_AT(227, t_ruin_urchin(2271))                        # urchins (hazard)
@@ -1986,7 +1989,7 @@ T_AT(240, t_heights_rock(2401))                       # highland rock
 T_AT(241, t_heights_rock(2411, sun=True))             # ... sun-bleached crust
 T_AT(242, t_heights_wall(2421))                       # background cliff
 T_AT(243, t_heights_scree(2431))                      # loose scree
-T_AT(244, t_heights_air(2441))                        # pale sky fill (bg)
+T_AT(244, tile(0))  # pale sky fill (bg): see-through, the world's parallax shows here
 T_AT(245, t_heights_stack(2451))                      # basalt stack (bg)
 T_AT(246, t_heights_plank(2461))                      # one-way walkway
 T_AT(247, t_heights_vent(2471))                       # fumarole (hazard)
@@ -2000,7 +2003,7 @@ T_AT(260, t_deep_earth(2601))                         # packed spoil
 T_AT(261, t_deep_crust(2611))                         # ... capped with chitin
 T_AT(262, t_deep_comb(2621))                          # background comb
 T_AT(263, t_deep_chitin(2631))                        # chitin plate block
-T_AT(264, t_deep_void(2641))                          # tunnel void (bg)
+T_AT(264, tile(0))  # tunnel void (bg): see-through, the world's parallax shows here
 T_AT(265, t_deep_root(2651))                          # great root (bg)
 T_AT(266, t_deep_shelf(2661))                         # one-way chitin shelf
 T_AT(267, t_deep_spore(2671))                         # spore vent (hazard)
@@ -2014,7 +2017,7 @@ T_AT(280, t_nest_glass(2801))                         # obsidian
 T_AT(281, t_nest_glass(2811, hot=True))               # ... still cooling
 T_AT(282, t_nest_wall(2821))                          # background glass
 T_AT(283, t_nest_block(2831))                         # cut basalt masonry
-T_AT(284, t_nest_void(2841))                          # the void (bg)
+T_AT(284, tile(0))  # the void (bg): see-through, the world's parallax shows here
 T_AT(285, t_nest_flue(2851))                          # flue (bg)
 T_AT(286, t_nest_ledge(2861))                         # one-way ledge
 T_AT(287, t_nest_shard(2871))                         # obsidian shards (hazard)
@@ -2794,7 +2797,6 @@ VARIANT_SPECS = [
       "ruin", RIM_RUIN_ALGAE),
     V(222, t_ruin_wall, [2221, 22211, 22212], "ruin_bg", RIM_RUIN_BG),
     V(223, t_ruin_silt, [2231, 22311, 22312, 22313]),
-    V(224, t_ruin_deep, [2241, 22411, 22412, 22413, 22414, 22415]),
     V(225, t_ruin_column, [2251, 22511, 22512, 22513]),
     V(226, t_ruin_slab, [2261, 22611, 22612, 22613]),
     V(228, t_ruin_grate, [2281, 22811, 22812]),
@@ -2808,7 +2810,6 @@ VARIANT_SPECS = [
       "heights", RIM_HEIGHTS_SUN),
     V(242, t_heights_wall, [2421, 24211, 24212], "heights_bg", RIM_HEIGHTS_BG),
     V(243, t_heights_scree, [2431, 24311, 24312, 24313]),
-    V(244, t_heights_air, [2441, 24411, 24412, 24413, 24414, 24415]),
     V(245, t_heights_stack, [2451, 24511, 24512, 24513]),
     V(246, t_heights_plank, [2461, 24611, 24612, 24613]),
     V(248, t_heights_chain, [2481, 24811, 24812]),
@@ -2821,7 +2822,6 @@ VARIANT_SPECS = [
     V(261, t_deep_crust, [2611, 26111, 26112], "deeps", RIM_DEEPS_CRUST),
     V(262, t_deep_comb, [2621, 26211, 26212], "deeps_bg", RIM_DEEPS_BG),
     V(263, t_deep_chitin, [2631, 26311, 26312, 26313]),
-    V(264, t_deep_void, [2641, 26411, 26412, 26413, 26414, 26415]),
     V(265, t_deep_root, [2651, 26511, 26512, 26513]),
     V(266, t_deep_shelf, [2661, 26611, 26612, 26613]),
     V(268, t_deep_ladder, [2681, 26811, 26812]),
@@ -2835,7 +2835,6 @@ VARIANT_SPECS = [
       "nest", RIM_NEST_HOT),
     V(282, t_nest_wall, [2821, 28211, 28212], "nest_bg", RIM_NEST_BG),
     V(283, t_nest_block, [2831, 28311, 28312, 28313]),
-    V(284, t_nest_void, [2841, 28411, 28412, 28413, 28414, 28415]),
     V(285, t_nest_flue, [2851, 28511, 28512, 28513]),
     V(286, t_nest_ledge, [2861, 28611, 28612, 28613]),
     V(288, t_nest_chain, [2881, 28811, 28812]),

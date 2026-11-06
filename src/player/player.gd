@@ -388,7 +388,11 @@ func _apply_squash_stretch(delta: float, allowed: bool = true) -> void:
 		_squash_t = maxf(0.0, _squash_t - delta)
 	elif _stretch_t > 0.0:
 		var t := _stretch_t / STRETCH_TIME
-		scale = Vector2.ONE.lerp(STRETCH_MAX, t)
+		var want := Vector2.ONE.lerp(STRETCH_MAX, t)
+		# Under a ceiling the stretch would draw into the rock; drop it for the
+		# tick and let it decay, as a blocked squash does.
+		if KayaPose.allows_stretch(form, _anim, world, pos, box, want.y):
+			scale = want
 		_stretch_t = maxf(0.0, _stretch_t - delta)
 	sprite.scale = scale
 	# Keep the feet and the horizontal centre pinned to the hitbox (`box`) as

@@ -3000,3 +3000,31 @@ size.
 background layer with wall tiles (0 open cells), so only jungle_1, jungle_4
 and jungle_5 show a backdrop. `tools/bg_preview.gd` renders a world's planes
 through the real `ParallaxBg` so the others can be seen at all.
+
+## Refit phase 3 integrated — forms, enemies, tiles and backdrops at Kaya's level
+
+Four parallel branches merged and verified together, every gate by exit code:
+validate 0, itest 0 (968 checks), prove 0 (21 PROVED + 5 PARTIAL boss levels),
+`clipgate --all-forms` 0 (24,683 tape frames + 370,094 swept), all five
+bossgates 0, `sync_ios_project.sh` 0, then test 0 (430 tests).
+
+Three defects found at integration and fixed here:
+
+1. **Take-off stretch drew the animal forms into low ceilings.** `player.gd`
+   stretches the sprite up to 15% on launch, but the pose decision measured
+   headroom against the unstretched frame. `KayaPose.allows_stretch` now drops
+   the stretch for the tick when the stretched frame would not fit. The forms
+   gate went from 5 clipping frames to none.
+2. **Boss strategy tapes went stale on a render-only edit.** Their hash covers
+   the raw boss JSON, so changing a sprite's frame size staled all five.
+   Re-stamped; each tape still kills its boss on unchanged inputs with hearts
+   to spare, which is the gate's own `defeatable` replay. The hash covering
+   render fields is worth narrowing later.
+3. **Four worlds of new backdrop art were never visible.** Levels in worlds
+   2-5 fill their background with void and back-wall tiles. By the user's
+   choice the void tile of each world (224, 244, 264, 284) is now painted empty
+   and flagged `see_through` in `data/tiles.json`; back-walls stay solid, so
+   caves still read as enclosed. Coverage is uneven by design: heights and nest
+   open up widely (heights_1 696 void vs 636 wall), ruins and deeps barely
+   (ruins_1 59 vs 1,324). `test_art_palette` requires a see-through tile to be
+   blank, and the tileset-probe tests skip exactly those ids.
