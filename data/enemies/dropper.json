@@ -2,13 +2,18 @@
   "id": "dropper",
   "display_name": "HOLLOW TICK",
   "sprite": "res://assets/sprites/enemy_dropper.png",
-  "frame_w": 16,
-  "frame_h": 16,
+  "frame_w": 32,
+  "frame_h": 32,
   "hitbox": {
     "w": 14,
     "h": 12,
     "ox": 1,
     "oy": 3
+  },
+  "_render": "Where the unchanged hitbox sits inside the frame: the art's anchor, read by src/enemies/enemy_base.gd. Written by tools/art/enemies40.py's SHEETS; collision never reads it.",
+  "render": {
+    "ox": 9,
+    "oy": 8
   },
   "health": 1,
   "contact_damage": 1,
@@ -41,24 +46,29 @@
     "tell": {
       "frames": [
         1,
-        2
+        2,
+        3,
+        4
       ],
       "fps": 12
     },
     "fall": {
       "frames": [
-        3
+        5,
+        6
       ],
-      "fps": 1
+      "fps": 10
     },
     "walk": {
       "frames": [
-        4,
-        6,
-        5,
-        7
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
       ],
-      "fps": 12
+      "fps": 18
     }
   }
 }

@@ -2,13 +2,18 @@
   "id": "charger",
   "display_name": "THORN BOAR",
   "sprite": "res://assets/sprites/enemy_charger.png",
-  "frame_w": 16,
-  "frame_h": 16,
+  "frame_w": 32,
+  "frame_h": 24,
   "hitbox": {
     "w": 14,
     "h": 11,
     "ox": 1,
     "oy": 5
+  },
+  "_render": "Where the unchanged hitbox sits inside the frame: the art's anchor, read by src/enemies/enemy_base.gd. Written by tools/art/enemies40.py's SHEETS; collision never reads it.",
+  "render": {
+    "ox": 9,
+    "oy": 13
   },
   "health": 3,
   "contact_damage": 1,
@@ -41,32 +46,38 @@
     "move": {
       "frames": [
         0,
-        7,
         1,
-        8
+        2,
+        3,
+        4,
+        5
       ],
-      "fps": 10
+      "fps": 15
     },
     "windup": {
       "frames": [
-        2,
-        3
+        6,
+        7,
+        8
       ],
-      "fps": 5,
+      "fps": 6,
       "loop": false
     },
     "charge": {
       "frames": [
-        4,
-        5
+        9,
+        10,
+        11,
+        12
       ],
-      "fps": 14
+      "fps": 16
     },
     "dazed": {
       "frames": [
-        6
+        13,
+        14
       ],
-      "fps": 1
+      "fps": 4
     }
   }
 }

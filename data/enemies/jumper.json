@@ -2,13 +2,18 @@
   "id": "jumper",
   "display_name": "SPINE HOPPER",
   "sprite": "res://assets/sprites/enemy_jumper.png",
-  "frame_w": 16,
-  "frame_h": 16,
+  "frame_w": 32,
+  "frame_h": 32,
   "hitbox": {
     "w": 12,
     "h": 11,
     "ox": 2,
     "oy": 3
+  },
+  "_render": "Where the unchanged hitbox sits inside the frame: the art's anchor, read by src/enemies/enemy_base.gd. Written by tools/art/enemies40.py's SHEETS; collision never reads it.",
+  "render": {
+    "ox": 10,
+    "oy": 21
   },
   "health": 2,
   "contact_damage": 1,
@@ -42,16 +47,18 @@
     },
     "air": {
       "frames": [
-        3
+        3,
+        5
       ],
-      "fps": 1
+      "fps": 8
     },
     "land": {
       "frames": [
         4,
+        6,
         0
       ],
-      "fps": 5,
+      "fps": 8,
       "loop": false
     }
   }
