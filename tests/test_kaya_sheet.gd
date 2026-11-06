@@ -72,25 +72,28 @@ func test_every_grounded_frame_stands_on_row_39() -> void:
 	if _img == null:
 		return
 	for name: String in ["idle", "run", "land", "turn", "skid", "push", "throw", "catch",
-			"fidget", "dance", "stoop", "stoop_walk", "narrow"]:
+			"fidget", "dance", "stoop", "stoop_walk", "narrow", "narrow_stoop"]:
 		for f: Variant in _anim_frames(name):
 			if HOP_FRAMES.has(int(f)):
 				continue
 			var span := _rows_span(int(f))
 			eq(span.y, 39, "%s frame %d: feet on row 39" % [name, int(f)])
 
+## Two tiles is 32 px; one more is spare, because the sprite is drawn at a
+## rounded float position and can sit a pixel higher than the body.
 func test_the_low_frames_fit_two_tiles() -> void:
 	if _img == null:
 		return
-	for name: String in ["stoop", "stoop_walk", "swim"]:
+	for name: String in ["stoop", "stoop_walk", "swim", "narrow_stoop"]:
 		for f: Variant in _anim_frames(name):
-			gt(float(_rows_span(int(f)).x), 7.5, "%s frame %d must start on row 8 or lower"
+			gt(float(_rows_span(int(f)).x), 8.5, "%s frame %d must start on row 9 or lower"
 				% [name, int(f)])
 
 func test_the_narrow_frames_fit_a_one_tile_shaft() -> void:
 	if _img == null:
 		return
-	for name: String in ["narrow", "narrow_climb", "narrow_jump", "narrow_fall", "narrow_swim"]:
+	for name: String in ["narrow", "narrow_climb", "narrow_jump", "narrow_fall", "narrow_swim",
+			"narrow_stoop"]:
 		ok(not _anim_frames(name).is_empty(), "%s has frames" % name)
 		for f: Variant in _anim_frames(name):
 			lt(float(_width(int(f))), 16.5, "%s frame %d must be at most 16 px wide"

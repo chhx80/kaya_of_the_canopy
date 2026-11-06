@@ -91,9 +91,10 @@ func test_a_low_ceiling_stoops_her() -> void:
 	eq(_choose("land", w, _feet(w, 90.0)), "stoop")
 
 func test_the_stoop_fits_a_two_tile_tunnel() -> void:
-	# Two tiles is 32 px; the hitbox is 22, so nothing may rise more than 10.
+	# Two tiles is 32 px; the hitbox is 22, so nothing may rise more than 10 --
+	# 9, keeping a pixel for the rounding of a float position to the screen.
 	for a: String in ["stoop", "stoop_walk", "swim"]:
-		lt(KayaPose.rise(human, a, BOX), 10.001, "%s must fit a two-tile tunnel" % a)
+		lt(KayaPose.rise(human, a, BOX), 9.001, "%s must fit a two-tile tunnel" % a)
 		gt(KayaPose.rise(human, a, BOX), 0.0, "%s still has a head above the hitbox" % a)
 
 func test_a_one_tile_shaft_slings_the_hat() -> void:

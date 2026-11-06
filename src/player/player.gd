@@ -240,15 +240,7 @@ func _update_anim(delta: float) -> void:
 	else:
 		_anim_i = 0
 	var frame := int(frames[_anim_i % frames.size()])
-	sprite.region_rect = Rect2(frame * _frame_size.x, 0, _frame_size.x, _frame_size.y)
-	sprite.flip_h = _render_fsm.render_facing < 0
-	# Sprite is wider than the hitbox; centre it and sit it on the feet.
-	var hb: Dictionary = form.hitbox()
-	var ox := -float(hb.get("ox", 3))
-	var oy := -float(hb.get("oy", 2))
-	sprite.offset = Vector2(ox, oy)
-	if sprite.flip_h:
-		sprite.offset.x = -(float(_frame_size.x) + ox - box.x)
+	_show_frame(frame)
 	# Flash while invulnerable.
 	sprite.visible = not (invuln > 0.0 and fmod(invuln, 0.16) < 0.08)
 	_apply_squash_stretch(delta, KayaPose.allows_scale(wanted, _anim))
@@ -278,6 +270,20 @@ func _place_against_walls(frame: int) -> void:
 		dx = KayaPose.nudge_x(rows[frame], sprite.flip_h, _frame_size.x, org, Vector2.ONE,
 			world, hb, cap)
 	sprite.position.x += dx
+
+## Point the sprite at sheet cell `frame`, facing the way render_facing says,
+## with the cell placed so the hitbox sits at its feet. tools/clipgate.sh's sweep
+## calls this directly to draw frames no proof tape reaches.
+func _show_frame(frame: int) -> void:
+	sprite.region_rect = Rect2(frame * _frame_size.x, 0, _frame_size.x, _frame_size.y)
+	sprite.flip_h = _render_fsm.render_facing < 0
+	# Sprite is wider than the hitbox; centre it and sit it on the feet.
+	var hb: Dictionary = form.hitbox()
+	var ox := -float(hb.get("ox", 3))
+	var oy := -float(hb.get("oy", 2))
+	sprite.offset = Vector2(ox, oy)
+	if sprite.flip_h:
+		sprite.offset.x = -(float(_frame_size.x) + ox - box.x)
 
 ## The animation actually drawn: `wanted` unless the space she is in says
 ## otherwise. Render-only; see KayaPose.

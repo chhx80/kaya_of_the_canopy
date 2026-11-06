@@ -2654,3 +2654,55 @@ Enemies now wake by distance from the view in follow mode. Verified in play: a
 walker one screen west of a mid-level start moves.
 
 `tools/dev_capture.gd` gains a `{"setting": [key, value]}` step.
+
+## Refit phase 1 — the hero art (branch `refit/hero`)
+
+**Kaya is 40 px in the game.** `tools/art/kaya40.py` now builds the whole sheet:
+the 39 frames `data/forms/human.json` already indexed (idle, run, jump arc,
+climb, hurt, turn, skid, push, throw, catch, fidget, dance) plus a stoop and a
+six-frame stoop walk, a four-stroke swim and an eight-frame slung-hat set —
+58 cells of 32x40, feet on row 39 centred on column 16. The hitbox is the
+unchanged 10x22, now at `ox 11, oy 18`. The `hair` and `straw` ramps moved
+into `tools/art/palette.py`, so `assets/palette.json` has 14 ramps.
+
+**Polish on the approved look.** The stoop is a duck now rather than a squat:
+the hips stay over the feet and the shorts read in their shadow tone, so the
+backside is no longer the biggest shape on her. Standing legs are dead straight,
+with no one-pixel sag at the knee. The face drops a pixel under the brim, so the
+lash, brow, black pupil, nostril and two-pixel mouth are visible where they used
+to be painted under the straw. Run arms pump: folded forward, open behind, and
+leading the opposite leg by a frame.
+
+**`src/player/kaya_pose.gd`: which frame fits the space she is in.** It's pure,
+static and render-only, and collision never sees it:
+- under a ceiling lower than the sprite she is drawn stooped;
+- in water deep enough to swim, she swims;
+- where the space is narrower than the frame at any sideways shift up to
+  `max_nudge_x` (a one-tile shaft is 16 px; the brim is 21), she is drawn in
+  profile with the hat slung down her back on its cord;
+- a frame that only needs a few pixels is nudged instead: down while airborne
+  under a ceiling, sideways off a wall (the brim stops at the rock);
+- a landing squash that would widen her into a wall is dropped for the tick.
+
+The decision reads `assets/sprites/kaya_human.bounds.json`, the per-row opaque
+extents the generator writes beside the sheet, because a shipped build has no
+PNG to read back. Tunables are in `human.json`'s `pose` block.
+
+**The clip gate, `tools/clipgate.sh`.** It replays all 26 proof tapes through
+the prover's own simulation, mirrors the body each tick onto a real Player
+that is never stepped, and runs Player's own render path. It reads the frame,
+flip, offset, scale and nudges back off the Sprite2D, maps every world pixel
+back into the sheet's real alpha, and fails if one opaque pixel outside the
+hitbox lands on a solid tile, naming the level, frame, hop, animation and tile.
+PASS: 26 tapes, 13,119 human frames. Seen failing: `--no-stoop` fails 12 tapes
+(1,909 frames, every one a ceiling) and `--no-pose` fails 20 (3,409 frames).
+`--trace=N` prints what the decision saw on one frame.
+
+**The hub keeps the 16x24 Kaya** as `kaya_hub.png`; a 40 px walker would
+stand taller than the huts on a top-down map.
+
+**Contrast, measured** (`tools/gen_art.py --readability`, which now crops
+32-wide cells correctly): jungle is the weakest world for the 40 px Kaya
+(4.1% of the outline lost, largest hole 5.8%, against 0.9% / 1.8% for the
+16 px one). All of the loss is her ink outline against the canopy's darkest
+band. Every other world is under 2%. `shots/refit_15_contrast.png`.

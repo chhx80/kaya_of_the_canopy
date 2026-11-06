@@ -7,7 +7,7 @@
   "settle": 90
  },
  {
-  "log": "jungle_1 idle"
+  "log": "shots/refit_10_idle.png"
  },
  {
   "shot": "shots/refit_10_idle.png"
@@ -20,7 +20,7 @@
   "frames": 26
  },
  {
-  "log": "jungle_1 run"
+  "log": "shots/refit_10_run.png"
  },
  {
   "shot": "shots/refit_10_run.png"
@@ -36,7 +36,7 @@
   "settle": 90
  },
  {
-  "log": "deeps_2 spawn tunnel: stoop"
+  "log": "shots/refit_11_stoop.png"
  },
  {
   "shot": "shots/refit_11_stoop.png"
@@ -49,7 +49,7 @@
   "frames": 12
  },
  {
-  "log": "deeps_2 tunnel: stoop walk"
+  "log": "shots/refit_11_stoop_walk.png"
  },
  {
   "shot": "shots/refit_11_stoop_walk.png"
@@ -72,7 +72,7 @@
   "frames": 22
  },
  {
-  "log": "deeps_2 one-tile vine shaft: slung hat"
+  "log": "shots/refit_12_narrow_climb.png"
  },
  {
   "shot": "shots/refit_12_narrow_climb.png"
@@ -89,16 +89,48 @@
  },
  {
   "teleport": [
-   16.3,
-   25.6
+   10.2,
+   25.2
   ],
-  "settle": 20
+  "settle": 8
  },
  {
-  "log": "jungle_5 water: swim"
+  "log": "shots/refit_13_swim.png"
  },
  {
   "shot": "shots/refit_13_swim.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "scenario": "level:ruins_4",
+  "settle": 90
+ },
+ {
+  "teleport": [
+   1.0,
+   12.625
+  ],
+  "settle": 6
+ },
+ {
+  "press": [
+   "move_left"
+  ],
+  "frames": 3
+ },
+ {
+  "release": "move_left"
+ },
+ {
+  "wait": 6
+ },
+ {
+  "log": "shots/refit_18_narrow_stoop.png"
+ },
+ {
+  "shot": "shots/refit_18_narrow_stoop.png"
  },
  {
   "wait": 3
@@ -112,7 +144,7 @@
   "frames": 20
  },
  {
-  "log": "hub: the 16x24 sheet"
+  "log": "shots/refit_14_hub.png"
  },
  {
   "shot": "shots/refit_14_hub.png"

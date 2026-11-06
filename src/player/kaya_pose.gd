@@ -75,7 +75,7 @@ static func floor_gap(world: TileWorld, pos: Vector2, box: Vector2, cap: float) 
 ## tunnel draws her stooped too -- the climb's reaching arms are 18 px over the
 ## hitbox, and that is where the rock is.
 static func stoop_for(anim: String) -> String:
-	if anim == "swim" or anim.begins_with("narrow"):
+	if anim == "swim" or anim.begins_with("narrow") or anim.begins_with("stoop"):
 		return ""
 	if anim == "run" or anim == "push" or anim == "skid" or anim == "turn":
 		return "stoop_walk"
@@ -217,7 +217,9 @@ static func choose(anim: String, form: FormBase, world: TileWorld, pos: Vector2,
 	var dy := nudge_y(out, form, world, pos, box, on_floor)
 	if fits_x(anim_rows(form, out), flip, fs.x, ox, world, pos, box, cap, dy):
 		return out
-	var narrow := narrow_for(anim if out.begins_with("stoop") else out)
+	# Low and narrow at once -- the end of a two-tile tunnel, against its wall --
+	# is the slung-hat crouch; the slung-hat stand is as tall as any frame.
+	var narrow := "narrow_stoop" if out.begins_with("stoop") else narrow_for(out)
 	if form.has_anim(narrow):
 		return narrow
 	return out

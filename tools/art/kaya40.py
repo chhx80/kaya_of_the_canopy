@@ -33,9 +33,12 @@ W, H = 32, 40
 FOOT_Y = 39.0
 CX = 16.0
 
-# Every stoop frame must fit in two tiles: opaque rows 8..39. Asserted in
-# frames(), and measured again against real ceilings by tools/clipgate.sh.
-STOOP_TOP = H - 32
+# Every stoop and swim frame must fit in two tiles, with a pixel to spare:
+# opaque rows 9..39. The spare pixel is for rounding -- the physics position is
+# a float and the sprite is drawn at it rounded, so a body resting 0.9 px off
+# the floor of a 32 px tunnel is drawn a pixel high (measured: ruins_4, frame
+# 1139). Asserted in frames(); tools/clipgate.sh measures it against real rock.
+STOOP_TOP = H - 31
 
 # char -> (ramp, base level). Upper case is the far side of the body, one to
 # two steps down, so a limb behind her reads as behind her.
@@ -129,6 +132,8 @@ def _limb(c, root, a1, l1, a2, l2, r1, r2, ch, rim=None):
     return k, e
 
 
+HAT_RIDE = 1.0             # px the hat sits above where the head would put it
+
 THIGH, SHIN = 7.5, 7.6      # hip to sole is ~15 px; longer bones buckle the knee
 # Within this much of full reach a leg is drawn dead straight instead of being
 # solved: a standing knee bent by a pixel reads as a tired, sagging stance, and
@@ -206,24 +211,27 @@ def _hat(c, hx, hy, tilt, sway=0.0, back=False, rx=10.4, lift=0.0):
 
 def _face_side(c, hx, hy, eyes=True):
     """Profile face, looking right. At this size every pixel is a feature, so
-    each one is placed rather than drawn: a lidded eye with a lash flick and a
-    brown iris under it, a brow, the nose breaking the outline, a two-tone
-    mouth, a lit cheek and the hoop earring."""
+    each one is placed rather than drawn: a lidded eye -- white, black pupil,
+    the lid line over both and a lash flicking forward off it -- the nose
+    breaking the outline with a nostril shadow under it, a lit cheek, two
+    pixels of mouth and the hoop earring. The phase-0 face was the same idea
+    with the brow and lash hidden under the brim and a one-pixel mouth."""
     if eyes:
-        c.px(hx + 1.2, hy - 0.4, 'k')
-        c.px(hx + 2.2, hy - 0.4, 'k')                               # lid line
-        c.px(hx + 3.0, hy - 1.1, 'k')                               # lash flick
-        c.px(hx + 1.2, hy + 0.6, 'w')
-        c.px(hx + 2.2, hy + 0.6, 'e')                               # iris
+        c.px(hx + 1.0, hy - 0.4, 'k')
+        c.px(hx + 2.0, hy - 0.4, 'k')                               # lid line
+        c.px(hx + 3.0, hy - 0.9, 'k')                               # lash flick
+        c.px(hx + 1.0, hy + 0.6, 'w')
+        c.px(hx + 2.0, hy + 0.6, 'k')                               # pupil
     else:
-        c.px(hx + 1.2, hy + 0.4, 'k')
-        c.px(hx + 2.2, hy + 0.4, 'k')                               # shut
-    c.px(hx + 1.4, hy - 2.0, 'h')
-    c.px(hx + 2.5, hy - 2.0, 'h')                                   # brow
+        c.px(hx + 1.0, hy + 0.4, 'k')
+        c.px(hx + 2.0, hy + 0.4, 'k')                               # shut
+    c.px(hx + 1.4, hy - 1.8, 'h')
+    c.px(hx + 2.4, hy - 1.8, 'h')                                   # brow
     c.px(hx + 3.9, hy + 0.9, 's')                                   # nose
-    c.px(hx + 1.6, hy + 1.8, 'c')                                   # cheek
-    c.px(hx + 2.9, hy + 2.6, 'l')                                   # lips
-    c.px(hx + 2.1, hy + 2.6, 'S')                                   # mouth corner
+    c.px(hx + 3.0, hy + 1.6, 'S')                                   # nostril shadow
+    c.px(hx + 1.2, hy + 1.8, 'c')                                   # cheek
+    c.px(hx + 1.9, hy + 2.7, 'l')
+    c.px(hx + 2.8, hy + 2.7, 'l')                                   # lips
     c.px(hx - 0.6, hy + 1.6, 'o')                                   # hoop
 
 
@@ -246,7 +254,11 @@ def side(p):
     c = Canvas()
     hip = (CX + q["hip_dx"], 23.0 + q["bob"])
     sh = (hip[0] + q["lean"], hip[1] - 9.4 * q["torso"])
-    hx, hy = sh[0] + 1.2 + q["head_dx"], sh[1] - 5.6 + q["head_dy"]
+    # The head sits a pixel lower than the phase-0 puppet's and the hat does
+    # not move with it: under a 21 px brim the face had six rows, and the brow
+    # and lashes were drawn underneath the straw. HAT_RIDE keeps the hat where
+    # the approved silhouette had it.
+    hx, hy = sh[0] + 1.2 + q["head_dx"], sh[1] - 5.6 + HAT_RIDE + q["head_dy"]
     sway, wave = q["sway"], q["wave"]
     fn = (hip[0] + q["near_fx"], FOOT_Y - 0.8 - q["near_lift"])
     ff = (hip[0] + q["far_fx"], FOOT_Y - 0.8 - q["far_lift"])
@@ -276,7 +288,8 @@ def side(p):
     c.capsule((sh[0] - 0.3, sh[1] - 0.2), (sh[0] + 0.9, sh[1] + 1.2), 0.6, 't')  # strap
     c.capsule((sh[0] + 0.3, sh[1] - 2.0), (sh[0] + 0.7, sh[1] + 0.6), 1.25, 's')  # neck
     srx, sry = q["shorts_rx"], 3.1
-    c.ellipse((hip[0] + 0.2 + q["shorts_dx"], hip[1] + 0.6), srx, sry, 'y')   # shorts
+    c.ellipse((hip[0] + 0.2 + q["shorts_dx"], hip[1] + 0.6), srx, sry,
+              'Y' if q["shorts_shade"] else 'y')                     # shorts
     c.capsule((hip[0] - srx + 0.4, hip[1] - 1.8), (hip[0] + 3.8, hip[1] - 1.8), 0.55, 'Y')
     for fx in range(-4, 5):                                         # fringe
         if fx % 2 == 0 and fx > -srx:
@@ -295,7 +308,7 @@ def side(p):
     if q["hat"] == "slung":
         _slung_hat(c, sh, hx, hy)
     else:
-        _hat(c, hx, hy, q["hat_tilt"], sway, lift=q["hat_lift"])
+        _hat(c, hx, hy, q["hat_tilt"], sway, lift=q["hat_lift"] + HAT_RIDE)
 
     # near arm last, over the torso
     _limb(c, (sh[0] - 0.9, sh[1] + 1.0), q["near_sh"], 6.0, q["near_el"], 5.6, 1.2, 1.0, 's', rim='S')
@@ -306,7 +319,7 @@ def side(p):
 
 STAND = dict(hat="head", bob=0.0, hip_dx=0.0, lean=0.4, torso=1.0, head_dx=0.0, head_dy=0.0,
              sway=0.0, wave=0.0, hat_tilt=0.0, hat_lift=0.0, float=0.0,
-             hair_len=13.5, eyes=True, shorts_rx=4.2, shorts_dx=0.0,
+             hair_len=13.5, eyes=True, shorts_rx=4.2, shorts_dx=0.0, shorts_shade=False,
              near_fx=2.0, near_lift=0.0, near_toe=0.0, near_point=0.0, near_bend=1,
              far_fx=-1.6, far_lift=0.0, far_toe=0.0, far_point=0.0, far_bend=1,
              near_sh=-4, near_el=14, far_sh=6, far_el=12)
@@ -352,15 +365,15 @@ def idle_pose(i):
 
 
 # Low ceiling. The whole silhouette must fit two tiles (32 px). The phase-0
-# stoop dropped the hips six pixels and folded the knees, which pushed the
-# shorts out behind her into the biggest shape on the sprite. This one keeps the
-# hips higher and takes the height out of the back instead: the torso pitches
-# forward and shortens, the head drops and leads, the hat tips down over it,
-# and the knees only soften. The shorts are drawn narrower from behind because
-# from this angle you see less of them.
-STOOP = dict(bob=3.4, hip_dx=-2.2, lean=6.0, torso=0.62, head_dx=1.4, head_dy=3.0,
-             hat_tilt=-1.2, sway=0.4, hair_len=11.0, shorts_rx=3.5, shorts_dx=0.4,
-             near_fx=3.0, far_fx=-1.2, near_sh=28, near_el=30, far_sh=22, far_el=34)
+# stoop dropped the hips six pixels behind folded knees, which pushed the
+# shorts -- the brightest thing on her -- out behind her as the biggest shape on
+# the sprite. This one is a duck rather than a squat: the hips stay over the
+# feet, the knees take some of it, the back pitches forward and the head leads
+# with the hat tipped down over it. The shorts are drawn narrower and in their
+# shadow tone, because from this angle you see the underside of them.
+STOOP = dict(bob=6.0, hip_dx=-0.6, lean=3.4, torso=0.8, head_dx=1.2, head_dy=1.6,
+             hat_tilt=-1.2, sway=0.4, hair_len=11.0, shorts_rx=3.8, shorts_shade=True,
+             near_fx=3.6, far_fx=-2.0, near_sh=28, near_el=30, far_sh=22, far_el=34)
 
 # The stooped shuffle: short steps, small lifts, a low and level head.
 _SFX = [3.6, 1.4, -1.0, -3.0, -1.4, 1.8]
@@ -556,7 +569,7 @@ NARROW_W = 16
 
 def _narrow():
     """50 stand, 51-53 climb (reach, pass, reach), 54 rise, 55 fall,
-    56-57 swim. Profile, hat on her back."""
+    56-57 swim, 58 crouch. Profile, hat on her back."""
     def n(**kw):
         q = dict(NARROW)
         q.update(kw)
@@ -580,6 +593,12 @@ def _narrow():
         n(bob=1.4, near_fx=-0.8, near_lift=1.0, far_fx=0.4, far_lift=3.0,
           near_point=0.8, far_point=0.8, near_sh=18, near_el=24, far_sh=150,
           far_el=20, float=4.0, sway=-2.0, wave=1.5),
+        # 58: low AND narrow -- the end of a two-tile tunnel, against its wall,
+        # where the stoop's leading head and brim cannot fit. A crouch with the
+        # hat slung, inside 16 x 31 px.
+        n(bob=6.6, lean=1.6, torso=0.86, head_dx=0.2, head_dy=1.2, hair_len=9.0,
+          near_fx=1.6, far_fx=-1.2, near_sh=14, near_el=40, far_sh=8, far_el=36,
+          shorts_rx=3.6, shorts_shade=True),
     ]
 
 
@@ -590,7 +609,7 @@ def frames():
      2-9  run                22    skid                      39    stoop
     10-15 jump arc           23-24 push                      40-45 stoop walk
     16-18 climb              25-26 throw                     46-49 swim
-    19    hurt               27    catch                     50-57 narrow:
+    19    hurt               27    catch                     50-58 narrow:
                              28-30 fidget                          slung hat
     """
     cells = [side(idle_pose(i)) for i in range(2)]
@@ -629,17 +648,17 @@ def frames():
         xs = [x for r in cells[i] for x, ch in enumerate(r) if ch != '.']
         assert max(xs) - min(xs) + 1 <= NARROW_W, "narrow frame %d is %d px wide" % (
             i, max(xs) - min(xs) + 1)
-    for i in list(STOOP_FRAMES) + list(SWIM_FRAMES):
+    for i in list(STOOP_FRAMES) + list(SWIM_FRAMES) + [58]:
         top = min(y for y, r in enumerate(cells[i]) if r.strip('.'))
         assert top >= STOOP_TOP, "frame %d starts on row %d, needs >= %d" % (
             i, top, STOOP_TOP)
     return cells
 
 
-FRAME_COUNT = 58
+FRAME_COUNT = 59
 STOOP_FRAMES = range(39, 46)
 SWIM_FRAMES = range(46, 50)
-NARROW_FRAMES = range(50, 58)
+NARROW_FRAMES = range(50, 59)
 
 
 def cells():

@@ -39,6 +39,12 @@ extends Node
 const ProveScript := preload("res://tools/solver/prove.gd")
 const DT := 1.0 / 60.0
 const GATED_FORMS := ["human"]
+## The beats no proof tape ever draws: no tape stands still for more than 1.5 s
+## (the dance waits 5, the fidget 12), none attacks and none takes a hit. The
+## sweep draws them anyway, everywhere she can stand.
+const SWEEP_ANIMS := ["idle", "land", "turn", "skid", "push", "throw", "catch", "hurt",
+	"fidget", "dance"]
+const SWEEP_OFFSETS := [0.0, 3.0, 6.0]
 
 var _ids: Array[String] = []
 var _all_forms := false
@@ -47,6 +53,7 @@ var _show := 6
 var _alpha: Dictionary = {}          ## sprite path -> Image
 var _kinds: Dictionary = {}          ## "side/anim" -> clipping frames, all tapes
 var _diagnose := false
+var _sweep_on := true
 var _trace := -1
 var _diag: Dictionary = {}
 var _diag_shift: Dictionary = {}
@@ -61,6 +68,8 @@ func _ready() -> void:
 			KayaPose.stoop_enabled = false
 		elif a.begins_with("--trace="):
 			_trace = int(a.split("=")[1])
+		elif a == "--no-sweep":
+			_sweep_on = false
 		elif a == "--diagnose":
 			_diagnose = true
 		elif a == "--all-forms":
@@ -93,6 +102,15 @@ func _run() -> int:
 			anim_total[k] = int(anim_total.get(k, 0)) + int(r["anims"][k])
 		if String(r["verdict"]) != "PASS":
 			failed.append(String(r["level"]))
+	var swept := 0
+	if _sweep_on:
+		print("")
+		print("sweep: every standable spot, both facings, %s" % ", ".join(SWEEP_ANIMS))
+		for tape_path: String in tapes:
+			var r := _sweep(tape_path)
+			swept += int(r["frames"])
+			if String(r["verdict"]) != "PASS" and not failed.has(String(r["level"])):
+				failed.append(String(r["level"]))
 	print("")
 	var keys: Array = anim_total.keys()
 	keys.sort()
@@ -112,8 +130,9 @@ func _run() -> int:
 		print("diagnose: %s" % str(_diag))
 		print("diagnose shifts: %s" % str(_diag_shift))
 	if failed.is_empty():
-		print("clipgate: PASS -- %d tapes, %d frames, no drawn pixel on a solid tile"
-			% [tapes.size(), frames_total])
+		print("clipgate: PASS -- %d tapes, %d frames%s, no drawn pixel on a solid tile"
+			% [tapes.size(), frames_total,
+			(", plus %d swept frames" % swept) if _sweep_on else ""])
 		return 0
 	print("clipgate: FAIL -- %d of %d tapes clip: %s"
 		% [failed.size(), tapes.size(), ", ".join(failed)])
@@ -224,6 +243,8 @@ func _replay(tape_path: String) -> Dictionary:
 			_diag_shift[hk] = int(_diag_shift.get(hk, 0)) + 1
 		clip_frames += 1
 		var key := "%s/%s" % [hit.get("side", "?"), shadow._anim]
+		if sim.form_id != "human":
+			key = "%s:%s" % [sim.form_id, key]
 		_kinds[key] = int(_kinds.get(key, 0)) + 1
 		if clips.size() < _show:
 			var h := hop_start.bsearch(f, false) - 1
@@ -384,3 +405,85 @@ func _print_trace(p: Player, sim: ProverSim) -> void:
 		for tx in range(tx0, tx0 + 7):
 			line += "#" if sim.world.is_solid(tx, ty) else "."
 		print(line + "   (cols %d..%d)" % [tx0, tx0 + 6])
+
+
+
+## Every standable spot of the level, at three alignments inside the tile and
+## both facings, drawn as every frame of every grounded beat in SWEEP_ANIMS --
+## through the same decision (Player._pose_anim), the same frame placement
+## (Player._show_frame, _place_against_walls) and the same pixel test as the
+## tape replay. The level is in its starting state: doors shut, switches as
+## placed.
+func _sweep(tape_path: String) -> Dictionary:
+	var tape := ProverTape.read(tape_path)
+	var id := String(tape.get("level", tape_path.get_file().replace(".tape.json", "")))
+	var res := {"level": id, "verdict": "FAIL", "frames": 0}
+	var def := LevelLoader.load_path(LevelLoader.level_path(id), id)
+	if not def.ok():
+		print("FAIL  %-12s level does not load" % id)
+		return res
+	var sim := ProverSim.new()
+	sim.setup(def)
+	var w := sim.world
+	var shadow := Player.new()
+	shadow.world = w
+	shadow._ready()
+	shadow.input = InputState.new()
+	var ts := float(TileData4.TILE_SIZE)
+	var drawn := 0
+	var spots := 0
+	var clips: Array[String] = []
+	var clip_n := 0
+	for ty in range(1, w.height - 1):
+		for tx in w.width:
+			if w.is_solid(tx, ty) or w.is_solid(tx, ty - 1):
+				continue
+			if not (w.is_solid(tx, ty + 1) or w.is_oneway(tx, ty + 1)):
+				continue
+			for o: float in SWEEP_OFFSETS:
+				var pos := Vector2(float(tx) * ts + o, float(ty + 1) * ts - shadow.box.y)
+				spots += 1
+				for facing: int in [1, -1]:
+					shadow.pos = pos
+					shadow.vel = Vector2.ZERO
+					shadow.on_floor = true
+					shadow.was_on_floor = true
+					shadow.facing = facing
+					shadow._render_fsm.reset(facing)
+					shadow._sync_render_position()
+					for anim: String in SWEEP_ANIMS:
+						if not shadow.form.has_anim(anim):
+							continue
+						var chosen := shadow._pose_anim(anim)
+						var seen := {}
+						for f: Variant in (shadow.form.anim(chosen).get("frames", []) as Array):
+							var fi := int(f)
+							if seen.has(fi):
+								continue
+							seen[fi] = true
+							shadow._show_frame(fi)
+							shadow.sprite.visible = true
+							shadow.sprite.scale = Vector2.ONE
+							shadow.sprite.position = Vector2.ZERO
+							shadow._anim = chosen
+							shadow._place_against_walls(fi)
+							drawn += 1
+							var hit := _clip(shadow, sim)
+							if hit.is_empty():
+								continue
+							clip_n += 1
+							if clips.size() < _show:
+								clips.append("  sweep at %v facing %+d  %s drawn as %s frame %d  %s"
+									% [pos, facing, anim, chosen, fi, hit["what"]])
+	res["frames"] = drawn
+	if spots == 0:
+		print("FAIL  %-12s sweep found nowhere to stand" % id)
+		return res
+	if clip_n == 0:
+		res["verdict"] = "PASS"
+		print("PASS  %-12s %5d spots, %6d frames" % [id, spots, drawn])
+		return res
+	print("FAIL  %-12s sweep: %d of %d drawn frames land on a solid tile:" % [id, clip_n, drawn])
+	for c: String in clips:
+		print(c)
+	return res
