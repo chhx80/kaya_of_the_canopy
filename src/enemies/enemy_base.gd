@@ -1,7 +1,8 @@
 class_name Enemy
 extends Actor
 ## Shared enemy behaviour: config loading, health, damage flash, death, drops,
-## contact damage and off-screen freezing. Subclasses implement `think()` only.
+## contact damage and waking by distance from the view (WakeRule). Subclasses
+## implement `think()` only.
 
 signal killed(enemy: Enemy)
 
@@ -35,9 +36,17 @@ var _flash := 0.0
 var _dying := 0.0
 var _hold_t := 0.0     ## Phase D sprite-local hit-hold — see HIT_HOLD_TIME above.
 
-var home_screen := Vector2i.ZERO
+## The rectangle a boss's fight happens in, and the camera locks to while it
+## lives. Defaults to the 400x240 screen cell its spawn sits in — which is what
+## every arena in the game was authored as — and a level entity may name its
+## own as `"arena": [tx, ty, tw, th]` in tiles. Ordinary enemies carry one too
+## and never read it.
+var arena := Rect2()
 var spawn_pos := Vector2.ZERO
 var active := true
+## WakeRule's `spawn_clear`: the spawn has been out of wake range since this
+## enemy last despawned, so respawning it cannot pop it into view.
+var spawn_clear := true
 var props: Dictionary = {}
 
 static func load_config(id: String) -> Dictionary:
@@ -79,28 +88,52 @@ func _ready() -> void:
 	sprite.region_rect = Rect2(0, 0, _frame_size.x, _frame_size.y)
 	add_child(sprite)
 	spawn_pos = pos
-	home_screen = Screen.index_of(center(), Vector2i(999, 999))
+	arena = _arena_from(props)
 	_update_anim(0.0)
 	_sync_render_position()
 
-## Called by the level when the camera lands on a screen. Enemies on the screen
-## you just entered are reset to their spawn state — cheap, and period-accurate.
-func set_active_screen(s: Vector2i) -> void:
-	var was := active
-	active = s == home_screen
-	if active and not was:
-		respawn()
+func _arena_from(e: Dictionary) -> Rect2:
+	var a: Array = e.get("arena", [])
+	if a.size() == 4:
+		var ts := float(TileData4.TILE_SIZE)
+		return Rect2(float(a[0]) * ts, float(a[1]) * ts, float(a[2]) * ts, float(a[3]) * ts)
+	return Screen.rect(Screen.index_of(center(), Vector2i(999, 999)))
 
-## Follow-mode wake-up: an enemy is awake while it (or, asleep, its spawn point)
-## is inside the view grown by a margin. Waking by screen index cannot work when
-## the view scrolls -- the camera's `screen` stops meaning anything, and every
-## enemy outside the first screen would stay asleep.
-func set_active_view(view: Rect2, margin: float) -> void:
-	var was := active
-	var probe := center() if was else spawn_pos + box * 0.5
-	active = view.grow(margin).has_point(probe)
-	if active and not was:
-		respawn()
+## The view-distance wake rule (WakeRule), applied by Level every physics tick.
+func update_wake(view: Rect2, wake_margin: float, sleep_margin: float) -> void:
+	if _dying > 0.0:
+		return
+	var near_spawn := view.grow(wake_margin).intersects(Rect2(spawn_pos, box))
+	var near_body := view.grow(sleep_margin).intersects(aabb())
+	var act := WakeRule.decide(active, spawn_clear, near_body, near_spawn)
+	spawn_clear = WakeRule.next_clear(act, spawn_clear, near_spawn)
+	match act:
+		WakeRule.Act.DESPAWN:
+			despawn()
+		WakeRule.Act.RESPAWN:
+			active = true
+			respawn()
+
+## Asleep, hidden, and back on its spawn: what an enemy is while it is too far
+## from the view to matter. A boss is never despawned; it rests visible in its
+## arena (Level._update_arena()).
+func despawn() -> void:
+	active = false
+	visible = false
+	pos = spawn_pos
+	vel = Vector2.ZERO
+	_sync_render_position()
+
+## A boss at rest, waiting for its arena to take the camera: visible through
+## the follow camera as Kaya approaches, so it must not be caught frozen on
+## whatever frame it was mid-attack when she walked out. Every boss's idle is a
+## single still frame (data/enemies/*.json), so this is the pose it is meant to
+## be seen standing in.
+func rest_pose() -> void:
+	var anims: Dictionary = cfg.get("anim", {})
+	set_anim("idle_p1" if anims.has("idle_p1") else "idle")
+	_update_anim(0.0)
+	_sync_render_position()
 
 func respawn() -> void:
 	pos = spawn_pos

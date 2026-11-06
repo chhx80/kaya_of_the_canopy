@@ -176,12 +176,11 @@ func boot() -> bool:
 	if boss.enemy_id != BOSS:
 		failures.append("boot :: expected '%s', found '%s'" % [BOSS, boss.enemy_id])
 		return false
-	# Put her in the arena and wake the fight the way the game does: the camera
-	# landing on the boss's screen is what calls `set_active_screen`, which
-	# respawns the Heart, which is what writes phase 1's configuration.
+	# Put her in the arena and wake the fight the way the game does: her centre
+	# entering the arena locks the camera (Level._update_arena), which respawns
+	# the Heart, which is what writes phase 1's configuration.
 	_park(DROP_COL, STAND_ROW)
-	lvl.cam.snap_to_target()
-	lvl._on_screen_changed(lvl.cam.screen)
+	lvl.settle_view()
 	await frames(6)
 	return true
 

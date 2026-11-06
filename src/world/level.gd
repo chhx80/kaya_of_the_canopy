@@ -5,8 +5,8 @@ signal level_ready()
 
 ## Three planes, three speeds. The gaps between them are what the eye reads as
 ## distance; the art in each plane is painted to a contrast budget that matches
-## its speed (tools/art/backdrops.py). Vertical parallax is deliberately zero on
-## all three — see ParallaxBg.
+## its speed (tools/art/backdrops.py). Vertically every plane is locked to the
+## view, because a one-screen strip has no slack to scroll — see ParallaxBg.
 const PARALLAX_SKY := 0.10
 const PARALLAX_FAR := 0.28
 const PARALLAX_NEAR := 0.58
@@ -92,6 +92,7 @@ func _apply_ambience() -> void:
 		var spec: Array = planes[node]
 		var path := "res://assets/sprites/bg_%s_%s.png" % [amb.world, String(spec[0])]
 		if ResourceLoader.exists(path):
+			node.level_h = float(world.pixel_height())
 			node.setup(path, float(spec[1]), 0.0)
 		else:
 			push_warning("Level: no backdrop plane at '%s'" % path)
@@ -120,8 +121,14 @@ func load_level(id: String) -> void:
 	# Juice is wired up once the camera and the particle layer both exist. If
 	# either half of it fails to load the level plays on without it.
 	Fx.attach(particles, cam)
-	cam.screen_changed.connect(_on_screen_changed)
-	_on_screen_changed(cam.screen)
+	cam.view_changed.connect(_on_view_changed)
+	_on_view_changed(cam.view_rect())
+	# A boss rests until its arena takes the camera; see _update_arena().
+	if boss != null:
+		boss.active = false
+		boss.rest_pose()
+	_update_arena()
+	_update_wake()
 
 	hud = load("res://src/ui/hud.tscn").instantiate()
 	Game.main.ui.add_child(hud)
@@ -207,7 +214,8 @@ func _spawn_gameplay_entity(type: String, p: Vector2, e: Dictionary) -> Node:
 			dr.level = self
 			dr.setup(p, type.substr(5))
 			entities.add_child(dr)
-			tiles_fg.queue_redraw()
+			for t: Vector2i in dr.tiles():
+				tiles_fg.refresh_tile(t)
 			return dr
 		"switch_a", "switch_b":
 			var sw := SwitchTrigger.new()
@@ -216,7 +224,6 @@ func _spawn_gameplay_entity(type: String, p: Vector2, e: Dictionary) -> Node:
 			sw.setup(p + Vector2(1, 6), 1 if type.ends_with("a") else 2,
 				bool(e.get("on", type.ends_with("a"))))
 			entities.add_child(sw)
-			tiles_fg.queue_redraw()
 			return sw
 		"pad_frog", "pad_fish", "pad_bird", "pad_human":
 			var pad := TransformPad.new()
@@ -257,9 +264,12 @@ func _spawn_enemy(id: String, p: Vector2, e: Dictionary) -> Enemy:
 	entities.add_child(en)
 	return en
 
-## Called by the blade when a crate shatters, so the tile layer redraws.
-func on_tile_broken(_t: Vector2i) -> void:
-	tiles_fg.queue_redraw()
+## Called by the blade when a crate shatters and by a door when it opens, so
+## the chunk the tile sits in is re-recorded. A door names its base tile and is
+## Door.HEIGHT_TILES tall, which can straddle two chunks.
+func on_tile_broken(t: Vector2i) -> void:
+	for i in Door.HEIGHT_TILES:
+		tiles_fg.refresh_tile(t - Vector2i(0, i))
 
 ## Switch blocks change solidity, so the layer has to be repainted. Collision
 ## already changed (TileWorld.set_switch() is synchronous, called by the
@@ -272,7 +282,7 @@ func on_switch_toggled(group: int) -> void:
 ## Beating the boss opens the way out rather than ending the level outright, so
 ## the player still gets to walk through the gate.
 func on_boss_defeated(fallen: Enemy) -> void:
-	cam.locked = false
+	cam.unlock()
 	AudioManager.play("boss_die")
 	if hud != null and hud.has_method("flash_message"):
 		# Named by the boss that fell, not by the first one this project had.
@@ -288,27 +298,74 @@ func on_boss_defeated(fallen: Enemy) -> void:
 	# No dedicated gate authored: drop one where the boss stood.
 	spawn_entity({"type": "exit", "px": fallen.pos.x, "py": fallen.pos.y})
 
-func _on_screen_changed(s: Vector2i) -> void:
-	# A live boss locks the camera to its arena.
-	cam.locked = boss != null and is_instance_valid(boss) and not boss.defeated \
-		and s == boss.home_screen
-	var r := cam.view_rect()
-	var wake := float(cam._cfg.get("enemy_wake_margin_px", 32.0))
-	for n in get_tree().get_nodes_in_group(&"enemies"):
-		var e := n as Enemy
-		if e != null and e.level == self:
-			if cam.flip_mode:
-				e.set_active_screen(s)
-			else:
-				e.set_active_view(r, wake)
+## Re-frame on Kaya right now and settle who is awake: for a teleport, which
+## the follow camera would otherwise pan after. Used by tools/dev_capture.gd and
+## the integration suite; a real run never needs it.
+func settle_view() -> void:
+	# The arena first: a lock taken here is then snapped to, not eased into.
+	_update_arena()
+	cam.snap_to_target()
+	_update_wake()
+
+## Every layer that culls or scrolls against the view. The camera emits this
+## only when the whole-pixel view actually moved, so a still camera repaints
+## nothing — and each layer then decides for itself whether the move matters
+## to it (TileRenderer redraws only when its tile cull changes, say).
+func _on_view_changed(r: Rect2) -> void:
 	tiles_bg.set_view(r)
 	tiles_fg.set_view(r)
 	bg_sky.set_view(r)
 	bg_far.set_view(r)
 	bg_near.set_view(r)
+	bg_fg.set_view(r)
 	air.set_view(r)
 	shade.set_view(r)
 	lights.set_view(r)
+
+func _physics_process(_delta: float) -> void:
+	if cam == null or world == null or player == null:
+		return
+	_update_arena()
+	_update_wake()
+
+## A live boss holds the camera to its arena from the moment Kaya's centre is
+## inside it, and lets go once she is clear of it by `arena_release_px` — the
+## hysteresis is what keeps a jump on the arena's rim from locking and
+## unlocking the camera on alternate frames. The boss fights while the camera
+## is locked and rests, reset, while it is not: walking out and back in starts
+## the fight over, which is what the screen flip did too, and what the capture
+## sequences in tools/seq/ stage their boss shots on.
+##
+## Edge-triggered on purpose: the boss suites set `boss.active` by hand to
+## freeze a fight mid-sample, and a per-tick `active = locked` would undo them.
+func _update_arena() -> void:
+	if boss == null or not is_instance_valid(boss) or boss.defeated:
+		if cam.locked:
+			cam.unlock()
+		return
+	var c := player.center()
+	if not cam.locked:
+		if boss.arena.has_point(c):
+			cam.lock_to(boss.arena)
+			if not boss.active:
+				boss.active = true
+				boss.respawn()
+	elif not boss.arena.grow(cam.cfg_num("arena_release_px", 24.0)).has_point(c):
+		cam.unlock()
+		boss.respawn()
+		boss.active = false
+		boss.rest_pose()
+
+## Ordinary enemies wake and despawn by distance from the view (WakeRule).
+func _update_wake() -> void:
+	var r := cam.view_rect()
+	var wake := cam.cfg_num("enemy_wake_margin_px", 32.0)
+	var sleep := cam.cfg_num("enemy_sleep_margin_px", 96.0)
+	for n in get_tree().get_nodes_in_group(&"enemies"):
+		var e := n as Enemy
+		if e == null or e.level != self or e == boss:
+			continue
+		e.update_wake(r, wake, sleep)
 
 func _process(delta: float) -> void:
 	if cam == null or world == null:
@@ -318,10 +375,6 @@ func _process(delta: float) -> void:
 	# as well as the fight.
 	if not Game.sim_paused:
 		TileAnim.shared().advance(delta)
-	# In smooth-scroll mode the view changes every frame; in flip mode the
-	# screen_changed signal already covers it.
-	if not cam.flip_mode:
-		_on_screen_changed(cam.screen)
 
 func _on_player_died() -> void:
 	if _restarting:

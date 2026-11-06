@@ -6,7 +6,7 @@ extends Enemy
 ##   LEAP   faster, higher, and it calls in beetles
 ##   FURY   adds a spray of spores between slams
 ##
-## The arena is screen-locked: the camera never flips while it is alive.
+## The camera is locked to its arena (Enemy.arena) while it is alive.
 
 enum St { IDLE, WALK, WINDUP, AIR, LAND, SPRAY }
 
@@ -34,10 +34,10 @@ func _ready() -> void:
 	# was 999 px away. `arena_inset` is src/enemies/tide_maw.gd's mechanism and
 	# this is the same use of it — the ends of the floor become somewhere it
 	# cannot reach, so distance is an answer the arena actually offers.
-	var origin := Screen.origin(home_screen)
+	var origin := arena.position
 	var inset := float(cfg.get("arena_inset", 8.0))
 	arena_min = origin.x + inset
-	arena_max = origin.x + Screen.W - inset - box.x
+	arena_max = origin.x + arena.size.x - inset - box.x
 	t = 0.9
 
 func on_respawn() -> void:
@@ -214,10 +214,10 @@ func _land() -> void:
 		if level == null or live >= cap:
 			continue
 		live += 1
-		var origin := Screen.origin(home_screen)
+		var origin := arena.position
 		level.spawn_entity({
 			"type": "enemy_walker",
-			"px": origin.x + 40.0 + float(i) * (Screen.W - 96.0),
+			"px": origin.x + 40.0 + float(i) * (arena.size.x - 96.0),
 			"py": pos.y - 8.0,
 		})
 
@@ -233,7 +233,7 @@ func live_adds() -> int:
 		var e := node as Enemy
 		if e == null or e == self or not is_instance_valid(e) or e.level != level:
 			continue
-		if Screen.index_of(e.center(), Vector2i(999, 999)) != home_screen:
+		if not arena.has_point(e.center()):
 			continue
 		n += 1
 	return n

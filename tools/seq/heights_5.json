@@ -3,7 +3,7 @@
   "_": "HEIGHTS_5, THE STORMCREST. Re-run with: tools/shot.sh --seq=tools/seq/heights_5.json"
  },
  {
-  "_": "Two things about capturing this fight. Kaya is not invulnerable in a capture and the fight does not stop for one, so every arena shot is taken from the west refuge slab -- which is also the tile the fight is about, and which carries a heart. And `debug_advance_boss_phase` and `debug_kill_nearest_enemy` both go through Enemy.hurt(), which this boss REFUSES while it is flying: a call at an arbitrary moment does nothing at all, which is how the first cut of this sequence ended up with four shots of an untouched phase 1. Both are staged off the one window that is not a guess -- leaving the arena screen and coming back respawns it onto its roost pad for 0.9 s (Level._on_screen_changed -> Enemy.set_active_screen -> respawn), and a call 15 frames into that lands every time."
+  "_": "Two things about capturing this fight. Kaya is not invulnerable in a capture and the fight does not stop for one, so every arena shot is taken from the west refuge slab -- which is also the tile the fight is about, and which carries a heart. And `debug_advance_boss_phase` and `debug_kill_nearest_enemy` both go through Enemy.hurt(), which this boss REFUSES while it is flying: a call at an arbitrary moment does nothing at all, which is how the first cut of this sequence ended up with four shots of an untouched phase 1. Both are staged off the one window that is not a guess -- leaving the arena and coming back respawns it onto its roost pad for 0.9 s (a teleport calls Level.settle_view -> _update_arena: the camera lets go, then locks again -> respawn), and a call 15 frames into that lands every time."
  },
  {
   "scenario": "level:heights_5",

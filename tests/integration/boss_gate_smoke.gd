@@ -89,7 +89,7 @@ func run_all() -> int:
 		"nothing the Warden did connected with Kaya standing at (%d,%d), right "
 			% [target.x, target.y] + "next to it — the sweep cannot detect a hit")
 	check(int(obs["escapes"]) == 0,
-		"the Warden left arena_min/arena_max or its screen on %d frame(s)"
+		"the Warden left arena_min/arena_max or its arena on %d frame(s)"
 			% int(obs["escapes"]))
 
 	# Check 5, whole, because it is cheap: put the boss down and walk out.

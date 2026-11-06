@@ -326,9 +326,9 @@ func t_you_cannot_simply_walk_out_of_the_pull() -> void:
 		+ "not one you stroll out of.") % [wet, dry])
 
 ## The camera snap comes BEFORE the phase is set, and that order is the whole
-## point of this helper. Landing the camera on the arena screen fires
-## `Level._on_screen_changed`, which calls `set_active_screen` on every enemy,
-## which respawns the ones that were inactive — and `Enemy.respawn()` puts the
+## point of this helper. Her entering the arena locks the camera
+## (`Level._update_arena`, on the next physics tick), which respawns the boss
+## if it was resting — and `Enemy.respawn()` puts the
 ## Maw back into phase 1, which drains the arena. Setting the phase first and
 ## snapping afterwards measured 113 px in both tide states, because both runs
 ## were drained. This is not a quirk of the test: re-entering the arena really
@@ -336,7 +336,7 @@ func t_you_cannot_simply_walk_out_of_the_pull() -> void:
 ## respawns before it sets a phase.
 func _walk_from(tile: Vector2i, dir: String, phase: int) -> float:
 	park(tile)
-	lvl.cam.snap_to_target()
+	lvl.settle_view()
 	await frames(2)
 	set_phase(phase)
 	boss.active = false
@@ -359,7 +359,7 @@ func _walk_from(tile: Vector2i, dir: String, phase: int) -> float:
 func t_the_refuge_shelf_is_two_tiles_up_and_she_can_make_it() -> void:
 	_current = "refuge-reachable"
 	park(Vector2i(PIVOT, FLOOR_ROW))
-	lvl.cam.snap_to_target()
+	lvl.settle_view()
 	await frames(2)
 	set_phase(0)
 	boss.active = false
@@ -408,7 +408,7 @@ func _hop(from: Vector2i, x0: int, x1: int) -> Vector2i:
 		park(from)
 		# Nothing this probe reports may come from the previous probe's landing.
 		pl.last_floor_tile = Vector2i(-1, -1)
-		lvl.cam.snap_to_target()
+		lvl.settle_view()
 		_hold([])
 		await frames(2)
 		var airborne := false

@@ -1,8 +1,19 @@
 class_name TileRenderer
 extends Node2D
-## Draws one tile layer straight from the atlas, culled to the visible screen.
-## A TileMapLayer would need a TileSet resource authored in the editor; this is
-## ~40 lines, fully deterministic, and lets the camera drive the cull.
+## Draws one tile layer straight from the atlas. A TileMapLayer would need a
+## TileSet resource authored in the editor; this is fully deterministic and
+## code-built.
+##
+## Refit phase 2: the layer is drawn in CHUNKS of CHUNK x CHUNK tiles, each its
+## own CanvasItem whose draw list is recorded once and kept. The scrolling
+## camera moves the view every frame; under the screen flip this layer
+## re-recorded its whole cull (~480 quads, measured ~1.5 ms) when the screen
+## changed, and with a scrolling view that became every 16 px of travel, with
+## both layers on the same tick — the worst physics tick of the frame-cost run
+## went from 3.4 ms to 9.3 ms. Now scrolling costs no redraw at all: the
+## renderer culls off-view chunks by their bounds, and a chunk is re-recorded
+## only when something inside it changes (an animated tile's frame, a dissolve,
+## a broken tile).
 ##
 ## Animated tiles (data/tile_anim.json) are resolved here at draw time: a tile
 ## can swap to a frame from the fx atlas, be nudged a pixel, or be brightened.
@@ -20,14 +31,29 @@ extends Node2D
 ## body can stand on a tile mid-dissolve exactly as if the art had snapped.
 
 const TS := TileData4.TILE_SIZE
+## Tiles per chunk side. 8 x 8 is 128 px: a chunk re-record (an animated water
+## frame, a broken crate) is ~64 quads, and a 400 x 240 view touches 12-20.
+const CHUNK := 8
 ## 4 render frames at 60Hz — comfortably inside the Obsidian Heart's shortest
 ## reforge telegraph (1.05s, data/enemies/obsidian_heart.json's reforge_time).
 const DISSOLVE_TIME := 4.0 / 60.0
 
+## One recorded block of the layer.
+class Chunk extends Node2D:
+	var owner_layer: Node = null
+	var rect := Rect2i()                         ## in tiles
+	var anim_ids := PackedInt32Array()           ## animated ids inside it
+	var sig := 0
+	func _draw() -> void:
+		owner_layer.call("_paint", self, rect)
+
 var world: TileWorld = null
 var layer := "fg"                       ## "fg" or "bg"
 var atlas: Texture2D = null
-var modulate_color := Color.WHITE
+var modulate_color := Color.WHITE:
+	set(c):
+		modulate_color = c
+		refresh()
 var view := Rect2(0, 0, 400, 240)
 
 var anim: TileAnim = null
@@ -36,9 +62,8 @@ var fx_atlas: Texture2D = null
 var _cells: PackedInt32Array = PackedInt32Array()
 ## Animated ids actually inside the cull, so a level with no water pays nothing.
 var _live: PackedInt32Array = PackedInt32Array()
-var _live_bounds := Rect2i()
-var _live_valid := false
-var _signature := 0
+var _chunks: Array[Chunk] = []
+var _chunk_cols := 0
 ## Tile index (ty * world.width + tx) -> seconds remaining of its dissolve.
 ## Only ever populated for the fg layer — see begin_dissolve().
 var _dissolve: Dictionary = {}
@@ -50,8 +75,8 @@ func setup(w: TileWorld, which: String) -> void:
 	var resolved := TileVariants.for_world(w)
 	_cells = resolved.bg if which == "bg" else resolved.fg
 	_setup_anim()
+	_build_chunks()
 	_refresh_live()
-	queue_redraw()
 
 ## Animation is strictly optional: a missing table or a missing fx atlas leaves
 ## every tile exactly as it was drawn before Phase 5.
@@ -65,20 +90,78 @@ func _setup_anim() -> void:
 		push_warning("TileRenderer: no fx atlas at '%s'; tiles keep their still art"
 			% anim.atlas_path)
 
+## (Re)build the chunk grid. Called again by a boss that rewrites the layer
+## (tide_maw.gd, stormcrest.gd re-run setup()), so it reuses what it can.
+func _build_chunks() -> void:
+	var cols := ceili(float(world.width) / CHUNK)
+	var rows := ceili(float(world.height) / CHUNK)
+	if _chunks.size() != cols * rows or _chunk_cols != cols:
+		for c in _chunks:
+			c.queue_free()
+		_chunks.clear()
+		_chunk_cols = cols
+		for cy in rows:
+			for cx in cols:
+				var c := Chunk.new()
+				c.name = "Chunk%d_%d" % [cx, cy]
+				c.owner_layer = self
+				c.rect = Rect2i(cx * CHUNK, cy * CHUNK,
+					mini(CHUNK, world.width - cx * CHUNK), mini(CHUNK, world.height - cy * CHUNK))
+				add_child(c)
+				_chunks.append(c)
+	for c in _chunks:
+		_index_anim(c)
+	refresh()
+
+func _index_anim(c: Chunk) -> void:
+	c.anim_ids = PackedInt32Array()
+	if anim == null or not anim.has_any():
+		return
+	for ty in range(c.rect.position.y, c.rect.end.y):
+		for tx in range(c.rect.position.x, c.rect.end.x):
+			var id := _id_at(tx, ty)
+			if id > 0 and anim.animated(id) and not c.anim_ids.has(id):
+				c.anim_ids.append(id)
+	c.sig = anim.signature(c.anim_ids) if not c.anim_ids.is_empty() else 0
+
+## Re-record every chunk: the tile grid or the tint changed wholesale.
+func refresh() -> void:
+	for c in _chunks:
+		c.queue_redraw()
+
+## Re-record the chunk holding one tile: a crate broke, a door opened.
+func refresh_tile(t: Vector2i) -> void:
+	var c := _chunk_at(t.x, t.y)
+	if c != null:
+		_index_anim(c)
+		c.queue_redraw()
+
+func _chunk_at(tx: int, ty: int) -> Chunk:
+	if world == null or tx < 0 or ty < 0 or tx >= world.width or ty >= world.height:
+		return null
+	var i := (ty / CHUNK) * _chunk_cols + (tx / CHUNK)
+	return _chunks[i] if i < _chunks.size() else null
+
+func _id_at(tx: int, ty: int) -> int:
+	return world.get_bg(tx, ty) if layer == "bg" else world.get_fg(tx, ty)
+
+## The view only decides which animated ids are live (and so which chunks the
+## animation clock re-records). Scrolling itself redraws nothing.
 func set_view(r: Rect2) -> void:
-	if r != view:
-		view = r
+	if r == view:
+		return
+	var before := _bounds()
+	view = r
+	if _bounds() != before:
 		_refresh_live()
-		queue_redraw()
 
 ## Called by Level.on_switch_toggled() right after TileWorld.set_switch() has
 ## already flipped collision for `group`. Every SWITCHED tile tied to that
 ## group just swapped solid <-> ghost; `is_solid()` now answers with the NEW
-## state, so the OLD art is simply the other half of the pair — see `_draw()`.
+## state, so the OLD art is simply the other half of the pair — see `_paint()`.
 func begin_dissolve(group: int) -> void:
 	if world == null or layer != "fg":
 		return
-	var any := false
 	for ty in world.height:
 		for tx in world.width:
 			var id := world.get_fg(tx, ty)
@@ -87,14 +170,14 @@ func begin_dissolve(group: int) -> void:
 			if world.data.switch_group[id] != group:
 				continue
 			_dissolve[ty * world.width + tx] = DISSOLVE_TIME
-			any = true
-	if any:
-		queue_redraw()
+			var c := _chunk_at(tx, ty)
+			if c != null:
+				c.queue_redraw()
 
 func _physics_process(delta: float) -> void:
-	# Consistent with TileAnim (see level.gd's _process): a hitstop or a
-	# screen-flip slide freezes every render clock together, so a dissolve
-	# never finishes "early" relative to a world that is itself held still.
+	# Consistent with TileAnim (see level.gd's _process): a hitstop freezes
+	# every render clock together, so a dissolve never finishes "early"
+	# relative to a world that is itself held still.
 	if _dissolve.is_empty() or Game.sim_paused:
 		return
 	var done: Array = []
@@ -104,10 +187,13 @@ func _physics_process(delta: float) -> void:
 			done.append(k)
 		else:
 			_dissolve[k] = t
+		var c := _chunk_at(k % world.width, k / world.width)
+		if c != null:
+			c.queue_redraw()
 	for k in done:
 		_dissolve.erase(k)
-	queue_redraw()
 
+## The cull in tiles: the view plus one tile of margin.
 func _bounds() -> Rect2i:
 	if world == null:
 		return Rect2i()
@@ -118,41 +204,41 @@ func _bounds() -> Rect2i:
 	return Rect2i(x0, y0, x1 - x0, y1 - y0)
 
 func _refresh_live() -> void:
-	if anim == null or not anim.has_any() or world == null:
-		_live = PackedInt32Array()
-		return
-	var b := _bounds()
-	if _live_valid and b == _live_bounds:
-		return
-	_live_bounds = b
-	_live_valid = true
 	_live = PackedInt32Array()
-	for ty in range(b.position.y, b.position.y + b.size.y + 1):
-		for tx in range(b.position.x, b.position.x + b.size.x + 1):
-			var id := world.get_bg(tx, ty) if layer == "bg" else world.get_fg(tx, ty)
-			if id > 0 and anim.animated(id) and not _live.has(id):
+	if anim == null or not anim.has_any() or world == null:
+		return
+	var b := _bounds().grow_individual(0, 0, 1, 1)
+	for c in _chunks:
+		if c.anim_ids.is_empty() or not c.rect.intersects(b):
+			continue
+		for id in c.anim_ids:
+			if not _live.has(id):
 				_live.append(id)
 
-## Repaint only when an animated tile on this screen has actually changed —
-## a still screen costs nothing, and a screen of water repaints a few times a
-## second rather than sixty.
+## Re-record only a visible chunk whose animated tiles have actually changed
+## frame — a still screen costs nothing, and a screen of water repaints a few
+## times a second rather than sixty.
 func _process(_delta: float) -> void:
 	if _live.is_empty():
 		return
-	var sig := anim.signature(_live)
-	if sig != _signature:
-		_signature = sig
-		queue_redraw()
+	var b := _bounds().grow_individual(0, 0, 1, 1)
+	for c in _chunks:
+		if c.anim_ids.is_empty() or not c.rect.intersects(b):
+			continue
+		var sig := anim.signature(c.anim_ids)
+		if sig != c.sig:
+			c.sig = sig
+			c.queue_redraw()
 
-func _draw() -> void:
+## Records one chunk's tiles onto `ci` (the chunk), in world coordinates.
+func _paint(ci: CanvasItem, b: Rect2i) -> void:
 	if world == null or atlas == null:
 		return
-	var b := _bounds()
 	var cols := world.data.atlas_columns
-	var animating := not _live.is_empty()
-	for ty in range(b.position.y, b.position.y + b.size.y + 1):
-		for tx in range(b.position.x, b.position.x + b.size.x + 1):
-			var id := world.get_bg(tx, ty) if layer == "bg" else world.get_fg(tx, ty)
+	var animating := anim != null and anim.has_any()
+	for ty in range(b.position.y, b.end.y):
+		for tx in range(b.position.x, b.end.x):
+			var id := _id_at(tx, ty)
 			if id <= 0:
 				continue
 			# Which cell of the atlas this tile is painted from. Switch blocks
@@ -178,9 +264,9 @@ func _draw() -> void:
 					var old_src := Rect2(float((old_art % cols) * TS), float((old_art / cols) * TS), TS, TS)
 					var new_src := Rect2(float((art % cols) * TS), float((art / cols) * TS), TS, TS)
 					var c := modulate_color
-					draw_texture_rect_region(atlas, Rect2(dst2, Vector2(TS, TS)), old_src,
+					ci.draw_texture_rect_region(atlas, Rect2(dst2, Vector2(TS, TS)), old_src,
 						Color(c.r, c.g, c.b, c.a * k))
-					draw_texture_rect_region(atlas, Rect2(dst2, Vector2(TS, TS)), new_src,
+					ci.draw_texture_rect_region(atlas, Rect2(dst2, Vector2(TS, TS)), new_src,
 						Color(c.r, c.g, c.b, c.a * (1.0 - k)))
 					continue
 			var tex := atlas
@@ -196,7 +282,7 @@ func _draw() -> void:
 				var k := anim.tint(id)
 				if not is_equal_approx(k, 1.0):
 					col = Color(col.r * k, col.g * k, col.b * k, col.a)
-			draw_texture_rect_region(tex, Rect2(dst, Vector2(TS, TS)), src, col)
+			ci.draw_texture_rect_region(tex, Rect2(dst, Vector2(TS, TS)), src, col)
 
 ## Which animated tile ids are inside the current cull. Empty means this layer
 ## costs nothing per frame.
@@ -209,6 +295,10 @@ func live_animated_ids() -> PackedInt32Array:
 ## the dissolve is running without reaching into `_dissolve` directly.
 func dissolving_count() -> int:
 	return _dissolve.size()
+
+## How many chunks this layer is drawn in. For the integration suite.
+func chunk_count() -> int:
+	return _chunks.size()
 
 func _ghost_of(id: int) -> int:
 	match id:

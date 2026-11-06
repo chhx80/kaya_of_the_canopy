@@ -2706,3 +2706,81 @@ stand taller than the huts on a top-down map.
 (4.1% of the outline lost, largest hole 5.8%, against 0.9% / 1.8% for the
 16 px one). All of the loss is her ink outline against the canopy's darkest
 band. Every other world is under 2%. `shots/refit_15_contrast.png`.
+
+## Refit phase 2 — the scrolling camera (branch `refit/camera`)
+
+The screen flip is gone. The follow camera from phase 0 is the game's only
+camera, in every level and on the overworld, and nothing in the game freezes
+to move it: the 120 ms slide that held the simulation still on every screen
+edge no longer exists, and `Game.sim_paused` now belongs to hitstop alone.
+The `screen_flip` setting is no longer read by anything (its options row and
+save default sit in files this branch does not own — see REPORT.md).
+
+**The camera** (`src/world/camera_controller.gd`, maths in
+`src/world/camera_math.gd`, tunables in `data/camera.json`): centred, smoothed,
+a look-ahead in the facing direction, a vertical anchor on the last floor so a
+jump does not move the view by a pixel, clamped to the level. Two additions
+the tape audit forced:
+- a **hard keep-in zone** (`keep_in_x_px`/`keep_in_y_px`): smoothing lags by
+  speed ÷ rate, and on heights_1, heights_3, heights_4 and nest_4 a thermal or
+  a fall carried Kaya *out of the view* for up to 17 frames. Her centre now
+  never gets closer than 40 px to the top/bottom edge or 64 px to a side.
+- **pixel snapping on the gap, not the camera**: rounding camera and target
+  separately makes her shimmer a pixel against the screen while followed.
+  `CameraMath.snap` rounds the distance between them (half-up, so a still
+  camera is never nudged).
+
+**Boss arenas are rectangles** (`Enemy.arena`, default the 400×240 cell the
+boss spawns in, overridable per entity with `"arena": [tx, ty, tw, th]`). All
+five bosses fight inside `arena` instead of `Screen.origin(home_screen)`;
+`home_screen` is gone. The camera locks when Kaya's centre enters the arena and
+**eases** in over `arena_ease_s` (0.6 s, sine in-out) instead of cutting; it
+lets go once she is `arena_release_px` clear, a hysteresis so a jump on the rim
+cannot lock and unlock on alternate frames. The boss fights while the camera
+is locked and rests, reset, while it is not — walking out and back in restarts
+the fight, as the flip did.
+
+**Enemy wake-up by view distance is the only rule** (`src/enemies/wake_rule.gd`):
+awake while the body overlaps the view + 96 px; beyond that it *despawns*
+(hidden, back on its spawn, not thinking, not hittable); it *respawns* fresh
+when its spawn comes within view + 32 px — already moving before its first
+pixel shows — but only after that spawn has been out of range once, so an
+enemy that wandered off in plain sight never pops back in there. Killed is
+killed. Bosses are exempt: they wake with their arena.
+
+**Everything that used to update on a flip, now updated every frame without
+costing every frame.** Measured first: with the old per-view repaint, the
+worst physics tick while running across deeps_2 went from 3.4 ms to 9.3 ms,
+because both tile layers re-recorded ~480 quads (~1.5 ms each) on the same
+tick every 16 px of travel. So:
+- `TileRenderer` draws in 8×8-tile **chunks**, each recorded once; scrolling
+  redraws nothing, the renderer culls off-view chunks, and a chunk is
+  re-recorded only when a tile in it changes (animated frame, dissolve, crate,
+  door).
+- `ParallaxBg` **moves** instead of redrawing; its offset is a whole-pixel
+  function of the whole-pixel view, so a slow plane cannot swim against the
+  tiles. Vertically every plane stays locked to the view: the strips are one
+  screen tall and have no slack, and locked is exactly how every screen looked
+  under the flip.
+- The haze and vignette move with the view; emissive light pools are found
+  once per level (broken at the old 25-tile screen columns, so lakes are lit by
+  the same lozenges as before and they stay put while the view scrolls).
+- **A pre-existing bug fixed on the way:** the near-foreground parallax plane
+  (`bg_fg`) was never sent a view, so since Phase C it drew only over each
+  level's first screen.
+
+**Tooling for a camera that never freezes.** The tape replay
+(`tests/integration/tape_replay.gd`) still holds a hitstop tick without
+spending tape, and now *audits the camera on every frame of all 27 tapes*: no
+freeze but hitstop, no view step over 12 px, Kaya never outside an unlocked
+view, no ordinary enemy awake more than 160 px off the view, none frozen in
+sight. Both enemy checks were shown to fire by mutation (a 5000 px sleep
+margin: 1,514 frames flagged on jungle_2; despawn-without-hiding: 145) — and
+the first version of the audit was caught reading its bound from the tunable
+it audits, which passes anything. The boss gate's rim rule is now "inside the
+arena grown by the release margin": those tiles used to flip the camera and
+freeze the boss; now the fight runs there, so they are swept.
+`tools/solver/diverge.gd` documents that a paused frame is hitstop only.
+`tools/dev_capture.gd` gains a `tape` step (play a level's real proof tape and
+shoot it mid-run, pausing at idle so a capture never costs the tape a frame)
+and a `cap` option on `perf` (measure at the phone's 60 Hz).

@@ -12,7 +12,7 @@
   "_": "Two things about capturing this fight. Kaya is NOT invulnerable in a capture and the fight does not stop for one, so every arena shot is taken from somewhere the Boss Gate proved safe -- the one-way shelf for the floor wave, the floor under a comb for the spore fall. And the teleports put her ONE ROW ABOVE the row she should end up standing in, because a teleport writes the body's top-left and the body is 22 px tall."
  },
  {
-  "_": "AND THE PHASE SHOTS ARE TIMED, not hoped for. She is drawn at 12 % alpha on every frame she is not attacking, so a screenshot taken at an arbitrary moment is a screenshot of an empty room -- which is the fight working, and useless as a picture of her. Teleporting her screen into view respawns her (Level._on_screen_changed -> Enemy.set_active_screen -> respawn) onto a known clock: 0.9 s idle, then `slam_interval` crawling, then the burrow windup. 170 frames after the teleport she is in the windup or the charge in every phase, and both are full brightness."
+  "_": "AND THE PHASE SHOTS ARE TIMED, not hoped for. She is drawn at 12 % alpha on every frame she is not attacking, so a screenshot taken at an arbitrary moment is a screenshot of an empty room -- which is the fight working, and useless as a picture of her. Teleporting Kaya out of the arena and back respawns her (Level.settle_view -> _update_arena: unlock, then lock -> respawn) onto a known clock: 0.9 s idle, then `slam_interval` crawling, then the burrow windup. 170 frames after the teleport she is in the windup or the charge in every phase, and both are full brightness."
  },
  {
   "scenario": "level:deeps_5",

@@ -56,7 +56,7 @@ func run() -> void:
 	var p: Player = level.player
 	p.pos = Vector2(4.0 * TS, 10.0 * TS)
 	p.vel = Vector2.ZERO
-	level.cam.snap_to_target()
+	level.settle_view()
 
 	# The boar: far enough away that it patrols rather than charging, then
 	# forced into its charge pose for the capture.

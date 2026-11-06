@@ -36,9 +36,14 @@ var view := Rect2(0, 0, 400, 240)
 
 var _pool_tex: Texture2D = null
 var _vig_tex: Texture2D = null
-## Pools inside the current view, rebuilt when the view changes rather than per
-## frame: a screen flip is the only thing that can change the answer.
+## Pools inside the current view, rebuilt when the view crosses a tile boundary
+## rather than per frame: the pools are found against tile-aligned bounds, so a
+## move inside one tile cannot change the answer.
 var _visible: Array = []
+var _cull := Rect2i(0, 0, -1, -1)
+## Every emissive run in the level, found once at setup. Scanning the cull for
+## them on each tile-boundary crossing cost ~1 ms a time in the frame-cost run.
+var _emissive_all: Array = []
 var _flickers := false
 var _t := 0.0
 var _phase := 0
@@ -60,54 +65,84 @@ func setup(r: Role, a: Ambience, w: TileWorld) -> void:
 		material = m
 	elif role == Role.SHADE:
 		_vig_tex = load(VIGNETTE_TEX)
+	_scan_emissive()
 	_rebuild()
 	queue_redraw()
 
+## AIR and SHADE are screen-sized fills: they are drawn once at the local
+## origin and *moved* with the view, so scrolling never re-records them. LIGHT
+## draws in world space and only re-collects its pools when the tile-aligned
+## cull changes; its motes ride the view and redraw on their own clock.
 func set_view(r: Rect2) -> void:
 	if r == view:
 		return
 	view = r
-	_rebuild()
-	queue_redraw()
+	if role != Role.LIGHT:
+		position = view.position
+		return
+	var c := _cull_of(view)
+	if c != _cull:
+		_rebuild()
+		queue_redraw()
+	elif not amb.motes.is_empty():
+		queue_redraw()
+
+func _cull_of(r: Rect2) -> Rect2i:
+	var ts := float(TileData4.TILE_SIZE)
+	var p := Vector2i(int(floor(r.position.x / ts)), int(floor(r.position.y / ts)))
+	var e := Vector2i(int(ceil(r.end.x / ts)), int(ceil(r.end.y / ts)))
+	return Rect2i(p, e - p)
 
 ## Light pools that reach the visible screen. Authored pools are a short list;
 ## emissive tiles are found by scanning the cull, and runs of them along a row
 ## are merged into one wide pool so a lake costs a few quads and not a hundred.
 func _rebuild() -> void:
+	_cull = _cull_of(view)
 	_visible = []
 	_flickers = false
 	if role != Role.LIGHT or amb == null:
 		return
 	for raw: Variant in amb.pools:
 		var p: Ambience.Pool = raw
-		if view.grow(p.radius).has_point(p.pos):
+		if _cull_rect().grow(p.radius).has_point(p.pos):
 			_visible.append(p)
 			_flickers = _flickers or p.flicker > 0.0
-	if not amb.emissive.is_empty() and world != null:
-		_collect_emissive()
+	var cr := _cull_rect()
+	for raw: Variant in _emissive_all:
+		var e: Ambience.Pool = raw
+		if cr.grow(e.radius).has_point(e.pos):
+			_visible.append(e)
 	if _visible.size() > MAX_POOLS:
 		_visible.resize(MAX_POOLS)
 
-func _collect_emissive() -> void:
-	var ts := TileData4.TILE_SIZE
-	var x0 := maxi(0, int(floor(view.position.x / ts)))
-	var y0 := maxi(0, int(floor(view.position.y / ts)))
-	var x1 := mini(world.width - 1, int(ceil((view.position.x + view.size.x) / ts)))
-	var y1 := mini(world.height - 1, int(ceil((view.position.y + view.size.y) / ts)))
-	for ty in range(y0, y1 + 1):
+## The tile-aligned cull as world pixels. Pools are kept against this, not the
+## exact view, so the set cannot change between two tile boundaries.
+func _cull_rect() -> Rect2:
+	var ts := float(TileData4.TILE_SIZE)
+	return Rect2(Vector2(_cull.position) * ts, Vector2(_cull.size) * ts)
+
+## Runs of the same emissive tile along a row, merged into one pool each — and
+## broken at every screen-width column (25 tiles), which is exactly where the
+## screen flip used to clip them. So a lake is lit by the same lozenges it was
+## under the flip, and they stay put in the world as the view scrolls over
+## them, instead of sliding with a cull edge.
+func _scan_emissive() -> void:
+	_emissive_all = []
+	if role != Role.LIGHT or amb == null or world == null or amb.emissive.is_empty():
+		return
+	var seg := Screen.W / TileData4.TILE_SIZE
+	for ty in world.height:
 		var run_start := -1
 		var run_id := 0
-		for tx in range(x0, x1 + 2):
-			var id := world.get_fg(tx, ty) if tx <= x1 else 0
+		for tx in range(0, world.width + 1):
+			var id := world.get_fg(tx, ty) if tx < world.width else 0
 			var lit: bool = amb.emissive.has(id)
-			if lit and run_id == id:
+			if lit and run_id == id and tx % seg != 0:
 				continue
 			if run_start >= 0:
 				_add_run(run_start, tx - 1, ty, run_id)
 			run_start = tx if lit else -1
 			run_id = id if lit else 0
-	if _visible.size() > MAX_POOLS:
-		_visible.resize(MAX_POOLS)
 
 func _add_run(x0: int, x1: int, ty: int, id: int) -> void:
 	var e: Dictionary = amb.emissive[id]
@@ -122,7 +157,7 @@ func _add_run(x0: int, x1: int, ty: int, id: int) -> void:
 	p.half = Vector2(base + float(x1 - x0) * ts * 0.5, base)
 	p.radius = maxf(p.half.x, p.half.y)
 	p.colour = e["colour"]
-	_visible.append(p)
+	_emissive_all.append(p)
 
 ## How many pools this layer would draw right now. Used by the integration
 ## suite, which cannot see a draw call but can see the work behind one.
@@ -143,7 +178,7 @@ func _lantern_pos() -> Vector2:
 
 func _process(delta: float) -> void:
 	# Only the light layer animates: the haze and the shade are flat fills that
-	# change when the screen flips and never in between.
+	# move with the view (set_view) and never need repainting.
 	if role != Role.LIGHT or amb == null or Game.sim_paused:
 		return
 	if amb.lantern_radius > 0.0:
@@ -190,14 +225,14 @@ func _draw() -> void:
 	match role:
 		Role.AIR:
 			if amb.air.a > 0.0:
-				draw_rect(view, amb.air)
+				draw_rect(Rect2(Vector2.ZERO, view.size), amb.air)
 		Role.SHADE:
 			# Darkness first, vignette on top: the vignette is the *edge* of the
 			# screen getting darker still, not a second flat fill.
 			if amb.darkness > 0.0:
-				draw_rect(view, amb.shade)
+				draw_rect(Rect2(Vector2.ZERO, view.size), amb.shade)
 			if amb.vignette > 0.0 and _vig_tex != null:
-				draw_texture_rect(_vig_tex, Rect2(view.position, view.size), false,
+				draw_texture_rect(_vig_tex, Rect2(Vector2.ZERO, view.size), false,
 					Color(1, 1, 1, amb.vignette))
 		Role.LIGHT:
 			if _pool_tex == null:
