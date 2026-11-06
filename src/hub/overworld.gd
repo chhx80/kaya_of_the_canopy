@@ -37,6 +37,8 @@ func _load() -> void:
 		return
 	world = def.world
 	tiles_bg.setup(world, "bg")
+	# Contact shadows are the side view's light, not the top-down map's.
+	tiles_fg.contact_shadows = false
 	tiles_fg.setup(world, "fg")
 	tiles_bg.modulate_color = Color(0.9, 0.94, 0.9)
 

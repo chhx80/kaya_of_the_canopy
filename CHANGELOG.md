@@ -2898,3 +2898,65 @@ from `render`.
 
 Screenshots: `shots/p3_enemies_*.png` (sheets with hitboxes drawn, in-game
 1x frames of every tell, and zoomed strips of them).
+
+## Refit phase 3 — the five tilesets (branch `p3/tiles`)
+
+The tiles were authored for a 16 px hero; under the 40 px Kaya their edges
+were the weakest thing on the screen. Collision is untouched: no id, flag,
+size or hitbox moved, and `data/tiles.json`, `level_legend.json` and
+`levels/**` are byte-identical. New drawing code lives in
+`tools/art/tiles_p3.py`; `tools/art/tiles.py` only calls it.
+
+**The refit rim.** Every standable material's exposed edges are now set to
+*named* ramp steps rather than nudged by one: a two-row lip on a top face with
+sparse glints above it, the underside at the bottom of its ramp, the shadow
+cheek a step down, and a 1 px chip off each convex corner. The phase C course
+(`edge_light_course`, and `tools/check_edge_light.py`'s contract on it) is
+unchanged; the rim runs after it.
+
+**Contact shadows.** `assets/tiles/contact_shadow.png` (generated: ink at
+partial alpha, five cells) is laid by the *foreground* renderer into every
+empty cell with a background tile behind it, on the sides where static solid
+ground touches it: cast deep from above and from the left, shallow occlusion
+from below and the right, and the corner a lone solid up-left throws.
+`TileVariants.contact_bits()` decides it (pure, unit-tested); switch blocks
+and breakables never cast, because they can vanish without their neighbours
+re-recording. `TileRenderer.refresh_tile()` now re-records the neighbouring
+chunks too, so an opened door takes its shadow with it. Off in the top-down
+hub. Absent manifest block, absent shadows.
+
+**Variety.** The commonest exposed cases, counted over all 27 levels — the top
+of a floor (mask 124) and the one-tile-thick strip (68) — get four more
+paintings per standable material, two of them carrying one accent (a pebble
+set in the lip, a chip out of it, a crack, a root breaking the surface, a
+flower on the sod, a flake of glass, an ember seam). Every background wall gets
+three more interiors. Appended after the existing paintings, 63 cells; the
+atlas is 256x3776, inside the 4096 px limit.
+
+**Clean fills.** `fill()` resolves its grain to whole ramp steps instead of
+through the Bayer matrix; the grain's random stream is unchanged, so every
+structure drawn over a fill is where it was. The flat backgrounds behind Kaya
+(18, 264, 284, 15) lose their checkerboard.
+
+**THERMAL HEIGHTS re-valued.** The gallery fill (244) was `metal` 5 — under
+heights' gold tint it landed at the value and hue of her straw hat. It is now
+cool `stone` 4 with `stone` 5 wind streaks; the cloud accent (250) moved with
+it. Measured on the in-game frames (`tools/p3_tiles_sheets.py kaya`, hat minus
+the scenery 3-5 px around it): idle +42 → +72 luma, run +4 → +54, saturation
+separation +0.47 → +0.55 and +0.48 → +0.62. Kaya was not changed.
+
+**Inked interactables.** The legibility sheet measured ladders 12-24 luma off
+their walls and the Nest's shards 18. Every ladder, one-way and hazard is now
+lifted one ramp step and inked with a 1 px halo — Kaya's own language: things
+you act on are inked, scenery is not. The Nest's shards have glowing tips.
+
+**Proof.** `tools/p3_tiles_legend.py` (run as `tools/p3_tiles_sheets.py
+legend`) composites every gameplay role of each world side by side on its own
+wall, at 1x and 3x, under the world's real ambient tints and contact shadows:
+`shots/p3_tiles_legibility_<world>.png`, `_all.png`. Before/after in the
+running game: `shots/p3_tiles_kaya_sheet.png` (Kaya at each world's start,
+same frame, HEAD's tiles vs these), `shots/p3_tiles_{before,after}_*.png`
+(mid-run on each level's real proof tape), `shots/p3_tiles_zoom_3x.png`.
+Tests: seven unit tests in `test_tile_variants.gd` (contact bits, the sheet,
+casters, accents) and one integration check (ROOT HOLLOW lays >100 shadow
+strips, the background layer and the hub none, no id moved).

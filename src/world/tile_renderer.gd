@@ -23,6 +23,14 @@ extends Node2D
 ## the same reason and with the same guarantee: the id stays authored, only the
 ## atlas cell moves. See src/world/tile_variants.gd.
 ##
+## Kaya Refit phase 3: contact shadows. The foreground layer lays a strip of
+## generated ink into each empty cell that has a background tile behind it, on
+## the sides where solid ground touches it (`TileVariants.contact_bits()`).
+## It is drawn here rather than baked into the background art because the
+## receiver is any background tile and the caster is any foreground one; and
+## by the foreground layer because that is the layer whose chunks re-record
+## when ground changes. Collision never sees it.
+##
 ## Phase D, docs/plan-art-motion.md: switch-flip dissolve. `begin_dissolve()`
 ## is called by Level the instant a switch group flips (collision has already
 ## changed by then — `TileWorld.set_switch()` is synchronous) and cross-fades
@@ -55,6 +63,12 @@ var modulate_color := Color.WHITE:
 		modulate_color = c
 		refresh()
 var view := Rect2(0, 0, 400, 240)
+## Contact shadows on this layer. Only ever drawn by a foreground layer; the
+## top-down hub turns them off, since its light is not the side-view's.
+var contact_shadows := true
+var _shadow_tex: Texture2D = null
+## SHADE_* bit -> source rect in the shadow sheet, in draw order.
+var _shadow_src: Array = []
 
 var anim: TileAnim = null
 var fx_atlas: Texture2D = null
@@ -74,9 +88,27 @@ func setup(w: TileWorld, which: String) -> void:
 	atlas = load("res://assets/tiles/tileset.png")
 	var resolved := TileVariants.for_world(w)
 	_cells = resolved.bg if which == "bg" else resolved.fg
+	_setup_shadows()
 	_setup_anim()
 	_build_chunks()
 	_refresh_live()
+
+## Shadows are optional too: no manifest block, no sheet, or a background
+## layer, and nothing is drawn.
+func _setup_shadows() -> void:
+	_shadow_tex = null
+	_shadow_src = []
+	if layer != "fg" or not contact_shadows:
+		return
+	var v := TileVariants.shared()
+	if v.shadow_texture == "" or not ResourceLoader.exists(v.shadow_texture):
+		return
+	_shadow_tex = load(v.shadow_texture)
+	for bit: int in [TileVariants.SHADE_N, TileVariants.SHADE_W, TileVariants.SHADE_NW,
+			TileVariants.SHADE_S, TileVariants.SHADE_E]:
+		var cell := int(v.shadow_cells.get(String(TileVariants.SHADE_NAMES[bit]), -1))
+		if cell >= 0:
+			_shadow_src.append([bit, Rect2(float(cell * TS), 0.0, TS, TS)])
 
 ## Animation is strictly optional: a missing table or a missing fx atlas leaves
 ## every tile exactly as it was drawn before Phase 5.
@@ -129,12 +161,18 @@ func refresh() -> void:
 	for c in _chunks:
 		c.queue_redraw()
 
-## Re-record the chunk holding one tile: a crate broke, a door opened.
+## Re-record the chunk holding one tile: a crate broke, a door opened. A
+## tile's contact shadows land in its neighbours' cells, which can sit in the
+## next chunk over, so those chunks are re-recorded too.
 func refresh_tile(t: Vector2i) -> void:
-	var c := _chunk_at(t.x, t.y)
-	if c != null:
-		_index_anim(c)
-		c.queue_redraw()
+	var seen: Array[Chunk] = []
+	for d: Vector2i in [Vector2i.ZERO, Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1),
+			Vector2i(-1, 0), Vector2i(0, -1)]:
+		var c := _chunk_at(t.x + d.x, t.y + d.y)
+		if c != null and not seen.has(c):
+			seen.append(c)
+			_index_anim(c)
+			c.queue_redraw()
 
 func _chunk_at(tx: int, ty: int) -> Chunk:
 	if world == null or tx < 0 or ty < 0 or tx >= world.width or ty >= world.height:
@@ -240,6 +278,8 @@ func _paint(ci: CanvasItem, b: Rect2i) -> void:
 		for tx in range(b.position.x, b.end.x):
 			var id := _id_at(tx, ty)
 			if id <= 0:
+				if id == 0 and _shadow_tex != null:
+					_paint_shadow(ci, tx, ty)
 				continue
 			# Which cell of the atlas this tile is painted from. Switch blocks
 			# carry no variants, so ghosting still works off the id itself.
@@ -283,6 +323,29 @@ func _paint(ci: CanvasItem, b: Rect2i) -> void:
 				if not is_equal_approx(k, 1.0):
 					col = Color(col.r * k, col.g * k, col.b * k, col.a)
 			ci.draw_texture_rect_region(tex, Rect2(dst, Vector2(TS, TS)), src, col)
+
+func _paint_shadow(ci: CanvasItem, tx: int, ty: int) -> void:
+	var bits := TileVariants.contact_bits(world, tx, ty)
+	if bits == 0:
+		return
+	var dst := Rect2(Vector2(tx * TS, ty * TS), Vector2(TS, TS))
+	for e: Array in _shadow_src:
+		if bits & int(e[0]):
+			ci.draw_texture_rect_region(_shadow_tex, dst, e[1] as Rect2, modulate_color)
+
+## How many contact-shadow strips this layer draws, for the integration suite
+## (it cannot see a draw call, but it can see the decision behind one).
+func contact_shadow_count() -> int:
+	if _shadow_tex == null or world == null:
+		return 0
+	var n := 0
+	for ty in world.height:
+		for tx in world.width:
+			var bits := TileVariants.contact_bits(world, tx, ty)
+			while bits != 0:
+				n += bits & 1
+				bits >>= 1
+	return n
 
 ## Which animated tile ids are inside the current cull. Empty means this layer
 ## costs nothing per frame.

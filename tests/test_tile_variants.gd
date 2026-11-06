@@ -283,3 +283,74 @@ func test_a_missing_manifest_leaves_every_tile_on_its_own_cell() -> void:
 	ok(not v.has_any(), "nothing is loaded")
 	var cells := v.resolve(_world([[1, 2, 3], [1, 2, 3]]), "fg")
 	eq(cells, PackedInt32Array([1, 2, 3, 1, 2, 3]), "tiles fall back to their own ids")
+
+# --------------------------------------------------------- contact shadows
+## Kaya Refit phase 3. A shadow is drawing only, so the contract is: it lands
+## where ground meets a background, nowhere else, and it never moves an id.
+func _shadow_world(rows: Array) -> TileWorld:
+	var w := TileWorld.from_rows(rows)
+	for y in w.height:
+		for x in w.width:
+			w.set_bg(x, y, 15)
+	return w
+
+func test_the_manifest_names_a_contact_shadow_sheet() -> void:
+	var cs: Dictionary = _m.get("contact_shadow", {})
+	ok(not cs.is_empty(), "variants.json carries a contact_shadow block")
+	var path := String(cs.get("texture", ""))
+	ok(ResourceLoader.exists(path), "the shadow sheet %s is imported" % path)
+	var cells: Dictionary = cs.get("cells", {})
+	for name: String in ["n", "w", "nw", "s", "e"]:
+		ok(cells.has(name), "the sheet has a '%s' cell" % name)
+	var tex: Texture2D = load(path)
+	if tex != null:
+		eq(tex.get_width(), TILE_SIZE * cells.size(), "one 16 px cell per side")
+
+func test_a_cell_under_a_ledge_and_beside_a_wall_is_shaded() -> void:
+	# a solid ceiling over an empty room with a wall on its left and a floor
+	var w := _shadow_world([[3, 3, 3, 3], [3, 0, 0, 0], [3, 0, 0, 3], [3, 3, 3, 3]])
+	var bits := TileVariants.contact_bits(w, 1, 1)
+	ok(bits & TileVariants.SHADE_N != 0, "shaded from the ceiling above")
+	ok(bits & TileVariants.SHADE_W != 0, "shaded from the wall to the left")
+	var floor_bits := TileVariants.contact_bits(w, 1, 2)
+	ok(floor_bits & TileVariants.SHADE_S != 0, "occluded by the floor below")
+	ok(TileVariants.contact_bits(w, 2, 2) & TileVariants.SHADE_E != 0,
+		"occluded by the wall to the right")
+	eq(TileVariants.contact_bits(w, 2, 1) & TileVariants.SHADE_W, 0,
+		"no side shadow without a wall beside it")
+
+func test_the_corner_shadow_needs_both_sides_open() -> void:
+	var w := _shadow_world([[3, 0], [0, 0]])
+	eq(TileVariants.contact_bits(w, 1, 1), TileVariants.SHADE_NW,
+		"a lone solid up-left throws only the corner")
+
+func test_no_shadow_falls_on_the_open_sky_or_on_a_tile() -> void:
+	var w := TileWorld.from_rows([[3, 3], [0, 9]])
+	eq(TileVariants.contact_bits(w, 0, 1), 0, "no background tile: no receiver")
+	w.set_bg(1, 1, 15)
+	eq(TileVariants.contact_bits(w, 1, 1), 0, "a foreground tile is never a receiver")
+
+func test_switch_blocks_and_breakables_cast_nothing() -> void:
+	# 11 is a switch block, 10 a crate: both can vanish without their
+	# neighbours being redrawn, so neither may leave a shadow behind.
+	var w := _shadow_world([[11, 10], [0, 0]])
+	eq(TileVariants.contact_bits(w, 0, 1), 0, "no shadow under a switch block")
+	eq(TileVariants.contact_bits(w, 1, 1), 0, "no shadow under a crate")
+
+func test_shading_never_touches_the_ids_collision_reads() -> void:
+	var w := _shadow_world([[3, 3, 3], [3, 0, 0], [3, 0, 3]])
+	var before: PackedInt32Array = w.fg.duplicate()
+	for y in 3:
+		for x in 3:
+			var _b := TileVariants.contact_bits(w, x, y)
+	eq(w.fg, before, "the id grid is untouched")
+	ok(not w.is_solid(1, 1), "the shaded cell is still empty")
+
+func test_the_floor_top_has_accent_paintings() -> void:
+	## Phase 3's variety: the commonest exposed case has more paintings than the
+	## interior had, for every standable world material.
+	for id: int in [2, 220, 240, 260, 280]:
+		var rec: Dictionary = _tiles().get(str(id), {})
+		var cases: Dictionary = rec.get("cases", {})
+		gt(float((cases.get("124", []) as Array).size()), 5.0,
+			"tile %d's floor top has more than five paintings" % id)
