@@ -1,0 +1,7 @@
+[
+  {"_": "Phase 3 HUD portrait, with the touch overlay on. Run at a phone aspect too: tools/shot.sh --res=2436x1125 --seq=tools/seq/p3_bg_hud.json"},
+  {"scenario": "level:jungle_1", "settle": 160},
+  {"touch": true},
+  {"wait": 4},
+  {"shot": "shots/p3_bg_hud.png"}
+]

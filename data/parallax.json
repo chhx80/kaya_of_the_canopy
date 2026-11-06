@@ -1,0 +1,17 @@
+{
+  "_comment": "Strip sizes for the parallax planes (Kaya Refit phase 3). Read by tools/art/backdrops.py when it paints bg_<world>_<plane>.png, and checked by tests/test_parallax_bg.gd. The scroll factors themselves are the PARALLAX_* constants in src/world/level.gd; `factor` here mirrors them so the painter can size each strip, and the test fails if the two disagree.",
+  "_fields": {
+    "design_level_h": "level height in px the strip heights are sized for. Every shipped level is two screens tall (480); on that level a plane moves vertically at `vertical` x the tiles. A taller level spreads the same slack over more travel, so the plane moves slower but its edge still never shows.",
+    "factor": "horizontal scroll rate as a fraction of the tiles (mirror of level.gd)",
+    "vertical": "vertical scroll rate on a design-height level; sets the strip height to view_h + vertical * (design_level_h - view_h)",
+    "width": "strip width in px: at least view_w + factor * (one level's horizontal travel), so a two-screen level never shows the strip repeat, and a multiple of 16 so the 4x4 dither tiles across the wrap"
+  },
+  "view": [400, 240],
+  "design_level_h": 480,
+  "planes": {
+    "sky":  {"factor": 0.10, "vertical": 0.10, "width": 448},
+    "far":  {"factor": 0.28, "vertical": 0.28, "width": 512},
+    "near": {"factor": 0.58, "vertical": 0.58, "width": 640},
+    "fg":   {"factor": 0.82, "vertical": 0.82, "width": 736}
+  }
+}
