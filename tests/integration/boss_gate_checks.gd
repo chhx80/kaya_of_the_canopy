@@ -61,7 +61,12 @@ var boss: Enemy = null
 var pl: Player = null
 ## Cached at boot: the boss node is freed 0.35 s after it dies, and check 5
 ## carries on walking around the arena long after that.
-var home_screen := Vector2i.ZERO
+var arena := Rect2()
+## How far outside `arena` Kaya's centre may go before the camera lets go and
+## the boss rests (data/camera.json, Level._update_arena). Inside that the
+## fight is running, so it is inside the arena as far as every check here is
+## concerned.
+var arena_release := 0.0
 var arena_min := 0.0
 var arena_max := 0.0
 
@@ -106,14 +111,20 @@ func boot() -> bool:
 	if boss.enemy_id != boss_id:
 		failures.append("boot :: expected boss '%s', found '%s'" % [boss_id, boss.enemy_id])
 		return false
-	home_screen = boss.home_screen
+	arena = boss.arena
+	arena_release = lvl.cam.cfg_num("arena_release_px", 24.0)
 	arena_min = float(boss.get("arena_min"))
 	arena_max = float(boss.get("arena_max"))
 	return true
 
 func arena_tile_origin() -> Vector2i:
-	var o := Screen.origin(home_screen)
+	var o := arena.position
 	return Vector2i(int(o.x / TS), int(o.y / TS))
+
+## Is a body centred here in the fight? The rectangle the camera holds on to,
+## which is the arena grown by the release hysteresis.
+func in_fight(c: Vector2) -> bool:
+	return arena.grow(arena_release).has_point(c)
 
 ## THE PER-CONFIGURATION EXTENSION — added for THE OBSIDIAN HEART, and generic.
 ##
@@ -154,15 +165,17 @@ func rect_hits_solid(r: Rect2) -> bool:
 				return true
 	return false
 
-## Every tile Kaya can stand on inside the arena screen, found by putting her
-## real hitbox there and asking the real collision code, not by reading tile ids.
-## Hazard tiles are excluded: a refuge on spikes is not a refuge.
+## Every tile Kaya can stand on in the fight, found by putting her real hitbox
+## there and asking the real collision code, not by reading tile ids. Hazard
+## tiles are excluded: a refuge on spikes is not a refuge.
 func standable_tiles() -> Array:
 	var out: Array = []
-	var t0 := arena_tile_origin()
+	var span := arena.grow(arena_release)
+	var t0 := Vector2i(int(floor(span.position.x / TS)), int(floor(span.position.y / TS)))
+	var t1 := Vector2i(int(ceil(span.end.x / TS)), int(ceil(span.end.y / TS)))
 	var b := pl.box
-	for ty in range(t0.y, t0.y + Screen.H / int(TS)):
-		for tx in range(t0.x, t0.x + Screen.W / int(TS)):
+	for ty in range(t0.y, t1.y + 1):
+		for tx in range(t0.x, t1.x):
 			var r := Rect2(Vector2(float(tx) * TS + (TS - b.x) * 0.5, float(ty) * TS - b.y), b)
 			if TileCollision.has_flag(lvl.world, r, TileData4.Flag.SOLID):
 				continue
@@ -170,11 +183,16 @@ func standable_tiles() -> Array:
 				continue
 			if TileCollision.has_flag(lvl.world, r, TileData4.Flag.HAZARD):
 				continue
-			# Standing on the arena's rim puts Kaya's body on the screen above,
-			# which flips the camera and freezes the boss. That is not a tile
-			# inside this arena, and counting it would let a phase report an
-			# attack that "never fired" when the fight simply was not running.
-			if Screen.index_of(r.get_center(), Vector2i(999, 999)) != home_screen:
+			# The rim. Under the screen flip, standing with her centre on the
+			# screen above flipped the camera and froze the boss, so those tiles
+			# were excluded: the fight was not running there. The follow camera
+			# never freezes and holds the arena until she is `arena_release`
+			# clear of it, so a rim tile inside that IS in the fight — an attack
+			# that cannot reach it is a refuge, and it must be swept like one.
+			# Outside it the boss really does rest (Level._update_arena), and
+			# counting it would let a phase report an attack that "never fired"
+			# when the fight simply was not running.
+			if not in_fight(r.get_center()):
 				continue
 			out.append(Vector2i(tx, ty))
 	return out
@@ -272,7 +290,7 @@ func watch_tile(phase: int, tile: Vector2i, want: int, cap: int,
 		expected: Array = []) -> Dictionary:
 	reset_arena(phase)
 	pin(tile)
-	lvl.cam.snap_to_target()
+	lvl.settle_view()
 	await frames(SETTLE)
 	pin(tile)
 
@@ -353,7 +371,7 @@ func watch_tile(phase: int, tile: Vector2i, want: int, cap: int,
 		# --- check 4, measured on every frame of every sample ---------------
 		if boss.pos.x < arena_min - 0.5 or boss.pos.x > arena_max + 0.5:
 			escapes += 1
-		elif Screen.index_of(boss.center(), Vector2i(999, 999)) != home_screen:
+		elif not arena.has_point(boss.center()):
 			escapes += 1
 
 		prev_st = st
@@ -404,7 +422,7 @@ func check_fair() -> void:
 	_current = "fair"
 	var phases: Array = boss.cfg.get("phases", [])
 	say("")
-	say("  arena %s   phases: %d" % [str(boss.home_screen), phases.size()])
+	say("  arena %s (+%.0f px release)   phases: %d" % [str(arena), arena_release, phases.size()])
 	var total_escapes := 0
 	var body_tiles: Dictionary = {}
 	var safe_by_phase: Dictionary = {}
@@ -517,8 +535,8 @@ func check_fair() -> void:
 func arena_solidity() -> Dictionary:
 	var out: Dictionary = {}
 	var t0 := arena_tile_origin()
-	for ty in range(t0.y, t0.y + Screen.H / int(TS)):
-		for tx in range(t0.x, t0.x + Screen.W / int(TS)):
+	for ty in range(t0.y, t0.y + int(arena.size.y / TS)):
+		for tx in range(t0.x, t0.x + int(arena.size.x / TS)):
 			if lvl.world.is_solid(tx, ty):
 				out[Vector2i(tx, ty)] = true
 	return out
@@ -694,7 +712,7 @@ func _can_fight_from(tile: Vector2i, phase: int = 0) -> bool:
 	pl.hurt_t = 0.0
 	pl.vel = Vector2.ZERO
 	pl.pos = stand_pos(tile)
-	lvl.cam.snap_to_target()
+	lvl.settle_view()
 	await frames(2)
 	var hurt_it := false
 	for f in 360:
@@ -713,12 +731,22 @@ func _can_fight_from(tile: Vector2i, phase: int = 0) -> bool:
 	pl.control_enabled = false
 	return hurt_it
 
+## The arena floor: the lowest row of standable tiles whose body is INSIDE the
+## arena. Not the release rim — those tiles are swept (the fight runs there),
+## but a fight can only start where Kaya's centre has entered the arena, which
+## is what locks the camera. Including the rim here moved the Warden's fight
+## start one tile west, off the tile its strategy tape was recorded from, and
+## the tape then never landed a hit.
 func _floor_tiles() -> Array:
+	var inside: Array = []
+	for t: Vector2i in standable_tiles():
+		if arena.has_point(Rect2(stand_pos(t), pl.box).get_center()):
+			inside.append(t)
 	var out: Array = []
 	var lowest := -1
-	for t: Vector2i in standable_tiles():
+	for t: Vector2i in inside:
 		lowest = maxi(lowest, t.y)
-	for t: Vector2i in standable_tiles():
+	for t: Vector2i in inside:
 		if t.y == lowest:
 			out.append(t)
 	return out
@@ -767,7 +795,7 @@ func _try_hop(from: Vector2i, target: Vector2i, run_up: int, phase: int = 0) -> 
 	pl.hurt_t = 0.0
 	pl.vel = Vector2.ZERO
 	pl.pos = stand_pos(from)
-	lvl.cam.snap_to_target()
+	lvl.settle_view()
 	Tape.release_all()
 	# Nothing this probe reports may come from the previous probe's landing.
 	pl.last_floor_tile = Vector2i(-1, -1)
@@ -839,7 +867,7 @@ func stage_fight() -> void:
 	pl.pos = stand_pos(fight_start_tile())
 	if pl.form_id != "human":
 		pl.set_form("human")
-	lvl.cam.snap_to_target()
+	lvl.settle_view()
 	await frames(4)
 	pl.control_enabled = true
 	Game.health = Game.max_health

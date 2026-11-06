@@ -74,10 +74,10 @@ func _ready() -> void:
 	# Lock the Maw to the pit, not to the screen. boss_grove.gd insets by 8 px;
 	# this one insets by whatever data/enemies/tide_maw.json says, which is how
 	# the flanking shelves become somewhere it cannot reach.
-	var origin := Screen.origin(home_screen)
+	var origin := arena.position
 	var inset := float(cfg.get("arena_inset", 8.0))
 	arena_min = origin.x + inset
-	arena_max = origin.x + Screen.W - inset - box.x
+	arena_max = origin.x + arena.size.x - inset - box.x
 	t = 0.9
 
 func on_respawn() -> void:

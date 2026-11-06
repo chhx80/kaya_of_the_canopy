@@ -33,7 +33,8 @@ var keys := {"yellow": 0, "red": 0, "cyan": 0}
 var current_level_id := ""
 var current_level: Node = null
 
-## Frozen simulation (camera slide, transitions). Actors check this every tick.
+## Frozen simulation: hitstop (Fx) and level transitions. Actors check this
+## every tick. The camera never sets it — the screen flip that did is gone.
 var sim_paused := false
 
 ## Identity of the running build, shown on the title and pause screens. Three

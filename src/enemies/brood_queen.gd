@@ -104,10 +104,10 @@ func _ready() -> void:
 	# `arena_inset` is tide_maw.gd's mechanism and this is the same use of it. The
 	# ends of the arena floor — and both brood cells — become places her body
 	# never goes, which is what makes them places to stand.
-	var origin := Screen.origin(home_screen)
+	var origin := arena.position
 	var inset := float(cfg.get("arena_inset", 8.0))
 	arena_min = origin.x + inset
-	arena_max = origin.x + Screen.W - inset - box.x
+	arena_max = origin.x + arena.size.x - inset - box.x
 	# The floor is wherever the level stood her, not a row written twice. An
 	# arena and a boss that disagree about where the floor is have no chance.
 	floor_y = spawn_pos.y + box.y
@@ -204,8 +204,8 @@ func _watch_the_walls() -> void:
 ## Making a broken wall DARK, which is a separate problem from breaking it.
 ##
 ## `AmbienceLayer` scans the visible tiles for `emissive` ids once, when its view
-## changes (`_rebuild`), because on an ordinary level a screen flip is the only
-## thing that can change the answer. A boss arena locks the camera, so the view
+## crosses a tile boundary (`_rebuild`), because on an ordinary level scrolling
+## is the only thing that can change the answer. A boss arena locks the camera, so the view
 ## never changes, so the pool bound to tile 214 would go on being drawn over the
 ## hole where the wall used to be — a lamp with nothing holding it up. One
 ## re-collect per wall broken is the whole fix, and it is here rather than in
@@ -415,7 +415,7 @@ func live_adds() -> int:
 		var e := node as Enemy
 		if e == null or e == self or not is_instance_valid(e) or e.level != level:
 			continue
-		if Screen.index_of(e.center(), Vector2i(999, 999)) != home_screen:
+		if not arena.has_point(e.center()):
 			continue
 		n += 1
 	return n

@@ -1,17 +1,65 @@
 [
-  {"_": "Refit phase 0: the follow camera. Start mid-level on screen D and run east."},
-  {"setting": ["screen_flip", false]},
-  {"scenario": "level:jungle_1", "settle": 60},
-  {"teleport": [26, 25], "settle": 60},
-  {"log": "mid-level start"},
-  {"shot": "shots/refit_03_cam_0.png"},
-  {"hold": "move_right", "frames": 30}, {"shot": "shots/refit_03_cam_1.png"},
-  {"log": "running east"},
-  {"press": ["move_right", "jump"], "frames": 20},
-  {"hold": "move_right", "frames": 4}, {"shot": "shots/refit_03_cam_2.png"},
-  {"log": "top of a jump"},
-  {"hold": "move_right", "frames": 40}, {"release": "move_right"}, {"wait": 30},
-  {"shot": "shots/refit_03_cam_3.png"},
-  {"log": "stopped further east"},
-  {"setting": ["screen_flip", true]}
+ {
+  "_": "Refit phase 0, re-run in phase 2: the follow camera (now the only camera). Start mid-level on screen D and run east."
+ },
+ {
+  "scenario": "level:jungle_1",
+  "settle": 60
+ },
+ {
+  "teleport": [
+   26,
+   25
+  ],
+  "settle": 60
+ },
+ {
+  "log": "mid-level start"
+ },
+ {
+  "shot": "shots/refit_2_cam_0.png"
+ },
+ {
+  "hold": "move_right",
+  "frames": 30
+ },
+ {
+  "shot": "shots/refit_2_cam_1.png"
+ },
+ {
+  "log": "running east"
+ },
+ {
+  "press": [
+   "move_right",
+   "jump"
+  ],
+  "frames": 20
+ },
+ {
+  "hold": "move_right",
+  "frames": 4
+ },
+ {
+  "shot": "shots/refit_2_cam_2.png"
+ },
+ {
+  "log": "top of a jump"
+ },
+ {
+  "hold": "move_right",
+  "frames": 40
+ },
+ {
+  "release": "move_right"
+ },
+ {
+  "wait": 30
+ },
+ {
+  "shot": "shots/refit_2_cam_3.png"
+ },
+ {
+  "log": "stopped further east"
+ }
 ]

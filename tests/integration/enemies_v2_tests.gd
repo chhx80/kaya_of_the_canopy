@@ -133,7 +133,7 @@ func place(tx: float, ty: float, settle: int = 20) -> void:
 	p.dead = false
 	p.invuln = 0.0
 	p.hurt_t = 0.0
-	level().cam.snap_to_target()
+	level().settle_view()
 	await frames(settle)
 	if not is_instance_valid(p):
 		return
@@ -188,7 +188,7 @@ func run_all() -> int:
 		"t_the_blade_kills_a_flyer_and_scores_it",
 		"t_a_flyer_damages_the_player_on_contact",
 		"t_the_new_enemies_are_tuned_against_kaya_not_against_nothing",
-		"t_a_screen_flip_freezes_them_and_puts_them_back_as_they_started",
+		"t_despawning_puts_them_back_as_they_started",
 		"t_the_new_sheets_stay_on_the_material_ramps",
 	]
 	for t in tests:
@@ -820,11 +820,13 @@ func t_the_new_enemies_are_tuned_against_kaya_not_against_nothing() -> void:
 	check(is_zero_approx(float(f["gravity"])), "the flyer has no gravity at all")
 	check(float(f["speed"]) < human.max_run, "and you can outpace it on foot")
 
-## Screen-flip scrolling resets every enemy on the screen you walk back into.
-## A charger frozen mid-charge or a dropper frozen mid-fall has to come back as
-## a patrolling boar and a clinging tick, not resume where it left off — that
-## is the one path through these three state machines that nothing else exercises.
-func t_a_screen_flip_freezes_them_and_puts_them_back_as_they_started() -> void:
+## The view-distance wake rule (WakeRule) resets an enemy that despawns. A
+## charger caught mid-charge or a dropper mid-fall has to come back as a
+## patrolling boar and a clinging tick, not resume where it left off — that is
+## the one path through these three state machines that nothing else exercises.
+## And one that wandered off while its spawn was in plain sight must not pop
+## back into existence there.
+func t_despawning_puts_them_back_as_they_started() -> void:
 	await park(14, 6)
 	var c := await spawn("charger", 9, 11)
 	var d := await spawn("dropper", 10, 4)
@@ -840,28 +842,35 @@ func t_a_screen_flip_freezes_them_and_puts_them_back_as_they_started() -> void:
 	check(absf(c.pos.x - c.spawn_pos.x) > 4.0, "the boar has moved off its spawn")
 	check(d.pos.y > d.spawn_pos.y, "the tick has let go")
 
-	var elsewhere := Vector2i(9, 9)
-	for e: Enemy in [c, d, f]:
-		e.set_active_screen(elsewhere)
-		check(not e.active, "%s freezes when the camera leaves" % e.enemy_id)
-	var frozen := [c.pos, d.pos, f.pos]
-	await frames(30)
-	for i in 3:
-		var e: Enemy = [c, d, f][i]
-		check_eq(e.pos, frozen[i] as Vector2, "%s does not move while frozen" % e.enemy_id)
-
-	# Out of every trigger before they wake, or the tick starts its tell on the
-	# next frame and the cling pose is never drawn.
+	var cam: CameraController = level().cam
+	var wake := cam.cfg_num("enemy_wake_margin_px", 32.0)
+	var sleep := cam.cfg_num("enemy_sleep_margin_px", 96.0)
+	var far := Rect2(Vector2(9000, 9000), Vector2(Screen.W, Screen.H))
+	# Out of every trigger before they come back, or the tick starts its tell
+	# on the next frame and the cling pose is never drawn.
 	await place(3, 10, 0)
 	player().invuln = 9999.0
 	for e: Enemy in [c, d, f]:
-		e.set_active_screen(e.home_screen)
-		check(e.active, "%s wakes up again" % e.enemy_id)
+		e.update_wake(far, wake, sleep)
+		check(not e.active, "%s despawns when the view is far away" % e.enemy_id)
+		check(not e.visible, "%s is hidden, not frozen in place" % e.enemy_id)
+		check_eq(e.pos, e.spawn_pos, "%s is put back on its spawn" % e.enemy_id)
+	for e: Enemy in [c, d, f]:
+		e.update_wake(cam.view_rect(), wake, sleep)
+		check(e.active, "%s respawns when its spawn comes back into range" % e.enemy_id)
+		check(e.visible, "%s is drawn again" % e.enemy_id)
 		check_eq(e.pos, e.spawn_pos, "%s is back where it started" % e.enemy_id)
 		check_eq(e.health, e.max_health, "%s is back at full health" % e.enemy_id)
 	await frames(10)
 	check_eq(int(shown_frame(d)), 0, "and the tick is drawn clinging again")
 	at_most(absf(d.pos.y - d.spawn_pos.y), 0.01, "not falling")
+
+	# Wandered off with its spawn on screen: gone, and it stays gone.
+	f.pos = Vector2(9000, 9000)
+	await frames(3)
+	check(not f.active and not f.visible, "a flyer far off the view despawns")
+	await frames(30)
+	check(not f.active, "and does not pop back in on a spawn the player is looking at")
 
 ## `tests/test_art_palette.gd` names the sheets it checks in a const list that
 ## does not know about these three yet (see REPORT.md). Until it does, the

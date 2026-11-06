@@ -17,14 +17,25 @@ extends Node
 ##   {"shot": "shots/foo.png"}           capture the viewport
 ##   {"call": "toggle_debug"}            call a method on the current scene
 ##   {"teleport": [21, 24]}              move the player to a tile coordinate
-##   {"setting": ["screen_flip", false]}  change a saved setting (affects the next scenario)
+##   {"setting": ["music", 0.0]}         change a saved setting (affects the next scenario)
 ##   {"log": "note"}                     print player/camera state and the
 ##                                        nearest enemy's health/_flash/_hold_t
 ##                                        (Phase D: staging a hit-hold or
 ##                                        landing-dip capture without guessing
 ##                                        a frame count from outside)
 ##   {"perf": "label", "frames": 240}    measure frame cost and print it
+##   {"perf": "label", "cap": 60}        ...with the frame rate held at 60, the
+##                                        way a phone runs it: every frame then
+##                                        carries a physics tick, so per-frame
+##                                        physics/process/render cost is honest
 ##   {"lighting": false}                 phase 3 ambience off, for an A/B perf run
+##   {"tape": "jungle_1", "shots": "shots/x_%d.png", "every": 150, "max": 4, "skip": 0}
+##                                        boot the level and play its real proof
+##                                        tape (Kaya unhittable, as in the replay
+##                                        tier), shooting every N sim frames —
+##                                        the camera mid-run on real play. The
+##                                        tree is paused for each capture, so a
+##                                        shot never adds frames to the tape
 ##   {"cleared": ["jungle_1", ...]}      stage a save: those flags set, rest wiped
 ##   {"cleared": "all"}                  ...or every gateway on the overworld
 ##
@@ -162,10 +173,10 @@ func _run_step(step: Dictionary) -> bool:
 		if lvl0 and lvl0.get("player") != null:
 			var pl0: Actor = lvl0.player
 			var t0 := (pl0.center() / TileData4.TILE_SIZE).floor()
-			print("[log] %s player_tile=%v pos=%v vel=%v on_floor=%s screen=%v frozen=%s cam=%v dip=%v" % [
+			print("[log] %s player_tile=%v pos=%v vel=%v on_floor=%s view=%v locked=%s frozen=%s cam=%v dip=%v" % [
 				String(step["log"]), t0, pl0.pos.round(), pl0.vel.round(),
-				str(pl0.on_floor), lvl0.cam.screen, str(Game.sim_paused),
-				lvl0.cam.position, lvl0.cam.dip_offset])
+				str(pl0.on_floor), lvl0.cam.view_rect().position, str(lvl0.cam.locked),
+				str(Game.sim_paused), lvl0.cam.position, lvl0.cam.dip_offset])
 		# Phase D authoring aid: the nearest enemy's own combat state, so a hit
 		# -hold/hit-spark capture can be staged by watching health/_flash/
 		# _hold_t tick instead of guessing a frame count from outside.
@@ -192,9 +203,11 @@ func _run_step(step: Dictionary) -> bool:
 			var pl: Actor = lvl.player
 			pl.pos = Vector2(float(t[0]), float(t[1])) * TileData4.TILE_SIZE
 			pl.vel = Vector2.ZERO
-			if lvl.get("cam") != null:
-				lvl.cam.snap_to_target()
-				lvl._on_screen_changed(lvl.cam.screen)
+			# Re-frame and settle who is awake on the spot: the follow camera
+			# would otherwise pan there, and a teleport into a boss arena is
+			# what (re)starts the fight a capture is staged on.
+			if lvl.has_method("settle_view"):
+				lvl.settle_view()
 		_wait = int(step.get("settle", 4))
 		return false
 	if step.has("setting"):
@@ -225,8 +238,12 @@ func _run_step(step: Dictionary) -> bool:
 		SaveManager.save()
 		print("[cleared] %d flag(s) staged" % want.size())
 		return false
+	if step.has("tape"):
+		_play_tape(String(step["tape"]), String(step.get("shots", "")),
+			int(step.get("every", 150)), int(step.get("max", 4)), int(step.get("skip", 0)))
+		return true   # async, like perf
 	if step.has("perf"):
-		_measure(String(step["perf"]), int(step.get("frames", 240)))
+		_measure(String(step["perf"]), int(step.get("frames", 240)), int(step.get("cap", 0)))
 		return true   # async; _measure clears _busy and the sequencer resumes
 	if step.has("wait"):
 		_wait = int(step["wait"])
@@ -292,6 +309,92 @@ func _capture(path: String) -> void:
 	if _step_i >= _steps.size():
 		_finish()
 
+## Plays a proof tape (tests/integration/replay_tape.gd) through the real input
+## path and shoots it. Frames are sim frames, exactly as in tape_replay.gd: a
+## hitstop tick holds the buttons and spends no tape.
+func _play_tape(id: String, pattern: String, every: int, max_shots: int, skip: int) -> void:
+	_busy = true
+	var loader: GDScript = load("res://tests/integration/replay_tape.gd")
+	var tape: RefCounted = loader.call("load_for", id)
+	if not bool(tape.call("ok")):
+		print("[tape] %s: %s" % [id, String(tape.get("error"))])
+		_end_async()
+		return
+	Game.reset_run()
+	Game.goto_level(id)
+	for _i in 4:
+		await get_tree().physics_frame
+	var sim := 0
+	var taken := 0
+	for hop: Dictionary in (tape.get("hops") as Array):
+		for st: Dictionary in (hop["steps"] as Array):
+			var acts: Array = st["actions"]
+			var left := int(st["n"])
+			while left > 0:
+				for a in _held.duplicate():
+					if not acts.has(StringName(a)):
+						_release(a)
+				for a: StringName in acts:
+					_press(String(a))
+				var lvl: Node = Game.current_level
+				if lvl == null or lvl.get("player") == null or Game.state != Game.State.LEVEL:
+					print("[tape] %s left the level at sim frame %d" % [id, sim])
+					_end_async()
+					return
+				lvl.player.set("invuln", 1.0)
+				await get_tree().physics_frame
+				# A capture holds the tree (see _process): no node ticked, so
+				# no tape frame is spent and no button changes.
+				while get_tree().paused:
+					await get_tree().physics_frame
+				if Game.sim_paused:
+					continue
+				left -= 1
+				sim += 1
+				if pattern != "" and taken < max_shots and sim > skip and (sim - skip) % every == 0:
+					_tape_shot = pattern % taken
+					taken += 1
+	print("[tape] %s played %d sim frames, %d shot(s)" % [id, sim, taken])
+	_end_async()
+
+## The tape's capture point. Requested from inside the physics-frame await,
+## where pausing would swallow the tick that is about to run; taken here
+## instead, at idle, after that tick has run with the buttons the replay
+## tier would have held.
+var _tape_shot := ""
+
+func _process(_delta: float) -> void:
+	if _tape_shot == "" or get_tree().paused:
+		return
+	var path := _tape_shot
+	_tape_shot = ""
+	get_tree().paused = true
+	# Held invulnerable, she is mid-blink on every tick (player.gd hides the
+	# sprite in half of each 0.16 s of i-frames). The tree is paused, so
+	# showing her for the shot changes nothing the tape can see.
+	var lvl: Node = Game.current_level
+	if lvl != null and lvl.get("player") != null:
+		var sp: Variant = lvl.player.get("sprite")
+		if sp is CanvasItem:
+			(sp as CanvasItem).visible = true
+	await _snap(path)
+	get_tree().paused = false
+
+func _snap(path: String) -> void:
+	await RenderingServer.frame_post_draw
+	await RenderingServer.frame_post_draw
+	var img := get_viewport().get_texture().get_image()
+	var dir := path.get_base_dir()
+	if dir != "" and not DirAccess.dir_exists_absolute(dir):
+		DirAccess.make_dir_recursive_absolute(dir)
+	print("[capture] %s err=%d frame=%d" % [path, img.save_png(path), Engine.get_physics_frames()])
+
+func _end_async() -> void:
+	_release_all()
+	_busy = false
+	if _step_i >= _steps.size():
+		_finish()
+
 ## Frame cost, for the phase 3 lighting decision (docs/art-direction.md).
 ##
 ## Three numbers, because they answer different questions. `frame` is wall clock
@@ -304,7 +407,7 @@ func _capture(path: String) -> void:
 ##
 ## Physics stays at 60Hz throughout, so uncapping the frame rate changes what is
 ## measured but not what is simulated.
-func _measure(label: String, frames: int) -> void:
+func _measure(label: String, frames: int, cap: int = 0) -> void:
 	_busy = true
 	var vp := get_viewport()
 	var rid := vp.get_viewport_rid()
@@ -312,13 +415,15 @@ func _measure(label: String, frames: int) -> void:
 	var old_vsync := DisplayServer.window_get_vsync_mode()
 	var old_max := Engine.max_fps
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
-	Engine.max_fps = 0
+	Engine.max_fps = cap
 	for _i in 45:                       # warm up: shaders, atlas uploads, tween settle
 		await RenderingServer.frame_post_draw
 	var samples: Array[float] = []
 	var cpu := 0.0
 	var gpu := 0.0
 	var calls := 0.0
+	var phys := 0.0
+	var proc := 0.0
 	var last := Time.get_ticks_usec()
 	for _i in frames:
 		await RenderingServer.frame_post_draw
@@ -328,15 +433,18 @@ func _measure(label: String, frames: int) -> void:
 		cpu += RenderingServer.viewport_get_measured_render_time_cpu(rid)
 		gpu += RenderingServer.viewport_get_measured_render_time_gpu(rid)
 		calls += Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
+		phys += Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
+		proc += Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
 	samples.sort()
 	var n := samples.size()
 	var sum := 0.0
 	for v in samples:
 		sum += v
 	var vram := Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0
-	print("[perf] %s frames=%d frame_ms avg=%.3f p50=%.3f p95=%.3f max=%.3f | render_cpu=%.3f render_gpu=%.3f | draw_calls=%.0f vram=%.1fMB" % [
-		label, n, sum / maxf(1.0, float(n)), samples[n / 2], samples[int(n * 0.95)],
-		samples[n - 1], cpu / float(n), gpu / float(n), calls / float(n), vram])
+	print("[perf] %s cap=%d frames=%d frame_ms avg=%.3f p50=%.3f p95=%.3f max=%.3f | render_cpu=%.3f render_gpu=%.3f | physics_ms=%.3f process_ms=%.3f | draw_calls=%.0f vram=%.1fMB" % [
+		label, cap, n, sum / maxf(1.0, float(n)), samples[n / 2], samples[int(n * 0.95)],
+		samples[n - 1], cpu / float(n), gpu / float(n), phys / float(n), proc / float(n),
+		calls / float(n), vram])
 	DisplayServer.window_set_vsync_mode(old_vsync)
 	Engine.max_fps = old_max
 	RenderingServer.viewport_set_measure_render_time(rid, false)

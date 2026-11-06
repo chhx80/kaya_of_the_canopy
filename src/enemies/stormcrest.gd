@@ -92,10 +92,10 @@ func _ready() -> void:
 	# `arena_inset` is tide_maw.gd's mechanism and this is the same use of it. The
 	# ends of the arena floor — the four tiles under each buttress — become rock
 	# it never roosts on, which is what makes them somewhere to stand.
-	var origin := Screen.origin(home_screen)
+	var origin := arena.position
 	var inset := float(cfg.get("arena_inset", 8.0))
 	arena_min = origin.x + inset
-	arena_max = origin.x + Screen.W - inset - box.x
+	arena_max = origin.x + arena.size.x - inset - box.x
 	arena_top = origin.y + float(cfg.get("ceiling_inset", 20.0))
 	# The floor is wherever the level stood it, not a row written twice. An arena
 	# and a boss that disagree about where the floor is have no chance at all.

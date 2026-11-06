@@ -1,88 +1,108 @@
 class_name CameraController
 extends Camera2D
-## Screen-flip camera. The level is a grid of 400x240 screens; crossing an edge
-## slides the view one whole screen while the simulation is frozen — the way
-## early DOS platformers scrolled. Smooth follow is available as a setting.
+## The game's camera: centred on Kaya and smoothed, with a look-ahead in the
+## way she faces and a vertical anchor on the floor she last stood on, so a jump
+## does not bounce the world. Clamped to the level, and locked inside a boss
+## arena while the boss lives. Tunables in data/camera.json.
 ##
-## Screen shake (Phase 5) is layered on as a *render offset only*: `base_pos` is
-## the camera the flip logic reasons about, `position` is what the player sees.
-## Nothing in here lets a shake change `screen`, because the screen index is
-## derived from the player, never from where the camera happens to be.
+## It never freezes the simulation. The screen flip it replaced held the whole
+## game still for 120 ms on every screen edge; nothing here touches
+## `Game.sim_paused`, which now belongs to hitstop alone.
+##
+## Three positions, and only one of them is ever rounded:
+## * `base_pos` — the smoothed camera, a float. All the follow maths is here.
+## * `view_rect()` — the whole-pixel, *unshaken* view: what the tile cull, the
+##   parallax and enemy wake-up reason about. A shake must never make the
+##   renderer re-cull, or the tile layers would flicker.
+## * `position` — what the player sees: the view plus the shake and dip offsets.
 
-const SLIDE_TIME := 0.12
+const CAMERA_JSON := "res://data/camera.json"
 ## Hard ceiling on the shake offset. The tile cull carries one tile (16px) of
 ## margin, so an offset inside this can never expose an unpainted edge. This is
 ## a structural bound, not a tunable — amplitudes live in data/fx.json.
 const MAX_SHAKE_PX := 8.0
 
-signal screen_changed(screen: Vector2i)
+## The whole-pixel view moved. Emitted at most once per physics tick, and only
+## when it actually changed, so a still camera costs the layers nothing.
+signal view_changed(view: Rect2)
 
 var world: TileWorld = null
 var target: Node2D = null
-var screen := Vector2i.ZERO
-var screens := Vector2i(1, 1)
-var flip_mode := true
-## Set while a screen-locked encounter (a boss) is running.
+## The overworld: no floor to anchor to and nowhere to look ahead to.
+var topdown := false
+## Set while a boss arena holds the camera. Level decides when; see lock_to().
 var locked := false
-## Where the camera would sit with no shake. The slide tweens this, never
-## `position`, so the two cannot fight over the same property.
+var arena := Rect2()
 var base_pos := Vector2.ZERO
 var shake_offset := Vector2.ZERO
 ## Phase D, docs/plan-art-motion.md: the 2px landing dip. A second render
-## offset, independent of `shake_offset`, so the existing shake-decay
-## guarantees (tests/integration/integration_tests.gd's
+## offset, independent of `shake_offset`, so the shake-decay guarantees
+## (tests/integration/integration_tests.gd's
 ## t_shake_moves_the_camera_and_puts_it_back_exactly) stay exactly as they
 ## were — nothing about this field changes what a shake does.
 var dip_offset := Vector2.ZERO
-var _sliding := false
 
-# ---- follow mode (refit): centred with a look-ahead, vertically anchored to
-# the floor she last stood on so a jump does not bounce the world.
-const CAMERA_JSON := "res://data/camera.json"
 var _cfg: Dictionary = {}
 var _lead := 0.0
 var _floor_y := 0.0
+var _view := Vector2.ZERO
+## Arena entry: 0 -> 1 over `arena_ease_s`, from where the camera was.
+var _blend := 1.0
+var _blend_from := Vector2.ZERO
 
-func setup(w: TileWorld, t: Node2D) -> void:
+func setup(w: TileWorld, t: Node2D, is_topdown: bool = false) -> void:
 	world = w
 	target = t
+	topdown = is_topdown
 	anchor_mode = Camera2D.ANCHOR_MODE_FIXED_TOP_LEFT
 	ignore_rotation = true
-	screens = Screen.count_for(w.pixel_width(), w.pixel_height())
-	flip_mode = bool(SaveManager.setting("screen_flip", true))
 	_cfg = _load_cfg()
-	_lead = 0.0
-	_floor_y = _target_point().y
+	locked = false
 	snap_to_target()
 
-func screen_of(p: Vector2) -> Vector2i:
-	return Screen.index_of(p, screens)
-
-func screen_origin(s: Vector2i) -> Vector2:
-	return Screen.origin(s)
-
-## The cull rect, which is deliberately the *unshaken* view: shaking must not
-## make the renderer re-cull, or a shake would flicker the tile layers.
+## The cull rect: the whole-pixel view with no shake in it.
 func view_rect() -> Rect2:
-	if flip_mode:
-		return Screen.rect(screen)
-	return Rect2(base_pos, Vector2(Screen.W, Screen.H))
+	return Rect2(_view, Vector2(Screen.W, Screen.H))
 
-func is_sliding() -> bool:
-	return _sliding
-
+## Jump straight to where the camera wants to be: level start, a respawn, a
+## teleport. The only discontinuity the camera ever makes.
 func snap_to_target() -> void:
-	if target == null:
+	if target == null or world == null:
 		return
-	if flip_mode:
-		screen = screen_of(_target_point())
-		base_pos = screen_origin(screen)
-	else:
-		base_pos = _clamped_follow()
+	_floor_y = _target_point().y
+	_lead = _want_lead()
+	_blend = 1.0
+	base_pos = _goal()
 	_apply_position()
-	screen_changed.emit(screen)
 
-## The only way anything outside this script moves the camera off its screen.
+## Hold the view inside `r` until unlock(). The pan into it is eased over
+## `arena_ease_s` rather than snapped: walking into a boss arena should read as
+## the room closing around you, not as a cut.
+func lock_to(r: Rect2) -> void:
+	locked = true
+	arena = r
+	_blend_from = base_pos
+	var secs := _num("arena_ease_s", 0.6)
+	_blend = 0.0 if secs > 0.0 else 1.0
+
+func unlock() -> void:
+	locked = false
+	_blend = 1.0
+
+## The bounds the view is heading for: the arena when locked, else the level.
+func bounds() -> Rect2:
+	if locked:
+		return arena
+	return level_bounds()
+
+func level_bounds() -> Rect2:
+	return Rect2(Vector2.ZERO, Vector2(world.pixel_width(), world.pixel_height()))
+
+## True while the camera is still panning into an arena it has just locked to.
+func is_entering_arena() -> bool:
+	return locked and _blend < 1.0
+
+## The only way anything outside this script moves the camera off its view.
 ## Clamped here as well as in Fx so a bad tunable cannot push the view off the
 ## painted area.
 func set_shake(offset: Vector2) -> void:
@@ -95,8 +115,42 @@ func set_dip(offset: Vector2) -> void:
 	dip_offset = offset.limit_length(MAX_SHAKE_PX)
 	_apply_position()
 
+func cfg_num(key: String, fallback: float) -> float:
+	return _num(key, fallback)
+
+func _physics_process(delta: float) -> void:
+	if target == null or world == null or not is_instance_valid(target):
+		return
+	_track(delta)
+	var goal := _goal()
+	if _blend < 1.0:
+		_blend = minf(1.0, _blend + delta / maxf(0.001, _num("arena_ease_s", 0.6)))
+		base_pos = _blend_from.lerp(goal, CameraMath.ease(_blend))
+	else:
+		var kx := CameraMath.approach(_num("follow_x_rate", 10.0), delta)
+		var ky := CameraMath.approach(_num("follow_y_rate", 6.0), delta)
+		base_pos = Vector2(lerpf(base_pos.x, goal.x, kx), lerpf(base_pos.y, goal.y, ky))
+		var size := Vector2(Screen.W, Screen.H)
+		var m := Vector2(_num("keep_in_x_px", 64.0), _num("keep_in_y_px", 40.0))
+		base_pos = CameraMath.clamp_view(
+			CameraMath.keep_in(base_pos, size, _target_point(), m), bounds(), size)
+	_apply_position()
+
 func _apply_position() -> void:
-	position = (base_pos + shake_offset + dip_offset).round()
+	if world == null:
+		position = (base_pos + shake_offset + dip_offset).round()
+		return
+	var v := base_pos.round()
+	if target != null and is_instance_valid(target):
+		v = CameraMath.snap(base_pos, _target_point())
+	# Mid-pan into an arena the view is still allowed to stand outside it;
+	# clamping to the arena there would be exactly the snap the ease is for.
+	var hold := level_bounds() if is_entering_arena() else bounds()
+	v = CameraMath.clamp_view(v, hold, Vector2(Screen.W, Screen.H))
+	position = v + (shake_offset + dip_offset).round()
+	if v != _view:
+		_view = v
+		view_changed.emit(view_rect())
 
 func _target_point() -> Vector2:
 	if target is Actor:
@@ -106,6 +160,7 @@ func _target_point() -> Vector2:
 func _load_cfg() -> Dictionary:
 	var f := FileAccess.open(CAMERA_JSON, FileAccess.READ)
 	if f == null:
+		push_warning("CameraController: no %s; using built-in fallbacks" % CAMERA_JSON)
 		return {}
 	var parsed: Variant = JSON.parse_string(f.get_as_text())
 	return parsed if typeof(parsed) == TYPE_DICTIONARY else {}
@@ -113,72 +168,28 @@ func _load_cfg() -> Dictionary:
 func _num(key: String, fallback: float) -> float:
 	return float(_cfg.get(key, fallback))
 
-## Where the view wants to be centred: her centre, pushed ahead in the way she
-## faces, and vertically on the floor she last stood on unless she has climbed
-## or fallen out of a band around it. Jumping inside the band moves nothing.
-func _focus() -> Vector2:
+func _want_lead() -> float:
+	if topdown or not (target is Actor):
+		return 0.0
+	return _num("lead_px", 24.0) * float((target as Actor).facing)
+
+## Where the view wants to be: centred on her focus, clamped to the bounds.
+func _goal() -> Vector2:
 	var c := _target_point()
-	var y := _floor_y
-	var up := _num("air_band_up_px", 56.0)
-	var down := _num("air_band_down_px", 8.0)
-	if c.y < y - up:
-		y = c.y + up
-	elif c.y > y + down:
-		y = c.y - down
-	return Vector2(c.x + _lead, y)
+	var focus := c
+	if not topdown:
+		focus = Vector2(c.x + _lead, CameraMath.anchored_y(c.y, _floor_y,
+			_num("air_band_up_px", 56.0), _num("air_band_down_px", 8.0)))
+	var size := Vector2(Screen.W, Screen.H)
+	return CameraMath.clamp_view(focus - size * 0.5, bounds(), size)
 
-func _clamped_follow() -> Vector2:
-	var c := _focus()
-	var p := c - Vector2(Screen.W, Screen.H) * 0.5
-	p.x = clampf(p.x, 0.0, maxf(0.0, world.pixel_width() - Screen.W))
-	p.y = clampf(p.y, 0.0, maxf(0.0, world.pixel_height() - Screen.H))
-	return p.round()
-
-## The slide tween drives `base_pos` on the idle clock, so the visible position
-## is re-derived there too — otherwise a slide would only step at 60Hz.
-func _process(_delta: float) -> void:
-	_apply_position()
-
-func _physics_process(delta: float) -> void:
-	if target == null or world == null:
-		return
-	if not flip_mode:
-		_track(delta)
-		var goal := _clamped_follow()
-		var kx := 1.0 - exp(-_num("follow_x_rate", 10.0) * delta)
-		var ky := 1.0 - exp(-_num("follow_y_rate", 6.0) * delta)
-		base_pos = Vector2(lerpf(base_pos.x, goal.x, kx), lerpf(base_pos.y, goal.y, ky))
-		_apply_position()
-		return
-	if _sliding or locked:
-		return
-	var s := screen_of(_target_point())
-	if s != screen:
-		_slide_to(s)
-
-## Follow-mode bookkeeping: ease the look-ahead toward her facing, and re-anchor
-## the vertical to the floor whenever she is standing, climbing or swimming.
+## Ease the look-ahead toward her facing, and re-anchor the vertical to the
+## floor whenever she is standing, climbing or swimming.
 func _track(delta: float) -> void:
-	if not (target is Actor):
+	if topdown or not (target is Actor):
+		_floor_y = _target_point().y
 		return
 	var a := target as Actor
-	var want := _num("lead_px", 24.0) * float(a.facing)
-	_lead = lerpf(_lead, want, 1.0 - exp(-_num("lead_rate", 4.0) * delta))
+	_lead = lerpf(_lead, _want_lead(), CameraMath.approach(_num("lead_rate", 4.0), delta))
 	if a.on_floor or a.submerged() or a.on_ladder():
 		_floor_y = a.center().y
-
-func _slide_to(s: Vector2i) -> void:
-	_sliding = true
-	# Freezing the sim during the slide is what makes it read as a screen flip
-	# rather than a fast scroll — enemies and the player hold their pose.
-	Game.sim_paused = true
-	screen = s
-	var t := create_tween()
-	t.tween_property(self, "base_pos", screen_origin(s), SLIDE_TIME)\
-		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	await t.finished
-	base_pos = screen_origin(s)
-	_apply_position()
-	_sliding = false
-	Game.sim_paused = false
-	screen_changed.emit(s)

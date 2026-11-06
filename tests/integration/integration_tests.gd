@@ -85,6 +85,42 @@ func enter_hub() -> void:
 	Game.goto_hub()
 	await frames(6)
 
+## Refit phase 2: the hub scrolls with the follow camera too, top-down (no
+## floor anchor, no look-ahead), and never freezes walking across a seam.
+func t_the_overworld_is_followed_by_the_same_camera() -> void:
+	await enter_hub()
+	var hub: Node = Game.main.current_scene()
+	var cam: CameraController = hub.get("cam")
+	check(cam != null and cam.topdown, "the hub has the follow camera, in top-down mode")
+	if cam == null:
+		return
+	var hp: Actor = hub.get("player")
+	# Row 20 is open from column 2 to 23 (levels/hub.json): a clear walk east
+	# from where the level clamp stops holding the view.
+	hp.pos = Vector2(5.0, 20.0) * TS
+	cam.snap_to_target()
+	await frames(10)
+	var v0 := cam.view_rect().position
+	var froze := 0
+	var lost := 0
+	var biggest := 0.0
+	var last := v0
+	Input.action_press("move_right")
+	for i in 150:
+		await get_tree().physics_frame
+		if Game.sim_paused:
+			froze += 1
+		var v := cam.view_rect()
+		biggest = maxf(biggest, (v.position - last).length())
+		last = v.position
+		if not v.has_point(hp.center()):
+			lost += 1
+	Input.action_release("move_right")
+	gt_check_f((last - v0).length(), 20.0, "the view scrolled after her")
+	check_eq(froze, 0, "nothing froze")
+	check_eq(lost, 0, "she never left the view")
+	check(biggest <= 6.0, "and the view never jumped (largest step %.2f px)" % biggest)
+
 func find_in_group(group: StringName) -> Array:
 	return get_tree().get_nodes_in_group(group).filter(
 		func(n: Node) -> bool: return is_instance_valid(n))
@@ -98,7 +134,7 @@ func place(tx: float, ty: float, settle: int = 20) -> void:
 	p.dead = false
 	p.invuln = 0.0
 	p.hurt_t = 0.0
-	level().cam.snap_to_target()
+	level().settle_view()
 	await frames(settle)
 	if not is_instance_valid(p):
 		return
@@ -128,6 +164,7 @@ func run_all() -> void:
 		"t_a_switch_flip_dissolves_the_art_but_collision_changes_on_the_flip_frame",
 		"t_the_blade_can_trip_a_switch_from_range",
 		"t_hub_loads_its_doors",
+		"t_the_overworld_is_followed_by_the_same_camera",
 		"t_hub_door_is_locked_until_its_prerequisite_is_cleared",
 		"t_completed_level_sets_a_flag_that_survives_a_save_round_trip",
 		"t_save_migration_upgrades_an_ancient_file",
@@ -154,7 +191,9 @@ func run_all() -> void:
 		"t_hitstop_refuses_to_stack_on_a_freeze_it_does_not_own",
 		"t_hitstop_never_outlives_the_level_that_started_it",
 		"t_shake_moves_the_camera_and_puts_it_back_exactly",
-		"t_a_shake_cannot_throw_the_screen_flip_off_target",
+		"t_a_shake_cannot_throw_the_follow_camera_off_target",
+		"t_the_camera_scrolls_without_ever_freezing_the_game",
+		"t_a_jump_does_not_bounce_the_view",
 		"t_effects_are_inert_when_nothing_is_attached",
 		"t_animated_tiles_repaint_without_changing_the_level",
 		"t_pause_freezes_the_level_and_resumes_it",
@@ -445,6 +484,7 @@ func run_replays() -> void:
 		var driver: RefCounted = TAPE_REPLAY.new(get_tree())
 		driver.trace = _trace
 		var r: Dictionary = await driver.replay(tape)
+		check_camera_audit(id, r)
 		if boss_of(id) != "":
 			check_boss_arrival(id, r)
 		elif bool(r["completed"]):
@@ -462,6 +502,18 @@ func run_replays() -> void:
 	# Whatever happened above, the next thing to run must start from a level.
 	_current = "harness"
 	await enter_arena()
+
+## What the replay saw the camera do, frame by frame (tape_replay.gd, _audit).
+func check_camera_audit(id: String, r: Dictionary) -> void:
+	var note := String(r.get("cam_note", ""))
+	check_eq(int(r["cam_frozen"]), 0, "%s: no frame frozen by anything but hitstop" % id)
+	check(float(r["cam_max_step"]) <= TAPE_REPLAY.MAX_VIEW_STEP_PX,
+		"%s: the view scrolls, never jumps (largest step %.1f px)" % [id, float(r["cam_max_step"])])
+	check_eq(int(r["cam_lost_kaya"]), 0, "%s: Kaya never leaves the view" % id)
+	check_eq(int(r["enemy_awake_far"]), 0,
+		"%s: no enemy awake far off the view — %s" % [id, note])
+	check_eq(int(r["enemy_frozen_visible"]), 0,
+		"%s: no enemy frozen where she can see it — %s" % [id, note])
 
 ## A boss level's tape proves arrival, because arrival is all it records.
 ##
@@ -505,11 +557,11 @@ func check_boss_arrival(id: String, r: Dictionary) -> void:
 
 	var where := TAPE_REPLAY.describe(r)
 	check(not bool(r["died"]), "the %s tape carries Kaya to the arena alive — %s" % [id, where])
-	# The arena is the boss's own screen and the span it is clamped inside — the
-	# numbers boss_grove.gd itself fights within, not a rectangle written here.
+	# The arena is the boss's own rectangle and the span it is clamped inside —
+	# the numbers the boss itself fights within, not a rectangle written here.
 	var c := p.center()
-	check_eq(Screen.index_of(c, Vector2i(999, 999)), boss.home_screen,
-		"and onto the boss's screen — %s" % where)
+	check((boss.get("arena") as Rect2).has_point(c), "and into the boss's arena — %s" % where)
+	check(bool(lvl.cam.locked), "with the camera locked to it — %s" % where)
 	check(p.on_floor, "standing on the arena floor, not falling through it — %s" % where)
 	check(c.x >= boss.arena_min and c.x <= boss.arena_max + boss.box.x,
 		"inside the span the boss is clamped to (%.0f..%.0f, Kaya at %.0f)"
@@ -731,11 +783,17 @@ func t_enemy_contact_damages_the_player() -> void:
 func t_offscreen_enemies_are_frozen() -> void:
 	var e: Enemy = enemies()[0] as Enemy
 	check(e.active, "the arena is one screen, so the walker is awake")
-	e.set_active_screen(Vector2i(5, 5))
-	check(not e.active, "an enemy on another screen is frozen")
-	var before := e.pos
-	await frames(20)
-	check_eq(e.pos, before, "and does not move")
+	var cam: CameraController = level().cam
+	e.update_wake(Rect2(Vector2(5000, 5000), Vector2(Screen.W, Screen.H)),
+		cam.cfg_num("enemy_wake_margin_px", 32.0), cam.cfg_num("enemy_sleep_margin_px", 96.0))
+	check(not e.active, "an enemy far from the view is asleep")
+	check(not e.visible, "and hidden, not frozen in place")
+	check_eq(e.pos, e.spawn_pos, "back on its spawn")
+	# That far view was a stand-in; the level's own wake rule runs against the
+	# real one on the next tick, where the walker's spawn is in range and has
+	# been out of it — so the walker comes straight back, fresh.
+	await get_tree().physics_frame
+	check(e.active and e.visible, "and respawns once its spawn is back in range")
 
 func t_falling_out_of_the_world_kills() -> void:
 	await place(11, 14)
@@ -920,7 +978,7 @@ func t_save_migration_upgrades_an_ancient_file() -> void:
 	check_eq(int(migrated["best_score"]), 4200, "v0 score became best_score")
 	check(not migrated.has("completed"), "the old key is gone")
 	var settings: Dictionary = migrated["settings"]
-	for k in ["music", "sfx", "touch_opacity", "touch_scale", "screen_flip"]:
+	for k in ["music", "sfx", "touch_opacity", "touch_scale"]:
 		check(settings.has(k), "settings gained '%s'" % k)
 
 func t_full_loop_hub_to_level_and_back_marks_the_door_cleared() -> void:
@@ -1033,7 +1091,7 @@ func t_frog_clings_to_a_wall_instead_of_dropping() -> void:
 	# The frog shaft has a wall at column 11; press into it in mid-air.
 	p.pos = Vector2(12 * TS, 18 * TS)
 	p.vel = Vector2(0, 200.0)
-	level().cam.snap_to_target()
+	level().settle_view()
 	Input.action_press("move_left")
 	var touched := false
 	for i in 30:
@@ -1058,7 +1116,7 @@ func t_fish_swims_freely_in_water() -> void:
 	p.set_form("fish")
 	p.pos = Vector2(18 * TS, 25 * TS)
 	p.vel = Vector2.ZERO
-	level().cam.snap_to_target()
+	level().settle_view()
 	await frames(4)
 	check(p.in_water(), "the channel is water")
 	var y0 := p.pos.y
@@ -1087,7 +1145,7 @@ func t_fish_can_beach_itself_onto_the_bank() -> void:
 
 	p.pos = Vector2(42 * TS, 22 * TS)
 	p.vel = Vector2.ZERO
-	level().cam.snap_to_target()
+	level().settle_view()
 	await frames(6)
 	check(p.in_water(), "starting in the channel")
 	# Swim up until the head breaks the surface — that is when the hop is
@@ -1121,7 +1179,7 @@ func t_fish_out_of_air_turns_back_into_kaya() -> void:
 	p.set_form("fish")
 	p.pos = Vector2(4 * TS, 24 * TS)   # dry shore
 	p.vel = Vector2.ZERO
-	level().cam.snap_to_target()
+	level().settle_view()
 	await frames(6)
 	check(not p.in_water(), "we are on dry land")
 	check(p.form.air_fraction() > 0.9, "the air meter starts full")
@@ -1290,14 +1348,16 @@ func t_boss_spawns_locked_to_its_arena() -> void:
 	var p := player()
 	p.pos = b.pos - Vector2(40.0, 40.0)
 	p.invuln = 999.0
-	level().cam.snap_to_target()
-	level()._on_screen_changed(level().cam.screen)
+	level().settle_view()
 	await frames(10)
 	check(level().cam.locked, "the camera locks in the arena")
-	# It must never wander out of its own screen.
+	check(b.active, "and the boss wakes with it")
+	check_eq(level().cam.arena, b.arena, "to the boss's own arena")
+	# It must never wander out of its own arena.
 	await frames(240)
-	check_eq(Screen.index_of(b.center(), Vector2i(9, 9)), b.home_screen,
-		"the boss stays in its arena")
+	check(b.arena.has_point(b.center()), "the boss stays in its arena")
+	check_eq(level().cam.view_rect(), Rect2(b.arena.position, Vector2(Screen.W, Screen.H)),
+		"and the view is the arena, nothing outside it")
 
 func t_boss_changes_phase_as_its_health_falls() -> void:
 	await enter(GROVE)
@@ -1401,7 +1461,7 @@ func t_killing_an_enemy_freezes_the_sim_and_always_lets_go() -> void:
 
 func t_hitstop_refuses_to_stack_on_a_freeze_it_does_not_own() -> void:
 	await place(3, 10)
-	# Stand in for a screen flip mid-slide, which owns sim_paused for 0.12s.
+	# Stand in for a freeze something else owns (a level transition).
 	Game.sim_paused = true
 	Fx.hitstop("kill")
 	check(not Fx.hitstop_active(), "hitstop stands aside when something else is frozen")
@@ -1423,17 +1483,17 @@ func t_hitstop_never_outlives_the_level_that_started_it() -> void:
 func t_shake_moves_the_camera_and_puts_it_back_exactly() -> void:
 	await place(4, 10)
 	var cam: CameraController = level().cam
-	var home: Vector2 = cam.screen_origin(cam.screen)
-	var screen0: Vector2i = cam.screen
-	check_eq(cam.position, home, "the camera starts on its screen origin")
+	var home: Vector2 = cam.view_rect().position
+	var base0: Vector2 = cam.base_pos
+	check_eq(cam.position, home, "the camera starts on its view")
 	Fx.shake("boss_slam")
 	var moved := false
 	for i in 14:
 		await get_tree().physics_frame
 		if cam.position != home:
 			moved = true
-		check_eq(cam.screen, screen0, "a shake never changes the screen index")
-		check_eq(cam.base_pos, home, "and never moves the camera itself, only the offset")
+		check_eq(cam.view_rect().position, home, "a shake never moves the view the cull reads")
+		check_eq(cam.base_pos, base0, "and never moves the camera itself, only the offset")
 		check(cam.shake_offset.length() <= CameraController.MAX_SHAKE_PX + 0.001,
 			"the offset stays inside the tile cull margin")
 	check(moved, "the screen actually shook")
@@ -1441,22 +1501,89 @@ func t_shake_moves_the_camera_and_puts_it_back_exactly() -> void:
 	check_eq(cam.shake_offset, Vector2.ZERO, "the offset decays to exactly zero")
 	check_eq(cam.position, home, "so the camera lands back on the exact screen origin")
 
-func t_a_shake_cannot_throw_the_screen_flip_off_target() -> void:
+func t_a_shake_cannot_throw_the_follow_camera_off_target() -> void:
 	await enter("jungle_1")
 	var cam: CameraController = level().cam
-	check(cam.flip_mode, "this test needs the flip camera")
-	if not cam.flip_mode:
-		return
 	Fx.shake("boss_slam")
 	var p := player()
-	# A ledge one screen to the east, crossed while the camera is still shaking.
+	# A ledge one screen to the east, jumped to while the camera is shaking.
 	p.pos = Vector2(37.0 * TS, 9.0 * TS)
 	p.vel = Vector2.ZERO
+	await frames(120)
+	var v := cam.view_rect()
+	check(v.grow(-64.0).has_point(p.center()),
+		"the camera followed her there (view %s, Kaya %s)" % [str(v), str(p.center())])
+	check_eq(cam.shake_offset, Vector2.ZERO, "the shake is over")
+	check_eq(cam.position, v.position, "and the camera sits exactly on its view")
+	check(not Game.sim_paused, "nothing froze the simulation")
+
+## The headline of the refit: the camera scrolls, and it never stops the game
+## to do it. Run the first screens of a real level and watch every frame.
+func t_the_camera_scrolls_without_ever_freezing_the_game() -> void:
+	await enter("jungle_1")
+	var cam: CameraController = level().cam
+	var p := player()
+	p.invuln = 9999.0
+	# Mid-level on the bottom row, where the level clamp is not holding the
+	# view still, with a clear run east across the seam between the first two
+	# screens (x = 400) and up to the crates.
+	p.pos = Vector2(18.0, 25.0) * TS
+	p.vel = Vector2.ZERO
+	level().settle_view()
+	await frames(30)
+	var last := cam.view_rect().position
+	var start := last
+	var biggest := 0.0
+	var froze := 0
+	var outside := 0
+	var px0 := p.pos.x
+	# Seventy frames stops short of the next spike pit, which would kill her
+	# and reload the level mid-measurement.
+	Input.action_press("move_right")
+	for i in 70:
+		await get_tree().physics_frame
+		if not is_instance_valid(cam):
+			break
+		if Game.sim_paused and not Fx.hitstop_active():
+			froze += 1
+		var v := cam.view_rect()
+		biggest = maxf(biggest, (v.position - last).length())
+		last = v.position
+		if not v.has_point(p.center()):
+			outside += 1
+	Input.action_release("move_right")
+	check(is_instance_valid(cam), "the level survived the run")
+	if not is_instance_valid(cam):
+		return
+	gt_check_f(p.pos.x - px0, 80.0, "she ran east")
+	gt_check_f(last.x - start.x, 40.0, "and the view scrolled after her")
+	check_eq(froze, 0, "no frame was frozen by anything but hitstop")
+	check_eq(outside, 0, "she never left the view")
+	check(biggest <= 6.0, "and the view never jumped: largest single-frame move %.2f px" % biggest)
+
+## The vertical anchor: a jump on flat ground does not move the view at all.
+func t_a_jump_does_not_bounce_the_view() -> void:
+	await enter("jungle_1")
+	var cam: CameraController = level().cam
+	var p := player()
+	p.invuln = 9999.0
 	await frames(60)
-	check_eq(cam.screen, Vector2i(1, 0), "the camera followed onto the next screen")
-	check_eq(cam.position, cam.screen_origin(cam.screen), "and landed dead on it")
-	check_eq(cam.base_pos, cam.screen_origin(cam.screen), "with the slide finished")
-	check(not Game.sim_paused, "the slide released the simulation")
+	check(p.on_floor, "she starts on the floor")
+	var y0 := cam.view_rect().position.y
+	var lo := y0
+	var hi := y0
+	var rose := 0.0
+	var foot0 := p.pos.y
+	Input.action_press("jump")
+	for i in 50:
+		await get_tree().physics_frame
+		rose = maxf(rose, foot0 - p.pos.y)
+		lo = minf(lo, cam.view_rect().position.y)
+		hi = maxf(hi, cam.view_rect().position.y)
+	Input.action_release("jump")
+	await frames(30)
+	gt_check_f(rose, 24.0, "she really jumped")
+	check_eq(hi - lo, 0.0, "and the view did not move vertically by a single pixel")
 
 func t_effects_are_inert_when_nothing_is_attached() -> void:
 	await place(4, 10)
@@ -1512,14 +1639,6 @@ func t_options_write_straight_through_to_the_save_file() -> void:
 	SaveManager.save()
 	SaveManager.load_or_create()
 	near(float(SaveManager.setting("music", 0.0)), 0.3, 0.001, "music volume persisted")
-	SaveManager.set_setting("screen_flip", false)
-	SaveManager.save()
-	SaveManager.load_or_create()
-	check(not bool(SaveManager.setting("screen_flip", true)), "screen flip persisted")
-	# Restore, and prove the camera honours the setting on the next level load.
-	await enter(ARENA)
-	check(not level().cam.flip_mode, "the camera reads the setting at load time")
-	SaveManager.set_setting("screen_flip", true)
 	SaveManager.set_setting("music", old)
 	SaveManager.save()
 
@@ -1619,7 +1738,7 @@ func t_light_pools_follow_the_screen_and_only_exist_where_a_level_asked() -> voi
 	var lit := 0
 	for sx in 2:
 		for sy in 2:
-			l._on_screen_changed(Vector2i(sx, sy))
+			l._on_view_changed(Screen.rect(Vector2i(sx, sy)))
 			var n: int = l.lights.visible_pools()
 			check(n <= AmbienceLayer.MAX_POOLS, "pools per screen stay capped")
 			lit += n

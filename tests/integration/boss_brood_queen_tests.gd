@@ -197,15 +197,15 @@ func park(tile: Vector2i) -> void:
 	Game.health = Game.max_health
 
 ## Put Kaya in the royal cell and wake the fight up. Everything in this suite
-## needs this and the first cut of it needed it invisibly: `Enemy.set_active_screen`
-## leaves a boss frozen until the camera lands on its screen, and deeps_5 spawns
+## needs this and the first cut of it needed it invisibly: a boss rests frozen
+## until the camera locks to its arena (Level._update_arena), and deeps_5 spawns
 ## Kaya four screens away — so a case that parked her nowhere measured a Queen
 ## whose `think()` had never run, whose alpha was whatever `_ready` left and who
 ## had never once looked at her own walls. Every check in it passed for the wrong
 ## reason, which is the failure mode this whole project is built to refuse.
 func enter_arena(feet: Vector2i) -> void:
 	park(feet)
-	lvl.cam.snap_to_target()
+	lvl.settle_view()
 	await frames(4)
 	park(feet)
 	boss.active = true
@@ -250,7 +250,7 @@ func watch(phase: int, feet: Vector2i, n: int) -> Dictionary:
 	set_phase(phase)
 	boss.active = true
 	park(feet)
-	lvl.cam.snap_to_target()
+	lvl.settle_view()
 	await frames(2)
 	var r := {"wave": 0, "spore": 0, "wave_hit": 0, "spore_hit": 0,
 		"wave_east": 0.0, "worst_gap": 0, "body_unseen": 0,
@@ -408,7 +408,7 @@ func t_the_light_dies_with_the_wall() -> void:
 	check(amb.darkness > 0.5 and amb.lantern_radius > 0.0,
 		"the proposed ambience entry does not actually darken the level")
 	lights.setup(lights.role, amb, lvl.world)
-	lvl.cam.snap_to_target()
+	lvl.settle_view()
 	await frames(2)
 	var before := lights.visible_pools()
 	check(before > 0,
@@ -430,7 +430,7 @@ func t_the_light_dies_with_the_wall() -> void:
 
 ## 5. The player's choice is permanent — including across the one road by which a
 ## permanent choice quietly un-happens. Walking out of the arena and back in
-## respawns the boss (Level._on_screen_changed -> set_active_screen -> respawn),
+## respawns the boss (Level._update_arena: unlock, then lock again),
 ## and dying and being killed both run code that the other two bosses use to put
 ## their arena back.
 func t_the_walls_are_the_players_and_they_do_not_come_back() -> void:
@@ -480,7 +480,7 @@ func t_the_queen_never_writes_to_the_level() -> void:
 		set_phase(phase)
 		boss.active = true
 		park(Vector2i(SHELF_COL, SHELF_STAND))
-		lvl.cam.snap_to_target()
+		lvl.settle_view()
 		await frames(420)
 	var wrong := 0
 	var first := ""
@@ -648,7 +648,7 @@ func hop(from: Vector2i, dir: String) -> Vector2i:
 		park(from)
 		pl.control_enabled = true
 		pl.last_floor_tile = Vector2i(-1, -1)
-		lvl.cam.snap_to_target()
+		lvl.settle_view()
 		hold([])
 		await frames(2)
 		var airborne := false

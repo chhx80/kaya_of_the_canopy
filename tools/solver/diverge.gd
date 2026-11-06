@@ -136,8 +136,12 @@ func _compare(id: String) -> void:
 		if not is_instance_valid(pl) or pl.get("dead"):
 			print("  [f%4d] the game lost Kaya (died / level reloaded); sim continues alone" % f)
 			pl = null
+		# A frozen sim is hitstop (a kill). The prover has no hitstop — and no
+		# enemies to kill — so a frozen frame spends no tape on either side.
+		# It used to be the screen flip's 120 ms freeze as well; the follow
+		# camera never freezes, so this is now only ever a kill.
 		if Game.sim_paused:
-			continue               # screen flip: the prover has no such thing
+			continue
 		_edges(inp, int(bits[f]))
 		sim.step(inp)
 		for b: Variant in bounds:

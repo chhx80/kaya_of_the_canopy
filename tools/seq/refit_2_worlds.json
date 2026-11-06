@@ -1,0 +1,130 @@
+[
+ {
+  "_": "Refit phase 2: the follow camera mid-run, one contact sheet per world. Each level is played by its real proof tape (dev_capture's tape step: Kaya unhittable, the tree paused for each shot so a capture never adds a frame), four shots spread across the run; then the world's boss tape, played to its arrival in the arena, and a shot once the camera has eased in and locked. Build the sheets with tools/grid.sh (see REPORT.md)."
+ },
+ {
+  "tape": "jungle_1",
+  "shots": "shots/refit_2_jungle_%d.png",
+  "every": 177,
+  "max": 4,
+  "skip": 20
+ },
+ {
+  "tape": "jungle_5"
+ },
+ {
+  "wait": 50
+ },
+ {
+  "log": "jungle_5 arena"
+ },
+ {
+  "shot": "shots/refit_2_jungle_4.png"
+ },
+ {
+  "tape": "ruins_2",
+  "shots": "shots/refit_2_ruins_%d.png",
+  "every": 442,
+  "max": 4,
+  "skip": 20
+ },
+ {
+  "tape": "ruins_5"
+ },
+ {
+  "wait": 50
+ },
+ {
+  "log": "ruins_5 arena"
+ },
+ {
+  "shot": "shots/refit_2_ruins_4.png"
+ },
+ {
+  "tape": "heights_2",
+  "shots": "shots/refit_2_heights_%d.png",
+  "every": 214,
+  "max": 4,
+  "skip": 20
+ },
+ {
+  "tape": "heights_5"
+ },
+ {
+  "wait": 50
+ },
+ {
+  "log": "heights_5 arena"
+ },
+ {
+  "shot": "shots/refit_2_heights_4.png"
+ },
+ {
+  "tape": "deeps_2",
+  "shots": "shots/refit_2_deeps_%d.png",
+  "every": 325,
+  "max": 4,
+  "skip": 20
+ },
+ {
+  "tape": "deeps_5"
+ },
+ {
+  "wait": 50
+ },
+ {
+  "log": "deeps_5 arena"
+ },
+ {
+  "shot": "shots/refit_2_deeps_4.png"
+ },
+ {
+  "tape": "nest_2",
+  "shots": "shots/refit_2_nest_%d.png",
+  "every": 279,
+  "max": 4,
+  "skip": 20
+ },
+ {
+  "tape": "nest_5"
+ },
+ {
+  "wait": 50
+ },
+ {
+  "log": "nest_5 arena"
+ },
+ {
+  "shot": "shots/refit_2_nest_4.png"
+ },
+ {
+  "_": "The overworld, followed by the same camera."
+ },
+ {
+  "scenario": "hub",
+  "settle": 60
+ },
+ {
+  "shot": "shots/refit_2_hub_0.png"
+ },
+ {
+  "hold": "move_right",
+  "frames": 90
+ },
+ {
+  "shot": "shots/refit_2_hub_1.png"
+ },
+ {
+  "hold": "move_down",
+  "frames": 90
+ },
+ {
+  "shot": "shots/refit_2_hub_2.png"
+ },
+ {
+  "release": [
+   "move_right",
+   "move_down"
+  ]
+ }
+]

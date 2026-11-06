@@ -217,7 +217,7 @@ func t_the_roost_cycle_comes_round_in_every_phase() -> void:
 		boss.active = true
 		park(Vector2i(36, STAND_ROW))
 		pl.control_enabled = false
-		lvl.cam.snap_to_target()
+		lvl.settle_view()
 		await frames(2)
 		var windows := 0
 		var window_frames := 0
@@ -362,8 +362,8 @@ func t_the_gale_drops_when_it_dies() -> void:
 			% [pushed.size(), str(pushed[0]) if not pushed.is_empty() else "-"])
 
 ## 5b. The same thing by the other road into it. Walking out of the arena and
-## back in respawns the boss (Level._on_screen_changed -> set_active_screen ->
-## respawn), which puts it back in phase 1 — and phase 1 is calm. A gale that
+## back in respawns the boss (Level._update_arena: the camera lets go of the
+## arena and takes it again), which puts it back in phase 1 — and phase 1 is calm. A gale that
 ## survives that is a gale nothing in the fight will ever take away again.
 func t_the_gale_drops_when_it_respawns() -> void:
 	_current = "the-gale-drops-on-respawn"
@@ -479,7 +479,7 @@ func _hop(from: Vector2i, dir: String) -> Vector2i:
 	for run_up in [0, 8, 16]:
 		park(from)
 		pl.last_floor_tile = Vector2i(-1, -1)
-		lvl.cam.snap_to_target()
+		lvl.settle_view()
 		_hold([])
 		await frames(2)
 		var airborne := false
@@ -520,7 +520,7 @@ func t_it_never_lands_on_a_refuge_slab() -> void:
 		boss.active = true
 		park(Vector2i(36, STAND_ROW))
 		pl.control_enabled = false
-		lvl.cam.snap_to_target()
+		lvl.settle_view()
 		await frames(2)
 		for f in 600:
 			pl.invuln = 999.0
