@@ -2,13 +2,18 @@
   "id": "flyer",
   "display_name": "CANOPY WASP",
   "sprite": "res://assets/sprites/enemy_flyer.png",
-  "frame_w": 16,
-  "frame_h": 16,
+  "frame_w": 32,
+  "frame_h": 24,
   "hitbox": {
     "w": 14,
     "h": 7,
     "ox": 1,
     "oy": 5
+  },
+  "_render": "Where the unchanged hitbox sits inside the frame: the art's anchor, read by src/enemies/enemy_base.gd. Written by tools/art/enemies40.py's SHEETS; collision never reads it.",
+  "render": {
+    "ox": 9,
+    "oy": 10
   },
   "health": 2,
   "contact_damage": 1,
@@ -33,9 +38,11 @@
         0,
         1,
         2,
-        3
+        3,
+        4,
+        5
       ],
-      "fps": 14
+      "fps": 21
     }
   }
 }

@@ -1445,17 +1445,11 @@ def build_sprites():
     # head-tilt, 8-9 the banking turn pair.
     sheet("kaya_bird", forms40.bird_cells(), forms40.BIRD_W, forms40.BIRD_H, selout=True)
     forms40.write_bounds(os.path.join(SPRITES, "kaya_bird.png"), forms40.BIRD_W, forms40.BIRD_H)
-    sheet("enemy_walker", lit([walker(i) for i in range(4)], WALKER), 16, 16,
-          selout=True)
-    # 0 idle, 1-2 the telegraph, 3 airborne, 4 the landing squash
-    sheet("enemy_jumper", lit([E_J_IDLE, E_J_CROUCH, E_J_COIL,
-                               E_J_AIR, E_J_LAND], JUMPER), 16, 16, selout=True)
-    # 0 closed, 1-3 the telegraph, 4 the spit
-    sheet("enemy_shooter", lit([E_S_IDLE, E_S_STIR, E_S_INHALE,
-                                E_S_SWELL, E_S_FIRE], SHOOTER), 16, 16, selout=True)
-    sheet("enemy_swimmer", lit([mirror(cell(c)) for c in
-                                (E_SW_MID, E_SW_UP, E_SW_BITE, E_SW_DOWN)],
-                               SWIMMER), 16, 16, selout=True)
+    # Refit phase 3: the four original enemies are drawn at Kaya's scale by
+    # tools/art/enemies40.py (frame orders documented on its *_cells()).
+    from . import enemies40
+    for name in ("enemy_walker", "enemy_jumper", "enemy_shooter", "enemy_swimmer"):
+        enemies40.build_sheet(name)
     sheet("blade", lit([I_BLADE1, I_BLADE2], BLADE, depth=1), 16, 16)
     sheet("pickups", lit([I_GEM], GEM, depth=2)
                      + lit([I_HEART], HEART, depth=2)
@@ -1666,7 +1660,9 @@ def build_boss():
         return ["".join(r) for r in outline(px)]
 
     cells = [make(ph, pose) for ph in PHASES for pose in POSES]
-    sheet("boss_grove", lit(cells, BOSS), 48, 48, selout=True)
+    # Refit phase 3: the 64 px sheet (tools/art/enemies40.py) replaces this one.
+    from . import enemies40
+    cells = [None] * enemies40.build_sheet("boss_grove")
     print("boss_grove.png  %d frames" % len(cells))
 
 
@@ -1891,7 +1887,9 @@ def build_boss_stormcrest():
         return ["".join(r) for r in out]
 
     cells = [make(ph, pose) for ph in PHASES for pose in POSES]
-    sheet("boss_stormcrest", lit(cells, STORM), 48, 48, selout=True)
+    # Refit phase 3: the 64 px sheet (tools/art/enemies40.py) replaces this one.
+    from . import enemies40
+    cells = [None] * enemies40.build_sheet("boss_stormcrest")
     print("boss_stormcrest.png  %d frames" % len(cells))
 
 
@@ -2114,9 +2112,9 @@ def build_boss_tide_maw():
     # fractional ramp level is drawn as a dither, so the default 0.7/1.1/0.95
     # puts a checkerboard across half the frame. Whole steps give the four flat
     # tones the rest of the ruins art is drawn in.
-    sheet("boss_tide_maw",
-          lit(cells, TIDE, depth=2, rate=1.0, lit=1.0, dark=1.0), 48, 48,
-          selout=True)
+    # Refit phase 3: the 64 px sheet (tools/art/enemies40.py) replaces this one.
+    from . import enemies40
+    cells = [None] * enemies40.build_sheet("boss_tide_maw")
     print("boss_tide_maw.png  %d frames" % len(cells))
 
 
@@ -2401,9 +2399,9 @@ def build_boss_brood_queen():
     # reason: this animal is one very large flat mass, and a fractional ramp
     # level is drawn as a dither, which puts a checkerboard across half of a
     # 26 px abdomen.
-    sheet("boss_brood_queen",
-          lit(cells, QUEEN, depth=2, rate=1.0, lit=1.0, dark=1.0), 48, 48,
-          selout=True)
+    # Refit phase 3: the 64 px sheet (tools/art/enemies40.py) replaces this one.
+    from . import enemies40
+    cells = [None] * enemies40.build_sheet("boss_brood_queen")
     print("boss_brood_queen.png  %d frames" % len(cells))
 
 
@@ -2706,7 +2704,7 @@ def build_boss_obsidian_heart():
     # Queen's, for their reason: this is one very large flat mass, and a
     # fractional ramp level is drawn as a dither, which puts a checkerboard
     # across half of a 40 px stone.
-    sheet("boss_obsidian_heart",
-          lit(cells, OBSIDIAN, depth=2, rate=1.0, lit=1.0, dark=1.0), 48, 48,
-          selout=True)
+    # Refit phase 3: the 64 px sheet (tools/art/enemies40.py) replaces this one.
+    from . import enemies40
+    cells = [None] * enemies40.build_sheet("boss_obsidian_heart")
     print("boss_obsidian_heart.png  %d frames" % len(cells))

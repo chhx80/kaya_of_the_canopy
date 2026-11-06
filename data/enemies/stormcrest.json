@@ -2,13 +2,18 @@
   "id": "stormcrest",
   "display_name": "THE STORMCREST",
   "sprite": "res://assets/sprites/boss_stormcrest.png",
-  "frame_w": 48,
-  "frame_h": 48,
+  "frame_w": 64,
+  "frame_h": 64,
   "hitbox": {
     "w": 40,
     "h": 46,
     "ox": 4,
     "oy": 2
+  },
+  "_render": "Where the unchanged hitbox sits inside the frame: the art's anchor, read by src/enemies/enemy_base.gd. Written by tools/art/enemies40.py's SHEETS; collision never reads it.",
+  "render": {
+    "ox": 12,
+    "oy": 18
   },
   "health": 12,
   "contact_damage": 1,
@@ -115,16 +120,19 @@
   "anim": {
     "idle_p1": {
       "frames": [
-        0
+        0,
+        7
       ],
-      "fps": 1
+      "fps": 2
     },
     "walk_p1": {
       "frames": [
         1,
-        2
+        8,
+        2,
+        9
       ],
-      "fps": 6
+      "fps": 12
     },
     "windup_p1": {
       "frames": [
@@ -154,94 +162,103 @@
     },
     "idle_p2": {
       "frames": [
-        7
+        10,
+        17
       ],
-      "fps": 1
+      "fps": 2
     },
     "walk_p2": {
       "frames": [
-        8,
-        9
+        11,
+        18,
+        12,
+        19
       ],
-      "fps": 8
+      "fps": 16
     },
     "windup_p2": {
       "frames": [
-        10,
-        11
+        13,
+        14
       ],
       "fps": 6,
       "loop": false
     },
     "air_p2": {
       "frames": [
-        12
+        15
       ],
       "fps": 1
     },
     "land_p2": {
       "frames": [
-        13
+        16
       ],
       "fps": 1
     },
     "hurt_p2": {
       "frames": [
-        13
+        16
       ],
       "fps": 1
     },
     "idle_p3": {
       "frames": [
-        14
+        20,
+        27
       ],
-      "fps": 1
+      "fps": 2
     },
     "walk_p3": {
       "frames": [
-        15,
-        16
+        21,
+        28,
+        22,
+        29
       ],
-      "fps": 10
+      "fps": 20
     },
     "windup_p3": {
       "frames": [
-        17,
-        18
+        23,
+        24
       ],
       "fps": 6,
       "loop": false
     },
     "air_p3": {
       "frames": [
-        19
+        25
       ],
       "fps": 1
     },
     "land_p3": {
       "frames": [
-        20
+        26
       ],
       "fps": 1
     },
     "hurt_p3": {
       "frames": [
-        20
+        26
       ],
       "fps": 1
     },
     "idle": {
       "frames": [
-        0
+        0,
+        7
       ],
-      "fps": 1
+      "fps": 2
     },
     "walk": {
       "frames": [
         1,
-        2
+        8,
+        2,
+        9
       ],
-      "fps": 6
+      "fps": 12
     },
     "windup": {
       "frames": [

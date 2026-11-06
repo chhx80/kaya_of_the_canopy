@@ -74,9 +74,10 @@ func test_enemy_hitboxes_sit_inside_their_sprite_frame() -> void:
 		var hb: Dictionary = c.get("hitbox", {})
 		var fw := float(c.get("frame_w", 16))
 		var fh := float(c.get("frame_h", 16))
-		lt(float(hb.get("ox", 0)) + float(hb.get("w", 0)), fw + 0.01,
+		var at: Dictionary = c.get("render", hb)     # the art's anchor (refit phase 3)
+		lt(float(at.get("ox", 0)) + float(hb.get("w", 0)), fw + 0.01,
 			"%s hitbox overflows the frame horizontally" % id)
-		lt(float(hb.get("oy", 0)) + float(hb.get("h", 0)), fh + 0.01,
+		lt(float(at.get("oy", 0)) + float(hb.get("h", 0)), fh + 0.01,
 			"%s hitbox overflows the frame vertically" % id)
 
 func test_the_bosss_art_is_anchored_on_its_collision_box() -> void:
@@ -85,12 +86,15 @@ func test_the_bosss_art_is_anchored_on_its_collision_box() -> void:
 	## box — src/enemies/enemy_base.gd draws the frame at (-ox, -oy) from the
 	## box and mirrors that when flipped. Get them wrong and the boss draws
 	## beside its own hurtbox, and slides sideways every time it turns.
+	## Refit phase 3: the anchor moved to its own `render` block (the 64 px
+	## sheets), so this reads it there; the box's size is still the hitbox's.
 	var c := Enemy.load_config("boss_grove")
 	var hb: Dictionary = c.get("hitbox", {})
+	var at: Dictionary = c.get("render", hb)
 	var slack := float(c.get("frame_w", 16)) - float(hb.get("w", 0))
-	lt(absf(float(hb.get("ox", 0)) - slack * 0.5), 1.01,
+	lt(absf(float(at.get("ox", 0)) - slack * 0.5), 1.01,
 		"boss art sits off-centre from its hitbox")
-	lt(absf(float(hb.get("oy", 0)) + float(hb.get("h", 0))
+	lt(absf(float(at.get("oy", 0)) + float(hb.get("h", 0))
 		- float(c.get("frame_h", 16))), 2.01,
 		"boss art does not stand on the bottom of its hitbox")
 

@@ -381,19 +381,11 @@ def build():
     # 0-1 patrol, 2-3 the wind-up, 4-5 the charge, 6 dazed, 7-8 patrol legs
     # C/D (Phase B, docs/plan-art-motion.md -- brings "move" to a 4-frame
     # cycle: data/enemies/charger.json plays 0,7,1,8).
-    sheet("enemy_charger",
-          lit([C_PATROL_A, C_PATROL_B, C_WIND_A, C_WIND_B,
-               C_CHARGE_A, C_CHARGE_B, C_DAZED,
-               C_PATROL_C, C_PATROL_D], CHARGER), 16, 16, selout=True)
-    # 0 cling, 1-2 the shiver, 3 falling, 4-5 crawl, 6-7 crawl C/D (Phase B --
-    # brings "walk" to a 4-frame cycle: data/enemies/dropper.json plays
-    # 4,6,5,7).
-    sheet("enemy_dropper",
-          lit([D_CLING, D_SHIVER_A, D_SHIVER_B, D_FALL,
-               D_CRAWL_A, D_CRAWL_B, D_CRAWL_C, D_CRAWL_D], DROPPER), 16, 16,
-          selout=True)
-    sheet("enemy_flyer",
-          lit([F_UP, F_MID_A, F_DOWN, F_MID_B], FLYER), 16, 16, selout=True)
+    # Refit phase 3: the three are redrawn at Kaya's scale by
+    # tools/art/enemies40.py; the 16 px grids above are what they were.
+    from art import enemies40
+    for name in ("enemy_charger", "enemy_dropper", "enemy_flyer"):
+        enemies40.build_sheet(name)
     print("enemies v2 written to %s" % palette.SPRITES)
 
 

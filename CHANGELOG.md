@@ -2848,3 +2848,53 @@ headroom equals the frame's unscaled rise. `KayaPose`'s headroom test ignores
 the stretch. With the stretch switched off locally (not committed) all three
 tapes pass. See REPORT.md for the proposed fix. Seen failing on purpose: 3 px
 painted into the cling frames' wall side fails all 11 tape cling frames.
+
+## Refit phase 3 — enemies and the five bosses at Kaya's scale (branch `p3/enemies`)
+
+**All seven enemies and all five bosses are redrawn** by a new module,
+`tools/art/enemies40.py`, the way `kaya40.py` draws Kaya: posed parts
+(ellipses, tapered capsules, polygons, two-bone IK limbs) placed by a few
+numbers per frame, rasterised into the character grid, lit by `auto_shade` and
+inked by the selective outline. Colours and identities are kept (purple beetle,
+ember hopper, purple bloom, cyan-and-red piranha, brown boar, grey tick, gold
+wasp; the five bosses' phase colours), and every sheet stays on the material
+ramps. `sprites.py` and `sprites_enemies_v2.py` changed only at their
+`sheet(...)` calls, which now hand off to `enemies40.build_sheet()`.
+
+- Enemies are 32x24 / 32x32 cells (were 16x16), with more frames: 6-frame walk,
+  swim and wing cycles; the charger has a 3-beat wind-up, 4-frame charge and
+  2-frame daze; the dropper a 4-frame shiver, 2-frame fall and 6-frame crawl;
+  the shooter an idle sway; the jumper a second air and a landing recovery.
+- Bosses are 64x64 (were 48x48), ten poses per phase (30 frames, were 21):
+  idle is now two frames (a breath), walk four.
+- Each telegraph is drawn as a change of outline first:
+  charger: crest stands up gold, head drops, hoof paws, eye goes red;
+  jumper: hind knees fold up above the back; shooter: petals flare, throat
+  lights; dropper: legs come off the ceiling, eyes go red; bosses keep their
+  tells (Warden's slam crouch, the Maw's gape, Stormcrest's legless diagonal
+  in the air, the Queen's and the Heart's lit attack frames).
+
+**Collision did not move.** Every `hitbox` in `data/enemies/*.json` is
+byte-for-byte what it was. The bigger frame is anchored by a new `render`
+block (`ox`/`oy`), read by `src/enemies/enemy_base.gd` in place of the
+hitbox's own anchor (with the hitbox as fallback). The JSON changes are
+`frame_w`, `frame_h`, `render` and the `anim` frame lists, nothing else.
+
+**`tests/test_enemies40.gd`** measures the shipped sheets: the anchor centres
+each box; every frame still fills its hurtbox (floors set at or above the
+sheets they replaced, except the Warden 0.72→0.68 and the Queen 0.64→0.61);
+no frame is mostly outside its box; and each named tell is a number: the
+charger's held crest tops every patrol, charge and daze frame; the coiled
+jumper is taller than the sitting one; the flared bloom is wider than any
+sway; every shiver frame grips the ceiling less than the cling; the
+Stormcrest's airborne frames have no pixels on the floor rows and every roost
+frame does; every Queen and Heart attack frame is brighter than every rest
+frame of its phase. Two things the test caught while it was being written:
+the dazed boar's stars floated as high as its raised crest (lowered), and the
+Queen's 64 px shading made her pale body as bright as her attack rim (body
+steps lowered; her phase-2/3 attack frames now outshine her rest frames,
+which the 48 px sheet's did not). `test_combat_data.gd` reads the anchor
+from `render`.
+
+Screenshots: `shots/p3_enemies_*.png` (sheets with hitboxes drawn, in-game
+1x frames of every tell, and zoomed strips of them).
