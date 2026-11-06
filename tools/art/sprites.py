@@ -18,6 +18,7 @@ import random
 from PIL import Image
 
 from . import kaya40
+from . import forms40
 from .palette import SPRITES, auto_shade, blit, grid, sheet
 
 # ---------------------------------------------------------------- player
@@ -1429,23 +1430,21 @@ def build_sprites():
                  K_DANCE1, K_DANCE2, K_DANCE3, K_DANCE4,
                  K_DANCE5, K_DANCE6, K_DANCE7, K_DANCE8], KAYA, dark=0.75),
           16, 24, selout=True)
-    # 0 idle, 1 breath, 2 crouch (anticipation; also reused as the turn frame),
-    # 3 leap (also reused as the wall-kick flash), 4 reach, 5 cling, 6 apex
-    # (mid-air tuck), 7 tongue-blink idle, 8 cling breathe. 6-8 are Phase B,
-    # docs/plan-art-motion.md.
-    sheet("kaya_frog", lit([F_IDLE, F_BREATHE, F_CROUCH, F_LEAP,
-                            F_REACH, F_CLING, F_APEX, F_TONGUE,
-                            F_CLING_B], FROG), 16, 16, selout=True)
-    # 0-3 the swim beat, 4 bite, 5 flop. Mirrored so the unflipped cell faces
-    # right, which is the direction `facing == 1` draws.
-    sheet("kaya_fish", lit([mirror(c) for c in
-                            (FI_TAIL_MID, FI_TAIL_UP, FI_TAIL_MID2,
-                             FI_TAIL_DOWN, FI_BITE, FI_FLOP)], FISH), 16, 16, selout=True)
-    # 0-3 the flap beat, 4 glide, 5 perch, 6 glide ruffle, 7 perch head-tilt,
-    # 8-9 the banking turn pair. 6-9 are Phase B, docs/plan-art-motion.md.
-    sheet("kaya_bird", lit([B_UP, B_MIDA, B_DOWN, B_MIDB,
-                            B_GLIDE, B_PERCH, B_GLIDE2, B_PERCH2,
-                            B_TURN1, B_TURN2], BIRD), 16, 16, selout=True)
+    # The animal forms are the 40 px-era puppets in tools/art/forms40.py, frame
+    # order unchanged. Frog 24x16: 0 idle, 1 breath, 2 crouch (anticipation;
+    # also reused as the turn frame), 3 leap (also reused as the wall-kick
+    # flash), 4 reach, 5 cling, 6 apex (mid-air tuck), 7 tongue-blink idle,
+    # 8 cling breathe.
+    sheet("kaya_frog", forms40.frog_cells(), forms40.FROG_W, forms40.FROG_H, selout=True)
+    forms40.write_bounds(os.path.join(SPRITES, "kaya_frog.png"), forms40.FROG_W, forms40.FROG_H)
+    # Fish 24x14: 0-3 the swim beat, 4 bite, 5 flop. Drawn facing right, which
+    # is the direction `facing == 1` draws.
+    sheet("kaya_fish", forms40.fish_cells(), forms40.FISH_W, forms40.FISH_H, selout=True)
+    forms40.write_bounds(os.path.join(SPRITES, "kaya_fish.png"), forms40.FISH_W, forms40.FISH_H)
+    # Bird 24x16: 0-3 the flap beat, 4 glide, 5 perch, 6 glide ruffle, 7 perch
+    # head-tilt, 8-9 the banking turn pair.
+    sheet("kaya_bird", forms40.bird_cells(), forms40.BIRD_W, forms40.BIRD_H, selout=True)
+    forms40.write_bounds(os.path.join(SPRITES, "kaya_bird.png"), forms40.BIRD_W, forms40.BIRD_H)
     sheet("enemy_walker", lit([walker(i) for i in range(4)], WALKER), 16, 16,
           selout=True)
     # 0 idle, 1-2 the telegraph, 3 airborne, 4 the landing squash

@@ -2811,3 +2811,40 @@ checked the exit code. Fixed here by `tools/sync_ios_project.sh`.
 Still unverified: frame rate on an iPhone (Mac only so far: worst physics tick
 ~1.9 ms, +0.15 ms per uncapped frame), and how continuous parallax looks in
 motion to a person.
+
+## Refit phase 3 — Kaya's animal forms (branch `p3/forms`)
+
+**The frog, fish and bird are redrawn to stand beside the 40 px Kaya.** They
+were 16x16 hand-written grids from the first art pass; now they come from
+`tools/art/forms40.py`, built the way she is (parts placed by coordinates,
+inked, lit by `auto_shade` with her settings, selective outline) and from her
+materials, so each reads as *her*, transformed: the green of her top, the
+yellow of her shorts, the bead necklace, red sandals as the bird's feet, her
+long dark hair as the bird's tail, and her straw hat, shrunk, on every one.
+Cells are 24x16 (frog, bird) and 24x14 (fish), drawings 19-22 px across.
+Every frame index the data used before still means the same beat.
+
+**Collision did not change.** Hitboxes are 12x11 / 14x9 / 12x9 as before; only
+`frame_w`, `frame_h` and the render anchor `ox`/`oy` moved (the hitbox is now
+centred at the bottom of the cell: its bottom row is the feet).
+
+**A bigger drawing on the same small hitbox, handled the way hers is.** Each
+form's json gains a `pose` block and `forms40.py` writes a `.bounds.json` beside
+each sheet, so `KayaPose` (unchanged) nudges the drawn frame off a wall or down
+from a ceiling. Rules the generator asserts and `tests/test_forms40.gd` checks
+on the shipped sheets: nothing below the hitbox; at most 16 - 1 - h px above
+it (a one-tile tunnel, with kaya40's pixel of rounding spare); the frog's cling
+entirely inside the hitbox's columns (in game it is drawn front-to-the-wall,
+flipped or not -- the gate showed it); narrow frames at most 16 px wide. New
+frames after the old indices: frog 9-10 (a back view for one-tile shafts, also
+its `stoop`), fish 6-7 (curled, for shafts).
+
+**`tools/clipgate.sh --all-forms`: from 19 failing tapes to 3.** It had never
+passed: the old 16 px art drew below its own hitbox (1,261 frog-idle frames
+in the floor) and had no wall or ceiling handling -- 19 of 26 tapes clipped.
+Now 5 frames in 3 tapes clip, all the same mechanism outside this branch: the
+launch stretch (`Player.STRETCH_MAX`, up to 1.15 tall) under a ceiling whose
+headroom equals the frame's unscaled rise. `KayaPose`'s headroom test ignores
+the stretch. With the stretch switched off locally (not committed) all three
+tapes pass. See REPORT.md for the proposed fix. Seen failing on purpose: 3 px
+painted into the cling frames' wall side fails all 11 tape cling frames.

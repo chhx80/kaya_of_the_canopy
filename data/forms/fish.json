@@ -3,13 +3,18 @@
   "id": "fish",
   "display_name": "FISH",
   "sprite": "res://assets/sprites/kaya_fish.png",
-  "frame_w": 16,
-  "frame_h": 16,
+  "frame_w": 24,
+  "frame_h": 14,
   "hitbox": {
     "w": 14,
     "h": 9,
-    "ox": 1,
-    "oy": 3
+    "ox": 5,
+    "oy": 5
+  },
+  "pose": {
+    "bounds": "res://assets/sprites/kaya_fish.bounds.json",
+    "max_nudge_x": 5.0,
+    "headroom_reach": 5.0
   },
   "move_mode": "swim",
   "can_attack": true,
@@ -84,6 +89,8 @@
 
     "turn": { "frames": [1], "fps": 1 },
     "burst": { "frames": [3], "fps": 1 },
+    "narrow": { "frames": [6], "fps": 1 },
+    "narrow_swim": { "frames": [6, 7], "fps": 10 },
     "dance": { "frames": [0, 1, 2, 3, 0, 1, 2, 3], "fps": 8, "loop": false }
   },
   "out_of_water": "revert"

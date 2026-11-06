@@ -3,13 +3,18 @@
   "id": "frog",
   "display_name": "FROG",
   "sprite": "res://assets/sprites/kaya_frog.png",
-  "frame_w": 16,
+  "frame_w": 24,
   "frame_h": 16,
   "hitbox": {
     "w": 12,
     "h": 11,
-    "ox": 2,
-    "oy": 3
+    "ox": 6,
+    "oy": 5
+  },
+  "pose": {
+    "bounds": "res://assets/sprites/kaya_frog.bounds.json",
+    "max_nudge_x": 6.0,
+    "headroom_reach": 6.0
   },
   "move_mode": "ground",
   "can_attack": false,
@@ -80,6 +85,12 @@
 
     "turn": { "frames": [2], "fps": 1 },
     "wallkick": { "frames": [3], "fps": 1 },
+    "stoop": { "frames": [10], "fps": 1 },
+    "stoop_walk": { "frames": [2], "fps": 1 },
+    "narrow": { "frames": [10], "fps": 1 },
+    "narrow_stoop": { "frames": [10], "fps": 1 },
+    "narrow_jump": { "frames": [9], "fps": 1 },
+    "narrow_fall": { "frames": [10], "fps": 1 },
     "dance": { "frames": [1, 2, 0, 3, 1, 2, 0, 3], "fps": 8, "loop": false }
   }
 }
