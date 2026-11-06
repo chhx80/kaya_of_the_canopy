@@ -1,0 +1,11 @@
+[
+  {"_": "Phase 3 backdrops in the canopy. tools/shot.sh --seq=tools/seq/p3_bg_jungle.json"},
+  {"scenario": "level:jungle_1", "settle": 160},
+  {"shot": "shots/p3_bg_jungle_0.png"},
+  {"teleport": [30, 12], "settle": 30},
+  {"shot": "shots/p3_bg_jungle_1.png"},
+  {"teleport": [8, 4], "settle": 30},
+  {"shot": "shots/p3_bg_jungle_2.png"},
+  {"scenario": "level:jungle_5", "settle": 160},
+  {"shot": "shots/p3_bg_jungle_3.png"}
+]

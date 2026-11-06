@@ -35,6 +35,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from art import backdrops, palette, sprites, tiles     # noqa: E402
 from art import sprites_enemies_v2                     # noqa: E402
+from art import hud_portrait                           # noqa: E402
 
 ROOT = palette.ROOT
 
@@ -138,7 +139,7 @@ class _Scene:
         for plane in ("sky", "far", "near"):
             path = os.path.join(palette.SPRITES, "bg_%s_%s.png" % (world, plane))
             if os.path.exists(path):
-                self.img.alpha_composite(Image.open(path).convert("RGBA"))
+                self.img.alpha_composite(_floor_window(Image.open(path).convert("RGBA")))
         for layer in (bg, fg):
             for y, row in enumerate(_resolve(layer, variants)):
                 for x, cell in enumerate(row):
@@ -146,6 +147,15 @@ class _Scene:
                         continue
                     self.img.alpha_composite(_cell(tileset, cell), (x * 16, y * 16))
         self.px = self.img.convert("RGB").load()
+
+
+def _floor_window(strip):
+    """The 400x240 of a parallax strip the camera shows from a level's floor.
+    Strips are wider and taller than the view (data/parallax.json); the
+    bottom-left window is the one src/world/parallax_bg.gd shows when the view
+    sits on the floor of a level at x = 0, which is where these composites
+    stand their test screen."""
+    return strip.crop((0, strip.height - 240, 400, strip.height))
 
 
 def _cell(atlas, i):
@@ -408,7 +418,7 @@ def preview_panels():
         back = Image.new("RGBA", (400, 240), (0, 0, 0, 255))
         for plane in ("sky", "far", "near"):
             path = os.path.join(palette.SPRITES, "bg_%s_%s.png" % (world, plane))
-            back.alpha_composite(Image.open(path).convert("RGBA"))
+            back.alpha_composite(_floor_window(Image.open(path).convert("RGBA")))
         back.convert("RGB").save(
             os.path.join(ROOT, "shots", "world_%s_backdrop.png" % world))
 
@@ -451,6 +461,7 @@ def main():
     backdrops.build_logo()
     backdrops.build_title_bg()
     backdrops.build_backdrops()
+    hud_portrait.build()          # Kaya Refit phase 3: her bust, from the puppet
     backdrops.build_light_art()
     backdrops.build_icon()
     backdrops.build_store_icons()

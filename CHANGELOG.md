@@ -2811,3 +2811,43 @@ checked the exit code. Fixed here by `tools/sync_ios_project.sh`.
 Still unverified: frame rate on an iPhone (Mac only so far: worst physics tick
 ~1.9 ms, +0.15 ms per uncapped frame), and how continuous parallax looks in
 motion to a person.
+
+## Kaya Refit phase 3 — parallax backdrops for all worlds, and the HUD portrait
+
+**Parallax ran backwards, and has since art phase 3.** `ParallaxBg` computed a
+plane's screen offset from `view.x * (1 - factor)`, so the sky (0.10) scrolled
+at 90% of the tiles and the near-foreground grass (0.82) at 18%: the furthest
+plane moved fastest. The screen flip hid it; the follow camera made it the
+biggest thing on screen. Fixed to `view.x * factor`, which is what the doc
+comment and level.gd's factors always meant, and pinned by
+`tests/test_parallax_bg.gd` as numbers, because no screenshot can show it.
+
+**Strips with slack.** Every strip was exactly one screen, so it could only be
+locked to the view vertically and a near plane repeated every two thirds of a
+screen. `data/parallax.json` now sizes each plane: wider than the view plus
+one level of its own travel (sky 448, far 512, near 640, fg 736), and taller
+by its factor times a screen of vertical travel (264 / 307 / 379 / 437). The
+slack is mapped across the level height, so on the two-screen levels every
+plane scrolls vertically at its own factor and its edge never shows; a
+one-screen level shows the strip's floor. Wraps are seamless and draw counts
+are unchanged (at most two copies per plane, tested).
+
+**The art.** `tools/art/parallax_worlds.py` repaints all six backdrop sets
+(jungle, sky, ruins, heights, deeps, obsidian) with brushes drawn at Kaya's
+scale — leaves rather than blobs, bark, buttress roots, lianas, fronds,
+cumulus with lit tops, coursed masonry, gullied peaks, smoke. Depth is still
+held by each plane's ramp window (no plane may out-contrast the tiles), and no
+ramps were added: the palette test pins the count. Backdrop trunks stay on
+`foliage`, never the warm `wood` the level's climbable trunks are made of.
+The old one-screen painters are gone from `backdrops.py`.
+
+**HUD portrait.** Kaya's head and shoulders beside the hearts, cut from the
+puppet's own front view by `tools/art/hud_portrait.py` (frame 0 smiling,
+frame 1 eyes shut for 0.6 s after a hit). Top-left of the world rect, clear of
+every touch layout; tested against the overlay fallback at the largest touch
+size.
+
+**Not visible in play:** every ruins, heights, deeps and nest level fills its
+background layer with wall tiles (0 open cells), so only jungle_1, jungle_4
+and jungle_5 show a backdrop. `tools/bg_preview.gd` renders a world's planes
+through the real `ParallaxBg` so the others can be seen at all.

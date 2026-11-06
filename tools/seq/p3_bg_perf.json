@@ -1,0 +1,17 @@
+[
+  {"_": "Phase 3 backdrops: frame cost before/after. tools/shot.sh --seq=tools/seq/p3_bg_perf.json"},
+  {"scenario": "level:jungle_1", "settle": 60},
+  {"perf": "jungle_1 still", "frames": 300},
+  {"perf": "jungle_1 still cap60", "frames": 300, "cap": 60},
+  {"hold": "move_right", "frames": 10},
+  {"perf": "jungle_1 running", "frames": 120},
+  {"release": "move_right"},
+  {"scenario": "level:jungle_4", "settle": 60},
+  {"perf": "jungle_4 still", "frames": 300},
+  {"scenario": "level:jungle_5", "settle": 60},
+  {"perf": "jungle_5 still", "frames": 300},
+  {"scenario": "level:ruins_1", "settle": 60},
+  {"perf": "ruins_1 still", "frames": 300},
+  {"scenario": "level:deeps_1", "settle": 60},
+  {"perf": "deeps_1 still", "frames": 300}
+]
