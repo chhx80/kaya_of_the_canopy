@@ -12,7 +12,10 @@ extends RefCounted
 ##   * dressed with the edges and inside corners its eight neighbours imply,
 ##     reduced to the 47-case blob set;
 ##   * and, on the background layer only, the occasional root, hanging vine,
-##     crack or moss patch.
+##     crack or moss patch;
+##   * Kaya Refit phase 3: which contact shadows an empty foreground cell
+##     receives from the solid ground around it (`contact_bits()`), drawn by
+##     the foreground renderer from a small generated ink sheet.
 ##
 ## The table is generated: `tools/art/tiles.py` paints the variants into the
 ## atlas and writes `assets/tiles/variants.json` next to it. Nothing here is
@@ -56,6 +59,20 @@ var group_of: Dictionary = {}
 ## tile id -> { cases, autotile, decor, decor_permille }
 var _tiles: Dictionary = {}
 var loaded := false
+## Contact shadows: the generated ink sheet and which cell of it is which
+## side. Empty when the manifest has no `contact_shadow` block, and then no
+## shadow is drawn at all.
+var shadow_texture := ""
+var shadow_cells: Dictionary = {}
+
+## Contact-shadow bits: which side of a receiving cell solid ground touches.
+const SHADE_N := 1
+const SHADE_W := 2
+const SHADE_NW := 4
+const SHADE_S := 8
+const SHADE_E := 16
+## Bit -> the cell name in the manifest's `contact_shadow.cells`, in draw order.
+const SHADE_NAMES := {1: "n", 2: "w", 4: "nw", 8: "s", 16: "e"}
 
 static var _shared: TileVariants = null
 static var _cache_world: TileWorld = null
@@ -108,6 +125,14 @@ func load_from(path: String) -> bool:
 func load_from_dict(d: Dictionary) -> bool:
 	group_of.clear()
 	_tiles.clear()
+	shadow_texture = ""
+	shadow_cells.clear()
+	var cs: Dictionary = d.get("contact_shadow", {})
+	if not cs.is_empty():
+		shadow_texture = String(cs.get("texture", ""))
+		var cells: Dictionary = cs.get("cells", {})
+		for k: String in cells.keys():
+			shadow_cells[k] = int(cells[k])
 	var groups: Dictionary = d.get("groups", {})
 	for k: String in groups.keys():
 		group_of[int(k)] = String(groups[k])
@@ -256,3 +281,44 @@ static func _fg_solid(world: TileWorld, x: int, y: int) -> bool:
 	if x < 0 or y < 0 or x >= world.width or y >= world.height:
 		return false
 	return world.data.flags_of(world.get_fg(x, y)) & TileData4.Flag.SOLID != 0
+
+# ---------------------------------------------------------- contact shadows
+## Which contact shadows the cell (x, y) receives, as SHADE_* bits.
+##
+## A receiver is a cell with nothing on the foreground and a background tile
+## behind it — a shadow on the open parallax would be a shadow on the sky. It
+## is shaded on each side where static solid ground touches it: deep from
+## above and from the left (light is upper-left, as in all of tools/art),
+## shallow from below and from the right, and the corner a solid diagonally
+## up-left throws when neither side neighbour is solid.
+##
+## Static means solid, not a switch block (which flips without a redraw of
+## its neighbours) and not breakable (which `reset_broken()` can restore the
+## same way). Pure, so tools/test.sh can check it without a scene tree.
+static func contact_bits(world: TileWorld, x: int, y: int) -> int:
+	if world == null or not world.in_bounds(x, y):
+		return 0
+	if world.get_fg(x, y) != 0 or world.get_bg(x, y) <= 0:
+		return 0
+	var bits := 0
+	var n := _caster(world, x, y - 1)
+	var w := _caster(world, x - 1, y)
+	if n:
+		bits |= SHADE_N
+	if w:
+		bits |= SHADE_W
+	if not n and not w and _caster(world, x - 1, y - 1):
+		bits |= SHADE_NW
+	if _caster(world, x, y + 1):
+		bits |= SHADE_S
+	if _caster(world, x + 1, y):
+		bits |= SHADE_E
+	return bits
+
+static func _caster(world: TileWorld, x: int, y: int) -> bool:
+	if not world.in_bounds(x, y):
+		return false
+	var f := world.flags_at(x, y)
+	if f & TileData4.Flag.SOLID == 0:
+		return false
+	return f & (TileData4.Flag.SWITCHED | TileData4.Flag.BREAKABLE) == 0
