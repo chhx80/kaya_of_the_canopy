@@ -1,0 +1,126 @@
+[
+ {
+  "_": "Kaya refit phase 1: the 40px hero in the running game. Idle, run, the stoop in deeps_2's spawn tunnel, the slung hat in its one-tile vine shaft, the swim, the hub."
+ },
+ {
+  "scenario": "level:jungle_1",
+  "settle": 90
+ },
+ {
+  "log": "jungle_1 idle"
+ },
+ {
+  "shot": "shots/refit_10_idle.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "hold": "move_right",
+  "frames": 26
+ },
+ {
+  "log": "jungle_1 run"
+ },
+ {
+  "shot": "shots/refit_10_run.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "release": "move_right"
+ },
+ {
+  "scenario": "level:deeps_2",
+  "settle": 90
+ },
+ {
+  "log": "deeps_2 spawn tunnel: stoop"
+ },
+ {
+  "shot": "shots/refit_11_stoop.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "hold": "move_right",
+  "frames": 12
+ },
+ {
+  "log": "deeps_2 tunnel: stoop walk"
+ },
+ {
+  "shot": "shots/refit_11_stoop_walk.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "release": "move_right"
+ },
+ {
+  "teleport": [
+   6.1,
+   8.5
+  ],
+  "settle": 2
+ },
+ {
+  "hold": "move_up",
+  "frames": 22
+ },
+ {
+  "log": "deeps_2 one-tile vine shaft: slung hat"
+ },
+ {
+  "shot": "shots/refit_12_narrow_climb.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "release": "move_up"
+ },
+ {
+  "scenario": "level:jungle_5",
+  "settle": 90
+ },
+ {
+  "teleport": [
+   16.3,
+   25.6
+  ],
+  "settle": 20
+ },
+ {
+  "log": "jungle_5 water: swim"
+ },
+ {
+  "shot": "shots/refit_13_swim.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "scenario": "hub",
+  "settle": 60
+ },
+ {
+  "hold": "move_right",
+  "frames": 20
+ },
+ {
+  "log": "hub: the 16x24 sheet"
+ },
+ {
+  "shot": "shots/refit_14_hub.png"
+ },
+ {
+  "wait": 3
+ },
+ {
+  "release": "move_right"
+ }
+]
