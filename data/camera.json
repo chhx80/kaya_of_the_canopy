@@ -1,0 +1,10 @@
+{
+  "_comment": "Follow camera (refit phase 0). Pixels and per-second rates; the view is 400x240.",
+  "lead_px": 24.0,
+  "lead_rate": 4.0,
+  "follow_x_rate": 10.0,
+  "follow_y_rate": 6.0,
+  "air_band_up_px": 56.0,
+  "air_band_down_px": 8.0,
+  "enemy_wake_margin_px": 32.0
+}

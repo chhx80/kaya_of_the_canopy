@@ -17,6 +17,7 @@ extends Node
 ##   {"shot": "shots/foo.png"}           capture the viewport
 ##   {"call": "toggle_debug"}            call a method on the current scene
 ##   {"teleport": [21, 24]}              move the player to a tile coordinate
+##   {"setting": ["screen_flip", false]}  change a saved setting (affects the next scenario)
 ##   {"log": "note"}                     print player/camera state and the
 ##                                        nearest enemy's health/_flash/_hold_t
 ##                                        (Phase D: staging a hit-hold or
@@ -195,6 +196,10 @@ func _run_step(step: Dictionary) -> bool:
 				lvl.cam.snap_to_target()
 				lvl._on_screen_changed(lvl.cam.screen)
 		_wait = int(step.get("settle", 4))
+		return false
+	if step.has("setting"):
+		var kv: Array = step["setting"]
+		SaveManager.set_setting(String(kv[0]), kv[1])
 		return false
 	if step.has("call"):
 		var scene: Node = Game.main.current_scene() if Game.main else null

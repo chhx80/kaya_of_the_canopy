@@ -36,6 +36,13 @@ var shake_offset := Vector2.ZERO
 var dip_offset := Vector2.ZERO
 var _sliding := false
 
+# ---- follow mode (refit): centred with a look-ahead, vertically anchored to
+# the floor she last stood on so a jump does not bounce the world.
+const CAMERA_JSON := "res://data/camera.json"
+var _cfg: Dictionary = {}
+var _lead := 0.0
+var _floor_y := 0.0
+
 func setup(w: TileWorld, t: Node2D) -> void:
 	world = w
 	target = t
@@ -43,6 +50,9 @@ func setup(w: TileWorld, t: Node2D) -> void:
 	ignore_rotation = true
 	screens = Screen.count_for(w.pixel_width(), w.pixel_height())
 	flip_mode = bool(SaveManager.setting("screen_flip", true))
+	_cfg = _load_cfg()
+	_lead = 0.0
+	_floor_y = _target_point().y
 	snap_to_target()
 
 func screen_of(p: Vector2) -> Vector2i:
@@ -93,8 +103,32 @@ func _target_point() -> Vector2:
 		return (target as Actor).center()
 	return target.position
 
-func _clamped_follow() -> Vector2:
+func _load_cfg() -> Dictionary:
+	var f := FileAccess.open(CAMERA_JSON, FileAccess.READ)
+	if f == null:
+		return {}
+	var parsed: Variant = JSON.parse_string(f.get_as_text())
+	return parsed if typeof(parsed) == TYPE_DICTIONARY else {}
+
+func _num(key: String, fallback: float) -> float:
+	return float(_cfg.get(key, fallback))
+
+## Where the view wants to be centred: her centre, pushed ahead in the way she
+## faces, and vertically on the floor she last stood on unless she has climbed
+## or fallen out of a band around it. Jumping inside the band moves nothing.
+func _focus() -> Vector2:
 	var c := _target_point()
+	var y := _floor_y
+	var up := _num("air_band_up_px", 56.0)
+	var down := _num("air_band_down_px", 8.0)
+	if c.y < y - up:
+		y = c.y + up
+	elif c.y > y + down:
+		y = c.y - down
+	return Vector2(c.x + _lead, y)
+
+func _clamped_follow() -> Vector2:
+	var c := _focus()
 	var p := c - Vector2(Screen.W, Screen.H) * 0.5
 	p.x = clampf(p.x, 0.0, maxf(0.0, world.pixel_width() - Screen.W))
 	p.y = clampf(p.y, 0.0, maxf(0.0, world.pixel_height() - Screen.H))
@@ -109,7 +143,11 @@ func _physics_process(delta: float) -> void:
 	if target == null or world == null:
 		return
 	if not flip_mode:
-		base_pos = base_pos.lerp(_clamped_follow(), 1.0 - pow(0.001, delta)).round()
+		_track(delta)
+		var goal := _clamped_follow()
+		var kx := 1.0 - exp(-_num("follow_x_rate", 10.0) * delta)
+		var ky := 1.0 - exp(-_num("follow_y_rate", 6.0) * delta)
+		base_pos = Vector2(lerpf(base_pos.x, goal.x, kx), lerpf(base_pos.y, goal.y, ky))
 		_apply_position()
 		return
 	if _sliding or locked:
@@ -117,6 +155,17 @@ func _physics_process(delta: float) -> void:
 	var s := screen_of(_target_point())
 	if s != screen:
 		_slide_to(s)
+
+## Follow-mode bookkeeping: ease the look-ahead toward her facing, and re-anchor
+## the vertical to the floor whenever she is standing, climbing or swimming.
+func _track(delta: float) -> void:
+	if not (target is Actor):
+		return
+	var a := target as Actor
+	var want := _num("lead_px", 24.0) * float(a.facing)
+	_lead = lerpf(_lead, want, 1.0 - exp(-_num("lead_rate", 4.0) * delta))
+	if a.on_floor or a.submerged() or a.on_ladder():
+		_floor_y = a.center().y
 
 func _slide_to(s: Vector2i) -> void:
 	_sliding = true

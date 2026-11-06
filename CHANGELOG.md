@@ -2625,3 +2625,32 @@ finally makes the comparison the hash file always implied —
 `ios/.pck_source_hash`, covering `src/` and everything the probes
 cannot see. All three proven to fire against the stale pack before the
 fix. The pack is re-synced and carries the whole game.
+
+## Refit phase 0 — look-and-feel spike (branch `refit/phase0`, awaiting approval)
+
+Plan: the "Kaya Refit" artifact. A 40 px hero on the unchanged 10x22 hitbox, a
+centred scrolling camera replacing the screen flip, and a matching art pass.
+
+**A 40 px Kaya, built as a puppet.** `tools/art/kaya40.py` draws her from parts
+posed by joint angles, with two-bone IK on the legs, and rasterises into the
+same character-grid format as the rest of `tools/art`, so `auto_shade` and the
+selective outline light and ink her like every other sprite. Two new colour
+ramps, `hair` and `straw`. Not wired into the game yet; `shots/refit_00` is the
+turnaround, idle and run cycle for review.
+
+**Measured, not assumed:** 465 of 2,619 standable tiles (17.8%) have exactly
+32 px of headroom, and in `shots/refit_02_scale_deeps.png` the standing 40 px
+sprite's hat visibly sinks into the rock there. The stoop pose fits.
+
+**Follow camera.** The existing smooth-follow setting gains a look-ahead in the
+facing direction and a vertical anchor on the last floor, so a jump no longer
+bounces the view. Tunables in `data/camera.json`. Still behind the
+`screen_flip` setting; flip stays the default until phase 2.
+
+**A latent bug in the existing smooth-follow mode, fixed:** enemies woke by
+screen index (`active = s == home_screen`), and in follow mode the camera's
+`screen` never changes, so every enemy outside the first screen stayed asleep.
+Enemies now wake by distance from the view in follow mode. Verified in play: a
+walker one screen west of a mid-level start moves.
+
+`tools/dev_capture.gd` gains a `{"setting": [key, value]}` step.

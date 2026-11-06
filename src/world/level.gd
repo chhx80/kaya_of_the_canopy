@@ -292,11 +292,15 @@ func _on_screen_changed(s: Vector2i) -> void:
 	# A live boss locks the camera to its arena.
 	cam.locked = boss != null and is_instance_valid(boss) and not boss.defeated \
 		and s == boss.home_screen
+	var r := cam.view_rect()
+	var wake := float(cam._cfg.get("enemy_wake_margin_px", 32.0))
 	for n in get_tree().get_nodes_in_group(&"enemies"):
 		var e := n as Enemy
 		if e != null and e.level == self:
-			e.set_active_screen(s)
-	var r := cam.view_rect()
+			if cam.flip_mode:
+				e.set_active_screen(s)
+			else:
+				e.set_active_view(r, wake)
 	tiles_bg.set_view(r)
 	tiles_fg.set_view(r)
 	bg_sky.set_view(r)

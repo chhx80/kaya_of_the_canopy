@@ -91,6 +91,17 @@ func set_active_screen(s: Vector2i) -> void:
 	if active and not was:
 		respawn()
 
+## Follow-mode wake-up: an enemy is awake while it (or, asleep, its spawn point)
+## is inside the view grown by a margin. Waking by screen index cannot work when
+## the view scrolls -- the camera's `screen` stops meaning anything, and every
+## enemy outside the first screen would stay asleep.
+func set_active_view(view: Rect2, margin: float) -> void:
+	var was := active
+	var probe := center() if was else spawn_pos + box * 0.5
+	active = view.grow(margin).has_point(probe)
+	if active and not was:
+		respawn()
+
 func respawn() -> void:
 	pos = spawn_pos
 	vel = Vector2.ZERO
