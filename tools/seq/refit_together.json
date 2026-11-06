@@ -1,0 +1,12 @@
+[
+  {"_": "Refit phases 1+2 together: the 40px Kaya under the follow camera."},
+  {"scenario": "level:jungle_1", "settle": 60},
+  {"teleport": [26, 25], "settle": 60},
+  {"shot": "shots/refit_30_together_0.png"},
+  {"hold": "move_right", "frames": 24}, {"shot": "shots/refit_30_together_1.png"},
+  {"press": ["move_right", "jump"], "frames": 20},
+  {"hold": "move_right", "frames": 4}, {"shot": "shots/refit_30_together_2.png"},
+  {"scenario": "level:deeps_2", "settle": 60},
+  {"hold": "move_right", "frames": 40}, {"release": "move_right"}, {"wait": 10},
+  {"shot": "shots/refit_30_together_3.png"}
+]

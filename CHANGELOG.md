@@ -2784,3 +2784,30 @@ freeze the boss; now the fight runs there, so they are swept.
 `tools/dev_capture.gd` gains a `tape` step (play a level's real proof tape and
 shoot it mid-run, pausing at idle so a capture never costs the tape a frame)
 and a `cap` option on `perf` (measure at the phone's 60 Hz).
+
+## Refit phases 1 and 2 merged — the 40 px Kaya under a scrolling camera
+
+Both branches integrated on `refit/integration` and verified together; every
+gate's exit code recorded, not its last line:
+
+```
+test.sh      388 tests, 108,785 assertions, 0 failed      exit 0
+validate.sh  OK                                           exit 0
+itest.sh     963 checks, all passed                       exit 0
+prove.sh     21 PROVED, 5 PARTIAL (the boss levels)       exit 0
+clipgate.sh  26 tapes, 13,119 frames + 370,094 swept      exit 0
+bossgate.sh  all five bosses pass                         exit 0
+```
+
+At merge: the SCREEN FLIP option is removed from the options menu (nothing
+reads it any more) and an old save carrying the key has it dropped, not
+obeyed. The iOS pack is resynced.
+
+**A miss of mine, found by both agents:** the phase 0 commit changed `src/`
+without resyncing `ios/`, so `tools/test.sh` has exited 1 on the iOS pack hash
+since then. I verified phase 0 by reading for "ALL TESTS PASSED" and never
+checked the exit code. Fixed here by `tools/sync_ios_project.sh`.
+
+Still unverified: frame rate on an iPhone (Mac only so far: worst physics tick
+~1.9 ms, +0.15 ms per uncapped frame), and how continuous parallax looks in
+motion to a person.
