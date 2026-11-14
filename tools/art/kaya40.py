@@ -749,3 +749,540 @@ def render(rows, scale=1):
 
 def mirror(rows):
     return [r[::-1] for r in rows]
+
+
+# ================================================================ HD (2x)
+# docs/plan-hd.md, phase H0 look sample: Kaya drawn natively at two texels per
+# world unit, in a 64x80 cell. Nothing above this line changes; nothing in the
+# game reads what is below it yet (tools/art/hd_look.py does).
+#
+# The poses are the SAME dicts, solved by the same _limb/_leg in world units:
+# `HDCanvas` takes 1x coordinates and rasterises them at HD_SCALE, so a run
+# frame at 2x is the run frame at 1x, only sampled twice as finely. What is new
+# is everything a 32x40 cell could not hold, drawn in native texels: a face
+# with a lidded eye, iris and catch-light, brow, nose and lips; hair as strands
+# with a sheen; a woven hat with a ribbon and trailing tails; a hem and creases
+# on the top; tassels on the shorts; a thumb; wrapped ankle bands and crossed
+# sandal straps; and hand anti-aliasing on the outline's stair-steps.
+
+HD_SCALE = 2
+HW, HH = W * HD_SCALE, H * HD_SCALE
+
+# 1x materials plus the ones only 2x has room for.
+MAT_HD = dict(MAT)
+MAT_HD.update({
+    'i': ("hair", 4.4), 'I': ("hair", 3.0),      # sheen (near / far hair)
+    'j': ("hair", 1.2), 'J': ("hair", 0.4),      # strand grooves
+    'v': ("straw", 2.3),                         # weave shadow
+    'x': ("straw", 5.6),                         # sunlit brim lip
+    'V': ("straw", 1.3),                         # deep underside
+    'N': ("dirt", 3.6),                          # ribbon highlight
+    'u': ("cloth", 4.6),                         # hem, lit
+    'U': ("cloth", 1.4),                         # crease
+    'q': ("gold", 2.9),                          # shorts crease / tassel shade
+    'B': ("ember", 6.0),                         # bead catch-light
+    'L': ("ember", 2.2),                         # mouth corner
+    'E': ("hair", 0.2),                          # pupil
+    'z': ("skin", 1.2),                          # nostril, lid crease
+    'p': ("ember", 4.0),                         # sandal strap
+})
+
+
+class HDCanvas(Canvas):
+    """A Canvas whose drawing calls take 1x coordinates. `t()` and `over()`
+    work in native texels, for the details that only exist at this size."""
+
+    def __init__(self, s=HD_SCALE):
+        self.s = s
+        self.w, self.h = W * s, H * s
+        self.g = [['.'] * self.w for _ in range(self.h)]
+
+    def _set(self, x, y, ch):
+        if 0 <= x < self.w and 0 <= y < self.h:
+            self.g[y][x] = ch
+
+    def get(self, x, y):
+        if 0 <= x < self.w and 0 <= y < self.h:
+            return self.g[y][x]
+        return '.'
+
+    def capsule(self, a, b, r0, ch, r1=None, only=None):
+        s = self.s
+        r1 = r0 if r1 is None else r1
+        ax, ay, bx, by = a[0] * s, a[1] * s, b[0] * s, b[1] * s
+        r0, r1 = r0 * s, r1 * s
+        dx, dy = bx - ax, by - ay
+        L2 = dx * dx + dy * dy or 1e-9
+        rr = max(r0, r1)
+        for y in range(int(min(ay, by) - rr - 1), int(max(ay, by) + rr + 2)):
+            for x in range(int(min(ax, bx) - rr - 1), int(max(ax, bx) + rr + 2)):
+                px, py = x + 0.5, y + 0.5
+                t = max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / L2))
+                qx, qy = ax + t * dx, ay + t * dy
+                r = r0 + (r1 - r0) * t
+                if (px - qx) ** 2 + (py - qy) ** 2 <= r * r:
+                    if only is None or self.get(x, y) in only:
+                        self._set(x, y, ch)
+
+    def ellipse(self, c, rx, ry, ch, clip=None, only=None):
+        s = self.s
+        cx, cy, rx, ry = c[0] * s, c[1] * s, rx * s, ry * s
+        for y in range(int(cy - ry - 1), int(cy + ry + 2)):
+            for x in range(int(cx - rx - 1), int(cx + rx + 2)):
+                px, py = x + 0.5, y + 0.5
+                if ((px - cx) / rx) ** 2 + ((py - cy) / ry) ** 2 <= 1.0:
+                    if clip is None or clip(px / s, py / s):
+                        if only is None or self.get(x, y) in only:
+                            self._set(x, y, ch)
+
+    def px(self, x, y, ch):
+        self._set(int(math.floor(x * self.s)), int(math.floor(y * self.s)), ch)
+
+    def t(self, x, y, ch, only=None):
+        """One native texel."""
+        x, y = int(math.floor(x)), int(math.floor(y))
+        if only is None or self.get(x, y) in only:
+            self._set(x, y, ch)
+
+    def stroke(self, pts, ch, only=None):
+        """A one-texel line through native points (strands, creases, grain)."""
+        for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+            n = int(max(abs(x1 - x0), abs(y1 - y0))) + 1
+            for k in range(n + 1):
+                u = k / max(n, 1)
+                self.t(x0 + (x1 - x0) * u, y0 + (y1 - y0) * u, ch, only)
+
+    def outline(self):
+        out = [row[:] for row in self.g]
+        for y in range(self.h):
+            for x in range(self.w):
+                if self.g[y][x] != '.':
+                    continue
+                for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    if self.get(x + dx, y + dy) not in '.k':
+                        out[y][x] = 'k'
+                        break
+        # Weighted line: a second ink texel on the shadow side (right and
+        # below, away from the light). A 1-texel line at 2x is half a world
+        # unit, and against the 1x sprite she read as drawn in pencil; this
+        # restores the 1x line's weight where the form turns away from the
+        # light and keeps it fine where the light catches her.
+        self.g = out
+        out = [row[:] for row in self.g]
+        for y in range(self.h):
+            for x in range(self.w):
+                if self.g[y][x] != '.':
+                    continue
+                for dx, dy in ((-1, 0), (0, -1)):
+                    if (self.get(x + dx, y + dy) == 'k'
+                            and self.get(x + 2 * dx, y + 2 * dy) not in '.k'):
+                        out[y][x] = 'k'
+                        break
+        self.g = out
+
+
+HAIR_ANY = 'hHij IJ'.replace(' ', '')
+
+
+def _hair_strands(c, hx, hy, q):
+    """The back mass as strands: grooves follow the same wave the mass was
+    built on, offset across its width, and a sheen rides the upper-left of
+    each lock. Drawn only over hair, so the silhouette is the 1x silhouette."""
+    s = c.s
+    hair_len, sway, wave = q["hair_len"], q["sway"], q["wave"]
+    for lane, (off, ch) in enumerate(((-2.4, 'J'), (-0.9, 'J'), (0.7, 'J'),
+                                      (-1.6, 'I'), (0.1, 'I'))):
+        pts = []
+        for i in range(25):
+            t = i / 24.0
+            y = hy - 0.6 + t * hair_len - t * t * q["float"]
+            x = (hx - 2.6 - t * (2.2 + sway) + math.sin(t * 5.5 + wave) * 0.9
+                 + off * (1.0 - 0.55 * t))
+            if ch == 'I' and math.sin(t * 5.5 + wave) < -0.2:
+                pts.append(None)                # sheen only on the bulge
+                continue
+            pts.append((x * s, y * s))
+        run = []
+        for p in pts + [None]:
+            if p is None:
+                if len(run) > 1:
+                    c.stroke(run, ch, only='H')
+                run = []
+            else:
+                run.append(p)
+
+
+def _crown_strands(c, hx, hy):
+    """Hair over the crown, combed back from a parting above the brow: a
+    sheen arc and three grooves fanning toward the nape."""
+    s = c.s
+    X, Y = hx * s, hy * s
+    for k, (dy, ch) in enumerate(((-4.6, 'i'), (-3.4, 'j'), (-1.6, 'j'), (0.4, 'j'))):
+        pts = [(X + 1.5 - j * 1.6, Y + dy + j * (0.35 + 0.18 * k) + (j * j) * 0.05)
+               for j in range(7)]
+        c.stroke(pts, ch, only='h')
+    c.stroke([(X - 1.0, Y - 5.5), (X - 4.0, Y - 4.2)], 'i', only='h')
+
+
+def _face_hd(c, hx, hy, eyes=True):
+    """Profile face in native texels, looking right. The 1x face spent one
+    pixel per feature; here each is a small shape: an almond eye with a lid
+    line, a lash flick, white, a two-texel iris with a pupil and catch-light;
+    an arched brow; a nose that breaks the outline with a nostril; lips with
+    a dark corner; a cheek; an ear with the hoop hanging from it."""
+    s = c.s
+    X, Y = int(math.floor(hx * s)), int(math.floor(hy * s))
+    T = c.t
+    if eyes:
+        for dx in (2, 3, 4, 5):
+            T(X + dx, Y - 1, 'k')                      # upper lid
+        T(X + 6, Y - 2, 'k')                           # lash flick
+        T(X + 2, Y, 'w')
+        T(X + 3, Y, 'e')
+        T(X + 4, Y, 'E')                               # iris + pupil
+        T(X + 3, Y + 1, 'e')
+        T(X + 4, Y + 1, 'e')
+        T(X + 2, Y + 1, 'w')
+        T(X + 5, Y, 'w')                               # catch-light / white
+        T(X + 2, Y + 2, 'z')                           # lower lid crease
+        T(X + 3, Y + 2, 'z')
+    else:
+        for dx in (2, 3, 4, 5):
+            T(X + dx, Y + (1 if dx in (3, 4) else 0), 'k')
+    for (dx, dy) in ((1, -3), (2, -4), (3, -4), (4, -4), (5, -3)):
+        T(X + dx, Y + dy, 'h')                         # brow
+    # The profile, texel by texel: the round head ellipse is flattened into
+    # a face -- bridge, nose tip one texel proud, nostril, upper lip, the
+    # mouth line, lower lip, chin.
+    for (dx, dy, ch) in ((7, 0, 's'), (7, 1, 's'), (7, 2, 's'), (8, 2, 's'),
+                         (7, 3, 's'), (6, 4, 'l'), (5, 4, 'l'), (6, 5, 'L'),
+                         (5, 5, 'L'), (5, 6, 'l'), (6, 6, 's'), (5, 7, 's'),
+                         (4, 7, 's'), (4, 8, 'S')):
+        T(X + dx, Y + dy, ch)
+    T(X + 6, Y + 3, 'z')                               # nostril
+    c.stroke([(X - 1, Y + 8), (X + 3, Y + 9)], 'S', only='s')  # under the jaw
+    T(X + 7, Y + 4, '.')                               # under the nose
+    T(X + 3, Y + 3, 'c')
+    T(X + 4, Y + 3, 'c')                               # cheek light
+    T(X - 2, Y + 1, 'S')
+    T(X - 1, Y + 1, 'S')
+    T(X - 2, Y + 2, 'S')                               # ear
+    T(X - 2, Y + 3, 'o')
+    T(X - 3, Y + 4, 'o')
+    T(X - 2, Y + 5, 'o')                               # hoop
+
+
+def _brim_hd(c, cx, cy, rx, tilt):
+    """The brim in native texels: a lit top face with the weave running round
+    it in rings, a sunlit lip on the light side, a deep underside, and a
+    frayed edge where a few straws stick out."""
+    s = c.s
+    CX_, CY_, RX = cx * s, cy * s, rx * s
+    for x in range(int(CX_ - RX - 1), int(CX_ + RX + 2)):
+        u = (x + 0.5 - CX_) / RX
+        if abs(u) > 1.0:
+            continue
+        depth = 1.9 * s * math.sqrt(1 - u * u)
+        yc = CY_ - tilt * s * u
+        col = [y for y in range(int(yc - depth) - 1, int(yc + depth) + 2)
+               if abs(y + 0.5 - yc) <= depth]
+        for y in col:
+            top = y + 0.5 < yc + 0.6
+            if top:
+                ch = 'a'
+                # weave: rings across the face, stitched every third texel
+                ring = (y + 0.5 - (yc - depth)) / max(2 * depth, 1e-6)
+                if abs(ring - 0.35) < 0.08 and x % 3 != 0:
+                    ch = 'v'
+                elif x % 4 == (y % 2) * 2 and ring < 0.3:
+                    ch = 'v'
+            else:
+                ch = 'V' if y == col[-1] else 'A'
+            c._set(x, y, ch)
+        if col:
+            c._set(x, col[0], 'x' if u < 0.35 else 'a')        # lip
+            if x % 7 == 3 and abs(u) > 0.7:                    # frayed straw
+                c._set(x + (1 if u > 0 else -1), col[len(col) // 2], 'A')
+
+
+def _hat_hd(c, hx, hy, tilt, sway=0.0, lift=0.0, rx=10.4):
+    s = c.s
+    hy = hy - lift
+    # Ribbon tails first, so the brim overlaps where they leave the band.
+    c.capsule((hx - 3.2, hy - 3.2), (hx - 5.4 - sway * 0.9, hy + 1.6), 0.55, 'n', 0.45)
+    c.capsule((hx - 2.6, hy - 3.2), (hx - 4.0 - sway * 0.6, hy + 2.6), 0.5, 'n', 0.4)
+    c.ellipse((hx - 0.2, hy - 4.6), 3.8, 2.7, 'a', clip=lambda x, y: y < hy - 3.1)
+    # crown weave: a diagonal over-under lattice
+    for y in range(int((hy - 7.6) * s), int((hy - 3.1) * s) + 1):
+        for x in range(int((hx - 4.2) * s), int((hx + 3.8) * s) + 1):
+            if ((x + y) % 4 == 0) or ((x - y) % 4 == 0 and (x + y) % 2 == 0):
+                c.t(x, y, 'v', only='a')
+    c.capsule((hx - 3.7, hy - 3.6), (hx + 3.5, hy - 3.6), 0.65, 'n')     # band
+    c.stroke([((hx - 3.3) * s, (hy - 4.1) * s), ((hx + 3.1) * s, (hy - 4.1) * s)],
+             'N', only='n')
+    c.ellipse((hx - 3.0, hy - 3.6), 0.85, 0.75, 'n')                    # knot
+    _brim_hd(c, hx, hy - 2.7, rx, tilt)
+
+
+def _foot_hd(c, ankle, near, lift_toe=0.0, point=0.0):
+    """Wrapped ankle band (two turns of cord and a bead), a sandal with a
+    sole, and two straps crossing the instep."""
+    s = c.s
+    band, sole = ('g', 'r') if near else ('G', 'R')
+    c.capsule((ankle[0] - 0.2, ankle[1] - 2.1), (ankle[0], ankle[1] - 0.8), 1.55, band)
+    ax, ay = ankle[0] * s, ankle[1] * s
+    for k in (-3, -1):                                       # cord turns
+        c.stroke([(ax - 3, ay + k + 1), (ax + 3, ay + k)], 'G' if near else 'U',
+                 only=band)
+    tx = ankle[0] + 3.0 * math.cos(math.radians(point * 60))
+    ty = ankle[1] + 0.3 - lift_toe + 3.0 * math.sin(math.radians(point * 60))
+    c.capsule(ankle, (tx, ty), 1.05, 's' if near else 'S')    # bare foot
+    c.capsule((ankle[0] - 0.3, ankle[1] + 0.75), (tx + 0.2, ty + 0.75), 0.55, sole)
+    if near:
+        mx, my = (ankle[0] + tx) * 0.5 * s, (ankle[1] + ty) * 0.5 * s
+        c.stroke([(mx - 2, my - 2), (mx + 1, my + 1)], 'p', only='s')
+        c.stroke([(mx + 2, my - 2), (mx - 1, my + 1)], 'p', only='s')
+        c.t(ax + 2, ay - 4, 'b', only=band)                  # bead
+
+
+def _hand_hd(c, root, a1, l1, a2, l2, ch, rim=None):
+    """`_limb`, then a hand with a thumb: the 1x hand is a round blob."""
+    k, e = _limb(c, root, a1, l1, a2, l2, 1.2, 1.0, ch, rim=rim)
+    ang = math.radians(a1 + a2)
+    d = (math.sin(ang), math.cos(ang))
+    side_ = (d[1], -d[0])                     # toward her front
+    c.capsule(e, (e[0] + d[0] * 1.6 + side_[0] * 0.2, e[1] + d[1] * 1.6 + side_[1] * 0.2),
+              1.0, ch, 0.75)                  # fingers, longer than the palm blob
+    c.capsule((e[0] + side_[0] * 0.7, e[1] + side_[1] * 0.7),
+              (e[0] + side_[0] * 1.4 + d[0] * 0.6, e[1] + side_[1] * 1.4 + d[1] * 0.6),
+              0.45, ch)                       # thumb
+    s = c.s
+    fx, fy = (e[0] + d[0] * 1.0) * s, (e[1] + d[1] * 1.0) * s
+    c.stroke([(fx - side_[0] * 0.5, fy - side_[1] * 0.5),
+              (fx + d[0] * 1.5 - side_[0] * 0.5, fy + d[1] * 1.5 - side_[1] * 0.5)],
+             'S' if ch == 's' else 'z', only=ch)   # the line between fingers
+    return k, e
+
+
+def side_hd(p, ink=True):
+    """`side()` at HD_SCALE with the 2x detail passes. Same pose dict."""
+    q = dict(STAND)
+    q.update(p)
+    c = HDCanvas()
+    s = c.s
+    hip = (CX + q["hip_dx"], 23.0 + q["bob"])
+    sh = (hip[0] + q["lean"], hip[1] - 9.4 * q["torso"])
+    hx, hy = sh[0] + 1.2 + q["head_dx"], sh[1] - 5.6 + HAT_RIDE + q["head_dy"]
+    sway, wave = q["sway"], q["wave"]
+    fn = (hip[0] + q["near_fx"], FOOT_Y - 0.8 - q["near_lift"])
+    ff = (hip[0] + q["far_fx"], FOOT_Y - 0.8 - q["far_lift"])
+
+    _hand_hd(c, (sh[0] - 0.6, sh[1] + 0.9), q["far_sh"], 6.0, q["far_el"], 5.6, 'S')
+    _foot_hd(c, _leg(c, (hip[0] - 0.6, hip[1]), ff, 'S', bend=q["far_bend"]),
+             False, q["far_toe"], q["far_point"])
+
+    hair_len = q["hair_len"]
+    for i in range(12):
+        t = i / 11.0
+        y = hy - 1.0 + t * hair_len - t * t * q["float"]
+        x = hx - 2.6 - t * (2.2 + sway) + math.sin(t * 5.5 + wave) * 0.9
+        c.ellipse((x, y), 3.9 - t * 1.7, 2.1, 'H')
+    # wispy ends: three tapering points instead of a round bottom
+    tip_t = 1.0
+    ty = hy - 1.0 + tip_t * hair_len - q["float"]
+    tx = hx - 2.6 - (2.2 + sway) + math.sin(5.5 + wave) * 0.9
+    for k, (dx, ln) in enumerate(((-1.2, 2.4), (0.0, 3.0), (1.0, 2.0))):
+        c.capsule((tx + dx, ty), (tx + dx - sway * 0.4 - 0.4, ty + ln - q["float"] * 0.3),
+                  0.7, 'H', 0.2)
+    _hair_strands(c, hx, hy, q)
+
+    _foot_hd(c, _leg(c, (hip[0] + 0.8, hip[1] + 0.6), fn, 's', rim='S', bend=q["near_bend"]),
+             True, q["near_toe"], q["near_point"])
+
+    c.capsule((sh[0], sh[1] + 2.5), hip, 2.2, 's', 2.6)
+    # navel and the soft shadow under the ribs
+    c.t((hip[0] + 1.6) * s, (hip[1] - 3.2) * s, 'S', only='s')
+    c.ellipse((sh[0] + 0.9, sh[1] + 2.9), 3.3, 3.1, 't')
+    c.capsule((sh[0] - 0.3, sh[1] - 0.2), (sh[0] + 0.9, sh[1] + 1.2), 0.6, 't')
+    # crop top: a lit hem, a gather under the bust and two creases
+    TX, TY = (sh[0] + 0.9) * s, (sh[1] + 2.9) * s
+    for x in range(int(TX - 7), int(TX + 7)):
+        for y in range(int(TY + 2), int(TY + 8)):
+            if c.get(x, y) == 't' and c.get(x, y + 1) not in 'tu':
+                c.t(x, y, 'u')
+                c.t(x, y - 1, 'U' if x % 3 == 0 else 't', only='t')
+    c.stroke([(TX + 1, TY - 2), (TX + 4, TY + 1)], 'U', only='t')
+    c.stroke([(TX - 2, TY + 0), (TX + 1, TY + 3)], 'U', only='t')
+    c.capsule((sh[0] + 0.3, sh[1] - 2.0), (sh[0] + 0.7, sh[1] + 0.6), 1.25, 's')
+
+    srx, sry = q["shorts_rx"], 3.1
+    c.ellipse((hip[0] + 0.2 + q["shorts_dx"], hip[1] + 0.6), srx, sry,
+              'Y' if q["shorts_shade"] else 'y')
+    c.capsule((hip[0] - srx + 0.4, hip[1] - 1.8), (hip[0] + 3.8, hip[1] - 1.8), 0.55, 'Y')
+    c.ellipse((hip[0] + 0.8, hip[1] + 1.4), 3.0, 2.3, 'y')
+    # waistband stitching and a fold where the near leg bends
+    wy = int((hip[1] - 1.8) * s)
+    for x in range(int((hip[0] - srx + 0.8) * s), int((hip[0] + 3.6) * s), 3):
+        c.t(x, wy, 'o', only='Y')
+    c.stroke([((hip[0] + 0.2) * s, (hip[1] - 0.6) * s),
+              ((hip[0] + 2.2) * s, (hip[1] + 1.6) * s)], 'q', only='y')
+    # fringe: separate tassels, alternating length, swinging with the stride
+    fy = (hip[1] + 3.3) * s
+    swing = -sway * 0.6
+    for k, fx in enumerate(range(int((hip[0] - srx + 0.6) * s), int((hip[0] + 4.2) * s), 2)):
+        ln = 3 if k % 2 == 0 else 2
+        c.stroke([(fx, fy), (fx + swing, fy + ln)], 'Y' if k % 2 else 'q')
+
+    c.ellipse((hx, hy), 3.7, 4.1, 's')
+    c.ellipse((hx - 1.4, hy - 1.2), 3.2, 3.2, 'h',
+              clip=lambda x, y: x < hx + 0.3 or y < hy - 2.6)
+    c.capsule((hx - 3.0, hy - 1.0), (hx - 3.4 - sway * 0.3, hy + 5.0), 1.7, 'h')
+    # a fringe lock falling to the brow line
+    c.capsule((hx + 0.8, hy - 2.8), (hx + 1.6, hy - 1.5), 0.55, 'h', 0.25)
+    _crown_strands(c, hx, hy)
+    c.stroke([((hx - 3.0) * s, (hy - 0.4) * s), ((hx - 3.6 - sway * 0.3) * s, (hy + 4.8) * s)],
+             'j', only='h')
+    _face_hd(c, hx, hy, eyes=q["eyes"])
+    # beads on a cord: each bead a lit dome
+    for i, bx in enumerate((-0.4, 0.8, 2.0, 3.0)):
+        by = sh[1] + 0.2 + (0.6 if i in (1, 2) else 0)
+        c.ellipse((sh[0] + bx + 0.25, by + 0.25), 0.62, 0.62, 'b')
+        c.t((sh[0] + bx) * s, (by) * s, 'B')
+    if q["hat"] == "slung":
+        _slung_hat(c, sh, hx, hy)
+    else:
+        _hat_hd(c, hx, hy, q["hat_tilt"], sway, lift=q["hat_lift"] + HAT_RIDE)
+
+    _hand_hd(c, (sh[0] - 0.9, sh[1] + 1.0), q["near_sh"], 6.0, q["near_el"], 5.6, 's', rim='S')
+
+    if ink:
+        c.outline()
+    return c.rows()
+
+
+def _hand_aa(img):
+    """Hand anti-aliasing on the ink line. Where the outline turns a stair-step
+    corner -- an ink texel with material on two perpendicular sides -- the ink
+    is swapped for the darkest step of the material it hugs. At 1x this would
+    eat the line; at 2x it rounds a curve the way a pixel artist rounds it.
+    Returns the number of texels changed."""
+    w, h = img.size
+    px = img.load()
+    ink = palette.INK
+    lookup = {c: (n, i) for n, steps in palette.RAMPS.items() for i, c in enumerate(steps)}
+
+    def mat(x, y):
+        if 0 <= x < w and 0 <= y < h:
+            p = px[x, y]
+            if p[3] and p[:3] != ink:
+                return lookup.get(p[:3])
+        return None
+
+    def clear(x, y):
+        return not (0 <= x < w and 0 <= y < h) or px[x, y][3] == 0
+
+    edits = []
+    for y in range(h):
+        for x in range(w):
+            p = px[x, y]
+            if p[3] == 0 or p[:3] != ink:
+                continue
+            n, s_, e, w_ = mat(x, y - 1), mat(x, y + 1), mat(x + 1, y), mat(x - 1, y)
+            for a, b, oa, ob in ((n, e, (0, 1), (-1, 0)), (n, w_, (0, 1), (1, 0)),
+                                 (s_, e, (0, -1), (-1, 0)), (s_, w_, (0, -1), (1, 0))):
+                if a and b and clear(x + oa[0], y + oa[1]) and clear(x + ob[0], y + ob[1]):
+                    ramp, i = min((a, b), key=lambda m: m[1])
+                    edits.append((x, y, palette.step(ramp, max(0, i - 2)) + (255,)))
+                    break
+    for x, y, col in edits:
+        px[x, y] = col
+    return len(edits)
+
+
+def shade_hd(rows, mapping, depth=6, rate=0.24, lit=(0.9, 0.45), dark=(0.8, 0.35),
+             light=palette.LIGHT):
+    """`palette.auto_shade` for HD cells, with two differences. Levels are
+    rounded to whole ramp steps instead of Bayer-dithered: over four times the
+    texels a dither reads as a checkerboard on her skin, which is the same
+    finding that made tiles go to CLEAN_FILL. And the rim light and the
+    occlusion are two texels deep, stepping down, so the lit edge is as wide in
+    world units as it was at 1x but now has a gradient inside it."""
+    h, w = len(rows), len(rows[0])
+    mat = [[rows[y][x] in mapping for x in range(w)] for y in range(h)]
+    body = [[mat[y][x] or rows[y][x] == 'k' for x in range(w)] for y in range(h)]
+
+    def in_body(x, y):
+        return 0 <= x < w and 0 <= y < h and body[y][x]
+
+    def in_mat(x, y):
+        return 0 <= x < w and 0 <= y < h and mat[y][x]
+
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    for y in range(h):
+        for x in range(w):
+            ch = rows[y][x]
+            if not mat[y][x]:
+                if ch == 'k':
+                    img.putpixel((x, y), palette.INK + (255,))
+                continue
+            d = 0
+            while d < depth + 1:
+                d += 1
+                ring = [(x + dx, y + dy) for dx in range(-d, d + 1) for dy in (-d, d)]
+                ring += [(x + dx, y + dy) for dy in range(-d + 1, d) for dx in (-d, d)]
+                if any(not in_body(px, py) for px, py in ring):
+                    break
+            ramp, base = mapping[ch]
+            lvl = base + (min(d, depth) - 1) * rate
+            for k in (1, 2):
+                if not in_mat(x + light[0] * k, y + light[1] * k):
+                    lvl += lit[k - 1]
+                    break
+            for k in (1, 2):
+                if not in_mat(x - light[0] * k, y - light[1] * k):
+                    lvl -= dark[k - 1]
+                    break
+            img.putpixel((x, y), palette.step(ramp, lvl) + (255,))
+    return img
+
+
+def render_hd(rows):
+    """Light, hand-AA and selout one HD frame. Volume is measured over twice
+    as many texels, so the depth doubles and the rate halves: she is as round
+    as at 1x, only more finely stepped."""
+    img = shade_hd(rows, MAT_HD)
+    _hand_aa(img)
+    palette.selective_outline(img)
+    return img
+
+
+def _poses_of(builder):
+    """The pose dicts a frame builder (`_jump`, ...) passes to side(), without
+    drawing them: lets the HD sheet reuse the 1x choreography verbatim."""
+    global side
+    got = []
+    real = side
+    side = lambda p, ink=True: got.append(p) or []      # noqa: E731
+    try:
+        builder()
+    finally:
+        side = real
+    return got
+
+
+def hd_frames():
+    """The look-sample sheet: 0-1 idle, 2-9 run, 10-15 jump, 16 stoop,
+    17-22 stoop walk -- the same order and indices as the 1x sheet's first
+    16 frames, then the stoop set."""
+    poses = [idle_pose(i) for i in range(2)] + [run_pose(i) for i in range(8)]
+    poses += _poses_of(_jump)
+    poses += [STOOP] + [stoop_walk(i) for i in range(6)]
+    cells = [side_hd(p) for p in poses]
+    for i in range(16, 23):                     # still fits two tiles
+        top = min(y for y, r in enumerate(cells[i]) if r.strip('.'))
+        assert top >= STOOP_TOP * HD_SCALE, "hd stoop %d starts on row %d" % (i, top)
+    return cells, poses
+
+
+def hd_cells():
+    return [render_hd(r) for r in hd_frames()[0]]
