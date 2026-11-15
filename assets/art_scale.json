@@ -156,7 +156,7 @@
   },
   "sprites/fx/tile_anim.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/hud_portrait.png": {
    "scale": 2,
@@ -220,11 +220,11 @@
   },
   "tiles/contact_shadow.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "tiles/tileset.png": {
    "scale": 2,
-   "native": false
+   "native": true
   }
  }
 }
