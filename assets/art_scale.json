@@ -100,7 +100,7 @@
   },
   "sprites/blade.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/boss_brood_queen.png": {
    "scale": 2,
@@ -168,15 +168,15 @@
   },
   "sprites/kaya_bird.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/kaya_fish.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/kaya_frog.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/kaya_hub.png": {
    "scale": 2,
@@ -200,7 +200,7 @@
   },
   "sprites/projectiles.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/props.png": {
    "scale": 2,

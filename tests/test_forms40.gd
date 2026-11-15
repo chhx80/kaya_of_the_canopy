@@ -21,7 +21,13 @@ const ROUNDING := 1.0
 const NARROW_W := 16
 
 var _cfg: Dictionary = {}
+## Each sheet as a world-unit coverage mask: a unit is drawn if ANY of its
+## art_scale x art_scale texels is (docs/plan-hd.md). That is how the clip gate
+## and KayaPose.bounds() read a sheet drawn natively at 2x, so every rule below
+## is checked in the units the game collides in.
 var _img: Dictionary = {}
+## The sheet as shipped, for its colours.
+var _full: Dictionary = {}
 
 
 func before_each() -> void:
@@ -32,7 +38,31 @@ func before_each() -> void:
 			FileAccess.get_file_as_string("res://data/forms/%s.json" % id))
 		var d: Dictionary = parsed if parsed is Dictionary else {}
 		_cfg[id] = d
-		_img[id] = Display.world_image(String(d.get("sprite", "")))
+		var tex: Texture2D = load(String(d.get("sprite", "")))
+		var src: Image = tex.get_image() if tex != null else null
+		if src != null and src.is_compressed():
+			src.decompress()
+		_full[id] = src
+		_img[id] = _world_mask(src)
+
+
+func _world_mask(src: Image) -> Image:
+	if src == null:
+		return null
+	var k := Display.art_scale()
+	if k <= 1:
+		return src
+	var w := src.get_width() / k
+	var h := src.get_height() / k
+	var img := Image.create(w, h, false, Image.FORMAT_RGBA8)
+	for y in h:
+		for x in w:
+			var a := 0.0
+			for dy in k:
+				for dx in k:
+					a = maxf(a, src.get_pixel(x * k + dx, y * k + dy).a)
+			img.set_pixel(x, y, Color(1, 1, 1, a))
+	return img
 
 
 func _fw(id: String) -> int:
@@ -214,9 +244,9 @@ func test_every_form_wears_her_outfit() -> void:
 		FileAccess.get_file_as_string("res://assets/palette.json"))
 	var ramps: Dictionary = (parsed as Dictionary).get("ramps", {}) if parsed is Dictionary else {}
 	for id: String in HITBOX.keys():
-		if _img[id] == null:
+		if _full[id] == null:
 			continue
-		var img: Image = _img[id]
+		var img: Image = _full[id]
 		var seen := {}
 		for y in img.get_height():
 			for x in img.get_width():
@@ -231,3 +261,34 @@ func test_every_form_wears_her_outfit() -> void:
 					found = true
 					break
 			ok(found, "%s sheet uses her %s ramp" % [id, ramp])
+
+
+func test_the_forms_are_drawn_at_the_hd_density() -> void:
+	## docs/plan-hd.md step 2: a native sheet is not a nearest-doubled 1x one.
+	## In a doubled sheet every k x k block is one colour; a drawing that spends
+	## its texels (eyes, scales, fin rays, feather rows) splits many of them.
+	var k := Display.art_scale()
+	if k <= 1:
+		return
+	for id: String in HITBOX.keys():
+		var img: Image = _full[id]
+		if img == null:
+			continue
+		var opaque := 0
+		var split := 0
+		for by in img.get_height() / k:
+			for bx in img.get_width() / k:
+				var c0 := img.get_pixel(bx * k, by * k)
+				var any := false
+				var same := true
+				for dy in k:
+					for dx in k:
+						var c := img.get_pixel(bx * k + dx, by * k + dy)
+						any = any or c.a > 0.0
+						same = same and c == c0
+				if any:
+					opaque += 1
+					if not same:
+						split += 1
+		gt(float(split), float(opaque) * 0.25, "%s: %d of %d world units carry 2x detail"
+			% [id, split, opaque])
