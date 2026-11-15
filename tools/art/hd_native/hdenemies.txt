@@ -1,0 +1,8 @@
+# The seven ordinary enemies, drawn natively at ART_SCALE by tools/art/hd_enemies.py.
+enemy_walker
+enemy_jumper
+enemy_shooter
+enemy_swimmer
+enemy_charger
+enemy_dropper
+enemy_flyer

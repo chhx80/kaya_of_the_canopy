@@ -383,9 +383,10 @@ def build():
     # cycle: data/enemies/charger.json plays 0,7,1,8).
     # Refit phase 3: the three are redrawn at Kaya's scale by
     # tools/art/enemies40.py; the 16 px grids above are what they were.
-    from art import enemies40
+    # HD pass H1: drawn natively at 2x by tools/art/hd_enemies.py.
+    from art import hd_enemies
     for name in ("enemy_charger", "enemy_dropper", "enemy_flyer"):
-        enemies40.build_sheet(name)
+        hd_enemies.build_sheet(name)
     print("enemies v2 written to %s" % palette.SPRITES)
 
 

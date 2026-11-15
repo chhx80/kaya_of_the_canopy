@@ -124,31 +124,31 @@
   },
   "sprites/enemy_charger.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/enemy_dropper.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/enemy_flyer.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/enemy_jumper.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/enemy_shooter.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/enemy_swimmer.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/enemy_walker.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/fx/particles.png": {
    "scale": 2,
