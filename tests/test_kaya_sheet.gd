@@ -105,6 +105,15 @@ func test_the_bounds_file_matches_the_sheet() -> void:
 	var rows: Array = KayaPose.bounds(String(pose.get("bounds", "")))
 	var fw := int(_cfg["frame_w"])
 	eq(rows.size(), int(_img.get_width() / fw), "one bounds entry per frame")
+	# In world units, measured on the sheet as it ships: a unit is drawn if any
+	# of its k x k texels is (the rule KayaPose.bounds_to_world and
+	# tools/clipgate.sh use). A nearest shrink would miss the native 2x
+	# sheet's half-unit edges. Read from the PNG itself: headless, get_image()
+	# hands back the cached image, which Display.world_image has shrunk in place.
+	var full := Image.new()
+	eq(full.load_png_from_buffer(FileAccess.get_file_as_bytes(String(_cfg["sprite"]))), OK,
+		"kaya_human.png decodes")
+	var k := Display.art_scale()
 	var bad := 0
 	for f in rows.size():
 		var fr: Array = rows[f]
@@ -112,7 +121,12 @@ func test_the_bounds_file_matches_the_sheet() -> void:
 			var lo := -1
 			var hi := -1
 			for x in fw:
-				if _img.get_pixel(f * fw + x, y).a > 0.0:
+				var drawn := false
+				for t in k * k:
+					if full.get_pixel((f * fw + x) * k + t % k, y * k + int(t / k)).a > 0.0:
+						drawn = true
+						break
+				if drawn:
 					if lo < 0:
 						lo = x
 					hi = x
