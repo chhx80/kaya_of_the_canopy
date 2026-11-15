@@ -104,23 +104,23 @@
   },
   "sprites/boss_brood_queen.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/boss_grove.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/boss_obsidian_heart.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/boss_stormcrest.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/boss_tide_maw.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/enemy_charger.png": {
    "scale": 2,

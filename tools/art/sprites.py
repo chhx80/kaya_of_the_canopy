@@ -1651,8 +1651,9 @@ def build_boss():
 
     cells = [make(ph, pose) for ph in PHASES for pose in POSES]
     # Refit phase 3: the 64 px sheet (tools/art/enemies40.py) replaces this one.
-    from . import enemies40
-    cells = [None] * enemies40.build_sheet("boss_grove")
+    # HD pass H1: drawn natively at ART_SCALE (tools/art/hd_bosses.py).
+    from . import hd_bosses
+    cells = [None] * hd_bosses.build_sheet("boss_grove")
     print("boss_grove.png  %d frames" % len(cells))
 
 
@@ -1878,8 +1879,9 @@ def build_boss_stormcrest():
 
     cells = [make(ph, pose) for ph in PHASES for pose in POSES]
     # Refit phase 3: the 64 px sheet (tools/art/enemies40.py) replaces this one.
-    from . import enemies40
-    cells = [None] * enemies40.build_sheet("boss_stormcrest")
+    # HD pass H1: drawn natively at ART_SCALE (tools/art/hd_bosses.py).
+    from . import hd_bosses
+    cells = [None] * hd_bosses.build_sheet("boss_stormcrest")
     print("boss_stormcrest.png  %d frames" % len(cells))
 
 
@@ -2103,8 +2105,9 @@ def build_boss_tide_maw():
     # puts a checkerboard across half the frame. Whole steps give the four flat
     # tones the rest of the ruins art is drawn in.
     # Refit phase 3: the 64 px sheet (tools/art/enemies40.py) replaces this one.
-    from . import enemies40
-    cells = [None] * enemies40.build_sheet("boss_tide_maw")
+    # HD pass H1: drawn natively at ART_SCALE (tools/art/hd_bosses.py).
+    from . import hd_bosses
+    cells = [None] * hd_bosses.build_sheet("boss_tide_maw")
     print("boss_tide_maw.png  %d frames" % len(cells))
 
 
@@ -2390,8 +2393,9 @@ def build_boss_brood_queen():
     # level is drawn as a dither, which puts a checkerboard across half of a
     # 26 px abdomen.
     # Refit phase 3: the 64 px sheet (tools/art/enemies40.py) replaces this one.
-    from . import enemies40
-    cells = [None] * enemies40.build_sheet("boss_brood_queen")
+    # HD pass H1: drawn natively at ART_SCALE (tools/art/hd_bosses.py).
+    from . import hd_bosses
+    cells = [None] * hd_bosses.build_sheet("boss_brood_queen")
     print("boss_brood_queen.png  %d frames" % len(cells))
 
 
@@ -2695,6 +2699,7 @@ def build_boss_obsidian_heart():
     # fractional ramp level is drawn as a dither, which puts a checkerboard
     # across half of a 40 px stone.
     # Refit phase 3: the 64 px sheet (tools/art/enemies40.py) replaces this one.
-    from . import enemies40
-    cells = [None] * enemies40.build_sheet("boss_obsidian_heart")
+    # HD pass H1: drawn natively at ART_SCALE (tools/art/hd_bosses.py).
+    from . import hd_bosses
+    cells = [None] * hd_bosses.build_sheet("boss_obsidian_heart")
     print("boss_obsidian_heart.png  %d frames" % len(cells))

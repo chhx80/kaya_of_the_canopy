@@ -3123,3 +3123,36 @@ texels per world unit; world units, hitboxes, levels and tapes are unchanged.
 - New: `tests/test_hd_display.gd`, three `t_hd_*` integration tests,
   `tools/seq/hd_*.json`, a `tap` step and world-viewport timing in
   `tools/dev_capture.gd`.
+
+## HD pass, H1: the five bosses drawn natively at 2x (branch `hd/bosses`)
+
+docs/plan-hd.md, step 2, for `boss_grove`, `boss_tide_maw`, `boss_stormcrest`,
+`boss_brood_queen` and `boss_obsidian_heart` (listed in
+`tools/art/hd_native/hdbosses.txt`).
+
+- **`tools/art/hd_bosses.py`** (new) redraws all 150 boss frames at 128x128
+  texels. Each boss is its enemies40 puppet, with the same PHASES/POSES dicts
+  and the same world-unit numbers, on an `HDCanvas` that rasterises world
+  coordinates at ART_SCALE. Silhouettes, hitbox fit and every tell are the 1x
+  frames sampled more finely. Frame order, count and the 64x64 world-unit cell
+  in data/enemies/*.json are unchanged.
+- **New detail, in native texels:** the Warden's pitted chitin, growth lines and
+  sheen, ringed horns, pupils, serrated mandibles, jointed spurred legs, veined
+  wings and glowing cracks; the Maw's mottling, pores, photophores, fin, gums,
+  rooted needle teeth, glossy eye and hot lure core; the Stormcrest's scalloped
+  body feathers, split primaries and coverts, crest rachis, brow, eye, cere and
+  nostril, scaled legs and hooked talons; the Queen's striations, spiracles,
+  compound eye, antennae, serrated sickles and jointed legs; the Heart's facet
+  planes, cold edge reflections, glints, forked glowing cracks and ringed core.
+- **Shading** follows the approved look sample: whole ramp steps with no
+  dither, the 1x boss lighting carried to twice the texels (the interior tops
+  out at the same step as at 1x), a two-texel lit and shadowed edge, the
+  weighted outline and hand-AA.
+- `sprites.py` build_boss*() call `hd_bosses.build_sheet()`, one line each.
+- **`tools/art/achievement_art.py`** crops a boss frame by world-unit size times
+  the sheet's density (`assets/art_scale.json`), so a 2x sheet is no longer
+  cropped to its top-left quarter. `export/achievements/*.png` regenerated.
+- Measured: 43-67% of each new sheet's drawn 2x2 blocks are non-uniform (0% on
+  the nearest-doubled sheets they replace). Before/after:
+  `shots/hd1_bosses_*.png`. In-game: `tools/seq/hd1_bosses.json`,
+  `shots/hd1_bosses_game_*.png`.

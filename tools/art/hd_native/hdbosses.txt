@@ -1,0 +1,6 @@
+# The five bosses, drawn natively at ART_SCALE by tools/art/hd_bosses.py.
+boss_grove
+boss_tide_maw
+boss_stormcrest
+boss_brood_queen
+boss_obsidian_heart
