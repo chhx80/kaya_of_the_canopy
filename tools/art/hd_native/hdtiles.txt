@@ -1,0 +1,5 @@
+# hdtiles: the tileset, its contact shadows and the animated tile frames.
+# Cells of ids not yet redrawn are upscaled inside the atlas (tools/art/tiles.py).
+tileset
+contact_shadow
+tile_anim

@@ -1,0 +1,8 @@
+[
+  {"_": "HD pass H1, tiles: the ruins' first native 2x pass in real frames from the proof tapes. tools/shot.sh --res=2556x1179 --seq=tools/seq/hd1_ruins.json"},
+  {"tape": "ruins_1", "shots": "shots/hd1/ruins_1_%d.png", "every": 300, "max": 2},
+  {"tape": "ruins_2", "shots": "shots/hd1/ruins_2_%d.png", "every": 300, "max": 2},
+  {"tape": "ruins_3", "shots": "shots/hd1/ruins_3_%d.png", "every": 300, "max": 2},
+  {"tape": "ruins_4", "shots": "shots/hd1/ruins_4_%d.png", "every": 300, "max": 2},
+  {"tape": "ruins_5", "shots": "shots/hd1/ruins_5_%d.png", "every": 300, "max": 2}
+]

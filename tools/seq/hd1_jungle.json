@@ -1,0 +1,12 @@
+[
+  {"_": "HD pass H1, tiles: the jungle tileset native at 2x, in real frames from the proof tapes and the hub. tools/shot.sh --res=2556x1179 --seq=tools/seq/hd1_jungle.json"},
+  {"tape": "jungle_1", "shots": "shots/hd1/jungle_1_%d.png", "every": 300, "max": 3},
+  {"tape": "jungle_2", "shots": "shots/hd1/jungle_2_%d.png", "every": 300, "max": 3},
+  {"tape": "jungle_3", "shots": "shots/hd1/jungle_3_%d.png", "every": 300, "max": 3},
+  {"tape": "jungle_4", "shots": "shots/hd1/jungle_4_%d.png", "every": 300, "max": 3},
+  {"tape": "jungle_5", "shots": "shots/hd1/jungle_5_%d.png", "every": 300, "max": 3},
+  {"scenario": "hub", "settle": 30},
+  {"hold": "move_down", "frames": 70},
+  {"release": "move_down"},
+  {"shot": "shots/hd1/hub_0.png"}
+]
