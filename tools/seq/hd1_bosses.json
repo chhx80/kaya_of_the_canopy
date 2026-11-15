@@ -1,0 +1,275 @@
+[
+ {
+  "_": "HD pass H1 (hdbosses): the five bosses, natively drawn at 2x, in their arenas with the camera pulled back, one frame per phase (debug_advance_boss_phase), each after the title card has gone. The deeps arena is dark by design, so its frames are shot with the lighting off, then once as it plays. Re-run at phone shape: tools/shot.sh --res=2556x1179 --seq=tools/seq/hd1_bosses.json"
+ },
+ {
+  "scenario": "level:jungle_5",
+  "settle": 60
+ },
+ {
+  "teleport": [
+   31,
+   23
+  ],
+  "settle": 220
+ },
+ {
+  "shot": "shots/hd1_bosses_game_grove_p1.png"
+ },
+ {
+  "wait": 30
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 200
+ },
+ {
+  "shot": "shots/hd1_bosses_game_grove_p2.png"
+ },
+ {
+  "wait": 30
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 200
+ },
+ {
+  "shot": "shots/hd1_bosses_game_grove_p3.png"
+ },
+ {
+  "wait": 30
+ },
+ {
+  "scenario": "level:ruins_5",
+  "settle": 60
+ },
+ {
+  "teleport": [
+   37,
+   24
+  ],
+  "settle": 220
+ },
+ {
+  "shot": "shots/hd1_bosses_game_tide_maw_p1.png"
+ },
+ {
+  "wait": 30
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 200
+ },
+ {
+  "shot": "shots/hd1_bosses_game_tide_maw_p2.png"
+ },
+ {
+  "wait": 30
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 200
+ },
+ {
+  "shot": "shots/hd1_bosses_game_tide_maw_p3.png"
+ },
+ {
+  "wait": 30
+ },
+ {
+  "scenario": "level:heights_5",
+  "settle": 60
+ },
+ {
+  "teleport": [
+   31,
+   22
+  ],
+  "settle": 220
+ },
+ {
+  "shot": "shots/hd1_bosses_game_stormcrest_p1.png"
+ },
+ {
+  "wait": 30
+ },
+ {
+  "teleport": [
+   39,
+   10
+  ],
+  "settle": 20
+ },
+ {
+  "teleport": [
+   31,
+   22
+  ],
+  "settle": 15
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "teleport": [
+   31,
+   22
+  ],
+  "settle": 20
+ },
+ {
+  "wait": 200
+ },
+ {
+  "shot": "shots/hd1_bosses_game_stormcrest_p2.png"
+ },
+ {
+  "wait": 30
+ },
+ {
+  "teleport": [
+   39,
+   10
+  ],
+  "settle": 20
+ },
+ {
+  "teleport": [
+   31,
+   22
+  ],
+  "settle": 15
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "teleport": [
+   31,
+   22
+  ],
+  "settle": 20
+ },
+ {
+  "wait": 200
+ },
+ {
+  "shot": "shots/hd1_bosses_game_stormcrest_p3.png"
+ },
+ {
+  "wait": 30
+ },
+ {
+  "scenario": "level:nest_5",
+  "settle": 60
+ },
+ {
+  "teleport": [
+   34,
+   25
+  ],
+  "settle": 220
+ },
+ {
+  "shot": "shots/hd1_bosses_game_obsidian_heart_p1.png"
+ },
+ {
+  "wait": 30
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 200
+ },
+ {
+  "shot": "shots/hd1_bosses_game_obsidian_heart_p2.png"
+ },
+ {
+  "wait": 30
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 200
+ },
+ {
+  "shot": "shots/hd1_bosses_game_obsidian_heart_p3.png"
+ },
+ {
+  "wait": 30
+ },
+ {
+  "lighting": false
+ },
+ {
+  "scenario": "level:deeps_5",
+  "settle": 60
+ },
+ {
+  "teleport": [
+   36,
+   23
+  ],
+  "settle": 220
+ },
+ {
+  "shot": "shots/hd1_bosses_game_brood_queen_p1.png"
+ },
+ {
+  "wait": 30
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 200
+ },
+ {
+  "shot": "shots/hd1_bosses_game_brood_queen_p2.png"
+ },
+ {
+  "wait": 30
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 200
+ },
+ {
+  "shot": "shots/hd1_bosses_game_brood_queen_p3.png"
+ },
+ {
+  "wait": 30
+ },
+ {
+  "lighting": true
+ },
+ {
+  "scenario": "level:deeps_5",
+  "settle": 60
+ },
+ {
+  "teleport": [
+   36,
+   23
+  ],
+  "settle": 220
+ },
+ {
+  "shot": "shots/hd1_bosses_game_brood_queen_lit.png"
+ },
+ {
+  "wait": 30
+ }
+]
