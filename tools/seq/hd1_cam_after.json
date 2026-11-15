@@ -1,0 +1,5 @@
+[
+  {"_": "HD pass H1, the vertical look-ahead (data/camera.json _look_y). A long fall (jungle_2, the tape's 216-unit drop landing at sim frame ~701) and a bird climb (heights_1, airborne frames ~186-299), shot from the real proof tapes. 'after' frames; the before set is shot with the look disabled (look_fall_drop_px and look_climb_s set huge). Re-run: tools/shot.sh --seq=tools/seq/hd1_cam_after.json"},
+  {"tape": "jungle_2", "shots": "shots/hd1_cam/fall_after_%d.png", "every": 8, "max": 7, "skip": 648},
+  {"tape": "heights_1", "shots": "shots/hd1_cam/climb_after_%d.png", "every": 16, "max": 7, "skip": 186}
+]

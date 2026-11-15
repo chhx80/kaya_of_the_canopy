@@ -2,7 +2,9 @@ class_name CameraController
 extends Camera2D
 ## The game's camera: centred on Kaya and smoothed, with a look-ahead in the
 ## way she faces and a vertical anchor on the floor she last stood on, so a jump
-## does not bounce the world. Clamped to the level, and locked inside a boss
+## does not bounce the world, plus a vertical look-ahead that leads her down a
+## long fall or up a sustained climb (never on an ordinary jump, never inside a
+## boss arena). Clamped to the level, and locked inside a boss
 ## arena while the boss lives. Tunables in data/camera.json.
 ##
 ## It never freezes the simulation. The screen flip it replaced held the whole
@@ -62,6 +64,12 @@ var _blend_from := Vector2.ZERO
 var _zoom := 0.0
 var _zoom_to := Vector2.ZERO
 var _size := Vector2.ZERO
+## The vertical look-ahead: `_look` is the signed weight (-1 up .. +1 down)
+## CameraMath.blend_look() takes, `_vy` her smoothed vertical speed, `_climb_t`
+## CameraMath.climb_time()'s clock.
+var _look := 0.0
+var _vy := 0.0
+var _climb_t := 0.0
 
 func setup(w: TileWorld, t: Node2D, is_topdown: bool = false) -> void:
 	world = w
@@ -97,6 +105,9 @@ func snap_to_target() -> void:
 		return
 	_floor_y = _target_point().y
 	_lead = _want_lead()
+	_look = 0.0
+	_vy = 0.0
+	_climb_t = 0.0
 	_blend = 1.0
 	_zoom = 1.0 if locked else 0.0
 	_update_size()
@@ -158,8 +169,9 @@ func _physics_process(delta: float) -> void:
 		base_pos = _blend_from.lerp(goal, CameraMath.ease(_blend))
 	else:
 		var kx := CameraMath.approach(_num("follow_x_rate", 10.0), delta)
-		var ky := CameraMath.approach(_num("follow_y_rate", 6.0), delta)
-		base_pos = Vector2(lerpf(base_pos.x, goal.x, kx), lerpf(base_pos.y, goal.y, ky))
+		var ky := CameraMath.approach(_follow_y_rate(), delta)
+		base_pos = Vector2(lerpf(base_pos.x, goal.x, kx), CameraMath.limit_step(base_pos.y,
+			lerpf(base_pos.y, goal.y, ky), _num("follow_y_max_speed", 480.0) * delta))
 		var size := _size
 		var m := Vector2(_num("keep_in_x_px", 48.0), _num("keep_in_y_px", 32.0))
 		base_pos = CameraMath.clamp_view(
@@ -208,8 +220,12 @@ func _goal() -> Vector2:
 	var c := _target_point()
 	var focus := c
 	if not topdown:
-		focus = Vector2(c.x + _lead, CameraMath.anchored_y(c.y, _floor_y,
-			_num("air_band_up_px", 56.0), _num("air_band_down_px", 8.0)))
+		var y := CameraMath.anchored_y(c.y, _floor_y,
+			_num("air_band_up_px", 56.0), _num("air_band_down_px", 8.0))
+		if not locked:
+			y = CameraMath.blend_look(y, c.y, _vy, _look, _num("look_y_ahead_px", 30.0),
+				_follow_y_rate(), _num("look_y_max_lag_px", 60.0))
+		focus = Vector2(c.x + _lead, y)
 	return CameraMath.clamp_view(focus - _size * 0.5, bounds(), _size)
 
 ## Step the pull-back toward the arena while locked and back out of it after,
@@ -244,3 +260,31 @@ func _track(delta: float) -> void:
 	_lead = lerpf(_lead, _want_lead(), CameraMath.approach(_num("lead_rate", 4.0), delta))
 	if a.on_floor or a.submerged() or a.on_ladder():
 		_floor_y = a.center().y
+	_track_look(a, delta)
+
+## The vertical follow rate: quicker while the look-ahead leads, so the view
+## can get ahead of a fall that only lasts a second (CameraMath.follow_rate()).
+func _follow_y_rate() -> float:
+	return CameraMath.follow_rate(_num("follow_y_rate", 6.0), _num("look_follow_y_rate", 12.0),
+		_look)
+
+## The vertical look-ahead's state: her smoothed speed, the climb clock, and
+## the weight eased toward what CameraMath.look_mode() asks for, in at one
+## rate and back out (on landing, or turning round) at another. Held at 0
+## inside a boss arena, where the view is the arena.
+func _track_look(a: Actor, delta: float) -> void:
+	_vy = lerpf(_vy, a.vel.y, CameraMath.approach(_num("look_y_vel_rate", 8.0), delta))
+	var swimming := a.submerged()
+	_climb_t = CameraMath.climb_time(_climb_t, a.vel.y, a.on_floor or swimming,
+		_num("look_climb_speed", 40.0), _num("look_climb_decay", 1.0), delta)
+	var want := 0
+	if not locked:
+		want = CameraMath.look_mode(a.on_floor, swimming, a.center().y - _floor_y, a.vel.y,
+			_climb_t, _num("look_fall_drop_px", 52.0), _num("look_fall_speed", 120.0),
+			_num("look_climb_s", 0.6))
+	var rate := _num("look_y_in_rate", 8.0)
+	if want == 0 or (_look != 0.0 and signf(_look) != float(want)):
+		rate = _num("look_y_out_rate", 2.0)
+	_look = lerpf(_look, float(want), CameraMath.approach(rate, delta))
+	if want == 0 and absf(_look) < 0.001:
+		_look = 0.0

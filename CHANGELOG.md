@@ -3123,3 +3123,28 @@ texels per world unit; world units, hitboxes, levels and tapes are unchanged.
 - New: `tests/test_hd_display.gd`, three `t_hd_*` integration tests,
   `tools/seq/hd_*.json`, a `tap` step and world-viewport timing in
   `tools/dev_capture.gd`.
+
+## HD pass, H1 camera: a vertical look-ahead (branch `hd/cam`)
+- **Falls.** Once she is falling (faster than 120/s) and more than 52 units
+  below the floor she last stood on, the view leads her down until she rides
+  the upper third of the view (30 units above its centre, with the follow lag
+  cancelled), about 7 tiles visible under her feet instead of ~2. Ordinary
+  jumps, and drops of up to 3 tiles, never trigger it. Eases back on landing.
+- **Climbs.** The same upward once she has been rising for 0.6 s on a leaky
+  clock (vines, a flapping bird, thermals, a frog's wall climb); no jump rises
+  that long. Off while swimming and inside a locked boss arena.
+- While it leads, the vertical follow quickens (6 -> 12/s, blended) and is
+  speed-capped at 480/s; keep-in still overrides the cap, so she is never lost.
+- All tunables in `data/camera.json` (`look_*`, `follow_y_max_speed`) with
+  their derivations; the maths is pure in `CameraMath` (`look_mode`,
+  `climb_time`, `look_y`, `blend_look`, `follow_rate`, `limit_step`), unit-tested
+  in `tests/test_camera.gd`.
+- **Audit.** The blind-landing count (floor off screen at take-off) is
+  unchanged in definition: 25 -> 23 of 198. Because the view now moves during
+  the airtime, `tape_replay.gd` adds a second measure, the LEAD: frames the
+  landing spot was in view before touch-down (`[blind_lead]` in the itest
+  log). Landings whose floor appeared mid-air under 15 frames before
+  touch-down: 13 -> 11; jungle_2's long drop 3 -> 17 frames, nest_2 3 -> 14,
+  ruins_1 4 -> 13. Boss-level drops into a locked arena are unchanged by design.
+- `tools/seq/hd1_cam_{before,after}.json`, `shots/hd1_cam_fall.png`,
+  `shots/hd1_cam_climb.png`.

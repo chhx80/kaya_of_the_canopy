@@ -116,6 +116,138 @@ func test_the_approach_is_frame_rate_independent() -> void:
 	var two := CameraMath.approach(10.0, 1.0 / 60.0)
 	near(1.0 - one, (1.0 - two) * (1.0 - two), 1e-6, "two 60Hz steps = one 30Hz step")
 
+# ---------------------------------------------------------------- vertical look-ahead
+const DT := 1.0 / 60.0
+
+func _cam_cfg() -> Dictionary:
+	return JSON.parse_string(FileAccess.get_file_as_string("res://data/camera.json"))
+
+## Drive look_mode/climb_time through a body moving under `gravity` from
+## `vy0`, standing again once it is back down `drop` below where it left (a
+## landing), and return the most the look-ahead was ever asked for.
+func _jump_mode(c: Dictionary, vy0: float, gravity: float, max_fall: float, drop: float) -> int:
+	var y := 0.0
+	var vy := vy0
+	var t := 0.0
+	var worst := 0
+	for i in 600:
+		vy = minf(vy + gravity * DT, max_fall)
+		y += vy * DT
+		var landed := vy > 0.0 and y >= drop
+		t = CameraMath.climb_time(t, vy, landed, float(c["look_climb_speed"]),
+			float(c["look_climb_decay"]), DT)
+		var m := CameraMath.look_mode(landed, false, minf(y, drop), vy, t,
+			float(c["look_fall_drop_px"]), float(c["look_fall_speed"]), float(c["look_climb_s"]))
+		if m != 0:
+			worst = m
+		if landed:
+			break
+	return worst
+
+func test_an_ordinary_jump_never_moves_the_view_vertically() -> void:
+	var c := _cam_cfg()
+	for form: String in ["human", "frog", "bird"]:
+		var f: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/forms/%s.json" % form))
+		var jv := float(f["jump_vel"])
+		var g := float(f["gravity"])
+		var mf := float(f["max_fall"])
+		for drop: float in [0.0, -32.0, 16.0, 32.0, 48.0]:
+			eq(_jump_mode(c, jv, g, mf, drop), 0,
+				"a %s jump landing %.0f below where it left: no vertical look" % [form, drop])
+
+func test_a_long_drop_leads_the_view_down() -> void:
+	var c := _cam_cfg()
+	eq(_jump_mode(c, 0.0, 760.0, 330.0, 8.0 * 16.0), 1, "stepping off an 8-tile drop looks down")
+	eq(_jump_mode(c, -260.0, 760.0, 330.0, 6.0 * 16.0), 1, "and so does jumping into a 6-tile one")
+
+func test_a_sustained_climb_leads_the_view_up() -> void:
+	var c := _cam_cfg()
+	var spd := float(c["look_climb_speed"])
+	var dec := float(c["look_climb_decay"])
+	var need := float(c["look_climb_s"])
+	# A vine at the human's climb speed.
+	var t := 0.0
+	var frames := 0
+	while t < need and frames < 600:
+		t = CameraMath.climb_time(t, -60.0, false, spd, dec, DT)
+		frames += 1
+	lt(float(frames) * DT, need + 0.05, "a vine climb leads up after %.2f s" % (float(frames) * DT))
+	# A bird flapping as fast as it may: -172 every 0.24 s against 420.
+	t = 0.0
+	var vy := 0.0
+	var fired := -1.0
+	for i in 240:
+		if i % 15 == 0:
+			vy = -172.0
+		vy += 420.0 * DT
+		t = CameraMath.climb_time(t, vy, false, spd, dec, DT)
+		if fired < 0.0 and CameraMath.look_mode(false, false, -float(i), vy, t, 52.0, 120.0, need) == -1:
+			fired = float(i) * DT
+	ok(fired > 0.0 and fired < 1.0, "a flapping climb leads up within a second (%.2f s)" % fired)
+	# A frog climbing a wall: wall jump, a short cling, again.
+	t = 0.0
+	fired = -1.0
+	var clock := 0.0
+	for hop in 8:
+		vy = -305.0
+		while vy < 0.0:
+			vy += 700.0 * DT
+			t = CameraMath.climb_time(t, vy, false, spd, dec, DT)
+			clock += DT
+			if fired < 0.0 and t >= need:
+				fired = clock
+		for k in 6:      # a tenth of a second on the wall, sliding
+			t = CameraMath.climb_time(t, 34.0, false, spd, dec, DT)
+			clock += DT
+	ok(fired > 0.0, "a frog wall climb leads up a few hops in (%.2f s)" % fired)
+
+func test_standing_or_swimming_never_looks() -> void:
+	eq(CameraMath.look_mode(true, false, 200.0, 300.0, 5.0, 52.0, 120.0, 0.6), 0, "standing")
+	eq(CameraMath.look_mode(false, true, 200.0, 300.0, 5.0, 52.0, 120.0, 0.6), 0, "swimming")
+	eq(CameraMath.climb_time(3.0, -200.0, true, 40.0, 2.0, DT), 0.0, "standing empties the clock")
+
+func test_the_look_puts_her_on_the_third_line_at_a_steady_fall() -> void:
+	# Follow a steady 330 px/s fall with the real exponential follow: once the
+	# lead is fully in, her centre settles look_y_ahead_px above the view's.
+	var c := _cam_cfg()
+	var rate := CameraMath.follow_rate(float(c["follow_y_rate"]), float(c["look_follow_y_rate"]), 1.0)
+	var ahead := float(c["look_y_ahead_px"])
+	var y := 0.0
+	var cam := 0.0
+	for i in 600:
+		y += 330.0 * DT
+		var goal := CameraMath.blend_look(y - 8.0, y, 330.0, 1.0, ahead, rate,
+			float(c["look_y_max_lag_px"]))
+		cam = lerpf(cam, goal, CameraMath.approach(rate, DT))
+	# The 60 Hz follow trails a few units less than the continuous v / rate
+	# the lead assumes, so she settles a touch above the line, never below it.
+	near(cam - y, ahead + 1.5, 1.5, "she sits %.1f above the view's centre" % (cam - y))
+	var v := Display.view_size()
+	gt(v.y * 0.5 + ahead - 10.0, 5.0 * 16.0, "and sees at least five tiles under her feet")
+	lt(ahead, v.y * 0.5 - float(c["keep_in_y_px"]), "without the hard zone fighting it")
+	gt(float(c["look_y_max_lag_px"]), 340.0 / float(c["follow_y_rate"]),
+		"the lag lead covers the fastest fall at the slowest follow")
+
+func test_the_follow_quickens_only_with_the_look() -> void:
+	eq(CameraMath.follow_rate(6.0, 12.0, 0.0), 6.0, "no look: the ordinary follow")
+	eq(CameraMath.follow_rate(6.0, 12.0, -1.0), 12.0, "a full look either way")
+	eq(CameraMath.follow_rate(6.0, 12.0, 0.5), 9.0, "in proportion between")
+
+func test_the_follow_speed_cap() -> void:
+	eq(CameraMath.limit_step(100.0, 130.0, 8.0), 108.0, "down, capped")
+	eq(CameraMath.limit_step(100.0, 70.0, 8.0), 92.0, "up, capped")
+	eq(CameraMath.limit_step(100.0, 103.0, 8.0), 103.0, "a small step passes untouched")
+	var c := _cam_cfg()
+	var cap := float(c["follow_y_max_speed"]) / 60.0
+	lt(cap, 12.0 - 108.0 / 60.0 - 1.0, "inside the tape audit's 12-a-frame step, with a run across")
+	gt(cap, 340.0 / 60.0 + 1.0, "and fast enough to get ahead of the fastest fall")
+
+func test_the_look_blend_is_continuous_through_a_turn() -> void:
+	near(CameraMath.blend_look(100.0, 90.0, 0.0, 0.0001, 30.0, 6.0, 60.0), 100.0, 0.01, "a hair down")
+	near(CameraMath.blend_look(100.0, 90.0, 0.0, -0.0001, 30.0, 6.0, 60.0), 100.0, 0.01, "a hair up")
+	eq(CameraMath.blend_look(100.0, 90.0, 300.0, 0.0, 30.0, 6.0, 60.0), 100.0, "off is the anchor")
+	eq(CameraMath.look_y(0.0, 9999.0, 1, 30.0, 6.0, 60.0), 90.0, "the lag lead is capped")
+
 # ---------------------------------------------------------------- wake rule
 func test_an_awake_enemy_stays_awake_while_near_the_view() -> void:
 	eq(WakeRule.decide(true, true, true, true), WakeRule.Act.STAY)
@@ -166,7 +298,10 @@ func test_the_camera_tunables_are_sane() -> void:
 	var c: Dictionary = d
 	for k: String in ["lead_px", "lead_rate", "follow_x_rate", "follow_y_rate", "air_band_up_px",
 			"air_band_down_px", "keep_in_x_px", "keep_in_y_px", "enemy_wake_margin_px", "enemy_sleep_margin_px",
-			"arena_ease_s", "arena_release_px"]:
+			"arena_ease_s", "arena_release_px", "look_y_ahead_px", "look_y_max_lag_px",
+			"look_fall_speed", "look_fall_drop_px", "look_climb_speed", "look_climb_s",
+			"look_climb_decay", "look_y_in_rate", "look_y_out_rate", "look_y_vel_rate",
+			"look_follow_y_rate", "follow_y_max_speed"]:
 		ok(c.has(k), "camera.json names %s" % k)
 	lt(float(c["enemy_sleep_margin_px"]), 160.0 - 16.0,
 		"despawn well inside the replay audit's 'far' (tape_replay.gd FAR_OFF_VIEW_PX)")

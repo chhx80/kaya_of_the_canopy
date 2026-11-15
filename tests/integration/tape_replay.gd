@@ -38,6 +38,18 @@ extends RefCounted
 ## for visibility, and the number is for deciding where a hint or a camera
 ## change is worth it. Airtime that ends in water or on a vine is not a
 ## landing and is dropped.
+##
+## That definition is kept exactly as it was, so the numbers before and after a
+## camera change compare. It undercounts what a vertical look-ahead buys,
+## though, because the view moves *during* the airtime: a floor off screen at
+## take-off can scroll in a second before she reaches it. So every landing is
+## also given a LEAD: how many frames before touch-down the spot under her feet
+## entered the view and stayed in it (the whole airtime when it was in view at
+## take-off). Reported per level as the shortest lead and how many landings
+## were LATE: the floor came into view mid-air less than LATE_LEAD_FRAMES
+## before she reached it, under the time a thumb needs to react to a floor it
+## has just seen. (A short hop whose floor was in view all along is never late,
+## however short its airtime.) The take-off count above is not redefined.
 
 const TAPE := "res://tests/integration/replay_tape.gd"
 const TS := 16.0
@@ -107,6 +119,14 @@ var _last_view := Vector2(-1, -1)
 var _was_grounded := false
 var _takeoff_view := Rect2()
 var _airborne := false
+## The view on every airborne frame since take-off, for the landing's lead.
+var _air_views: Array[Rect2] = []
+## A quarter of a second: less warning than this and the floor arrived as she
+## did. A reporting threshold, not a tunable.
+const LATE_LEAD_FRAMES := 15
+## Unpaused frames audited so far: where on the tape a landing happened, so a
+## screenshot sequence can find it (tools/dev_capture.gd "skip").
+var _frame := 0
 
 ## Reads the live level rather than the one the replay booted: completing a
 ## level frees it, and the audit runs on that frame too.
@@ -149,22 +169,46 @@ static func outside_by(view: Rect2, p: Vector2) -> float:
 	var dy := maxf(0.0, maxf(view.position.y - p.y, p.y - view.end.y))
 	return Vector2(dx, dy).length()
 
+## Frames before the last one in `views` (the landing frame) for which `p` has
+## been in view without a break. The landing frame itself is not counted: a
+## floor that shows up as she lands gave no warning at all.
+static func lead_frames(views: Array[Rect2], p: Vector2) -> int:
+	var n := 0
+	var i := views.size() - 2
+	while i >= 0 and outside_by(views[i], p) == 0.0:
+		n += 1
+		i -= 1
+	return n
+
 func _audit_landing(r: Dictionary, a: Actor, v: Rect2) -> void:
 	if Game.sim_paused:
 		return
+	_frame += 1
 	var grounded := a.on_floor
 	if a.submerged() or a.on_ladder():
 		_airborne = false
 	elif _was_grounded and not grounded:
 		_airborne = true
 		_takeoff_view = v
+		_air_views = [v]
+	elif _airborne and not grounded:
+		_air_views.append(v)
 	elif _airborne and grounded:
 		_airborne = false
+		_air_views.append(v)
 		# Two units into the floor under her centre: the surface she landed on.
 		var spot := Vector2(a.center().x, a.pos.y + a.box.y + 2.0)
 		r["landings"] = int(r["landings"]) + 1
+		var lead := lead_frames(_air_views, spot)
+		(r["leads"] as Array).append(lead)
+		# A short hop whose floor was in view the whole way had all the warning
+		# there was: only a floor that came into view mid-air can be late.
+		if lead < LATE_LEAD_FRAMES and lead < _air_views.size() - 1:
+			r["late_landings"] = int(r["late_landings"]) + 1
+			(r["late_at"] as Array).append("f%d:%d" % [_frame, lead])
 		var off := outside_by(_takeoff_view, spot)
 		if off > 0.0:
+			(r["blind_leads"] as Array).append("f%d:%d" % [_frame, lead])
 			r["blind_landings"] = int(r["blind_landings"]) + 1
 			if off > float(r["blind_worst_px"]):
 				r["blind_worst_px"] = off
@@ -186,10 +230,13 @@ func replay(tape: RefCounted) -> Dictionary:
 		"cam_frozen": 0, "cam_max_step": 0.0, "cam_lost_kaya": 0,
 		"enemy_awake_far": 0, "enemy_frozen_visible": 0, "cam_note": "",
 		"landings": 0, "blind_landings": 0, "blind_worst_px": 0.0, "blind_note": "",
+		"leads": [], "late_landings": 0, "late_at": [], "blind_leads": [],
 	}
 	_last_view = Vector2(-1, -1)
 	_was_grounded = false
 	_airborne = false
+	_air_views = []
+	_frame = 0
 
 	_release_all()
 	SaveManager.set_flag(id, false)
@@ -307,7 +354,19 @@ func replay(tape: RefCounted) -> Dictionary:
 	r["real_frames"] = real_frames
 	r["health"] = Game.health
 	r["closest_px"] = -1.0 if closest == INF else closest
+	_print_leads(r)
 	return r
+
+## The lead measure (BLIND LANDINGS), one grep-able line per tape next to the
+## caller's `[blind]` line: `grep "^\[blind_lead\]"`.
+static func _print_leads(r: Dictionary) -> void:
+	var leads: Array = r["leads"]
+	var lo := -1
+	for l: int in leads:
+		lo = l if lo < 0 else mini(lo, l)
+	print("[blind_lead] %s landings=%d late=%d min_lead_frames=%d late_frame:lead=%s blind_at_takeoff_frame:lead=%s" % [
+		String(r["level_id"]), leads.size(), int(r["late_landings"]), lo,
+		str(r["late_at"]), str(r["blind_leads"])])
 
 func _player() -> Node:
 	var lvl: Node = Game.current_level
