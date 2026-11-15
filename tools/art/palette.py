@@ -492,8 +492,25 @@ def _art_scale():
 
 ART_SCALE = _art_scale()
 
-#: Sheets drawn natively at ART_SCALE. Empty until step 2 starts.
-HD_NATIVE = set()
+def _hd_native():
+    """Sheet names from tools/art/hd_native/*.txt, one per line (# comments).
+    One file per area of the art, so areas redrawn in parallel never edit the
+    same line."""
+    names = set()
+    folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hd_native")
+    if os.path.isdir(folder):
+        for fn in sorted(os.listdir(folder)):
+            if fn.endswith(".txt"):
+                with open(os.path.join(folder, fn)) as f:
+                    for line in f:
+                        line = line.split("#")[0].strip()
+                        if line:
+                            names.add(line)
+    return names
+
+
+#: Sheets drawn natively at ART_SCALE (file name without .png).
+HD_NATIVE = _hd_native()
 
 #: Art that is never scaled. The bitmap font: text is drawn by PixelFont in UI
 #: space, and a nearest-doubled glyph is the same glyph. The app icon and the
