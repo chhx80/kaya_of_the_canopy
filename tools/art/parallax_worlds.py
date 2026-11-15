@@ -26,6 +26,15 @@ What changed from the phase-3 art-direction planes, and why:
   middle plane on the material's own ramp high in its window, the near plane
   low and dark on it. The dark worlds run the other way: the far plane is the
   darkest, and the near plane carries the (still dim) colour.
+* **HD (docs/plan-hd.md step 2).** Every plane is rasterised at ART_SCALE
+  texels per world unit. Coordinates, sizes, seeds and the composition are the
+  phase-3 ones -- a tree stands where it stood -- but every brush walks texels
+  (`Plane.span`), and the drawing a world pixel could not hold is now there:
+  leaves with a one-texel midrib, veins and a lit edge; bark in plates between
+  wandering grooves; dressed stone with pitting, cracks and voussoirs; clouds
+  with lobes and a silver lip; snow and strata on the peaks; cut facets on the
+  glass; mud drips under the termite comb. Values still go through each
+  plane's window, so the contrast budget is exactly what it was.
 
 Every brush wraps in x through Plane.set, so every strip tiles seamlessly.
 """
@@ -34,9 +43,9 @@ import math
 import os
 import random
 
-from .backdrops import (Plane, cloud, glow, grain, horizon_haze, mist, ridge,
-                        shafts, sky_path, spires, vband)
-from .palette import ROOT, bayer_on
+from .backdrops import (Plane, cloud, glow, grain, hd_on, horizon_haze, mist,
+                        ridge, shafts, sky_path, spires, vband)
+from .palette import ROOT
 
 _SPEC = json.load(open(os.path.join(ROOT, "data", "parallax.json")))
 VIEW_W, VIEW_H = _SPEC["view"]
@@ -44,7 +53,7 @@ DESIGN_H = _SPEC["design_level_h"]
 
 
 def size(plane):
-    """(w, h) of a plane's strip, from data/parallax.json."""
+    """(w, h) of a plane's strip in world units, from data/parallax.json."""
     s = _SPEC["planes"][plane]
     return int(s["width"]), VIEW_H + int(round(s["vertical"] * (DESIGN_H - VIEW_H)))
 
@@ -61,31 +70,41 @@ def _clamp(v):
 
 def leaf(p, x, y, ang, length, half, v, ramp=None, rib=True):
     """One pointed leaf from (x, y) along `ang` (degrees, 0 = right, 90 =
-    down). Lit on whichever half faces the upper-left light; a darker midrib
-    when it is wide enough to have one. At 1x a leaf is 4-12 px: this is the
-    unit the foliage is drawn in, so a crown reads as leaves rather than as a
-    blob."""
+    down). Lit on whichever half faces the upper-left light. At 2x a leaf has
+    a one-texel midrib, faint side veins, a lit outer edge on the lit half and
+    a dark one on the shadow half -- which is what separates one leaf from the
+    leaf under it without an outline."""
     ca, sa = math.cos(math.radians(ang)), math.sin(math.radians(ang))
     # the leaf's normal on its "left" side, and whether that side faces the light
     nx, ny = sa, -ca
     left_lit = (nx * -1 + ny * -1) > 0
-    r = int(length + half + 2)
-    for yy in range(int(y) - r, int(y) + r + 1):
-        for xx in range(int(x) - r, int(x) + r + 1):
-            dx, dy = xx + 0.5 - x, yy + 0.5 - y
+    r = length + half + 2
+    du = 1.0 / p.k
+    for yy in p.span(y - r, y + r + 1):
+        for xx in p.span(x - r, x + r + 1):
+            dx, dy = xx + p.c - x, yy + p.c - y
             u = dx * ca + dy * sa
-            w = dx * nx + dy * ny
             if u < 0 or u > length:
                 continue
+            w = dx * nx + dy * ny
             hw = half * math.sin(math.pi * u / length) ** 0.75
             if abs(w) > hw:
                 continue
-            if rib and half >= 1.6 and abs(w) < 0.5 and 1 < u < length - 1:
+            lit = (w > 0) == left_lit
+            edge = abs(w) > hw - du * 0.9
+            if rib and half >= 1.2 and abs(w) < du * 0.5 and 0.5 < u < length - 0.75:
                 s = -0.16
-            elif (w > 0) == left_lit:
+            elif lit:
                 s = 0.20 if abs(w) > hw * 0.35 else 0.10
+                if edge and hw > du:
+                    s = 0.28
             else:
                 s = -0.14
+                if edge and hw > du:
+                    s = -0.24
+            if rib and half >= 1.6 and du < abs(w) < hw - du \
+                    and ((u - abs(w) * 0.9) % 1.6) < du * 0.6:
+                s -= 0.07                          # side veins, swept to the tip
             p.set(xx, yy, _clamp(v + s), ramp)
 
 
@@ -117,9 +136,9 @@ def crown_of_leaves(p, cx, cy, rx, ry, v, seed, ramp=None, size_=(5, 9), density
     inside the crown, which is what stops it reading as a cut-out), then
     clusters over it, lit toward the upper left."""
     rnd = random.Random(seed)
-    for y in range(int(cy - ry), int(cy + ry) + 1):
-        for x in range(int(cx - rx), int(cx + rx) + 1):
-            dx, dy = (x - cx) / float(rx), (y - cy) / float(ry)
+    for y in p.span(cy - ry, cy + ry + 1):
+        for x in p.span(cx - rx, cx + rx + 1):
+            dx, dy = (x + p.c - cx) / float(rx), (y + p.c - cy) / float(ry)
             if dx * dx + dy * dy <= 0.62:
                 p.set(x, y, _clamp(v - 0.24), ramp)
     count = int((rx * ry) / 26.0 * density) + 4
@@ -138,7 +157,12 @@ def bark_trunk(p, x, top, bottom, w, v, seed, ramp=None, lean=0.0, wobble=0.0,
     """A trunk with a round body: lit shoulder, core, shadow side, a dark rim;
     bark grooves that wander down it; knots; and, if `roots` > 0, buttress roots
     flaring out over the last `roots` rows -- the shape that says rainforest.
-    `taper` is the trunk's width at `top` as a fraction of `w` at `bottom`."""
+    `taper` is the trunk's width at `top` as a fraction of `w` at `bottom`.
+
+    At 2x the grooves are one texel wide with finer ones between them, the
+    bark between two grooves breaks into plates (a dark crack with a lit lip
+    under it), a knot is a ring with a lit lower lip, and the rim is a single
+    dark texel."""
     rnd = random.Random(seed)
     grooves = [(rnd.uniform(0.15, 0.9), rnd.uniform(0, 6.3), rnd.uniform(18, 46))
                for _ in range(max(2, w // 3))]
@@ -146,7 +170,13 @@ def bark_trunk(p, x, top, bottom, w, v, seed, ramp=None, lean=0.0, wobble=0.0,
              for _ in range(max(1, (bottom - top) // 90))]
     mosses = [(rnd.randrange(max(top, 0), bottom), rnd.randrange(6, 20))
               for _ in range(max(1, (bottom - top) // 70))] if moss else []
-    for y in range(max(0, top), min(p.h, bottom)):
+    frnd = random.Random(seed * 17 + 3)
+    fine = [(frnd.uniform(0.1, 0.92), frnd.uniform(0, 6.3), frnd.uniform(12, 30))
+            for _ in range(max(2, w // 3))]
+    cuts = sorted(g[0] for g in grooves)
+    plate = [(frnd.uniform(3.0, 7.0), frnd.uniform(0, 7.0)) for _ in range(len(cuts) + 1)]
+    du = 1.0 / p.k
+    for y in p.span(max(0, top), min(p.h, bottom)):
         cx = x + lean * (y - top) + wobble * math.sin(y / 37.0 + seed)
         extra = 0.0
         if roots and y > bottom - roots:
@@ -155,8 +185,8 @@ def bark_trunk(p, x, top, bottom, w, v, seed, ramp=None, lean=0.0, wobble=0.0,
         wy = w * (taper + (1.0 - taper) * (y - top) / float(max(1, bottom - top)))
         left, right = cx - extra * 0.8, cx + max(1.0, wy) + extra
         span = right - left
-        for xx in range(int(math.floor(left)), int(math.ceil(right))):
-            t = (xx + 0.5 - left) / span
+        for xx in p.span(left, right):
+            t = (xx + p.c - left) / span
             if t < 0.0 or t > 1.0:
                 continue
             if t < 0.07 or t > 0.93:
@@ -169,74 +199,119 @@ def bark_trunk(p, x, top, bottom, w, v, seed, ramp=None, lean=0.0, wobble=0.0,
                 s = 0.0
             else:
                 s = -0.20
+            if xx + p.c - left < du or right - xx - p.c < du:
+                s = -0.42                              # the rim, one texel
             # buttress: the fins are separated by dark folds
             if extra > 2:
                 fold = math.sin((t * span) / 5.0 + seed)
                 if fold > 0.82:
                     s -= 0.26
-            else:
+                elif fold > 0.72:
+                    s += 0.08                          # lit lip of the fold
+            elif 0.07 <= t <= 0.93:
+                hit = False
                 for (gx, ph, per) in grooves:
                     g = gx + 0.05 * math.sin(y / per + ph)
-                    if abs(t - g) < 0.5 / span + 0.02:
-                        s -= 0.20
-                    elif 0 < g - t < 1.5 / span + 0.02 and t < 0.6:
+                    if abs(t - g) < 0.25 / span + 0.012:
+                        s -= 0.22
+                        hit = True
+                    elif 0 < g - t < 0.75 / span + 0.012 and t < 0.6:
                         s += 0.06
+                for (gx, ph, per) in fine:
+                    g = gx + 0.04 * math.sin(y / per + ph)
+                    if not hit and abs(t - g) < 0.25 / span:
+                        s -= 0.10
+                if not hit:
+                    gi = sum(1 for c in cuts if c < t)
+                    ph_h, ph_o = plate[gi]
+                    m = (y + ph_o) % ph_h
+                    if m < du * 0.9:
+                        s -= 0.16                      # plate crack
+                    elif m < du * 1.9:
+                        s += 0.06                      # its lit lip
             for (ky, kt) in knots:
-                if abs(y - ky) <= 1 and abs(t - kt) < 1.5 / span:
-                    s = -0.32
-                elif abs(y - ky - 1.5) <= 0.5 and abs(t - kt) < 1.0 / span:
-                    s = 0.22
+                dk = ((y + p.c - ky) / 1.7) ** 2 + ((t - kt) * span / 1.9) ** 2
+                if dk < 0.3:
+                    s = -0.34
+                elif dk < 1.0:
+                    s = -0.20 if y + p.c < ky + 0.6 else 0.22
             p.set(xx, y, _clamp(v + s), ramp)
             if moss:
                 for (my, ml) in mosses:
-                    if my <= y < my + ml and t < 0.45 and bayer_on(xx, y, 0.6 - t):
+                    tx, ty = p.texel(xx, y)
+                    if my <= y < my + ml and t < 0.45 and hd_on(tx, ty, 0.6 - t, seam=1.0):
                         p.set(xx, y, _clamp(moss_v + (0.18 if t < 0.25 else 0.0)), moss)
+
+
+def limb(p, x0, y0, side, span, v, ramp=None, slope=0.5, thick=2.0, taper=0.0):
+    """A bough out of a trunk: `span` world units long, rising `slope` per
+    unit, `thick` deep at the root thinning by `taper` per unit. A lit top
+    edge, a body and a dark underside, a texel each at least."""
+    for k in p.span(0, span):
+        th = max(1.0, thick - taper * k)
+        bx = x0 + side * k
+        by = y0 - k * slope
+        for t in p.span(0, th):
+            f = t / th
+            s = 0.10 if f < 0.26 else (-0.16 if f > 0.6 else -0.02)
+            p.set(bx, by + t, _clamp(v + s), ramp)
 
 
 def vine(p, x, y0, length, v, seed, ramp=None, leaf_ramp=None, leaf_v=None,
          every=7, curl=True):
-    """A hanging liana: a two-pixel stem swinging gently as it falls, small
-    leaves off it in pairs, and a curl at the bottom."""
+    """A hanging liana: a stem swinging gently as it falls, small leaves off
+    it in pairs, and a curl at the bottom. At 2x the stem is four texels across
+    -- lit edge, body, shadow -- with the twist of the liana showing as a
+    diagonal dark texel every few units."""
     rnd = random.Random(seed)
     lv = v + 0.15 if leaf_v is None else leaf_v
-    xx = float(x)
     amp = rnd.uniform(0.5, 1.4)
     last = (x, y0)
-    for i in range(length):
-        y = y0 + i
-        if y >= p.h:
+    shades = (0.14, 0.06, -0.04, -0.12)          # no darker than the 1x stem's -0.14
+    for yy in p.span(y0, y0 + length):
+        i = yy - y0
+        if yy >= p.h:
             return
         xx = x + amp * 4 * math.sin(i / 23.0 + seed) + 1.6 * math.sin(i / 7.0 + seed * 2)
-        p.set(int(xx), y, _clamp(v + 0.12), ramp)
-        p.set(int(xx) + 1, y, _clamp(v - 0.14), ramp)
-        last = (xx, y)
-        if i > 4 and i % every == every // 2:
-            side = 1 if (i // every) % 2 else -1
-            leaf(p, xx + (2 if side > 0 else -0.5), y, 40 if side > 0 else 140,
+        twist = int((i * p.k) % (3 * p.k))
+        for j, s in enumerate(shades):
+            if j == twist and j in (1, 2):
+                s = -0.14
+            p.set(xx + j / float(p.k), yy, _clamp(v + s), ramp)
+        last = (xx, yy)
+        ii = int(i)
+        if i == ii and ii > 4 and ii % every == every // 2:
+            side = 1 if (ii // every) % 2 else -1
+            leaf(p, xx + (2 if side > 0 else -0.5), yy, 40 if side > 0 else 140,
                  rnd.uniform(4, 7), rnd.uniform(1.3, 2.0), _clamp(lv), leaf_ramp or ramp,
                  rib=False)
     if curl:
         cx, cy = last
-        for a in range(0, 300, 20):
+        for a in range(0, 300, 8):
             r = 2.6 - a / 200.0
-            p.set(int(cx + 1 + math.cos(math.radians(a)) * r),
-                  int(cy + 2 + math.sin(math.radians(a)) * r), _clamp(v), ramp)
+            ex = cx + 1 + math.cos(math.radians(a)) * r
+            ey = cy + 2 + math.sin(math.radians(a)) * r
+            p.set(ex, ey, _clamp(v + 0.08), ramp)
+            p.set(ex + 0.5, ey + 0.5, _clamp(v - 0.14), ramp)
 
 
 def frond(p, x, y, ang, length, v, seed, ramp=None, leaflet=6.0, droop=0.9):
     """A fern or palm frond: a curving rachis with leaflets either side,
-    shrinking toward the tip."""
+    shrinking toward the tip. Walked a texel at a time, so the rachis is a
+    one-texel line and the curve is smooth."""
     rnd = random.Random(seed)
     a = math.radians(ang)
     px, py = float(x), float(y)
     n = int(length)
-    for i in range(n):
+    k = p.k
+    for i2 in range(n * k):
+        i = i2 / float(k)
         t = i / float(n)
-        a += droop * 0.035 * (1 if math.cos(a) >= 0 else -1)
-        px += math.cos(a)
-        py += math.sin(a)
-        p.set(int(px), int(py), _clamp(v - 0.06), ramp)
-        if i % 3 == 1 and t > 0.05:
+        a += droop * 0.035 / k * (1 if math.cos(a) >= 0 else -1)
+        px += math.cos(a) / k
+        py += math.sin(a) / k
+        p.set(px, py, _clamp(v - 0.06), ramp)
+        if i2 % k == k - 1 and int(i) % 3 == 1 and t > 0.05:
             L = leaflet * (1.0 - t * 0.8) + rnd.uniform(-0.5, 0.5)
             for side in (-1, 1):
                 la = math.degrees(a) + side * (62 - 20 * t) + 18
@@ -247,7 +322,9 @@ def frond(p, x, y, ang, length, v, seed, ramp=None, leaflet=6.0, droop=0.9):
 def cumulus(p, cx, cy, rx, ry, v, seed, ramp=None, base_dark=0.26):
     """A cumulus: round lumps along a flat base, lit on top-left, the base in
     shade. Unlike backdrops.cloud, which is a smear, this is an object with a
-    top and a bottom."""
+    top and a bottom. At 2x each lump that sits over another draws a shadow
+    crease along its lower edge, so the billows read one behind another, and
+    the silver lip on the lit edge is a single texel."""
     rnd = random.Random(seed)
     lumps = []
     for i in range(int(rx / 6) + 3):
@@ -256,26 +333,40 @@ def cumulus(p, cx, cy, rx, ry, v, seed, ramp=None, base_dark=0.26):
         r = ry * (0.45 + 0.6 * k) * rnd.uniform(0.7, 1.05)
         lumps.append((cx + ox, cy - r * 0.35, r))
     for (lx, ly, r) in lumps:
-        for y in range(int(ly - r), int(min(cy + 2, ly + r)) + 1):
-            for x in range(int(lx - r), int(lx + r) + 1):
-                dx, dy = (x + 0.5 - lx) / r, (y + 0.5 - ly) / r
+        rim = (1.0 - 0.55 / r) ** 2
+        for y in p.span(ly - r, min(cy + 2, ly + r) + 1):
+            for x in p.span(lx - r, lx + r + 1):
+                dx, dy = (x + p.c - lx) / r, (y + p.c - ly) / r
                 d = dx * dx + dy * dy
                 if d > 1.0:
                     continue
+                # Three tones a whole step apart, not the 1x's +0.24/+0.08/-0.08:
+                # those were dot densities, and at whole steps the body and the
+                # underside rounded onto the haze behind them, leaving only the
+                # lip -- a sea of white crescents.
                 facing = -dx * 0.6 - dy
-                s = 0.24 if facing > 0.55 else (0.08 if facing > 0.0 else -0.08)
+                s = 0.30 if facing > 0.55 else (0.06 if facing > -0.2 else -0.18)
+                if d > rim and facing < -0.25 and p.get(x, y) is not None:
+                    s = -0.24                         # crease over the lump behind
                 if y > cy - 2:
-                    s = -base_dark * 0.6
-                if d > 0.86 and facing > 0.4:
-                    s = 0.32                          # silver rim on the lit edge
+                    s = -base_dark * 1.1
+                    if y + p.c > cy + 1.5:
+                        s = -base_dark * 1.5          # the flat base, its last texel
+                if d > rim and facing > 0.4:
+                    s = 0.36                          # silver lip on the lit edge
                 p.set(x, y, _clamp(v + s), ramp)
 
 
 def masonry(p, x0, y0, w, h, v, seed, ramp=None, course=7, block=(10, 18),
             chip=0.12):
     """Dressed stone laid in courses: lit top edge per course, a dark mortar
-    line under it, staggered joints, and a few chipped blocks."""
+    line under it, staggered joints, and a few chipped blocks. At 2x the
+    mortar and the arris are a texel each with a texel of shade above the
+    mortar, the chips break diagonally, and blocks carry pits and the odd
+    hairline crack."""
     rnd = random.Random(seed)
+    drnd = random.Random(seed * 7 + 1)
+    du = 1.0 / p.k
     y = y0
     row = 0
     while y < y0 + h:
@@ -285,16 +376,38 @@ def masonry(p, x0, y0, w, h, v, seed, ramp=None, course=7, block=(10, 18),
             bw = rnd.randint(*block)
             tone = v + rnd.uniform(-0.06, 0.06)
             broken = rnd.random() < chip
-            for yy in range(y, y + ch):
-                for xx in range(max(x, x0), min(x + bw, x0 + w)):
-                    if yy == y + ch - 1 or xx == x + bw - 1:
-                        s = -0.28                      # mortar
-                    elif yy == y or xx == x:
+            pits = [(x + drnd.uniform(1, max(1.5, bw - 2)), y + drnd.uniform(1, max(1.5, ch - 2)))
+                    for _ in range(drnd.randint(0, 3))]
+            crack = None
+            if drnd.random() < 0.18 and ch >= 4:
+                crack = (x + drnd.uniform(2, max(2.5, bw - 3)), drnd.uniform(-0.7, 0.7))
+            for yy in p.span(y, y + ch):
+                fy = yy - y
+                for xx in p.span(max(x, x0), min(x + bw, x0 + w)):
+                    fx = xx - x
+                    if fy >= ch - du or fx >= bw - du:
+                        s = -0.30                      # mortar
+                    elif fy >= ch - 2 * du:
+                        s = -0.10                      # shade over the mortar
+                    elif fy < du:
                         s = 0.18                       # arris
+                    elif fx < du:
+                        s = 0.12
                     else:
                         s = 0.0
-                    if broken and xx > x + bw - 5 and yy < y + 3:
+                    if broken and fy < 3 and (bw - fx) + fy * 1.3 < 5.5:
                         continue
+                    if broken and fy < 3.5 and abs((bw - fx) + fy * 1.3 - 5.75) < 0.5:
+                        s = -0.20                      # the broken face
+                    if s == 0.0:
+                        for (qx, qy) in pits:
+                            if abs(xx - qx) < du * 0.5 and abs(yy - qy) < du * 0.5:
+                                s = -0.18
+                            elif abs(xx - qx - du) < du * 0.5 and abs(yy - qy - du) < du * 0.5:
+                                s = 0.08
+                        if crack and abs(xx - (crack[0] + crack[1] * fy
+                                               + 0.6 * math.sin(fy * 2.1))) < du * 0.5:
+                            s = -0.16
                     p.set(xx, yy, _clamp(tone + s), ramp)
             x += bw
         y += ch
@@ -305,35 +418,48 @@ def peak(p, cx, base, h, half, v, seed, ramp=None, snow=None, snow_v=0.8,
          snow_from=0.78):
     """A mountain with structure: a lit west face and a shadowed east face
     split along a ridge that wanders, gullies cut down both, and a snow cap
-    that follows the gullies down rather than ending on a ruled line."""
+    that follows the gullies down rather than ending on a ruled line. At 2x
+    the gullies are carved (a dark cut with a lit lip on its west side), the
+    shadow face is laddered with strata, and the snow line is ragged."""
     rnd = random.Random(seed)
     ridge_x = [0.0]
     for i in range(h):
         ridge_x.append(ridge_x[-1] + rnd.uniform(-0.6, 0.6))
     gullies = [rnd.uniform(-0.8, 0.8) for _ in range(5)]
-    for y in range(max(0, base - h), min(p.h, base)):
+    du = 1.0 / p.k
+    for y in p.span(max(0, base - h), min(p.h, base)):
         t = (base - y) / float(h)                       # 0 foot .. 1 summit
-        k = base - y
+        k = int(base - y)
         rx = cx + ridge_x[min(k, h)] * 0.6
         wl = half * (1.0 - t) * (1.0 + 0.08 * math.sin(y / 5.0 + seed))
         wr = half * (1.0 - t) * (1.0 + 0.08 * math.sin(y / 6.0 + seed * 2))
-        for x in range(int(rx - wl), int(rx + wr) + 1):
-            u = (x - rx) / max(1.0, (wl if x < rx else wr))
+        for x in p.span(rx - wl, rx + wr + 1):
+            u = (x + p.c - rx) / max(1.0, (wl if x + p.c < rx else wr))
+            if u > 1.0:
+                continue
             s = 0.20 if u < 0 else -0.18
             if u < -0.85 or (u < 0 and abs(u) < 0.08):
                 s += 0.08
+            gw = 0.03 + 0.02 * (1 - t)
             for g in gullies:
                 gx = g + 0.08 * math.sin(y / 9.0 + g * 10)
-                if abs(u - gx) < 0.05 + 0.03 * (1 - t):
-                    s -= 0.16
-            if snow and (t > snow_from + 0.05 * math.sin(x / 3.0 + seed)
-                         or (t > snow_from - 0.18 and any(abs(u - g) < 0.06 for g in gullies))):
+                if abs(u - gx) < gw:
+                    s -= 0.18
+                elif 0 < gx - u < gw + du / max(1.0, wl):
+                    s += 0.06
+            if u > 0.05 and ((y + 2.5 * math.sin(x / 6.0 + seed)) % 4.0) < du:
+                s -= 0.08                               # strata
+            snowy = snow and (t > snow_from + 0.05 * math.sin(x / 3.0 + seed)
+                              + 0.025 * math.sin(x * 2.3 + y)
+                              or (t > snow_from - 0.18 and any(abs(u - g) < 0.06 for g in gullies)))
+            if snowy:
                 p.set(x, y, _clamp(snow_v + (0.14 if u < 0 else -0.12)), snow)
             else:
                 p.set(x, y, _clamp(v + s), ramp)
 
 
 def bubbles(p, n, seed, v, ramp=None, y_range=None):
+    """Rising bubbles: a ring one texel thick with a catch-light inside it."""
     rnd = random.Random(seed)
     lo, hi = y_range or (0, p.h)
     for _ in range(n):
@@ -341,11 +467,12 @@ def bubbles(p, n, seed, v, ramp=None, y_range=None):
         r = rnd.choice((0, 0, 1, 1, 2))
         if r == 0:
             p.set(x, y, v, ramp)
+            p.set(x + 0.5, y + 0.5, _clamp(v - 0.1), ramp)
             continue
-        for a in range(0, 360, 30):
-            p.set(int(x + math.cos(math.radians(a)) * r), int(y + math.sin(math.radians(a)) * r),
-                  _clamp(v - 0.1), ramp)
-        p.set(x - 1, y - 1, _clamp(v + 0.2), ramp)
+        for a in range(0, 360, 15):
+            p.set(x + 0.25 + math.cos(math.radians(a)) * r,
+                  y + 0.25 + math.sin(math.radians(a)) * r, _clamp(v - 0.1), ramp)
+        p.set(x - r * 0.4, y - r * 0.4, _clamp(v + 0.2), ramp)
 
 
 def treeline(p, base_y, v, seed, ramp=None, bump=(5, 12), depth=60, spacing=7,
@@ -362,27 +489,31 @@ def treeline(p, base_y, v, seed, ramp=None, bump=(5, 12), depth=60, spacing=7,
         r = rnd.randint(*bump)
         bumps.append((x, base_y + rnd.randint(-amp, amp // 2) + int(amp * 0.6 * math.sin(x / 47.0 + seed)), r))
         x += rnd.randint(spacing - 2, spacing + 4)
-    top = [p.h] * p.w
-    owner = [None] * p.w
+    top = [float(p.h)] * p.tw
+    owner = [None] * p.tw
     for (cx, cy, r) in bumps:
-        for dx in range(-r, r + 1):
-            px = (cx + dx) % p.w
-            t = cy - int((r * r - dx * dx) ** 0.5)
-            if t < top[px]:
-                top[px] = t
-                owner[px] = (cx, cy, r, dx)
-    for px in range(p.w):
-        if top[px] >= p.h:
+        for xs in p.span(cx - r, cx + r + 1):
+            dx = xs + p.c - cx
+            if abs(dx) > r:
+                continue
+            tx = p.texel(xs, 0)[0]
+            t = cy - (r * r - dx * dx) ** 0.5
+            if t < top[tx]:
+                top[tx] = t
+                owner[tx] = (cx, cy, r, dx)
+    for tx in range(p.tw):
+        if top[tx] >= p.h:
             continue
-        cx, cy, r, dx = owner[px]
-        for py in range(max(0, top[px]), min(p.h, base_y + depth)):
-            d = py - top[px]
-            dy = py - cy
+        px = tx / float(p.k)
+        cx, cy, r, dx = owner[tx]
+        for py in p.span(max(0, top[tx]), min(p.h, base_y + depth)):
+            d = py - top[tx]
+            dy = py + p.c - cy
             s = 0.0
             if d < r:                                       # on the crown's dome
                 facing = (-dx - dy) / float(r)
                 s = crest if facing > 0.5 else (-0.06 if facing < -0.4 else 0.04)
-                if d < 1:
+                if d < 0.5:
                     s += 0.06
             s -= fade * max(0.0, py - base_y) / float(max(1, depth))
             p.set(px, py, _clamp(v + s), ramp)
@@ -393,7 +524,8 @@ def forest_rank(p, horizon, v, seed, ramp=None, count=12, crown=(10, 22),
     """One rank of distant forest: separate trees whose crowns stand at very
     different heights over a continuous understorey. Each crown is a knot of
     round lumps lit on the upper left; each trunk is a line down into the
-    body. The body starts at `horizon` and darkens over `body` rows."""
+    body. The body starts at `horizon` and darkens over `body` rows, its top
+    edge dissolved into the air with a texel dither."""
     rnd = random.Random(seed)
     trees = []
     for i in range(count):
@@ -401,42 +533,46 @@ def forest_rank(p, horizon, v, seed, ramp=None, count=12, crown=(10, 22),
         r = rnd.randint(*crown)
         cy = horizon - rnd.randint(*rise)
         trees.append((cy, x, r))
-    trees.sort(reverse=True)            # the tallest last? no: tallest first
     trees.sort()
     for (cy, x, r) in trees:
-        for y in range(cy, p.h):
-            for k in range(trunk_w):
-                p.set(x + k, y, _clamp(v - 0.14 + (0.08 if k == 0 and trunk_w > 1 else 0)), ramp)
+        for y in p.span(cy, p.h):
+            for k in p.span(0, trunk_w):
+                p.set(x + k, y, _clamp(v - 0.14 + (0.08 if k == 0 else 0)), ramp)
     for (cy, x, r) in trees:
         lumps = [(x + rnd.uniform(-r * 0.7, r * 0.7), cy + rnd.uniform(-r * 0.3, r * 0.35),
                   r * rnd.uniform(0.45, 0.7)) for _ in range(rnd.randint(4, 7))]
         lumps.append((x, cy - r * 0.15, r * 0.6))
         lumps.sort(key=lambda l: -l[1])         # lower lumps first, upper over them
         for (lx, ly, lr) in lumps:
-            for yy in range(int(ly - lr), int(ly + lr) + 1):
-                for xx in range(int(lx - lr), int(lx + lr) + 1):
-                    dx, dy = (xx + 0.5 - lx) / lr, (yy + 0.5 - ly) / lr
+            for yy in p.span(ly - lr, ly + lr + 1):
+                for xx in p.span(lx - lr, lx + lr + 1):
+                    dx, dy = (xx + p.c - lx) / lr, (yy + p.c - ly) / lr
                     d = dx * dx + dy * dy
                     if d > 1.0:
                         continue
                     f = -dx - dy
                     s = 0.16 if f > 0.75 else (0.05 if f > 0.0 else -0.07)
+                    if d > (1.0 - 0.5 / lr) ** 2 and f < -0.3:
+                        s = -0.12                   # where one lump tucks under
                     p.set(xx, yy, _clamp(v + s), ramp)
-    for y in range(max(0, horizon), p.h):
+    for y in p.span(max(0, horizon), p.h):
         d = (y - horizon) / float(max(1, body))
-        for x in range(p.w):
-            if bayer_on(x, y, min(1.0, 0.35 + d)):
-                p.set(x, y, _clamp(v - 0.06 - body_fade * min(1.0, d)), ramp)
+        ty = int(y * p.k)
+        for tx in range(p.tw):
+            if hd_on(tx, ty, min(1.0, 0.35 + d)):
+                p.val[ty][tx] = _clamp(v - 0.06 - body_fade * min(1.0, d))
+                p.mat[ty][tx] = ramp
     # the ragged top of the understorey
     rnd2 = random.Random(seed + 1)
     x = 0
     while x < p.w:
         r = rnd2.randint(3, 8)
         cy = horizon + rnd2.randint(-2, 3)
-        for yy in range(cy - r, cy + 1):
-            for xx in range(x - r, x + r + 1):
-                if (xx - x) ** 2 + (yy - cy) ** 2 <= r * r:
-                    f = -(xx - x) - (yy - cy)
+        for yy in p.span(cy - r, cy + 1):
+            for xx in p.span(x - r, x + r + 1):
+                ex, ey = xx + p.c - x, yy + p.c - cy
+                if ex * ex + ey * ey <= r * r:
+                    f = -ex - ey
                     p.set(xx, yy, _clamp(v - 0.02 + (0.08 if f > r * 0.8 else 0.0)), ramp)
         x += rnd2.randint(4, 9)
 
@@ -483,9 +619,7 @@ def _jungle():
             by = rnd.randrange(top + 40, base - 40)
             side = rnd.choice((-1, 1))
             span = rnd.randrange(12, 24)
-            for k in range(span):
-                far.set(x + w // 2 + side * (w // 2 + k), by - k // 2, 0.44)
-                far.set(x + w // 2 + side * (w // 2 + k), by - k // 2 + 1, 0.28)
+            limb(far, x + w // 2 + side * (w // 2), by, side, span, 0.38, thick=2.0)
             crown_of_leaves(far, x + w // 2 + side * (w // 2 + span), by - span // 2 - 3,
                             rnd.randrange(10, 15), rnd.randrange(6, 9), 0.58,
                             1260 + i, size_=(4, 6))
@@ -528,10 +662,8 @@ def _jungle():
             by = rnd.randrange(40, H - 120)
             side = rnd.choice((-1, 1))
             span = rnd.randrange(18, 36)
-            for k in range(span):
-                for t in range(max(1, 4 - k // 10)):
-                    near.set(x + w // 2 + side * (w // 2 + k), by + k // 4 + t,
-                             0.42 if t == 0 else 0.26)
+            limb(near, x + w // 2 + side * (w // 2), by, side, span, 0.34,
+                 slope=-0.25, thick=4.0, taper=0.1)
             leaf_cluster(near, x + w // 2 + side * (w // 2 + span + 3), by + span // 4,
                          11, 0.58, 1330 + i * 3 + by, size_=(6, 11))
     for i in range(34):                                 # the canopy's underside
@@ -549,7 +681,8 @@ def _jungle():
 
     # Fg: a few blades and fern tips across the bottom, nearer than the tiles.
     # Drawn over the tiles (src/world/level.gd) but behind every entity, so it
-    # must stay sparse and dark: a hint of ground cover, never a hedge.
+    # must stay sparse and dark: a hint of ground cover, never a hedge. At 2x a
+    # blade is two texels at its foot tapering to one, lit on its left.
     fg = plane("fg", "grass", (0.0, 1.8))
     H = fg.h
     rnd = random.Random(1401)
@@ -557,9 +690,12 @@ def _jungle():
         x = rnd.randrange(fg.w)
         bh = rnd.randrange(8, 18)
         lean = rnd.uniform(-0.35, 0.35)
-        for k in range(bh):
+        for k in fg.span(0, bh):
             t = k / float(bh - 1)
-            fg.set(x + int(lean * k * k / bh), H - 1 - k, 0.15 + 0.7 * t)
+            bx = x + lean * k * k / bh
+            fg.set(bx, H - 1 - k + 0.5, _clamp(0.15 + 0.7 * t + 0.08))
+            if t < 0.6:
+                fg.set(bx + 0.5, H - 1 - k + 0.5, _clamp(0.15 + 0.7 * t - 0.1))
     for i in range(4):
         fx = rnd.randrange(fg.w)
         for a in (-150, -118, -62, -30):
@@ -594,12 +730,17 @@ def _sky():
              amp=8, crest=0.22, fade=0.3)
     forest_rank(far, oy + 214, 0.36, 5061, "foliage", count=14, crown=(8, 16),
                 rise=(2, 26), body=30)
-    for i in range(9):                                  # the cloud sea, lit on top
+    # The cloud sea, lit on top. At 1x its value (0.52) was a density of white
+    # dots over the haze; at whole steps the same value IS the haze, so at 2x
+    # the clouds are painted white with a grey underside instead.
+    for i in range(9):
         cumulus(far, rnd.randrange(far.w), oy + rnd.randrange(150, 196),
-                rnd.randrange(30, 60), rnd.randrange(10, 18), 0.52, 5050 + i, ramp="metal")
+                rnd.randrange(30, 60), rnd.randrange(10, 18), 0.80, 5050 + i, ramp="metal",
+                base_dark=0.40)
     for i in range(4):                                  # towers further off
         cumulus(far, rnd.randrange(far.w), oy + rnd.randrange(90, 130),
-                rnd.randrange(18, 30), rnd.randrange(16, 26), 0.66, 5070 + i, ramp="metal")
+                rnd.randrange(18, 30), rnd.randrange(16, 26), 0.86, 5070 + i, ramp="metal",
+                base_dark=0.40)
     mist(far, oy + 176, 30, 0.5)
     horizon_haze(far, oy + 140, H, 0.58, 0.30, bands=4)
 
@@ -607,18 +748,27 @@ def _sky():
     # not in one. Four short vines, not nine: SKY BRANCH has climbable vine
     # tiles, and a backdrop full of dangling green strings invites a player to
     # climb the wallpaper. The edge post is on `foliage`, not `wood`, for the
-    # same reason the jungle's trunks are.
+    # same reason the jungle's trunks are. At 2x the limb's bark runs along it
+    # in grooves that follow its curve.
     near = plane("near", "foliage", (0.2, 2.6))
     H = near.h
     rnd = random.Random(5070)
-    for y in range(0, 34):                              # the limb itself
-        for x in range(near.w):
-            t = (y - (3 + int(7 * math.sin(2 * math.pi * x / near.w * 3)))) / 18.0
-            if 0.0 <= t <= 1.0:
-                s = 0.30 if t < 0.25 else (-0.24 if t > 0.78 else 0.0)
-                if (x * 7 + y * 3) % 23 == 0:
-                    s -= 0.2                            # bark
-                near.set(x, y, _clamp(0.42 + s), "wood")
+    du = 1.0 / near.k
+    for x in near.span(0, near.w):
+        y0 = 3 + 7 * math.sin(2 * math.pi * (x + near.c) / near.w * 3)
+        for y in near.span(max(0.0, y0), min(34.0, y0 + 18)):
+            t = (y + near.c - y0) / 18.0
+            if not 0.0 <= t <= 1.0:
+                continue
+            s = 0.30 if t < 0.25 else (-0.24 if t > 0.78 else 0.0)
+            g = (t * 18 + 1.3 * math.sin(x / 13.0) + 0.6 * math.sin(x / 4.7)) % 3.0
+            if g < du and 0.08 < t < 0.92:
+                s -= 0.2                                # bark grooves along the limb
+            elif g < 2 * du and 0.08 < t < 0.92:
+                s += 0.05
+            if t < du / 18.0 * 1.5 or t > 1 - du / 18.0 * 1.5:
+                s = -0.3
+            near.set(x, y, _clamp(0.42 + s), "wood")
     for i in range(26):
         leaf_cluster(near, int(i * near.w / 26.0) + rnd.randrange(-6, 6),
                      rnd.randrange(22, 36), rnd.randrange(9, 14), 0.56, 5080 + i,
@@ -629,9 +779,7 @@ def _sky():
     bark_trunk(near, 20, 0, H, 17, 0.44, 5095, taper=0.85)
     for _ in range(2):
         by = rnd.randrange(60, H - 80)
-        for k in range(26):
-            near.set(37 + k, by + k // 3, 0.42)
-            near.set(37 + k, by + k // 3 + 1, 0.24)
+        limb(near, 37, by, 1, 26, 0.36, slope=-1.0 / 3.0, thick=2.0)
         leaf_cluster(near, 66, by + 9, 11, 0.56, 5096 + by, size_=(6, 10))
     return {"sky": sky, "far": far, "near": near}
 
@@ -642,30 +790,47 @@ def arcade(p, x0, spacing, top, bottom, width, v, seed, ramp=None, broken=0.3,
     """A run of dressed columns carrying arches, laid in courses (masonry),
     some broken off short. Architecture is the one subject where regularity
     is the read, so this is the only brush that repeats on a fixed pitch --
-    `spacing` must divide the strip width for the wrap to hold."""
+    `spacing` must divide the strip width for the wrap to hold. At 2x the
+    arch is laid in voussoirs with a keystone, and the capital has a lit
+    abacus over a shadowed echinus."""
     rnd = random.Random(seed)
+    du = 1.0 / p.k
     x = x0
     while x < x0 + p.w:
         h = bottom - top
         cut = top + (rnd.randint(int(h * 0.3), int(h * 0.7)) if rnd.random() < broken else 0)
         masonry(p, x, cut, width, bottom - cut, v, seed + x, ramp, course=8,
                 block=(width, width), chip=0.25)
-        for yy in range(cut, bottom):                   # cylinder light on the shaft
-            p.boost(x + 1, yy, 0.14)
-            p.boost(x + width - 2, yy, -0.14)
+        for yy in p.span(cut, bottom):                  # cylinder light on the shaft
+            for j in range(p.k):
+                p.boost(x + 1 + j * du, yy, 0.14 - 0.05 * j)
+                p.boost(x + width - 2 + j * du, yy, -0.10 - 0.04 * j)
         if cut == top:                                  # capital
-            for yy in range(top - 3, top):
-                for xx in range(x - 2, x + width + 2):
-                    p.set(xx, yy, _clamp(v + (0.22 if yy == top - 3 else 0.0)), ramp)
+            for yy in p.span(top - 3, top):
+                fy = yy - (top - 3)
+                for xx in p.span(x - 2, x + width + 2):
+                    s = 0.22 if fy < du else (0.06 if fy < 1.5 else -0.12)
+                    if xx < x - 2 + du or xx >= x + width + 2 - du:
+                        s -= 0.12
+                    p.set(xx, yy, _clamp(v + s), ramp)
             if arch and rnd.random() < 0.75:
                 r = (spacing - width) / 2.0
                 cx = x + width + r
-                for a in range(0, 181, 2):
-                    for t in range(5):
+                for a2 in range(0, 181 * p.k):
+                    a = a2 / float(p.k)
+                    joint = (a % 15.0) < 0.6 and 6 < a < 174
+                    key = abs(a - 90) < 4.5
+                    for t in p.span(0, 5):
                         ax = cx - math.cos(math.radians(a)) * (r + t)
                         ay = top - 3 - math.sin(math.radians(a)) * (r * 0.8 + t)
-                        p.set(int(ax), int(ay), _clamp(v + (0.24 if t == 4 else
-                                                            (-0.18 if t == 0 else 0.02))), ramp)
+                        s = 0.24 if t >= 5 - du else (-0.18 if t < du else 0.02)
+                        if key:
+                            s += 0.06
+                            if abs(abs(a - 90) - 4.2) < 0.4:
+                                s = -0.2
+                        elif joint and du <= t < 5 - du:
+                            s = -0.16
+                        p.set(ax, ay, _clamp(v + s), ramp)
         x += spacing
 
 
@@ -707,24 +872,28 @@ def _ruins():
     # enough that a green frog in front of it is still a green frog.
     near = plane("near", "stone", (0.0, 1.6), windows={"foliage": (0.0, 1.2)})
     H = near.h
+    du = 1.0 / near.k
     rnd = random.Random(6040)
     for i in range(3):
         x = (i * near.w // 3 + rnd.randrange(40)) % near.w
         w = rnd.randrange(18, 26)
         masonry(near, x, 0, w, H, 0.50, 6041 + i, course=26, block=(w, w), chip=0.0)
-        for yy in range(H):
-            near.boost(x + 2, yy, 0.16)
-            near.boost(x + w - 3, yy, -0.18)
+        for yy in near.span(0, H):
+            for j in range(near.k):
+                near.boost(x + 2 + j * du, yy, 0.16 - 0.04 * j)
+                near.boost(x + w - 3 + j * du, yy, -0.14 - 0.06 * j)
     for i in range(14):                                 # kelp from the floor up
         x = rnd.randrange(near.w)
         L = rnd.randrange(60, 200)
-        for k in range(L):
+        for k in near.span(0, L):
             y = H - 1 - k
             xx = x + 3 * math.sin(k / 13.0 + i) + 1.4 * math.sin(k / 5.0 + i)
-            near.set(int(xx), y, 0.62, "foliage")
-            near.set(int(xx) + 1, y, 0.40, "foliage")
-            if k % 9 == 4:
-                leaf(near, xx + 1, y, -30 if (k // 9) % 2 else -150, rnd.uniform(5, 9), 1.6,
+            near.set(xx, y, 0.66, "foliage")
+            near.set(xx + du, y, 0.58, "foliage")
+            near.set(xx + 2 * du, y, 0.48, "foliage")
+            near.set(xx + 3 * du, y, 0.40, "foliage")      # the 1x stem's dark side
+            if k == int(k) and int(k) % 9 == 4:
+                leaf(near, xx + 1, y, -30 if (int(k) // 9) % 2 else -150, rnd.uniform(5, 9), 1.6,
                      0.70, "foliage")
     for i in range(10):
         vine(near, rnd.randrange(near.w), 0, rnd.randrange(30, 120), 0.62, 6050 + i,
@@ -737,8 +906,8 @@ def _ruins():
         x = rnd.randrange(fg.w)
         y0 = H - rnd.randrange(8, 90)
         length = rnd.randrange(6, 15)
-        for k in range(length):
-            fg.set(x + int(1.6 * math.sin(k / 3.0 + i)), y0 - k, 0.25 + 0.55 * (k / float(length)))
+        for k in fg.span(0, length):
+            fg.set(x + 1.6 * math.sin(k / 3.0 + i), y0 - k, 0.25 + 0.55 * (k / float(length)))
     return {"sky": sky, "far": far, "near": near, "fg": fg}
 
 
@@ -761,9 +930,9 @@ def _heights():
     sx, sy = 318, oy + 58
     glow(sky, sx, sy, 46, 0.30, 7030, frac=0.75)        # the sun, behind it all
     for r in (10, 7):
-        for y in range(sy - r, sy + r + 1):
-            for x in range(sx - r, sx + r + 1):
-                if math.hypot(x - sx, y - sy) <= r:
+        for y in sky.span(sy - r, sy + r + 1):
+            for x in sky.span(sx - r, sx + r + 1):
+                if math.hypot(x + sky.c - sx, y + sky.c - sy) <= r:
                     sky.set(x, y, 0.9 if r == 10 else 1.0, "gold")
     # the furthest range, barely there
     for i in range(6):
@@ -790,29 +959,41 @@ def _heights():
     horizon_haze(far, oy + 150, H, 0.50, 0.26, bands=4)
 
     # Near: the cliff you are on, up both edges of the strip, and the ledges
-    # jutting from it. Dark, because everything behind it is pale.
+    # jutting from it. Dark, because everything behind it is pale. At 2x the
+    # strata are a texel thick with a lit lip under each, and vertical joints
+    # split the rock between them.
     near = plane("near", "dirt", (0.0, 1.5))
     H = near.h
+    du = 1.0 / near.k
     rnd = random.Random(7070)
-    for y in range(H):
-        jag = int(9 * math.sin(y / 31.0) + 5 * math.sin(y / 11.0) + 3 * math.sin(y / 4.5))
+    for y in near.span(0, H):
+        jag = 9 * math.sin(y / 31.0) + 5 * math.sin(y / 11.0) + 3 * math.sin(y / 4.5)
         for (lo, hi, lit_left) in ((0, 46 + jag, True), (near.w - 44 - jag, near.w, False)):
-            span = max(1, hi - lo)
-            for x in range(lo, hi):
-                t = (x - lo) / float(span)
+            span = max(1.0, hi - lo)
+            for x in near.span(lo, hi):
+                t = (x + near.c - lo) / float(span)
                 edge = t < 0.16 if lit_left else t > 0.84
                 fade = t > 0.86 if lit_left else t < 0.14
-                strata = 0.12 if (y + int(4 * math.sin(x / 9.0))) % 11 == 0 else 0.0
-                near.set(x, y, _clamp(0.42 + (0.28 if edge else (-0.3 if fade else 0.0))
-                                      - strata))
+                sm = (y + 4 * math.sin(x / 9.0)) % 11.0
+                strata = 0.12 if sm < du else (-0.05 if sm < 2 * du else 0.0)
+                joint = ((x + 3 * math.sin(y / 7.0)) % 13.0) < du and 0 < (sm % 11.0) < 9
+                s = 0.28 if edge else (-0.3 if fade else 0.0)
+                if (lit_left and abs(x + near.c - hi) < du) or \
+                        (not lit_left and abs(x + near.c - lo) < du):
+                    s = 0.36 if lit_left else -0.36       # the cliff's lip
+                near.set(x, y, _clamp(0.42 + s - strata - (0.1 if joint else 0.0)))
     for i in range(6):
         y = rnd.randrange(20, H - 30)
         wdt = rnd.randrange(16, 40)
         left = rnd.random() < 0.5
-        for k in range(rnd.randrange(5, 11)):
-            for x in range(wdt - k):
-                px = (34 + x) if left else (near.w - 34 - x)
-                near.set(px, y + k, 0.62 if k == 0 else 0.26)
+        depth = rnd.randrange(5, 11)
+        for k in near.span(0, depth):
+            for x in near.span(0, wdt - k):
+                px = (34 + x) if left else (near.w - 34 - x - du)
+                v = 0.66 if k < du else (0.5 if k < 2 * du else 0.26)
+                if k >= depth - du or x >= wdt - k - du:
+                    v = 0.16
+                near.set(px, y + k, v)
         for j in range(3):                              # a tuft clinging to it
             frond(near, (34 + wdt // 2 + j * 4) if left else (near.w - 34 - wdt // 2 - j * 4),
                   y, -60 - j * 30, rnd.randrange(8, 13), 0.5, 7075 + i * 3 + j, leaflet=3.5)
@@ -824,8 +1005,8 @@ def _heights():
     for i in range(16):                                 # spindrift, low and thin
         y = H - rnd.randrange(4, 56)
         x0 = rnd.randrange(fg.w)
-        for k in range(rnd.randrange(10, 28)):
-            fg.set(x0 + k, y + int(1.1 * math.sin(k / 4.0 + i)), 0.35 + 0.35 * math.sin(k / 5.0 + i))
+        for k in fg.span(0, rnd.randrange(10, 28)):
+            fg.set(x0 + k, y + 1.1 * math.sin(k / 4.0 + i), 0.35 + 0.35 * math.sin(k / 5.0 + i))
     return {"sky": sky, "far": far, "near": near, "fg": fg}
 
 
@@ -842,20 +1023,27 @@ def _deeps():
     for i in range(8):                                  # galleries going back
         cx, cy = rnd.randrange(sky.w), rnd.randrange(30, H - 30)
         for r in range(rnd.randrange(16, 40), 0, -6):
-            for a in range(0, 360, 4):
-                sky.set(cx + int(math.cos(math.radians(a)) * r * 1.5),
-                        cy + int(math.sin(math.radians(a)) * r), 0.16 + r / 90.0)
+            for a2 in range(0, 360 * 2, 3):
+                a = math.radians(a2 / 2.0)
+                gx, gy = cx + math.cos(a) * r * 1.5, cy + math.sin(a) * r
+                sky.set(gx, gy, 0.16 + r / 90.0)
+                if math.sin(a) > 0.2:                   # the lip lit from below
+                    sky.set(gx, gy - 0.5, 0.22 + r / 90.0)
     for i in range(10):                                 # fungus, far away
         glow(sky, rnd.randrange(sky.w), rnd.randrange(30, H - 20), rnd.randrange(14, 30),
              0.34, 8020 + i, frac=0.6)
     grain(sky, 8030, 1500, dv=0.08)
 
     # Far: the comb. Cell after cell, the one shape that says "something built
-    # this" rather than "something dug this". The pitch divides the strip.
+    # this" rather than "something dug this". The pitch divides the strip. At
+    # 2x the walls have an inner lit rim, and mud drips hang off the cells.
     far = plane("far", "wood", (0.4, 1.5), windows={"purple": (1.4, 3.6)})
     H = far.h
+    du = 1.0 / far.k
     rnd = random.Random(8040)
+    drnd = random.Random(8041)
     holes = []
+    drips = []
     for cy in range(-14, H + 10, 24):
         off = rnd.randrange(32)
         for cx in range(0, far.w, 32):
@@ -867,29 +1055,44 @@ def _deeps():
             thick = 2 if rnd.random() < 0.6 else 3
             if rnd.random() < 0.3:                      # a cell broken through
                 holes.append((x, y, rx - thick, ry - thick))
-            for a in range(0, 360, 5):
-                for t in range(thick):
-                    ang = math.radians(a)
-                    lit = math.cos(ang) < -0.3 and math.sin(ang) < 0.3
-                    far.set(x + int(math.cos(ang) * (rx - t)), y + int(math.sin(ang) * (ry - t)),
-                            (0.72 if lit else 0.58) if t == 0 else 0.30)
+            for a2 in range(0, 360 * far.k * 2):
+                ang = math.radians(a2 / float(far.k * 2))
+                lit = math.cos(ang) < -0.3 and math.sin(ang) < 0.3
+                for t in far.span(0, thick):
+                    if t < du:
+                        s = 0.72 if lit else 0.58
+                    elif t >= thick - du:
+                        s = 0.38 if (not lit and math.sin(ang) < 0) else 0.24
+                    else:
+                        s = 0.30
+                    far.set(x + math.cos(ang) * (rx - t), y + math.sin(ang) * (ry - t), s)
+            if drnd.random() < 0.35:
+                drips.append((x + drnd.uniform(-rx * 0.5, rx * 0.5), y + ry,
+                              drnd.uniform(3, 9)))
             if rnd.random() < 0.12:
                 glow(far, x, y, 12, 0.5, 8050 + cx + cy, frac=0.8)
+    for (dx, dy, ln) in drips:                          # mud stalactites
+        for k in far.span(0, ln):
+            wd = 1.6 * (1.0 - k / ln) + 0.5
+            for j in far.span(-wd / 2, wd / 2):
+                far.set(dx + j, dy + k, 0.44 if j < -wd / 2 + du else 0.28)
+        far.set(dx, dy + ln, 0.52)
     mist(far, H // 2, 64, 0.34, dv=0.14)
     horizon_haze(far, 0, H, 0.62, 0.30, ramp="purple", bands=5)
     # Broken cells open onto the galleries behind: the plane must have holes or
     # it is a wall, not a layer (tests/test_art_depth.gd).
     for (hx, hy, rx, ry) in holes:
-        for yy in range(hy - ry, hy + ry + 1):
-            for xx in range(hx - rx, hx + rx + 1):
-                if ((xx - hx) / float(rx)) ** 2 + ((yy - hy) / float(ry)) ** 2 < 0.8 \
+        for yy in far.span(hy - ry, hy + ry + 1):
+            for xx in far.span(hx - rx, hx + rx + 1):
+                if ((xx + far.c - hx) / float(rx)) ** 2 + ((yy + far.c - hy) / float(ry)) ** 2 < 0.8 \
                         and 0 <= yy < H:
-                    far.val[yy][xx % far.w] = None
+                    far.clear(xx, yy)
 
     # Near: great roots down through everything, bark-fissured, and the
     # mycelium strung between them; a few glowing caps on the roots.
     near = plane("near", "wood", (0.0, 1.4), windows={"purple": (0.8, 2.8)})
     H = near.h
+    du = 1.0 / near.k
     rnd = random.Random(8060)
     for i in range(4):
         x = (i * near.w // 4 + rnd.randrange(50)) % near.w
@@ -897,9 +1100,15 @@ def _deeps():
         bark_trunk(near, x, 0, H, w, 0.48, 8061 + i, wobble=7.0)
         for _ in range(3):                              # a shelf fungus
             fy = rnd.randrange(20, H - 20)
-            for k in range(-5, 6):
-                for t in range(3 - abs(k) // 3):
-                    near.set(x + w + k // 2, fy + t, 0.8 if t == 0 else 0.55, "purple")
+            for k in near.span(-5, 6):
+                depth = 3 - abs(int(math.floor(k))) // 3
+                for t in near.span(0, depth):
+                    s = 0.8 if t < du else (0.66 if t < 2 * du else 0.55)
+                    if t >= du and (k * near.k) % 3 < 1:
+                        s = 0.46                        # gills
+                    if t >= depth - du:
+                        s = 0.42
+                    near.set(x + w + k / 2.0, fy + t, s, "purple")
     for i in range(16):
         vine(near, rnd.randrange(near.w), rnd.randrange(0, 30), rnd.randrange(24, 130),
              0.66, 8070 + i, ramp="purple", every=11, curl=False)
@@ -912,8 +1121,16 @@ def _deeps():
     for i in range(12):
         x = rnd.randrange(fg.w)
         length = rnd.randrange(16, 36)
-        for k in range(length):
-            fg.set(x + int(2.2 * math.sin(k / 5.0 + i)), k, 0.20 + 0.55 * (1.0 - k / float(length)))
+        for k in fg.span(0, length):
+            rx = x + 2.2 * math.sin(k / 5.0 + i)
+            v = 0.20 + 0.55 * (1.0 - k / float(length))
+            fg.set(rx, k, v)
+            if k < length * 0.6:
+                fg.set(rx + 0.5, k, v - 0.12)
+            if int(k * fg.k) % 13 == 6 and k > 3:          # a rootlet
+                side = 1 if int(k) % 2 else -1
+                for j in range(4):
+                    fg.set(rx + side * (0.5 + j * 0.5), k + j * 0.5, v - 0.05)
     return {"sky": sky, "far": far, "near": near, "fg": fg}
 
 
@@ -927,10 +1144,13 @@ def smoke(p, x, y0, height, v, seed, ramp=None):
         cx = x + 14 * t * t + 3 * math.sin(i / 2.0 + seed)
         cy = y0 - i * 6
         r = 4 + 12 * t + rnd.uniform(-1, 1)
-        for yy in range(int(cy - r), int(cy + r) + 1):
-            for xx in range(int(cx - r), int(cx + r) + 1):
-                dx, dy = (xx - cx) / r, (yy - cy) / r
-                if dx * dx + dy * dy > 1.0 or not bayer_on(xx, yy, 0.85 - 0.5 * t):
+        for yy in p.span(cy - r, cy + r + 1):
+            for xx in p.span(cx - r, cx + r + 1):
+                dx, dy = (xx + p.c - cx) / r, (yy + p.c - cy) / r
+                if dx * dx + dy * dy > 1.0:
+                    continue
+                tx, ty = p.texel(xx, yy)
+                if not hd_on(tx, ty, 0.85 - 0.5 * t):
                     continue
                 p.set(xx, yy, _clamp(v + (0.12 if dy > 0.3 else -0.04) - 0.2 * t), ramp)
 
@@ -944,18 +1164,23 @@ def _obsidian():
     sky = plane("sky", "purple", (0.05, 1.05), opaque=True, windows={"ember": (0.8, 4.4)})
     H, oy = sky.h, sky.h - VIEW_H
     vband(sky, 0, oy + 168, 0.10, 0.62, curve=1.6)
-    for y in range(oy + 128, H):
-        t = (y - (oy + 128)) / float(H - 1 - (oy + 128))
-        for x in range(sky.w):
-            if bayer_on(x, y, min(1.0, (t * 1.5) ** 2.0)):
-                sky.set(x, y, 0.10 + 0.86 * (t ** 1.3) + 0.05 * math.sin((x + y * 3) / 17.0),
-                        "ember")
+    for y in sky.span(oy + 128, H):
+        t = (y + sky.c - (oy + 128)) / float(H - 1 - (oy + 128))
+        ty = int(y * sky.k)
+        for tx in range(sky.tw):
+            x = tx / float(sky.k)
+            if hd_on(tx, ty, min(1.0, (t * 1.5) ** 2.0)):
+                sky.val[ty][tx] = 0.10 + 0.86 * (t ** 1.3) + 0.05 * math.sin((x + y * 3) / 17.0)
+                sky.mat[ty][tx] = "ember"
     rnd = random.Random(9010)
     for i in range(8):
         glow(sky, rnd.randrange(sky.w), H - rnd.randrange(0, 44), rnd.randrange(18, 44),
              0.30, 9020 + i, frac=0.7)
-    for i in range(30):                                 # sparks going up
-        sky.set(rnd.randrange(sky.w), rnd.randrange(20, H - 10), 0.95, "ember")
+    for i in range(30):                                 # sparks going up, trailing
+        x, y = rnd.randrange(sky.w), rnd.randrange(20, H - 10)
+        sky.set(x, y, 0.95, "ember")
+        sky.set(x + 0.5, y + 0.5, 0.7, "ember")
+        sky.set(x + 0.5, y + 1.0, 0.5, "ember")
     grain(sky, 9030, 1300, dv=0.07)
 
     far = plane("far", "stone", (0.15, 1.4), windows={"ember": (1.2, 3.4)})
@@ -971,21 +1196,35 @@ def _obsidian():
     mist(far, oy + 176, 42, 0.36, dv=0.16)
     horizon_haze(far, oy + 120, H, 0.20, 0.55, bands=4)
 
+    # Near: the flues. At 2x their faceting is cut glass: each facet band has
+    # a lit upper arris, and the magma seams glow two texels long.
     near = plane("near", "stone", (0.0, 1.1), windows={"ember": (0.8, 3.0)})
     H = near.h
+    du = 1.0 / near.k
     rnd = random.Random(9070)
     for i in range(5):                                  # the flues
         x = (i * near.w // 5 + rnd.randrange(46)) % near.w
         w = rnd.randrange(18, 30)
-        for y in range(H):
-            cx = x + int(4 * math.sin(y / 53.0 + i))
-            for k in range(w):
+        for y in near.span(0, H):
+            cx = x + 4 * math.sin(y / 53.0 + i)
+            for k in near.span(0, w):
                 t = k / float(w - 1)
-                facet = 0.10 if (y // 14 + k // 6) % 3 == 0 else 0.0
-                near.set(cx + k, y, _clamp(0.44 + facet + (0.3 if t < 0.18 else
-                                                           (-0.3 if t > 0.84 else 0.0))))
-            if rnd.random() < 0.10:
-                near.set(cx + w // 2 + rnd.choice((-1, 0, 1)), y, 0.8, "ember")
+                band = (y / 14.0 + k / 6.0) % 3.0
+                facet = 0.10 if band < 1.0 else 0.0
+                if band < du / 6.0 * 2.5 and 0.18 <= t <= 0.84:
+                    facet = 0.22                        # the facet's lit arris
+                elif 1.0 <= band < 1.0 + du / 6.0 * 2.5 and 0.18 <= t <= 0.84:
+                    facet = -0.10
+                s = 0.3 if t < 0.18 else (-0.3 if t > 0.84 else 0.0)
+                if k < du:
+                    s = 0.38
+                elif k >= w - du:
+                    s = -0.4
+                near.set(cx + k, y, _clamp(0.44 + facet + s))
+            if y == int(y) and rnd.random() < 0.10:
+                ex = cx + w // 2 + rnd.choice((-1, 0, 1))
+                near.set(ex, y, 0.8, "ember")
+                near.set(ex, y + 0.5, 0.6, "ember")
     spires(near, H + 4, 7, 0.3, 9080, height=(24, 80), width=(20, 52))
     for i in range(8):
         glow(near, rnd.randrange(near.w), H - rnd.randrange(0, 26), rnd.randrange(12, 28),
@@ -998,10 +1237,14 @@ def _obsidian():
         x = rnd.randrange(fg.w)
         y = H - rnd.randrange(2, 32)
         h = rnd.randrange(6, 15)
-        for k in range(h):
-            fg.set(x, y - k, 0.25 + 0.5 * (1.0 - k / float(h)))
+        for k in fg.span(0, h):
+            v = 0.25 + 0.5 * (1.0 - k / float(h))
+            fg.set(x, y - k, v + 0.12)
+            if k < h * 0.7:
+                fg.set(x + 0.5, y - k, v - 0.1)
         if rnd.random() < 0.55:
             fg.set(x, y - h, 0.9, "ember")
+            fg.set(x, y - h + 0.5, 0.7, "ember")
     return {"sky": sky, "far": far, "near": near, "fg": fg}
 
 

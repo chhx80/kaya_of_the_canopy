@@ -1,0 +1,9 @@
+[
+  {"_": "HD pass H1, area hdback: the native backdrops mid-run on the real proof tapes, framed like tools/seq/hd_worlds.json. tools/shot.sh --res=2556x1179 --seq=tools/seq/hd1_back_worlds.json"},
+  {"tape": "jungle_2", "shots": "shots/hd1_back_world_jungle_%d.png", "every": 420, "max": 1},
+  {"tape": "jungle_4", "shots": "shots/hd1_back_world_sky_%d.png", "every": 420, "max": 1},
+  {"tape": "ruins_2", "shots": "shots/hd1_back_world_ruins_%d.png", "every": 420, "max": 1},
+  {"tape": "heights_2", "shots": "shots/hd1_back_world_heights_%d.png", "every": 420, "max": 1},
+  {"tape": "deeps_2", "shots": "shots/hd1_back_world_deeps_%d.png", "every": 420, "max": 1},
+  {"tape": "nest_2", "shots": "shots/hd1_back_world_nest_%d.png", "every": 420, "max": 1}
+]

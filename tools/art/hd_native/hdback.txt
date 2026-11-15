@@ -1,0 +1,35 @@
+# hdback: backdrops, title art, pickups, props, particles (docs/plan-hd.md, H1).
+# Parallax planes of every world (tools/art/parallax_worlds.py)
+bg_deeps_far
+bg_deeps_fg
+bg_deeps_near
+bg_deeps_sky
+bg_heights_far
+bg_heights_fg
+bg_heights_near
+bg_heights_sky
+bg_jungle_far
+bg_jungle_fg
+bg_jungle_near
+bg_jungle_sky
+bg_obsidian_far
+bg_obsidian_fg
+bg_obsidian_near
+bg_obsidian_sky
+bg_ruins_far
+bg_ruins_fg
+bg_ruins_near
+bg_ruins_sky
+bg_sky_far
+bg_sky_near
+bg_sky_sky
+# Title art and lighting (tools/art/backdrops.py)
+logo
+title_bg
+light_pool
+vignette
+# Pickups and props (tools/art/hd_back.py via tools/art/sprites.py)
+pickups
+props
+# Particle atlas (tools/art/hd_back.py via tools/gen_fx.py)
+particles

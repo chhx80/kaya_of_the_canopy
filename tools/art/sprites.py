@@ -19,6 +19,7 @@ from PIL import Image
 
 from . import kaya40
 from . import forms40
+from . import hd_back
 from .palette import SPRITES, auto_shade, blit, grid, sheet
 
 # ---------------------------------------------------------------- player
@@ -1057,176 +1058,8 @@ I_BLADE2 = [
     "................",
     "................",
 ]
-I_GEM = [
-    "................",
-    "................",
-    "................",
-    ".....cccc.......",
-    "....cwwwcc......",
-    "...cwwccwcc.....",
-    "..cwccccccbc....",
-    "..ccccccccbc....",
-    "...bccccccb.....",
-    "....bccccb......",
-    ".....bccb.......",
-    "......bb........",
-    "................",
-    "................",
-    "................",
-    "................",
-]
-I_HEART = [
-    "................",
-    "................",
-    "................",
-    "..rrr...rrr.....",
-    ".rwwwr.rrrrr....",
-    "rwwrrrrrrrrrr...",
-    "rwrrrrrrrrrrr...",
-    "rrrrrrrrrrrrr...",
-    ".rrrrrrrrrrr....",
-    "..rrrrrrrrr.....",
-    "...rrrrrrr......",
-    "....rrrrr.......",
-    ".....rrr........",
-    "......r.........",
-    "................",
-    "................",
-]
-def key(col):
-    return [
-        "................",
-        "................",
-        "................",
-        "....kkkk........",
-        "...k%%%%k.......",
-        "..k%%kk%%k......",
-        "..k%%kk%%k......",
-        "...k%%%%k.......",
-        "....k%%k........",
-        "....k%%k........",
-        "....k%%kkk......",
-        "....k%%%%k......",
-        "....k%%kkk......",
-        "....k%%%k.......",
-        "....kkkk........",
-        "................",
-    ]
-def recolor(rows, ch):
-    return [r.replace('%', ch) for r in rows]
-
-I_DOOR_CLOSED = [
-    "kkkkkkkkkkkkkkkk",
-    "kmMMMMMMMMMMMMmk",
-    "kMmmmmmmmmmmmmMk",
-    "kMmMMMMMMMMMMmMk",
-    "kMmMmmmmmmmmMmMk",
-    "kMmMmMMMMMMmMmMk",
-    "kMmMmMmmmmMmMmMk",
-    "kMmMmMmyymMmMmMk",
-    "kMmMmMmyymMmMmMk",
-    "kMmMmMmmmmMmMmMk",
-    "kMmMmMMMMMMmMmMk",
-    "kMmMmmmmmmmmMmMk",
-    "kMmMMMMMMMMMMmMk",
-    "kMmmmmmmmmmmmmMk",
-    "kmMMMMMMMMMMMMmk",
-    "kkkkkkkkkkkkkkkk",
-]
-I_DOOR_OPEN = [
-    "kkkkkkkkkkkkkkkk",
-    "kmMMMMMMMMMMMMmk",
-    "kMmkkkkkkkkkkmMk",
-    "kMmkddddddddkmMk",
-    "kMmkddddddddkmMk",
-    "kMmkddddddddkmMk",
-    "kMmkddddddddkmMk",
-    "kMmkddddddddkmMk",
-    "kMmkddddddddkmMk",
-    "kMmkddddddddkmMk",
-    "kMmkddddddddkmMk",
-    "kMmkddddddddkmMk",
-    "kMmkddddddddkmMk",
-    "kMmkddddddddkmMk",
-    "kmMMMMMMMMMMMMmk",
-    "kkkkkkkkkkkkkkkk",
-]
-I_EXIT = [   # totem gateway
-    "....yyyyyyyy....",
-    "...yooooooooy...",
-    "..yoolllllooy...",
-    "..yolGGGGGloy...",
-    ".yolGGccGGGloy..",
-    ".yolGcwwcGGloy..",
-    ".yolGcwwcGGloy..",
-    ".yolGGccGGGloy..",
-    ".yolGGGGGGGloy..",
-    ".yolGGGGGGGloy..",
-    ".yolGGGGGGGloy..",
-    "..yolGGGGGloy...",
-    "..yoolllllooy...",
-    "...yooooooooy...",
-    "....yyyyyyyy....",
-    "................",
-]
-def pad(c1, c2):
-    return [
-        "................",
-        "................",
-        "................",
-        "................",
-        "................",
-        "................",
-        "................",
-        "................",
-        "..kkkkkkkkkkkk..",
-        ".k@@@@@@@@@@@@k.",
-        "k@@%%@@@@%%@@@@k",
-        "k@%%%%@@%%%%@@@k",
-        "k@@%%@@@@%%@@@@k",
-        "k@@@@@@@@@@@@@@k",
-        "kkkkkkkkkkkkkkkk",
-        "................",
-    ]
-def recolor2(rows, a, b):
-    return [r.replace('@', a).replace('%', b) for r in rows]
-
-I_SWITCH_OFF = [
-    "................",
-    "................",
-    "................",
-    "................",
-    "................",
-    "......kk........",
-    "....kkAAkk......",
-    "...kAAAAAAk.....",
-    "...kAaaaaAk.....",
-    "..kAAAAAAAAk....",
-    "..kaaaaaaaak....",
-    "..kAAAAAAAAk....",
-    "..kkkkkkkkkk....",
-    "................",
-    "................",
-    "................",
-]
-I_SWITCH_ON = [
-    "................",
-    "................",
-    "................",
-    "................",
-    "................",
-    "................",
-    "................",
-    "................",
-    "...kAAAAAAk.....",
-    "...kyyyyyyk.....",
-    "..kAAAAAAAAk....",
-    "..kyyyyyyyyk....",
-    "..kAAAAAAAAk....",
-    "..kkkkkkkkkk....",
-    "................",
-    "................",
-]
+# Pickups (gem, heart, keys) and props (doors, exit, switch, pads, hub arches)
+# are drawn natively at 2x in tools/art/hd_back.py (docs/plan-hd.md).
 P_SHOT = [
     "........",
     "..pppp..",
@@ -1246,61 +1079,6 @@ P_SPARK = [
     "..ywwy..",
     "...yy...",
     "........",
-]
-
-ARCH_LOCKED = [
-    "..AAAAAAAAAAAA..",
-    ".AaaaaaaaaaaaaA.",
-    "AaaAAAAAAAAAaaA.",
-    "AaAkkkkkkkkkkAaA",
-    "AaAkddddddddkAaA",
-    "AaAkdMMMMMMdkAaA",
-    "AaAkdMmmmmMdkAaA",
-    "AaAkdMmyymMdkAaA",
-    "AaAkdMmyymMdkAaA",
-    "AaAkdMmmmmMdkAaA",
-    "AaAkdMMMMMMdkAaA",
-    "AaAkddddddddkAaA",
-    "AaAkkkkkkkkkkAaA",
-    "AaaaaaaaaaaaaaaA",
-    "AAAAAAAAAAAAAAAA",
-    "kkkkkkkkkkkkkkkk",
-]
-ARCH_OPEN = [
-    "..AAAAAAAAAAAA..",
-    ".AaaaaaaaaaaaaA.",
-    "AaaAAAAAAAAAaaA.",
-    "AaAkkkkkkkkkkAaA",
-    "AaAkddddddddkAaA",
-    "AaAkdnnnnnndkAaA",
-    "AaAkdnmmmmndkAaA",
-    "AaAkdnmyyMndkAaA",
-    "AaAkdnmyyMndkAaA",
-    "AaAkdnmMMmndkAaA",
-    "AaAkdnnnnnndkAaA",
-    "AaAkddddddddkAaA",
-    "AaAkkkkkkkkkkAaA",
-    "AaaaaaaaaaaaaaaA",
-    "AAAAAAAAAAAAAAAA",
-    "kkkkkkkkkkkkkkkk",
-]
-ARCH_CLEARED = [
-    "..AAAAAAAAAAAA..",
-    ".AaaaaaaaaaaaaA.",
-    "AaaAAAAAAAAAaaA.",
-    "AaAkkkkkkkkkkAaA",
-    "AaAkddddddddkAaA",
-    "AaAkdGGGGGGdkAaA",
-    "AaAkdGllllGdkAaA",
-    "AaAkdGlwwlGdkAaA",
-    "AaAkdGlwwlGdkAaA",
-    "AaAkdGllllGdkAaA",
-    "AaAkdGGGGGGdkAaA",
-    "AaAkddddddddkAaA",
-    "AaAkkkkkkkkkkAaA",
-    "AaaaaaaaaaaaaaaA",
-    "AAAAAAAAAAAAAAAA",
-    "kkkkkkkkkkkkkkkk",
 ]
 
 
@@ -1382,20 +1160,6 @@ OBSIDIAN = {'g': ("purple", 0.0), 'G': ("purple", 2.0), 'h': ("water", 4.0),
             'r': ("ember", 3.0), 'R': ("ember", 5.0)}
 
 BLADE = {'A': ("metal", 1.8), 'w': ("metal", 5.8)}
-GEM = {'c': ("water", 5.2), 'b': ("water", 3.4), 'w': ("metal", 6.0)}
-HEART = {'r': ("ember", 2.8), 'w': ("metal", 6.0)}
-KEYS = {'y': ("gold", 4.6), 'r': ("ember", 3.6), 'c': ("water", 5.0)}
-# Architecture: flat faces with a rim light, so depth=1 when these are used.
-DOOR = {'m': ("wood", 1.8), 'M': ("wood", 3.8), 'y': ("gold", 4.6),
-        'd': ("water", 0.4)}
-TOTEM = {'y': ("gold", 4.8), 'o': ("gold", 3.0), 'l': ("grass", 4.2),
-         'G': ("grass", 2.4), 'c': ("water", 5.0), 'w': ("metal", 6.0)}
-SWITCH = {'A': ("metal", 4.4), 'a': ("metal", 2.2), 'y': ("gold", 5.0)}
-PADS = {'G': ("grass", 2.4), 'l': ("grass", 4.2), 'b': ("water", 3.4),
-        'c': ("water", 5.4), 'A': ("metal", 3.6), 'w': ("metal", 6.0)}
-ARCH = dict(DOOR)
-ARCH.update({'A': ("metal", 4.4), 'a': ("metal", 2.6), 'n': ("water", 2.4),
-             'G': ("grass", 2.6), 'l': ("grass", 4.2), 'w': ("metal", 6.0)})
 
 P_SHOT_MAP = {'p': ("purple", 3.0), 'w': ("metal", 6.0)}
 P_SPARK_MAP = {'y': ("gold", 4.4), 'w': ("metal", 6.0)}
@@ -1441,19 +1205,10 @@ def build_sprites():
     for name in ("enemy_walker", "enemy_jumper", "enemy_shooter", "enemy_swimmer"):
         enemies40.build_sheet(name)
     sheet("blade", lit([I_BLADE1, I_BLADE2], BLADE, depth=1), 16, 16)
-    sheet("pickups", lit([I_GEM], GEM, depth=2)
-                     + lit([I_HEART], HEART, depth=2)
-                     + lit([recolor(key('y'), 'y'), recolor(key('r'), 'r'),
-                            recolor(key('c'), 'c')], KEYS, depth=2), 16, 16)
-    sheet("props", lit([I_DOOR_CLOSED, I_DOOR_OPEN], DOOR, depth=1)
-                   + lit([I_EXIT], TOTEM, depth=2)
-                   + lit([I_SWITCH_OFF, I_SWITCH_ON], SWITCH, depth=1)
-                   + lit([recolor2(pad(0, 0), 'G', 'l'),      # frog pad
-                          recolor2(pad(0, 0), 'b', 'c'),      # fish pad
-                          recolor2(pad(0, 0), 'A', 'w')],     # bird pad
-                         PADS, depth=1)
-                   + lit([ARCH_LOCKED, ARCH_OPEN, ARCH_CLEARED], ARCH, depth=1),
-          16, 16)
+    # docs/plan-hd.md: natively at 2x, 32x32 texels a 16-unit cell, in the
+    # frame orders src/ui/hud.gd and src/world/triggers/*.gd read.
+    sheet("pickups", hd_back.pickup_cells(), hd_back.T, hd_back.T)
+    sheet("props", hd_back.prop_cells(), hd_back.T, hd_back.T)
     sheet("projectiles", lit([P_SHOT], P_SHOT_MAP, depth=2)
                          + lit([P_SPARK], P_SPARK_MAP, depth=2), 8, 8)
     print("sprites written")

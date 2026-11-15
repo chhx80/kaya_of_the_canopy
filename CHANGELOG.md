@@ -3123,3 +3123,43 @@ texels per world unit; world units, hitboxes, levels and tapes are unchanged.
 - New: `tests/test_hd_display.gd`, three `t_hd_*` integration tests,
   `tools/seq/hd_*.json`, a `tap` step and world-viewport timing in
   `tools/dev_capture.gd`.
+
+## HD pass, H1 "back": backdrops, title, pickups, props, particles at native 2x (branch `hd/back`)
+
+docs/plan-hd.md, step 2, for the backdrop and small-sheet area. 29 sheets are
+drawn natively at two texels per world unit and listed in
+`tools/art/hd_native/hdback.txt`; world sizes, frame orders and footprints are
+unchanged.
+
+- **Parallax, all six worlds** (`tools/art/parallax_worlds.py`, `backdrops.py`).
+  `Plane` keeps world-unit coordinates over a 2x texel buffer and every brush
+  rasterises per texel: leaves with a one-texel midrib, veins and a lit/dark
+  edge; bark in plates between wandering grooves, ringed knots; masonry with
+  pits, cracks, diagonal chips and arch voussoirs with a keystone; cumulus with
+  lobe creases and a silver lip; carved gullies, strata and a ragged snow line;
+  cut facets with a lit arris on the glass spires and flues; mud drips under the
+  termite comb; four-texel lianas with a twist. Composition, seeds and windows
+  are the phase-3 ones.
+- **Dither re-thought for the texel grid.** An 8x8 Bayer whose even/even
+  sublattice is the old 4x4 (so `open_1x` readers see the same phase), squeezed
+  so fills are whole steps with a narrow dithered seam (`SEAM`, thinner still
+  where a sky crosses ramps). Light shafts, mist and glows lift values instead
+  of stippling. Narrow-window planes spend their window with a `gain` clamped to
+  the steps it already touched, so detail lands on a step without widening the
+  plane's luma span.
+- **Title**: dusk sky in clean bands, a sun with a rim and cloud streaks, stars
+  of three magnitudes, canopy bands with leaf tips, a sunlit rim and creases,
+  vines with paired leaves. **Logo**: the stair-stepped diagonals of K, A and
+  Y bridged into continuous strokes, rounded corners, a bevelled face; the
+  splash uses it texel for texel (same 640x384 output).
+- **Pickups and props** (`tools/art/hd_back.py`, replacing the ASCII grids in
+  `sprites.py`): a brilliant-cut gem with a glint, a glossy heart, keys with a
+  bevelled bow, collar and bits; a carved door with mouldings, grain, nails and
+  a boss; the gold exit ring with a leaf band and an orb; a switch with a stud
+  and lit bands; pads with an inlaid leaf, wave or feather; stone hub arches in
+  voussoirs with a locked door and keyhole, an ajar door, or a green seal.
+- **Particles** (`hd_back.particles`, called from `gen_fx.py`): the seven rows
+  redrawn in 16x16 texels with the same PAL and timing.
+- **Light pool and vignette**: twice the bands, seams dithered on the texel grid.
+- Readability (`gen_art.py --readability`): every world's worst hole equal to or
+  better than before; jungle/frog lost outline 1.2% -> 0.4%, ruins/fish 2.5% -> 0.
