@@ -3197,3 +3197,15 @@ docs/plan-hd.md, step 2, for the tileset. `tileset`, `contact_shadow` and
   on the shipped texels, using the same rule as `KayaPose.bounds_to_world`. It
   still requires exact agreement.
 - New: `tools/seq/hd1_kaya.json` and `shots/hd1_kaya_*`.
+## HD pass H1 — the seven enemies drawn natively at 2x
+- `tools/art/hd_enemies.py` (new): walker, jumper, shooter, swimmer, charger,
+  dropper and flyer redrawn at two texels per world unit. Same puppets, poses,
+  frame orders and world-unit cells as `enemies40.py`; `HCanvas` rasterises
+  them at `ART_SCALE` and each builder adds detail 1x could not hold (eyes with
+  irises and catch-lights, teeth and fangs, shell punctures, warts, scales,
+  fur strokes, petal and wing veins, jointed and clawed legs). Every tell is
+  kept; the jumper's lid and the boar's brow now also harden on the wind-up.
+- Shaded with `kaya40.shade_hd` (whole ramp steps) plus hand-AA and selout,
+  as in the approved look sample. Listed in `tools/art/hd_native/hdenemies.txt`.
+- Before/after: `shots/hd1_enemies_<name>.png`; in game:
+  `tools/seq/hd1_enemies.json` → `shots/hd1_enemies_game_*.png`.

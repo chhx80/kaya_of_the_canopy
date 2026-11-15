@@ -1442,9 +1442,10 @@ def build_sprites():
     forms40.write_bounds(os.path.join(SPRITES, "kaya_bird.png"), forms40.BIRD_W, forms40.BIRD_H)
     # Refit phase 3: the four original enemies are drawn at Kaya's scale by
     # tools/art/enemies40.py (frame orders documented on its *_cells()).
-    from . import enemies40
+    # HD pass H1: native at 2x via tools/art/hd_enemies.py.
+    from . import hd_enemies
     for name in ("enemy_walker", "enemy_jumper", "enemy_shooter", "enemy_swimmer"):
-        enemies40.build_sheet(name)
+        hd_enemies.build_sheet(name)
     sheet("blade", hd_weapon.blade_cells(), 16 * hd_weapon.S, 16 * hd_weapon.S)
     sheet("pickups", lit([I_GEM], GEM, depth=2)
                      + lit([I_HEART], HEART, depth=2)
