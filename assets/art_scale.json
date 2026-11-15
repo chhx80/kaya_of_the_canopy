@@ -8,95 +8,95 @@
   },
   "sprites/bg_deeps_far.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_deeps_fg.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_deeps_near.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_deeps_sky.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_heights_far.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_heights_fg.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_heights_near.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_heights_sky.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_jungle_far.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_jungle_fg.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_jungle_near.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_jungle_sky.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_obsidian_far.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_obsidian_fg.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_obsidian_near.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_obsidian_sky.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_ruins_far.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_ruins_fg.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_ruins_near.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_ruins_sky.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_sky_far.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_sky_near.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/bg_sky_sky.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/blade.png": {
    "scale": 2,
@@ -152,7 +152,7 @@
   },
   "sprites/fx/particles.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/fx/tile_anim.png": {
    "scale": 2,
@@ -188,15 +188,15 @@
   },
   "sprites/light_pool.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/logo.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/pickups.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/projectiles.png": {
    "scale": 2,
@@ -204,7 +204,7 @@
   },
   "sprites/props.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/splash.png": {
    "scale": 1,
@@ -212,11 +212,11 @@
   },
   "sprites/title_bg.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/vignette.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "tiles/contact_shadow.png": {
    "scale": 2,
