@@ -160,7 +160,7 @@
   },
   "sprites/hud_portrait.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/icon.png": {
    "scale": 1,
@@ -180,11 +180,11 @@
   },
   "sprites/kaya_hub.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/kaya_human.png": {
    "scale": 2,
-   "native": false
+   "native": true
   },
   "sprites/light_pool.png": {
    "scale": 2,

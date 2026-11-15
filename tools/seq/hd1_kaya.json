@@ -1,0 +1,20 @@
+[
+  {"_": "HD pass H1, Kaya (docs/plan-hd.md): the native 2x sheet in real frames at phone shape -- proof tapes for run/jump/climb, the stoop tunnels and the swim, the idle dance, and the hub. tools/shot.sh --res=2556x1179 --seq=tools/seq/hd1_kaya.json"},
+  {"tape": "jungle_1", "shots": "shots/hd1_kaya_jungle_%d.png", "every": 240, "max": 4},
+  {"tape": "ruins_4", "shots": "shots/hd1_kaya_ruins4_%d.png", "every": 300, "max": 4, "skip": 900},
+  {"tape": "deeps_2", "shots": "shots/hd1_kaya_deeps_%d.png", "every": 300, "max": 3, "skip": 300},
+  {"scenario": "level:test_arena", "settle": 90},
+  {"teleport": [19, 11], "settle": 10},
+  {"wait": 214},
+  {"shot": "shots/hd1_kaya_dance_a.png"},
+  {"wait": 12},
+  {"shot": "shots/hd1_kaya_dance_b.png"},
+  {"wait": 12},
+  {"shot": "shots/hd1_kaya_dance_c.png"},
+  {"scenario": "hub", "settle": 30},
+  {"hold": "move_right", "frames": 30},
+  {"shot": "shots/hd1_kaya_hub_run.png"},
+  {"release": "move_right"},
+  {"wait": 20},
+  {"shot": "shots/hd1_kaya_hub_idle.png"}
+]

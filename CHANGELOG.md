@@ -3123,3 +3123,24 @@ texels per world unit; world units, hitboxes, levels and tapes are unchanged.
 - New: `tests/test_hd_display.gd`, three `t_hd_*` integration tests,
   `tools/seq/hd_*.json`, a `tap` step and world-viewport timing in
   `tools/dev_capture.gd`.
+
+## HD pass, H1: Kaya drawn natively at 2x (branch `hd/kaya`)
+- **kaya_human**: all 59 frames are drawn by the 2x puppet
+  (`kaya40.sheet_cells()`), not just the 23 approved look-sample frames. The
+  side view (`side_hd`) now also covers climb, hurt, turn, skid, push, throw,
+  fidget, dance, swim and the narrow set. The narrow set gets its own 2x slung
+  hat (`_slung_hat_hd`), and the front and back views get a new `front_hd`
+  with almond eyes, lips, hoops, hair strands, the back ribbon and sandal
+  straps. The pose geometry is the 1x choreography, unchanged. Each frame is
+  clipped to its 1x silhouette in world units, so pose choice, clipgate and
+  the stoop and narrow limits are unchanged.
+- **kaya_hub**: shrunk from the 2x side view to 48x56 texels, keeping her eye,
+  ink, lips and bead, then clipped to the 1x hub silhouette.
+- **hud_portrait**: the bust is drawn by `front_hd`, inside a native
+  48x48 bevelled leaf frame.
+- `kaya_human.bounds.json` is now in texels with `"scale": 2`.
+  `tools/art/hd_native/hdkaya.txt` lists the three sheets as native.
+- `tests/test_kaya_sheet.gd`: the bounds check now measures world-unit coverage
+  on the shipped texels, using the same rule as `KayaPose.bounds_to_world`. It
+  still requires exact agreement.
+- New: `tools/seq/hd1_kaya.json` and `shots/hd1_kaya_*`.

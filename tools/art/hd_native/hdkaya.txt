@@ -1,0 +1,4 @@
+# hdkaya: Kaya herself, drawn natively at 2x (tools/art/kaya40.py, hud_portrait.py)
+kaya_human
+kaya_hub
+hud_portrait

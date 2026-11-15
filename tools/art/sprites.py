@@ -1413,13 +1413,14 @@ def build_sprites():
     # 20-21 turn (plant, half-turn), 22 skid, 23-24 push, 25-26 throw, 27
     # catch, 28-30 idle fidget, 31-38 the idle dance, 39 stoop, 40-45 stoop
     # walk, 46-49 swim.
-    sheet("kaya_human", kaya40.cells(), kaya40.W, kaya40.H, selout=True)
-    kaya40.write_bounds(os.path.join(SPRITES, "kaya_human.png"))
+    sheet("kaya_human", kaya40.sheet_cells(), kaya40.HW, kaya40.HH, selout=True)  # native 2x
+    kaya40.write_bounds_hd(os.path.join(SPRITES, "kaya_human.png"))
     # The overworld is top-down at the old 16 px scale, where the 40 px Kaya
     # would stand taller than the huts. It draws the NEW Kaya from the same
     # puppet poses, scaled before inking (tools/art/kaya40.py hub_cells):
     # 24x28, 0 idle, 1 breath, 2-9 run, read by src/hub/hub_player.gd.
-    sheet("kaya_hub", kaya40.hub_cells(), kaya40.HUB_W, kaya40.HUB_H, selout=True)
+    sheet("kaya_hub", kaya40.hub_sheet_cells(), kaya40.HUB_W * kaya40.HD_SCALE,
+          kaya40.HUB_H * kaya40.HD_SCALE, selout=True)                         # native 2x
     # The animal forms are the 40 px-era puppets in tools/art/forms40.py, frame
     # order unchanged. Frog 24x16: 0 idle, 1 breath, 2 crouch (anticipation;
     # also reused as the turn frame), 3 leap (also reused as the wall-kick
