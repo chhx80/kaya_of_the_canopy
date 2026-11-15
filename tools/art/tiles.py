@@ -2964,3 +2964,552 @@ def build_tileset():
     print("tileset.png  %d gameplay tiles + %d variants (%d autotiled materials)"
           % (len(TILE_DEFS), len(extra), autotiled))
     print("variants.json  %d cases per autotiled material" % len(BLOB_CASES))
+
+
+# ================================================================ HD (2x)
+# docs/plan-hd.md, phase H0 look sample: a slice of the jungle set drawn
+# natively at 32x32 texels per tile (two per world unit). Nothing here is
+# registered with T(), so the atlas, its ids and every level are untouched;
+# tools/art/hd_look.py is the only reader.
+#
+# The rule is the same as at 1x -- structure first, shading second -- but at
+# 2x the structures can be things instead of marks: blades of grass instead of
+# a green band, pebbles with a cast shadow, mortar with chipped arrises, planks
+# with grain that runs round a knot. Shading resolves to whole ramp steps
+# (CLEAN_FILL) and every structure is drawn wrapped, so tiles still tile.
+HTS = TS * 2
+
+
+def tile_hd(alpha=0):
+    return Image.new("RGBA", (HTS, HTS), (0, 0, 0, alpha))
+
+
+def put_hd(img, x, y, ramp, level, alpha=255):
+    """Whole-step pixel, wrapped onto the tile: structures cross edges."""
+    img.putpixel((int(x) % HTS, int(y) % HTS),
+                 RAMPS[ramp][max(0, min(6, int(round(level))))] + (alpha,))
+
+
+def get_hd(img, x, y):
+    return img.getpixel((int(x) % HTS, int(y) % HTS))
+
+
+def blob_hd(img, ramp, cx, cy, rx, ry, base, lit=1.4, dark=1.3, shadow=None):
+    """A lit lump, wrapped, in whole steps. `shadow` darkens a crescent of
+    the ground below-right of it by that much, so it sits IN the material."""
+    for y in range(int(cy - ry - 3), int(cy + ry + 4)):
+        for x in range(int(cx - rx - 3), int(cx + rx + 4)):
+            nx, ny = (x + 0.5 - cx) / rx, (y + 0.5 - cy) / ry
+            d = nx * nx + ny * ny
+            if d > 1.0:
+                if shadow is not None:
+                    sx, sy = (x + 0.5 - cx - 1.2) / rx, (y + 0.5 - cy - 1.4) / ry
+                    if sx * sx + sy * sy <= 1.0:
+                        p = get_hd(img, x, y)
+                        lvl = _level_of(p, ramp_hint="dirt")
+                        if lvl is not None:
+                            put_hd(img, x, y, lvl[0], lvl[1] - shadow)
+                continue
+            lvl = base + (1.0 - d) * 1.1
+            facing = -nx - ny
+            if facing > 0.55:
+                lvl += lit
+            elif facing < -0.6:
+                lvl -= dark
+            if d > 0.72 and facing < -0.2:
+                lvl -= 0.6
+            put_hd(img, x, y, ramp, lvl)
+
+
+_LOOKUP = {c: (n, i) for n, steps in RAMPS.items() for i, c in enumerate(steps)}
+
+
+def _level_of(p, ramp_hint=None):
+    return _LOOKUP.get(tuple(p[:3]))
+
+
+def darken_hd(img, x, y, by):
+    m = _level_of(get_hd(img, x, y))
+    if m:
+        put_hd(img, x, y, m[0], m[1] - by)
+
+
+def fill_hd(img, ramp, base, rnd, grain=0.3, cell=2):
+    """Flat material with grain in 2x2 cells: per-texel grain at 2x is a
+    finer noise than 1x ever showed and reads as static, not as soil."""
+    g = {}
+    for y in range(HTS):
+        for x in range(HTS):
+            k = (x // cell, y // cell)
+            if k not in g:
+                g[k] = rnd.uniform(-grain, grain)
+            put_hd(img, x, y, ramp, base + g[k])
+    return img
+
+
+def root_hd(img, rnd, x, y, length, base=3.0):
+    """A root fibre: a wandering dark line with a lit lip below it, that may
+    fork once."""
+    dx = rnd.choice((-1, 1))
+    for i in range(length):
+        put_hd(img, x, y, "dirt", base - 1.9)
+        put_hd(img, x, y + 1, "dirt", base + 0.9)
+        x += dx
+        if rnd.random() < 0.35:
+            y += rnd.choice((-1, 1))
+        if i == length // 2 and rnd.random() < 0.6:
+            root_hd(img, rnd, x, y + 1, length // 3, base)
+
+
+def t_dirt_hd(seed):
+    rnd = random.Random(seed)
+    img = fill_hd(tile_hd(255), "dirt", 3.0, rnd, grain=0.32)
+    for _ in range(7):                                   # clods
+        blob_hd(img, "dirt", rnd.uniform(0, HTS), rnd.uniform(0, HTS),
+                rnd.uniform(3.0, 5.5), rnd.uniform(2.2, 3.8), 2.4, lit=1.0, dark=0.9)
+    for _ in range(3):
+        root_hd(img, rnd, rnd.randrange(HTS), rnd.randrange(HTS), rnd.randrange(7, 13))
+    for _ in range(4):                                   # pebbles, cast shadow
+        blob_hd(img, "stone", rnd.uniform(0, HTS), rnd.uniform(0, HTS),
+                rnd.uniform(1.6, 2.8), rnd.uniform(1.3, 2.2), 2.9, shadow=1.3)
+    for _ in range(9):                                   # grit: a lit grain on its shadow
+        x, y = rnd.randrange(HTS), rnd.randrange(HTS)
+        put_hd(img, x, y, "dirt", 4.6)
+        put_hd(img, x + 1, y + 1, "dirt", 1.6)
+    for _ in range(3):                                   # worm holes
+        x, y = rnd.randrange(HTS), rnd.randrange(HTS)
+        put_hd(img, x, y, "dirt", 0.6)
+        put_hd(img, x + 1, y, "dirt", 1.2)
+        put_hd(img, x, y + 1, "dirt", 4.0)
+    return img
+
+
+def t_grass_top_hd(seed):
+    """Sod over dirt. The top edge is a row of blades, not a ruler: the cap
+    has a dark root mat, individual blades rising out of it with a lit left
+    flank and a few hanging over the soil, and transparent notches between
+    the tallest tips so the skyline of a ledge is grass-shaped."""
+    rnd = random.Random(seed)
+    img = t_dirt_hd(seed + 100)
+    depth = []
+    for x in range(HTS):                                 # the mat
+        d = 7 + (1 if math.sin(x * math.pi / 8 + 1.0) > 0.3 else 0) + rnd.choice((0, 0, 1))
+        for y in range(0, d):
+            put_hd(img, x, y, "grass", 3.6 - y * 0.32)
+        put_hd(img, x, d, "grass", 1.4)
+        depth.append(d)
+        for k in range(3):                               # sun on the soil below
+            put_hd(img, x, d + 1 + k, "dirt", 4.5 - k * 0.8)
+    for x in range(HTS):                                 # top notches
+        if x % 4 == 2 or (x % 7 == 0):
+            img.putpixel((x, 0), (0, 0, 0, 0))
+            if x % 8 == 2:
+                img.putpixel((x, 1), (0, 0, 0, 0))
+    for i in range(16):                                  # blades
+        x = (i * 2 + rnd.choice((0, 1))) % HTS
+        top = rnd.choice((0, 1, 1, 2))
+        ln = rnd.randrange(4, 8)
+        lean = rnd.choice((-1, 0, 1))
+        for k in range(ln):
+            bx = x + (lean if k < ln // 2 else 0)
+            put_hd(img, bx, top + k, "grass", 6.0 - k * 0.55)
+            put_hd(img, bx + 1, top + k + 1, "grass", 2.2)
+    for _ in range(5):                                   # strands hanging into the soil
+        x = rnd.randrange(HTS)
+        for k in range(rnd.randrange(2, 5)):
+            put_hd(img, x, depth[x] + k, "grass", 3.0 - k * 0.5)
+    for _ in range(2):                                   # a seed head
+        x = rnd.randrange(2, HTS - 2)
+        put_hd(img, x, 2, "gold", 5)
+        put_hd(img, x, 3, "gold", 4)
+    return img
+
+
+def t_stone_hd(seed):
+    """Two courses of half-offset blocks, 16 texels high. Each block has a
+    two-texel sunlit top, a lit left arris, an occluded foot and right side;
+    mortar is a dark joint with a lit lip under it; corners are chipped and a
+    few faces carry pits, a hairline crack and a lichen spot."""
+    rnd = random.Random(seed)
+    img = tile_hd(255)
+    jit = {}
+    for y in range(HTS):
+        course = y // 16
+        ly = y % 16
+        jx = 0 if course == 0 else 16
+        for x in range(HTS):
+            lx = (x - jx) % HTS
+            if ly == 0 or lx == 0:
+                lvl = 0.6                                # joint
+            elif ly == 1 or lx == 1:
+                lvl = 1.6 if lx != 1 or ly < 2 else 1.4  # mortar bed
+            else:
+                k = (lx // 2, ly // 2, course)
+                if k not in jit:
+                    jit[k] = rnd.uniform(-0.6, 0.6)
+                # the face falls off from its lit corner, and the grain is
+                # big enough to survive rounding to whole steps
+                lvl = 3.3 + jit[k] - (lx / 32.0 + ly / 16.0) * 0.45
+                if ly == 2:
+                    lvl += 2.0
+                elif ly == 3:
+                    lvl += 1.0
+                elif ly == 15:
+                    lvl -= 1.6
+                elif ly == 14:
+                    lvl -= 0.8
+                if lx == 2:
+                    lvl += 1.0
+                elif lx == 31:
+                    lvl -= 1.4
+                elif lx == 30:
+                    lvl -= 0.6
+            put_hd(img, x, y, "stone", lvl)
+    # chipped arrises: a bite out of a block corner, dark inside, lit edge below
+    for (bx, by) in ((2, 2), (29, 13), (18, 18), (13, 29), (31, 3)):
+        for dy in range(3):
+            for dx in range(3 - dy):
+                put_hd(img, bx + (dx if bx < 16 else -dx), by + (dy if by % 16 < 8 else -dy),
+                       "stone", 1.2)
+        put_hd(img, bx + (3 if bx < 16 else -3), by, "stone", 4.4)
+    for _ in range(10):                                  # pits
+        x, y = rnd.randrange(4, 28), rnd.randrange(4, 28)
+        if y % 16 < 4 or y % 16 > 13:
+            continue
+        put_hd(img, x, y, "stone", 1.4)
+        put_hd(img, x + 1, y, "stone", 2.0)
+        put_hd(img, x, y + 1, "stone", 4.2)
+    x, y = rnd.randrange(6, 14), 20                     # hairline crack
+    for _ in range(9):
+        put_hd(img, x, y, "stone", 1.0)
+        put_hd(img, x + 1, y + 1, "stone", 4.0)
+        x += 1
+        y += rnd.choice((0, 1, 1, -1))
+        if y % 16 < 3 or y % 16 > 13:
+            break
+    for (lx, ly) in ((22, 7), (23, 7), (22, 8), (6, 24)):  # lichen
+        put_hd(img, lx, ly, "grass", 4.0)
+    put_hd(img, 21, 8, "grass", 2.6)
+    return img
+
+
+def t_platform_hd(seed):
+    """The one-way platform: eight texel rows of plank -- a sunlit top edge,
+    grain lines that run along the board and swirl round a knot, butt joints
+    between three boards, nail heads with a highlight and a rust streak, and a
+    hard ink line under it. Thickness is the 1x four rows, in world units."""
+    rnd = random.Random(seed)
+    img = tile_hd(0)
+    for x in range(HTS):
+        for y in range(7):
+            lvl = (5.6, 4.8, 4.0, 3.6, 3.4, 3.0, 2.0)[y]
+            put_hd(img, x, y, "wood", lvl)
+        put_ink(img, x, 7)
+    for gy, phase in ((2, 0.0), (4, 2.0), (5, 4.1)):   # grain
+        for x in range(HTS):
+            if math.sin(x * math.pi / 8 + phase + gy) > 0.15:
+                put_hd(img, x, gy, "wood", 2.6)
+    kx = 20                                             # knot
+    for (dx, dy, l) in ((0, 0, 1.4), (1, 0, 1.8), (-1, 0, 3.6), (0, -1, 3.8),
+                        (2, 0, 2.6), (-2, 0, 4.2)):
+        put_hd(img, kx + dx, 3 + dy, "wood", l)
+    for sx in (11, 27):                                  # butt joints
+        for y in range(1, 7):
+            put_hd(img, sx, y, "wood", 1.2)
+            put_hd(img, sx + 1, y, "wood", 4.6)
+    for nx in (3, 9, 14, 25, 30):                        # nails
+        put_hd(img, nx, 2, "metal", 6)
+        put_hd(img, nx + 1, 2, "metal", 3)
+        put_hd(img, nx, 3, "metal", 2)
+        put_hd(img, nx + 1, 3, "ember", 2)              # rust bleeding into the grain
+    return img
+
+
+VINE_MAP_HD = {'G': ("foliage", 2.4), 'g': ("foliage", 3.6), 'l': ("grass", 3.6),
+               'L': ("grass", 2.5), 'm': ("foliage", 1.2), 'c': ("grass", 4.8)}
+
+
+def t_vine_hd(seed):
+    """The vine ladder: two stems twisting round each other (period 32, so it
+    tiles vertically), with leaves alternating left and right -- each a pointed
+    leaf with a midrib and a lit upper side -- and a curled tendril. Built as a
+    material grid and lit with auto_shade like 1x, so it shades the same way."""
+    rnd = random.Random(seed)
+    g = [['.'] * HTS for _ in range(HTS)]
+
+    def setc(x, y, ch, only=None):
+        x, y = int(x), int(y) % HTS
+        if 0 <= x < HTS and (only is None or g[y][x] in only):
+            g[y][x] = ch
+
+    for y in range(HTS):                                  # braided stems
+        for k, ph in enumerate((0.0, math.pi)):
+            cx = 15.5 + 2.2 * math.sin(y * 2 * math.pi / HTS + ph)
+            front = math.cos(y * 2 * math.pi / HTS + ph) > 0
+            for dx in (-1, 0, 1):
+                if front or g[y][int(cx + dx)] == '.':
+                    setc(cx + dx, y, 'g' if front else 'G')
+
+    def leaf(bx, by, sgn, ln, droop):
+        pts = []
+        for i in range(ln + 1):
+            t = i / ln
+            x = bx + sgn * i
+            yc = by + droop * t * t
+            half = 2.6 * math.sin(math.pi * min(1.0, t * 1.15))
+            for yy in range(int(yc - half), int(yc + half) + 1):
+                setc(x, yy, 'l' if yy <= yc else 'L')
+            pts.append((x, yc))
+        for x, yc in pts[1:-1]:
+            setc(x, round(yc), 'm')                       # midrib
+
+    # Rungs: a pair of leaves every half tile, offset a few texels, so a
+    # column of these reads as a ladder the way the 1x leaf pairs do.
+    for by, ln in ((6, 12), (22, 11)):
+        leaf(17, by, 1, ln, 3.0)
+        leaf(14, by + 3, -1, ln + 1, 3.4)
+    leaf(17, 14, 1, 6, 1.5)
+    leaf(14, 29, -1, 6, 1.5)
+    for (x, y) in ((24, 13), (25, 12), (26, 12), (27, 13), (27, 14), (26, 15)):
+        setc(x, y, 'c')                                   # tendril curl
+    rows = ["".join(r) for r in g]
+    return auto_shade(rows, VINE_MAP_HD, depth=2, lit=1.3, dark=1.0)
+
+
+def _caustic(x, y, seed):
+    """A caustic net periodic in 32 both ways, so the water tiles."""
+    a = 2 * math.pi / HTS
+    v = (math.sin(a * x + 1.3 * math.sin(a * y * 2 + seed))
+         + math.sin(a * y + 1.1 * math.sin(a * x * 2 + seed * 1.7))
+         + 0.6 * math.sin(a * (x + y) * 2 + seed))
+    return v
+
+
+def t_water_hd(seed, surface=False):
+    """Water: a body graded by depth, a caustic net of thin bright lines
+    (periodic, so it tiles in both directions), and a couple of bubbles. The
+    surface adds a swell of period 32 with foam on the rising faces, flecks of
+    spray above it and a lit band just under it."""
+    rnd = random.Random(seed)
+    img = tile_hd(255)
+    for y in range(HTS):
+        for x in range(HTS):
+            lvl = 4.0
+            if surface:
+                lvl = 5.0 - min(y, 12) * 0.08
+            c = _caustic(x, y, seed % 7)
+            if abs(c) < 0.16:
+                lvl += 1.2                               # the net: thin ridges
+            elif abs(c) < 0.42 and c > 0:
+                lvl += 0.6
+            put_hd(img, x, y, "water", lvl)
+    for (bx, by) in ((7, 20), (24, 11)):                 # bubbles
+        for (dx, dy) in ((0, -1), (-1, 0), (1, 0), (0, 1)):
+            put_hd(img, bx + dx, by + dy, "water", 6)
+        put_hd(img, bx - 1, by - 1, "metal", 6)
+        put_hd(img, bx + 3, by + 3, "water", 6)
+    if surface:
+        for x in range(HTS):
+            swell = math.sin(x * 2 * math.pi / HTS)
+            crest = int(round(2 - 2 * swell))           # 0..4 rows down
+            for y in range(crest):
+                img.putpixel((x, y), (0, 0, 0, 0))       # air above the swell
+            put_hd(img, x, crest, "metal", 6 if swell > -0.2 else 5)
+            if swell > 0.3:                              # foam on the rising face
+                put_hd(img, x, crest + 1, "metal", 5)
+                if swell > 0.8:
+                    put_hd(img, x, crest + 2, "metal", 4)
+            put_hd(img, x, crest + 2 + (1 if swell > 0.8 else 0), "water", 6)
+            put_hd(img, x, crest + 3 + (1 if swell > 0.8 else 0), "water", 5)
+        for (x, y) in ((5, 0), (9, 1), (27, 4), (30, 2)):  # spray
+            if img.getpixel((x, y))[3] == 0:
+                put_hd(img, x, y, "metal", 6)
+    return img
+
+
+def t_spikes_hd(seed):
+    """Three iron spikes on a bolted plate. Each cone is lit down its left
+    flank with a specular streak, shades round to its right, carries a rust
+    stain at the root, and is inked down the dark side so the silhouette is
+    a hazard at a glance."""
+    img = tile_hd(0)
+    for x in range(HTS):                                  # plate
+        put_hd(img, x, 26, "metal", 5)
+        put_hd(img, x, 27, "metal", 4)
+        put_hd(img, x, 28, "metal", 3)
+        put_hd(img, x, 29, "metal", 2)
+        put_hd(img, x, 30, "metal", 1)
+        put_ink(img, x, 31)
+    for bx in (3, 13, 23):                                # bolts
+        put_hd(img, bx, 27, "metal", 6)
+        put_hd(img, bx + 1, 27, "metal", 4)
+        put_hd(img, bx, 28, "metal", 3)
+        put_hd(img, bx + 1, 28, "metal", 1)
+    for cx in (5.5, 15.5, 25.5):
+        for y in range(6, 26):
+            half = (y - 6) / 19.0 * 5.2
+            lo, hi = int(math.floor(cx - half)), int(math.ceil(cx + half))
+            for x in range(lo, hi + 1):
+                t = (x + 0.5 - cx) / max(half, 0.5)
+                if abs(t) > 1.05:
+                    continue
+                lvl = 5.1 - t * 2.3
+                if -0.55 < t < -0.25 and y > 8:
+                    lvl = 6.0                             # specular streak
+                put_hd(img, x, y, "metal", lvl)
+            if y > 22 and (y + int(cx)) % 2 == 0:         # rust at the root
+                put_hd(img, int(cx + 2), y, "ember", 1.6)
+            put_ink(img, hi + 1 if hi + 1 < HTS else hi, y)
+            put_ink(img, lo - 1 if lo > 0 else lo, y) if y < 10 else None
+        put_ink(img, int(cx), 5)
+        put_hd(img, int(cx), 6, "metal", 6)               # tip glint
+    return img
+
+
+def t_crate_hd(seed):
+    """Crate: a frame of four boards with mitred corners, three planks with
+    grain and a knot, a diagonal brace with its own bevel, iron corner
+    brackets and nails. Breakable reads from the planks and the brace."""
+    rnd = random.Random(seed)
+    img = tile_hd(255)
+    for y in range(HTS):
+        for x in range(HTS):
+            frame = x < 4 or x > 27 or y < 4 or y > 27
+            if frame:
+                if y < 4 and y <= x and y <= 31 - x:
+                    lvl = (5.4, 4.8, 4.2, 3.2)[y]
+                elif x < 4 and x < y and x <= 31 - y:
+                    lvl = (5.0, 4.4, 3.8, 3.0)[x]
+                elif y > 27:
+                    lvl = (2.4, 2.0, 1.6, 1.0)[y - 28]
+                else:
+                    lvl = (2.6, 2.2, 1.8, 1.2)[x - 28]
+                if (y < 4 or y > 27) and math.sin(x * 0.7 + y) > 0.6:
+                    lvl -= 0.6                            # grain along the board
+                if (x < 4 or x > 27) and math.sin(y * 0.7 + x) > 0.6:
+                    lvl -= 0.6
+            else:
+                ly = (y - 4) % 8
+                lvl = 3.2
+                if ly == 0:
+                    lvl = 1.4                             # seam
+                elif ly == 1:
+                    lvl = 4.4                             # lip
+                elif ly == 7:
+                    lvl = 2.4
+                g = math.sin(x * 0.45 + 2.5 * math.sin(y * 0.9 + (y // 8)))
+                if g > 0.8 and 1 < ly < 7:
+                    lvl -= 0.8
+            put_hd(img, x, y, "wood", lvl)
+    for i in range(4, 28):                                # brace, bottom-left to top-right
+        x, y = i, 31 - i
+        put_hd(img, x, y - 2, "wood", 4.8)
+        put_hd(img, x, y - 1, "wood", 3.8)
+        put_hd(img, x, y, "wood", 3.4)
+        put_hd(img, x, y + 1, "wood", 1.4)
+    for (bx, by, sx, sy) in ((1, 1, 1, 1), (30, 1, -1, 1), (1, 30, 1, -1), (30, 30, -1, -1)):
+        for k in range(5):                                # iron bracket
+            put_hd(img, bx + sx * k, by, "metal", 4 if sy > 0 else 2)
+            put_hd(img, bx, by + sy * k, "metal", 4 if sx > 0 else 2)
+        put_hd(img, bx + sx * 2, by + sy * 2, "metal", 6)
+        put_hd(img, bx + sx * 3, by + sy * 3, "metal", 1)
+    for (nx, ny) in ((10, 6), (21, 6), (10, 22), (21, 22)):
+        put_hd(img, nx, ny, "metal", 6)
+        put_hd(img, nx + 1, ny + 1, "metal", 2)
+    return img
+
+
+def t_bg_leaves_hd(seed):
+    """Background leaves: a mat of pointed leaves, each with a midrib, a lit
+    upper edge and a shaded underside, held to the dark end of the foliage
+    ramp so the player stays in front of it. Wrapped, so it tiles."""
+    rnd = random.Random(seed)
+    img = fill_hd(tile_hd(255), "foliage", 0.9, rnd, grain=0.25, cell=4)
+    for _ in range(16):
+        cx, cy = rnd.uniform(0, HTS), rnd.uniform(0, HTS)
+        ang = rnd.uniform(-0.9, 0.9) + (math.pi if rnd.random() < 0.5 else 0)
+        ln, wd = rnd.uniform(7, 11), rnd.uniform(2.2, 3.4)
+        ca, sa = math.cos(ang), math.sin(ang)
+        for y in range(int(cy - ln - 2), int(cy + ln + 3)):
+            for x in range(int(cx - ln - 2), int(cx + ln + 3)):
+                u = (x + 0.5 - cx) * ca + (y + 0.5 - cy) * sa
+                v = -(x + 0.5 - cx) * sa + (y + 0.5 - cy) * ca
+                t = (u + ln) / (2 * ln)
+                if not 0 <= t <= 1:
+                    continue
+                half = wd * math.sin(math.pi * t) ** 0.8
+                if abs(v) > half:
+                    continue
+                lvl = 1.8
+                if abs(v) < 0.5:
+                    lvl = 2.9                            # midrib
+                elif v < 0:
+                    lvl = 2.4                            # lit half
+                if abs(v) > half - 0.9 and v > 0:
+                    lvl = 0.8                            # shaded rim
+                put_hd(img, x, y, "foliage", lvl)
+    for _ in range(10):
+        put_hd(img, rnd.randrange(HTS), rnd.randrange(HTS), "foliage", 3)
+    return img
+
+
+def t_trunk_hd(seed):
+    """Bark: six ribs whose grooves wander (period 32 vertically, so it
+    tiles), each with a lit left shoulder; flakes, horizontal splits, a knot
+    hole and a strand of moss in one groove."""
+    rnd = random.Random(seed)
+    img = tile_hd(255)
+    edges = [0, 6, 11, 17, 22, 27, 32]
+    for y in range(HTS):
+        wob = [int(round(1.2 * math.sin(y * 2 * math.pi / HTS + i * 1.7))) if 0 < i < 6 else 0
+               for i, _ in enumerate(edges)]
+        es = [e + w for e, w in zip(edges, wob)]
+        for i in range(6):
+            x0, x1 = es[i], es[i + 1]
+            for x in range(x0, x1):
+                lvl = 2.2
+                if x == x0:
+                    lvl = 0.6
+                elif x == x0 + 1:
+                    lvl = 1.4
+                elif x == x0 + 2:
+                    lvl = 3.4
+                elif x == x0 + 3:
+                    lvl = 2.8
+                elif x == x1 - 1:
+                    lvl = 1.6
+                put_hd(img, x, y, "wood", lvl + rnd.uniform(-0.3, 0.3))
+    for _ in range(6):                                  # flakes
+        x, y = rnd.randrange(HTS), rnd.randrange(HTS)
+        for k in range(rnd.randrange(2, 4)):
+            put_hd(img, x, y + k, "wood", 4.2)
+            put_hd(img, x + 1, y + k, "wood", 1.0)
+    for _ in range(3):                                  # splits
+        x, y = rnd.randrange(HTS), rnd.randrange(HTS)
+        for k in range(rnd.randrange(3, 6)):
+            put_hd(img, x + k, y, "wood", 0.6)
+            put_hd(img, x + k, y + 1, "wood", 3.6)
+    for (dx, dy, l) in ((0, 0, 0.2), (1, 0, 0.2), (0, 1, 0.4), (1, 1, 0.8),
+                        (-1, 0, 3.6), (0, -1, 3.8), (1, -1, 3.4), (2, 1, 1.4), (0, 2, 3.0)):
+        put_hd(img, 14 + dx, 18 + dy, "wood", l)        # knot hole
+    for y in range(HTS):                                # moss in a groove
+        if math.sin(y * 2 * math.pi / HTS) > -0.1:
+            put_hd(img, 22 + int(round(1.2 * math.sin(y * 2 * math.pi / HTS + 4 * 1.7))),
+                    y, "grass", 2.6 + (0.8 if y % 3 == 0 else 0))
+    return img
+
+
+#: The look sample's slice, by the 1x id each one would replace.
+HD_SLICE = [
+    (2, "grass top", lambda: t_grass_top_hd(12)),
+    (1, "dirt", lambda: t_dirt_hd(11)),
+    (3, "stone", lambda: t_stone_hd(21)),
+    (5, "one-way platform", lambda: t_platform_hd(5)),
+    (6, "vine ladder", lambda: t_vine_hd(6)),
+    (9, "spikes", lambda: t_spikes_hd(9)),
+    (10, "crate", lambda: t_crate_hd(7)),
+    (7, "water surface", lambda: t_water_hd(31, surface=True)),
+    (8, "water body", lambda: t_water_hd(32)),
+    (13, "bg leaves", lambda: t_bg_leaves_hd(41)),
+    (14, "trunk", lambda: t_trunk_hd(14)),
+]
