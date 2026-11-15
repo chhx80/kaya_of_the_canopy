@@ -5,7 +5,7 @@ extends Node2D
 var _bg: Texture2D = null
 
 func _ready() -> void:
-	_bg = load("res://assets/sprites/title_bg.png")
+	_bg = Display.texture("res://assets/sprites/title_bg.png")
 	var panel: Control = (load("res://src/ui/menus/options_panel.gd") as GDScript).new()
 	panel.on_closed = func() -> void:
 		Game.goto_title()

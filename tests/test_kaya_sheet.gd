@@ -17,8 +17,7 @@ func before_each() -> void:
 		return
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(FORM))
 	_cfg = parsed if parsed is Dictionary else {}
-	var tex: Texture2D = load(String(_cfg.get("sprite", "")))
-	_img = tex.get_image() if tex != null else null
+	_img = Display.world_image(String(_cfg.get("sprite", "")))
 
 
 func _anim_frames(name: String) -> Array:
@@ -127,7 +126,7 @@ func test_the_hub_draws_the_new_kaya_at_its_own_scale() -> void:
 	## from the same puppet poses, scaled to 24x28 so she still fits by the huts
 	## (tools/art/kaya40.py hub_cells). Smaller than the 32x40 platformer cell,
 	## or she would stand taller than the huts on a top-down map.
-	var tex: Texture2D = load(HUB_SHEET)
+	var tex: Texture2D = Display.texture(HUB_SHEET)
 	ok(tex != null, "kaya_hub loads")
 	if tex == null:
 		return

@@ -29,9 +29,8 @@ func before_each() -> void:
 		if parsed is Dictionary:
 			_m = parsed
 	if _img == null:
-		var tex: Texture2D = load(TILESET)
-		if tex != null:
-			_img = tex.get_image()
+		_img = Display.world_image(TILESET)
+		if _img != null:
 			_cols = int(_img.get_width() / TILE_SIZE)
 			_rows = int(_img.get_height() / TILE_SIZE)
 
@@ -302,7 +301,7 @@ func test_the_manifest_names_a_contact_shadow_sheet() -> void:
 	var cells: Dictionary = cs.get("cells", {})
 	for name: String in ["n", "w", "nw", "s", "e"]:
 		ok(cells.has(name), "the sheet has a '%s' cell" % name)
-	var tex: Texture2D = load(path)
+	var tex: Texture2D = Display.texture(path)
 	if tex != null:
 		eq(tex.get_width(), TILE_SIZE * cells.size(), "one 16 px cell per side")
 

@@ -139,7 +139,7 @@ class _Scene:
         for plane in ("sky", "far", "near"):
             path = os.path.join(palette.SPRITES, "bg_%s_%s.png" % (world, plane))
             if os.path.exists(path):
-                self.img.alpha_composite(_floor_window(Image.open(path).convert("RGBA")))
+                self.img.alpha_composite(_floor_window(palette.open_1x(path)))
         for layer in (bg, fg):
             for y, row in enumerate(_resolve(layer, variants)):
                 for x, cell in enumerate(row):
@@ -263,9 +263,7 @@ FORM_SPOTS = [
 
 def _form_frame(name):
     """Frame 0 of a form sheet, as (w, h, pixel accessor)."""
-    from PIL import Image
-    img = Image.open(os.path.join(palette.SPRITES, "kaya_%s.png" % name))
-    img = img.convert("RGBA")
+    img = palette.open_1x(os.path.join(palette.SPRITES, "kaya_%s.png" % name))
     # The animal sheets are one row of square cells; the 40 px Kaya's are
     # 32x40 (tools/art/kaya40.py), and a square crop would take in 8 px of
     # her second frame.
@@ -349,7 +347,7 @@ def _layer_separation(scene, fg, bg, tileset, variants):
 def readability(write_sheets=True):
     """Measure every form against every world. Returns the report as a dict."""
     from PIL import Image
-    tileset = Image.open(os.path.join(palette.TILES, "tileset.png")).convert("RGBA")
+    tileset = palette.open_1x(os.path.join(palette.TILES, "tileset.png"))
     variants = _json.load(open(os.path.join(palette.TILES, "variants.json")))
     names = ("human", "frog", "fish", "bird")
     forms = {n: _form_frame(n) for n in names}
@@ -413,12 +411,12 @@ def preview_panels():
     """The other two panels of each new world's contact sheet: its parallax
     with nothing in front of it, and its twelve tiles at 4x."""
     from PIL import Image
-    atlas = Image.open(os.path.join(palette.TILES, "tileset.png")).convert("RGBA")
+    atlas = palette.open_1x(os.path.join(palette.TILES, "tileset.png"))
     for world, ids in sorted(WORLD_BLOCKS.items()):
         back = Image.new("RGBA", (400, 240), (0, 0, 0, 255))
         for plane in ("sky", "far", "near"):
             path = os.path.join(palette.SPRITES, "bg_%s_%s.png" % (world, plane))
-            back.alpha_composite(_floor_window(Image.open(path).convert("RGBA")))
+            back.alpha_composite(_floor_window(palette.open_1x(path)))
         back.convert("RGB").save(
             os.path.join(ROOT, "shots", "world_%s_backdrop.png" % world))
 
@@ -444,6 +442,7 @@ def main():
         readability(write_sheets=True)
         preview_panels()
         return
+    started = palette.run_started()
     palette.write_manifest()
     tiles.build_tileset()
     sprites.build_sprites()
@@ -468,6 +467,9 @@ def main():
     # Phase E, docs/plan-art-motion.md: selout coverage. Last, so every
     # sheet() call above (every builder, every module) is already logged.
     palette.write_selout_manifest()
+    # docs/plan-hd.md: last of all, so every builder above has read back 1x
+    # pixels and written its sidecars in world units.
+    palette.publish_hd(started, (palette.TILES, palette.SPRITES, palette.FONTS))
     print("done")
 
 

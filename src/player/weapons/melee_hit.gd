@@ -25,7 +25,7 @@ func _ready() -> void:
 	sprite = Sprite2D.new()
 	sprite.centered = true
 	sprite.region_enabled = true
-	sprite.texture = load(String(cfg.get("sprite", "res://assets/sprites/projectiles.png")))
+	sprite.texture = Display.texture(String(cfg.get("sprite", "res://assets/sprites/projectiles.png")))
 	var frames: Array = cfg.get("frames", [1])
 	var fw := int(cfg.get("frame_w", 8))
 	sprite.region_rect = Rect2(int(frames[0]) * fw, 0, fw, int(cfg.get("frame_h", 8)))

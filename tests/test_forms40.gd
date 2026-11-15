@@ -32,8 +32,7 @@ func before_each() -> void:
 			FileAccess.get_file_as_string("res://data/forms/%s.json" % id))
 		var d: Dictionary = parsed if parsed is Dictionary else {}
 		_cfg[id] = d
-		var tex: Texture2D = load(String(d.get("sprite", "")))
-		_img[id] = tex.get_image() if tex != null else null
+		_img[id] = Display.world_image(String(d.get("sprite", "")))
 
 
 func _fw(id: String) -> int:

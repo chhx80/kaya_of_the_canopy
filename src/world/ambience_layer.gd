@@ -56,7 +56,7 @@ func setup(r: Role, a: Ambience, w: TileWorld) -> void:
 	amb = a
 	world = w
 	if role == Role.LIGHT:
-		_pool_tex = load(POOL_TEX)
+		_pool_tex = Display.texture(POOL_TEX)
 		_lantern_px = Vector2(-9999, -9999)
 		# The one material in the level. Additive is what makes a pool read as
 		# light falling on the scene rather than as a pale sticker over it.
@@ -64,7 +64,7 @@ func setup(r: Role, a: Ambience, w: TileWorld) -> void:
 		m.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 		material = m
 	elif role == Role.SHADE:
-		_vig_tex = load(VIGNETTE_TEX)
+		_vig_tex = Display.texture(VIGNETTE_TEX)
 	_scan_emissive()
 	_rebuild()
 	queue_redraw()

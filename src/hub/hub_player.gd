@@ -20,7 +20,7 @@ func _ready() -> void:
 	sprite.region_enabled = true
 	# The new Kaya drawn at the overworld's scale: the platformer's 40 px sprite
 	# would stand taller than the huts on a top-down map. tools/art/kaya40.py.
-	sprite.texture = load("res://assets/sprites/kaya_hub.png")
+	sprite.texture = Display.texture("res://assets/sprites/kaya_hub.png")
 	sprite.offset = Vector2(-_side_pad(), -float(_frame.y) + box.y)
 	add_child(sprite)
 	_sync_render_position()

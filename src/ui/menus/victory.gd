@@ -16,7 +16,7 @@ var _busy := false
 var _bg: Texture2D = null
 
 func _ready() -> void:
-	_bg = load("res://assets/sprites/title_bg.png")
+	_bg = Display.texture("res://assets/sprites/title_bg.png")
 	AudioManager.music("victory")
 	SaveManager.add_score(Game.score)
 	SaveManager.save()

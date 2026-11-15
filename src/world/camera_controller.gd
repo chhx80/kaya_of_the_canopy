@@ -15,6 +15,13 @@ extends Camera2D
 ##   parallax and enemy wake-up reason about. A shake must never make the
 ##   renderer re-cull, or the tile layers would flicker.
 ## * `position` — what the player sees: the view plus the shake and dip offsets.
+##
+## The HD pass (docs/plan-hd.md): the view is Display.view_size() world units
+## (308 x 184), not a screen. `zoom` is art_scale, always, so one world unit is
+## that many texels in the world's render target; the view's *size* is what a
+## boss arena changes. While locked, the view eases out until the whole arena
+## is in it, and back in when the lock lets go, centred on itself both ways so
+## the pull-back reads as the camera stepping back rather than sliding.
 
 const CAMERA_JSON := "res://data/camera.json"
 ## Hard ceiling on the shake offset. The tile cull carries one tile (16px) of
@@ -49,6 +56,12 @@ var _view := Vector2.ZERO
 ## Arena entry: 0 -> 1 over `arena_ease_s`, from where the camera was.
 var _blend := 1.0
 var _blend_from := Vector2.ZERO
+## Arena pull-back: 0 = the explore view, 1 = the arena, eased in between.
+## `_zoom_to` is the arena size it is easing toward, kept after unlock so the
+## ease back in starts from the arena it left.
+var _zoom := 0.0
+var _zoom_to := Vector2.ZERO
+var _size := Vector2.ZERO
 
 func setup(w: TileWorld, t: Node2D, is_topdown: bool = false) -> void:
 	world = w
@@ -56,13 +69,26 @@ func setup(w: TileWorld, t: Node2D, is_topdown: bool = false) -> void:
 	topdown = is_topdown
 	anchor_mode = Camera2D.ANCHOR_MODE_FIXED_TOP_LEFT
 	ignore_rotation = true
+	var k := float(Display.art_scale())
+	zoom = Vector2(k, k)
 	_cfg = _load_cfg()
 	locked = false
+	_zoom = 0.0
+	_size = Display.view_size()
 	snap_to_target()
 
-## The cull rect: the whole-pixel view with no shake in it.
+## The cull rect: the whole-pixel view with no shake in it. Its size is the
+## view's, which is the explore view except while a boss arena pulls it back.
 func view_rect() -> Rect2:
-	return Rect2(_view, Vector2(Screen.W, Screen.H))
+	return Rect2(_view, _size)
+
+## World units in view right now.
+func view_size() -> Vector2:
+	return _size
+
+## The view's size for a pull-back of `z` (0..1) toward `arena_size`.
+static func size_at(z: float, explore: Vector2, arena_size: Vector2) -> Vector2:
+	return explore.lerp(arena_size, CameraMath.ease(z))
 
 ## Jump straight to where the camera wants to be: level start, a respawn, a
 ## teleport. The only discontinuity the camera ever makes.
@@ -72,6 +98,8 @@ func snap_to_target() -> void:
 	_floor_y = _target_point().y
 	_lead = _want_lead()
 	_blend = 1.0
+	_zoom = 1.0 if locked else 0.0
+	_update_size()
 	base_pos = _goal()
 	_apply_position()
 
@@ -81,6 +109,7 @@ func snap_to_target() -> void:
 func lock_to(r: Rect2) -> void:
 	locked = true
 	arena = r
+	_zoom_to = r.size
 	_blend_from = base_pos
 	var secs := _num("arena_ease_s", 0.6)
 	_blend = 0.0 if secs > 0.0 else 1.0
@@ -122,6 +151,7 @@ func _physics_process(delta: float) -> void:
 	if target == null or world == null or not is_instance_valid(target):
 		return
 	_track(delta)
+	_ease_zoom(delta)
 	var goal := _goal()
 	if _blend < 1.0:
 		_blend = minf(1.0, _blend + delta / maxf(0.001, _num("arena_ease_s", 0.6)))
@@ -130,8 +160,8 @@ func _physics_process(delta: float) -> void:
 		var kx := CameraMath.approach(_num("follow_x_rate", 10.0), delta)
 		var ky := CameraMath.approach(_num("follow_y_rate", 6.0), delta)
 		base_pos = Vector2(lerpf(base_pos.x, goal.x, kx), lerpf(base_pos.y, goal.y, ky))
-		var size := Vector2(Screen.W, Screen.H)
-		var m := Vector2(_num("keep_in_x_px", 64.0), _num("keep_in_y_px", 40.0))
+		var size := _size
+		var m := Vector2(_num("keep_in_x_px", 48.0), _num("keep_in_y_px", 32.0))
 		base_pos = CameraMath.clamp_view(
 			CameraMath.keep_in(base_pos, size, _target_point(), m), bounds(), size)
 	_apply_position()
@@ -146,7 +176,7 @@ func _apply_position() -> void:
 	# Mid-pan into an arena the view is still allowed to stand outside it;
 	# clamping to the arena there would be exactly the snap the ease is for.
 	var hold := level_bounds() if is_entering_arena() else bounds()
-	v = CameraMath.clamp_view(v, hold, Vector2(Screen.W, Screen.H))
+	v = CameraMath.clamp_view(v, hold, _size)
 	position = v + (shake_offset + dip_offset).round()
 	if v != _view:
 		_view = v
@@ -171,7 +201,7 @@ func _num(key: String, fallback: float) -> float:
 func _want_lead() -> float:
 	if topdown or not (target is Actor):
 		return 0.0
-	return _num("lead_px", 24.0) * float((target as Actor).facing)
+	return _num("lead_px", 32.0) * float((target as Actor).facing)
 
 ## Where the view wants to be: centred on her focus, clamped to the bounds.
 func _goal() -> Vector2:
@@ -180,8 +210,29 @@ func _goal() -> Vector2:
 	if not topdown:
 		focus = Vector2(c.x + _lead, CameraMath.anchored_y(c.y, _floor_y,
 			_num("air_band_up_px", 56.0), _num("air_band_down_px", 8.0)))
-	var size := Vector2(Screen.W, Screen.H)
-	return CameraMath.clamp_view(focus - size * 0.5, bounds(), size)
+	return CameraMath.clamp_view(focus - _size * 0.5, bounds(), _size)
+
+## Step the pull-back toward the arena while locked and back out of it after,
+## at the same pace as the pan into the arena. The view grows and shrinks
+## about its centre: `base_pos` moves by half of each change.
+func _ease_zoom(delta: float) -> void:
+	var want := 1.0 if locked else 0.0
+	if _zoom == want:
+		return
+	var secs := _num("arena_ease_s", 0.6)
+	var step := 1.0 if secs <= 0.0 else delta / secs
+	_zoom = move_toward(_zoom, want, step)
+	var before := _size
+	_update_size()
+	base_pos += (before - _size) * 0.5
+	if _blend < 1.0:
+		_blend_from += (before - _size) * 0.5
+
+func _update_size() -> void:
+	var explore := Display.view_size()
+	if _zoom_to == Vector2.ZERO:
+		_zoom_to = explore
+	_size = size_at(_zoom, explore, _zoom_to)
 
 ## Ease the look-ahead toward her facing, and re-anchor the vertical to the
 ## floor whenever she is standing, climbing or swimming.

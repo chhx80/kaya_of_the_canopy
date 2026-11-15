@@ -3088,3 +3088,38 @@ the banner replayed on a second sign-in in the same session.
 Not verifiable on this Mac (iOS 18 SDK; Godot 4.7.2 device builds need 26.1):
 the native link is first proven by Xcode Cloud, and achievements only work once
 they exist in App Store Connect.
+
+## HD pass, H0 engine: the whole game on the 2x pipeline (branch `hd/engine`)
+
+docs/plan-hd.md, step 1. Everything is 30% larger on screen and drawn at two
+texels per world unit; world units, hitboxes, levels and tapes are unchanged.
+
+- **Art pipeline.** Generators still draw at one pixel per world unit;
+  `tools/art/palette.py publish_hd()` is the one writer that brings every PNG a
+  run wrote to `ART_SCALE` (nearest), at the end of `gen_art.py` and
+  `gen_fx.py`, so bounds and variant sidecars are still measured in world units.
+  `HD_NATIVE` (empty) names sheets drawn natively at 2x; `UI_1X` keeps the font,
+  splash and app icon at 1x. `assets/art_scale.json` records every sheet's
+  density. Verified: all 56 shipped sheets are exact nearest-doubles of the
+  committed 1x art.
+- **Rendering.** `src/core/display.gd` reads `data/display.json` once.
+  `Display.texture()` wraps a sheet in an `HdTexture`, a Texture2D that reports
+  world-unit size and multiplies source rects on the way to the server, so
+  every Sprite2D region, offset and draw call in the game is unchanged.
+- **View.** The camera shows 308 x 184 (zoom = art_scale); `Screen.W/H` stay the
+  arena cell, level grid and HUD frame. `data/camera.json` re-derived: lead 24 ->
+  32, keep-in 64x40 -> 48x32, the rest justified as view-independent.
+- **Boss arenas** ease the view out to the whole 400 x 240 cell over
+  `arena_ease_s`, and back in on release.
+- **Presentation.** Stretch mode `canvas_items` (integer, expand): the UI keeps
+  its logical size and positions; the world is a fixed 800x480-texel target,
+  shown as large as the device allows through a sharp-bilinear shader
+  (`src/core/world_view.gdshader`). The hub's readout moved into the root.
+- **Visibility audit.** The tape replay now measures blind landings (the floor
+  she lands on was off screen when she took off): 15 of 198 landings at
+  400x240, 25 of 198 at 308x184. Reported, not tuned away.
+- Fixed a timing race in the integration `tap()` helper (press and release
+  could fall inside one rendered frame, so the pause button never saw it).
+- New: `tests/test_hd_display.gd`, three `t_hd_*` integration tests,
+  `tools/seq/hd_*.json`, a `tap` step and world-viewport timing in
+  `tools/dev_capture.gd`.

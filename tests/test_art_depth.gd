@@ -47,8 +47,7 @@ func _hex_px(c: Color) -> String:
 		int(round(c.b * 255.0))]
 
 func _image(path: String) -> Image:
-	var tex: Texture2D = load(path)
-	return null if tex == null else tex.get_image()
+	return Display.world_image(path)
 
 ## Every world any level asks for, plus whatever else has been generated.
 func _worlds() -> Array[String]:

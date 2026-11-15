@@ -95,12 +95,45 @@ func blades() -> Array:
 func enter_arena() -> void:
 	await enter(ARENA)
 
+## Pause is polled in Main._process. Rendered frames are waited on as well as
+## physics ticks, for the same reason as tap(): under load the physics loop
+## catches up several ticks inside one rendered frame.
+func press_pause() -> void:
+	Input.action_press("pause")
+	await frames(2)
+	for _i in 2:
+		await get_tree().process_frame
+	Input.action_release("pause")
+	await frames(2)
+	for _i in 2:
+		await get_tree().process_frame
+
+## Physics ticks AND rendered frames. For anything polled in _process
+## (Achievements reads Game Center's event queue there): under load one
+## rendered frame can hold several physics ticks, so ticks alone are no promise
+## that _process ran.
+func process_frames(n: int) -> void:
+	for i in n:
+		await get_tree().physics_frame
+		await get_tree().process_frame
+
+## A pause menu left open by a failed check would hold the tree paused for every
+## test after it, and fifty unrelated failures would hide the one that matters.
+func _clear_pause() -> void:
+	if Game.main != null and Game.main.ui.has_node("PauseScreen"):
+		var ps: Node = Game.main.ui.get_node("PauseScreen")
+		Game.main.ui.remove_child(ps)
+		ps.free()
+	get_tree().paused = false
+
 func enter(level_id: String) -> void:
+	_clear_pause()
 	Game.reset_run()
 	Game.goto_level(level_id)
 	await frames(4)
 
 func enter_hub() -> void:
+	_clear_pause()
 	Game.reset_run()
 	Game.goto_hub()
 	await frames(6)
@@ -203,6 +236,9 @@ func run_all() -> void:
 		"t_shooter_only_fires_when_you_are_in_its_line",
 		"t_an_enemy_shot_hurts_the_player_and_dies_on_a_wall",
 		"t_swimmer_stays_in_its_water_and_chases",
+		"t_hd_the_world_is_drawn_at_the_explore_view_and_fills_the_device",
+		"t_hd_a_boss_arena_pulls_the_view_back_to_the_whole_cell_and_lets_it_go",
+		"t_hd_the_map_is_drawn_at_the_same_view",
 		"t_boss_spawns_locked_to_its_arena",
 		"t_boss_changes_phase_as_its_health_falls",
 		"t_boss_death_opens_the_way_out_and_unlocks_the_camera",
@@ -539,6 +575,14 @@ func check_camera_audit(id: String, r: Dictionary) -> void:
 		"%s: no enemy awake far off the view — %s" % [id, note])
 	check_eq(int(r["enemy_frozen_visible"]), 0,
 		"%s: no enemy frozen where she can see it — %s" % [id, note])
+	# A measurement, not a check (tape_replay.gd, BLIND LANDINGS). Printed in
+	# a fixed shape so it can be grepped out of the itest log (`grep "^\[blind\]"`).
+	var n := int(r["landings"])
+	var b := int(r["blind_landings"])
+	var view := Display.view_size()
+	print("[blind] %s view=%dx%d landings=%d blind=%d pct=%.1f worst_px=%.0f %s" % [
+		id, int(view.x), int(view.y), n, b, 100.0 * float(b) / float(maxi(1, n)),
+		float(r["blind_worst_px"]), String(r["blind_note"])])
 
 ## A boss level's tape proves arrival, because arrival is all it records.
 ##
@@ -1404,6 +1448,94 @@ func t_boss_spawns_locked_to_its_arena() -> void:
 	check_eq(level().cam.view_rect(), Rect2(b.arena.position, Vector2(Screen.W, Screen.H)),
 		"and the view is the arena, nothing outside it")
 
+# ---------------------------------------------------------------- HD pass
+## docs/plan-hd.md: the camera shows Display.view_size() world units at
+## art_scale texels each, and the device shows that as large as it can.
+func t_hd_the_world_is_drawn_at_the_explore_view_and_fills_the_device() -> void:
+	await enter("jungle_1")
+	await frames(4)
+	var cam: CameraController = level().cam
+	var k := float(Display.art_scale())
+	check_eq(cam.zoom, Vector2(k, k), "the camera's zoom is art_scale: one unit, k texels")
+	check_eq(cam.view_size(), Display.view_size(), "exploring, the view is 308 x 184")
+	check_eq(cam.view_rect().size, Display.view_size(), "and so is the cull rect")
+	var main: Node = Game.main
+	check_eq(main.world_viewport.size, Display.render_texels(),
+		"the render target holds a whole arena at art_scale")
+	check_eq(main.shown_view_size(), Display.view_size(), "the display shows the camera's view")
+	var ui := Screen.ui_size(get_viewport())
+	var want := Display.world_display_for(ui, Display.view_size())
+	var got: Rect2 = main.world_display_rect()
+	near(got.size.x, want.size.x, 0.01, "drawn as large as fits, width")
+	near(got.size.y, want.size.y, 0.01, "and height")
+	check(is_equal_approx(got.size.y, ui.y) or is_equal_approx(got.size.x, ui.x),
+		"one dimension fills the device exactly (no whole-number stepping)")
+	# The HUD keeps the frame it always had.
+	check_eq(Screen.ui_frame(get_viewport()).size, Vector2(Screen.W, Screen.H),
+		"the HUD's frame is still Screen.W x Screen.H")
+	# The pixel at Kaya's centre in the render target is the pixel the world
+	# drew there: she is drawn where the camera says she is.
+	var p := player()
+	var at := (p.center() - cam.position) * k
+	check(Rect2(Vector2.ZERO, Display.view_size() * k).has_point(at),
+		"Kaya is inside the shown region of the target (%s)" % str(at))
+
+func t_hd_a_boss_arena_pulls_the_view_back_to_the_whole_cell_and_lets_it_go() -> void:
+	await enter(GROVE)
+	var b := boss()
+	check(b != null, "the Warden is present")
+	if b == null:
+		return
+	var cam: CameraController = level().cam
+	var p := player()
+	p.invuln = 999.0
+	check_eq(cam.view_size(), Display.view_size(), "before the arena: the explore view")
+	# Walk in (no settle_view, which would snap): the lock eases.
+	p.pos = b.pos - Vector2(40.0, 40.0)
+	var sizes: Array[float] = []
+	var ease_frames := ceili(cam.cfg_num("arena_ease_s", 0.6) * 60.0)
+	for i in ease_frames + 6:
+		await frames(1)
+		sizes.append(cam.view_size().x)
+	check(cam.locked, "the camera locked to the arena")
+	check(sizes.any(func(w: float) -> bool: return w > Display.view_size().x + 1.0 \
+		and w < b.arena.size.x - 1.0), "it eases through sizes in between, not a cut")
+	var grows := true
+	for i in range(1, sizes.size()):
+		if sizes[i] < sizes[i - 1] - 0.001:
+			grows = false
+	check(grows, "the view only ever grows on the way out")
+	check_eq(cam.view_size(), b.arena.size, "pulled back to the whole arena")
+	check_eq(cam.view_rect(), b.arena, "the view IS the arena: every edge of it in frame")
+	await frames(2)
+	check_eq(Game.main.shown_view_size(), b.arena.size, "and the display shows all of it")
+	var r: Rect2 = Game.main.world_display_rect()
+	near(r.size.x / r.size.y, b.arena.size.x / b.arena.size.y, 0.002,
+		"at the arena's own shape, no stretch")
+	# Walk out: the lock lets go and the view eases back in.
+	p.pos = b.arena.position - Vector2(cam.cfg_num("arena_release_px", 24.0) + 80.0, -80.0)
+	await frames(2)
+	check(not cam.locked, "leaving the arena lets go")
+	await frames(ease_frames + 6)
+	check_eq(cam.view_size(), Display.view_size(), "and the view is back to 308 x 184")
+	await frames(2)
+	check_eq(Game.main.shown_view_size(), Display.view_size(), "on the display too")
+
+func t_hd_the_map_is_drawn_at_the_same_view() -> void:
+	Game.goto_hub()
+	await frames(6)
+	var hub: Node = Game.main.current_scene()
+	var cam: CameraController = hub.get("cam")
+	check(cam != null, "the map has a camera")
+	if cam == null:
+		return
+	check_eq(cam.view_size(), Display.view_size(), "the overworld gets the same 30%")
+	var layer := hub.get_node("Ui") as CanvasLayer
+	check(layer.custom_viewport == get_tree().root, "its readout is drawn in the root, as UI")
+	check_eq(layer.offset, Screen.ui_frame(get_tree().root).position,
+		"in the HUD's frame")
+	await enter_arena()
+
 func t_boss_changes_phase_as_its_health_falls() -> void:
 	await enter(GROVE)
 	var b := boss()
@@ -1662,10 +1794,7 @@ func t_pause_freezes_the_level_and_resumes_it() -> void:
 	await enter(ARENA)
 	await place(4, 10, 20)
 	var p := player()
-	Input.action_press("pause")
-	await frames(2)
-	Input.action_release("pause")
-	await frames(2)
+	await press_pause()
 	check(Game.main.ui.has_node("PauseScreen"), "pause screen opened")
 	check(get_tree().paused, "the tree is paused")
 	var before := p.pos
@@ -1680,6 +1809,11 @@ func t_pause_freezes_the_level_and_resumes_it() -> void:
 
 ## A touch on the screen, pressed then released. The overlay and the pause menu
 ## both read InputEventScreenTouch, so this is the phone's path, not a shortcut.
+## Waits on rendered frames as well as physics ticks. The pause button is
+## polled by Main._process; when a slow frame makes the physics loop catch up
+## several ticks at once, a tap held for "2 frames" of physics could press and
+## release inside one rendered frame, and Main never saw it (measured: process
+## frame 2 for the whole tap). A finger is down for several rendered frames.
 func tap(at: Vector2) -> void:
 	var down := InputEventScreenTouch.new()
 	down.index = 3
@@ -1687,12 +1821,16 @@ func tap(at: Vector2) -> void:
 	down.pressed = true
 	Input.parse_input_event(down)
 	await frames(2)
+	for _i in 2:
+		await get_tree().process_frame
 	var up := InputEventScreenTouch.new()
 	up.index = 3
 	up.position = at
 	up.pressed = false
 	Input.parse_input_event(up)
 	await frames(3)
+	for _i in 2:
+		await get_tree().process_frame
 
 ## Before this there was no pause button on a touchscreen at all, so a phone
 ## could never reach the menu; and the menu had no way back to the world map.
@@ -1732,10 +1870,7 @@ func t_a_phone_can_pause_and_leave_a_level_for_its_door_on_the_map() -> void:
 
 func t_the_map_pause_menu_has_no_level_rows() -> void:
 	await enter_hub()
-	Input.action_press("pause")
-	await frames(2)
-	Input.action_release("pause")
-	await frames(2)
+	await press_pause()
 	check(Game.main.ui.has_node("PauseScreen"), "pause opens on the map")
 	if not Game.main.ui.has_node("PauseScreen"):
 		return
@@ -1759,7 +1894,7 @@ func t_beating_a_boss_unlocks_its_world_achievement_in_game_center() -> void:
 	await frames(2)
 	check(not ach.signed_in, "nothing is reported before the player signs in")
 	gc.sign_in()
-	await frames(3)
+	await process_frames(3)
 	check(ach.signed_in, "the sign-in event is read")
 	var cleared_before: int = SaveManager.completed_count()
 	Game.reset_run()
@@ -1778,7 +1913,7 @@ func t_beating_a_boss_unlocks_its_world_achievement_in_game_center() -> void:
 	# do not say which award they answer, so re-sending is how nothing is lost.
 	gc.awarded.clear()
 	gc.sign_in()
-	await frames(3)
+	await process_frames(3)
 	check_eq(gc.awarded.size(), 1, "a later sign-in re-reports the held achievement")
 	if gc.awarded.size() == 1:
 		check(not bool((gc.awarded[0] as Dictionary).get("show_completion_banner", true)),
@@ -1802,7 +1937,7 @@ func t_a_boss_beaten_before_achievements_existed_is_put_right_quietly() -> void:
 	ach.call("_backfill")
 	check(SaveManager.has_achievement(W3), "the old clear earns world 3")
 	gc.sign_in()
-	await frames(3)
+	await process_frames(3)
 	var sent := false
 	for a: Variant in gc.awarded:
 		if String((a as Dictionary).get("name", "")) == W3:

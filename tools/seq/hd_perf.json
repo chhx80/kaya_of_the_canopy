@@ -1,0 +1,20 @@
+[
+  {"_": "HD pass (docs/plan-hd.md) before/after: 4x the texels. Run the same file on the pre-HD build for the before numbers (dev_capture.gd times the world SubViewport separately from the root). deeps_2 is dark (light layer, lantern, emissive scan all live) and has the longest clear run; jungle_1 is the busiest lit backdrop; the hub is the other camera. cap=60 is how a phone runs it."},
+  {"scenario": "level:deeps_2", "settle": 90},
+  {"teleport": [5, 26], "settle": 40},
+  {"perf": "deeps_2 standing", "frames": 240, "cap": 60},
+  {"teleport": [5, 26], "settle": 40},
+  {"hold": "move_right", "frames": 1},
+  {"perf": "deeps_2 running east", "frames": 300, "cap": 60},
+  {"release": "move_right"},
+  {"teleport": [5, 26], "settle": 40},
+  {"hold": "move_right", "frames": 1},
+  {"perf": "deeps_2 running east, uncapped", "frames": 1200},
+  {"release": "move_right"},
+  {"scenario": "level:jungle_1", "settle": 60},
+  {"perf": "jungle_1 standing, uncapped", "frames": 600},
+  {"scenario": "hub", "settle": 60},
+  {"hold": "move_down", "frames": 1},
+  {"perf": "hub walking south", "frames": 240, "cap": 60},
+  {"release": "move_down"}
+]

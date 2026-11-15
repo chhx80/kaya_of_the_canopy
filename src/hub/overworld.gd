@@ -21,8 +21,27 @@ var _spawn_door := ""
 
 func _ready() -> void:
 	overlay.draw.connect(_draw_overlay)
+	var layer := $Ui as CanvasLayer
+	# Re-pointed while detached: changing a live layer's viewport leaves the
+	# old one's canvas bookkeeping behind (Godot reports it on the swap).
+	remove_child(layer)
+	layer.custom_viewport = get_tree().root
+	add_child(layer)
+	_place_overlay()
+	get_tree().root.size_changed.connect(_place_overlay)
 	_load()
 	AudioManager.music("hub")
+
+## The map's readout is UI, not world: since the HD pass the world's render
+## target is in texels and larger than what is shown, so a layer left inside it
+## would draw at half size in a corner. It is drawn into the root viewport, in
+## the same Screen.W x Screen.H frame as the level HUD (src/ui/hud.gd).
+func _place_overlay() -> void:
+	var layer := $Ui as CanvasLayer
+	layer.offset = Screen.ui_frame(get_tree().root).position
+	overlay.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	overlay.position = Vector2.ZERO
+	overlay.size = Vector2(Screen.W, Screen.H)
 
 func place_at_door(level_id: String) -> void:
 	_spawn_door = level_id

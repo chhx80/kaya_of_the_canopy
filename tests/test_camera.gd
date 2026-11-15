@@ -175,8 +175,11 @@ func test_the_camera_tunables_are_sane() -> void:
 	gt(float(c["enemy_wake_margin_px"]), 0.0, "an enemy wakes before it is visible")
 	gt(float(c["arena_ease_s"]), 0.0, "entering an arena eases rather than snaps")
 	gt(float(c["arena_release_px"]), 0.0, "and the lock does not thrash on its rim")
-	lt(float(c["lead_px"]), float(Screen.W) * 0.25, "the look-ahead keeps her well inside the view")
-	lt(float(c["lead_px"]), float(Screen.W) * 0.5 - float(c["keep_in_x_px"]),
+	# Against the view the camera actually shows (docs/plan-hd.md), not the
+	# 400 x 240 arena cell these were first tuned for.
+	var v := Display.view_size()
+	lt(float(c["lead_px"]), v.x * 0.25, "the look-ahead keeps her well inside the view")
+	lt(float(c["lead_px"]), v.x * 0.5 - float(c["keep_in_x_px"]),
 		"and the hard zone never fights the look-ahead")
-	lt(float(c["air_band_up_px"]), float(Screen.H) * 0.5 - float(c["keep_in_y_px"]),
+	lt(float(c["air_band_up_px"]), v.y * 0.5 - float(c["keep_in_y_px"]),
 		"nor the floor anchor's band")

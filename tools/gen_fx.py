@@ -16,8 +16,11 @@ fallback is used so this script never depends on another generator having run.
 
 Re-run with:  tools/genfx.sh
 """
-import math, os
+import math, os, sys
 from PIL import Image
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from art import palette     # noqa: E402  the HD writer only (docs/plan-hd.md)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TILESET = os.path.join(ROOT, "assets", "tiles", "tileset.png")
@@ -348,7 +351,9 @@ def load_tile(tid):
     if not os.path.exists(TILESET):
         return None
     try:
-        sheet = Image.open(TILESET).convert("RGBA")
+        # The shipped tileset is at ART_SCALE; these frames are re-timed at
+        # one pixel per world unit and published at ART_SCALE like the rest.
+        sheet = palette.open_1x(TILESET)
     except OSError:
         return None
     ox, oy = (tid % ATLAS_COLUMNS) * TS, (tid // ATLAS_COLUMNS) * TS
@@ -454,6 +459,8 @@ def build_tile_anim():
 
 
 if __name__ == "__main__":
+    started = palette.run_started()
     build_particles()
     build_tile_anim()
+    palette.publish_hd(started, (FX,))
     print("done")

@@ -28,6 +28,16 @@ extends RefCounted
 ## outside the view, an ordinary enemy awake and acting far off the view, and
 ## one sitting frozen where she can see it. The counts land in the result and
 ## the caller asserts them (integration_tests.gd, check_camera_audit()).
+##
+## BLIND LANDINGS (docs/plan-hd.md: the HD view shows 19 tiles where the old one
+## showed 25). Every time she leaves the ground — a jump, a step off a ledge —
+## the view at that instant is kept, and when she next stands on something the
+## spot under her feet is checked against it: if it was not on screen when she
+## took off, she jumped at a floor she could not see. A *measurement*, reported
+## per level by the caller, not a gate: levels were proved for traversal, not
+## for visibility, and the number is for deciding where a hint or a camera
+## change is worth it. Airtime that ends in water or on a vine is not a
+## landing and is dropped.
 
 const TAPE := "res://tests/integration/replay_tape.gd"
 const TS := 16.0
@@ -94,6 +104,9 @@ func _set_actions(actions: Array) -> void:
 
 # ------------------------------------------------------------------ audit
 var _last_view := Vector2(-1, -1)
+var _was_grounded := false
+var _takeoff_view := Rect2()
+var _airborne := false
 
 ## Reads the live level rather than the one the replay booted: completing a
 ## level frees it, and the audit runs on that frame too.
@@ -118,6 +131,7 @@ func _audit(r: Dictionary) -> void:
 	# always hold her.
 	if not cam.locked and not v.has_point((pl as Actor).center()):
 		r["cam_lost_kaya"] = int(r["cam_lost_kaya"]) + 1
+	_audit_landing(r, pl as Actor, v)
 	for n in _tree.get_nodes_in_group(&"enemies"):
 		var e := n as Enemy
 		if e == null or e.level != lvl or e.is_in_group(&"bosses"):
@@ -128,6 +142,35 @@ func _audit(r: Dictionary) -> void:
 		elif not e.active and e.visible and v.intersects(e.aabb()):
 			r["enemy_frozen_visible"] = int(r["enemy_frozen_visible"]) + 1
 			r["cam_note"] = "%s frozen in view at %s" % [e.enemy_id, str(e.pos.round())]
+
+## How far the landing spot sat outside `view` (0 when inside).
+static func outside_by(view: Rect2, p: Vector2) -> float:
+	var dx := maxf(0.0, maxf(view.position.x - p.x, p.x - view.end.x))
+	var dy := maxf(0.0, maxf(view.position.y - p.y, p.y - view.end.y))
+	return Vector2(dx, dy).length()
+
+func _audit_landing(r: Dictionary, a: Actor, v: Rect2) -> void:
+	if Game.sim_paused:
+		return
+	var grounded := a.on_floor
+	if a.submerged() or a.on_ladder():
+		_airborne = false
+	elif _was_grounded and not grounded:
+		_airborne = true
+		_takeoff_view = v
+	elif _airborne and grounded:
+		_airborne = false
+		# Two units into the floor under her centre: the surface she landed on.
+		var spot := Vector2(a.center().x, a.pos.y + a.box.y + 2.0)
+		r["landings"] = int(r["landings"]) + 1
+		var off := outside_by(_takeoff_view, spot)
+		if off > 0.0:
+			r["blind_landings"] = int(r["blind_landings"]) + 1
+			if off > float(r["blind_worst_px"]):
+				r["blind_worst_px"] = off
+				r["blind_note"] = "landed at %s, %.0f px outside the take-off view %s" \
+					% [str(spot.round()), off, str(_takeoff_view)]
+	_was_grounded = grounded
 
 # ------------------------------------------------------------------ replay
 ## Returns a result dictionary. `completed` is the only thing a caller should
@@ -142,7 +185,11 @@ func replay(tape: RefCounted) -> Dictionary:
 		"note": "",
 		"cam_frozen": 0, "cam_max_step": 0.0, "cam_lost_kaya": 0,
 		"enemy_awake_far": 0, "enemy_frozen_visible": 0, "cam_note": "",
+		"landings": 0, "blind_landings": 0, "blind_worst_px": 0.0, "blind_note": "",
 	}
+	_last_view = Vector2(-1, -1)
+	_was_grounded = false
+	_airborne = false
 
 	_release_all()
 	SaveManager.set_flag(id, false)

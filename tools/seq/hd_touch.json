@@ -1,0 +1,7 @@
+[
+  {"_": "HD pass (docs/plan-hd.md): a touch lands where the control is drawn, through the real stretch at device aspect. Run at a phone and a tablet shape: tools/shot.sh --res=2556x1179 --seq=tools/seq/hd_touch.json and --res=2732x2048. The [tap] line must say OPENED."},
+  {"scenario": "level:jungle_1", "settle": 60},
+  {"tap": "pause"},
+  {"wait": 10},
+  {"shot": "shots/hd/touch_pause.png"}
+]

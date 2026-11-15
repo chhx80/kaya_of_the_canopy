@@ -83,10 +83,7 @@ func _hex_px(c: Color) -> String:
 		int(round(c.b * 255.0))]
 
 func _image(path: String) -> Image:
-	var tex: Texture2D = load(path)
-	if tex == null:
-		return null
-	return tex.get_image()
+	return Display.world_image(path)
 
 ## Distinct opaque colours in a region, as a set of hex strings.
 func _colours(img: Image, x0: int, y0: int, w: int, h: int) -> Dictionary:

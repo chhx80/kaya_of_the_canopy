@@ -14,8 +14,8 @@ var _input := InputState.new()
 var _busy := false
 
 func _ready() -> void:
-	_bg = load("res://assets/sprites/title_bg.png")
-	_logo = load("res://assets/sprites/logo.png")
+	_bg = Display.texture("res://assets/sprites/title_bg.png")
+	_logo = Display.texture("res://assets/sprites/logo.png")
 	var has_save: bool = SaveManager.completed_count() > 0
 	_items.assign(ITEMS_CONTINUE if has_save else ITEMS_NEW)
 	var rng := RandomNumberGenerator.new()

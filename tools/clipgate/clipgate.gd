@@ -368,10 +368,28 @@ func _side(p: Player, tx: int, ty: int) -> String:
 	return "wall"
 
 
+## The sheet as a world-unit coverage mask (docs/plan-hd.md): the PNG ships at
+## art_scale texels per unit, and this gate measures in world units, so a unit
+## counts as drawn if ANY of its k x k texels is opaque. Exact for a
+## nearest-upscaled sheet; for one drawn natively at 2x it is the conservative
+## answer (a half-unit of hat brim still clips).
 func _sheet(path: String) -> Image:
 	if _alpha.has(path):
 		return _alpha[path]
-	var img := Image.load_from_file(ProjectSettings.globalize_path(path))
+	var src := Image.load_from_file(ProjectSettings.globalize_path(path))
+	var img := src
+	var k := Display.art_scale()
+	if src != null and k > 1:
+		var w := src.get_width() / k
+		var h := src.get_height() / k
+		img = Image.create(w, h, false, Image.FORMAT_RGBA8)
+		for y in h:
+			for x in w:
+				var a := 0.0
+				for dy in k:
+					for dx in k:
+						a = maxf(a, src.get_pixel(x * k + dx, y * k + dy).a)
+				img.set_pixel(x, y, Color(1, 1, 1, a))
 	_alpha[path] = img
 	return img
 

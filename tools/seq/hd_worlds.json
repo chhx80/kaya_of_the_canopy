@@ -1,0 +1,8 @@
+[
+  {"_": "HD pass (docs/plan-hd.md): one mid-run frame per world at the new framing, shot from the real proof tapes. Re-run at phone shape: tools/shot.sh --res=2556x1179 --seq=tools/seq/hd_worlds.json"},
+  {"tape": "jungle_2", "shots": "shots/hd/world_jungle_%d.png", "every": 420, "max": 1},
+  {"tape": "ruins_2", "shots": "shots/hd/world_ruins_%d.png", "every": 420, "max": 1},
+  {"tape": "heights_2", "shots": "shots/hd/world_heights_%d.png", "every": 420, "max": 1},
+  {"tape": "deeps_2", "shots": "shots/hd/world_deeps_%d.png", "every": 420, "max": 1},
+  {"tape": "nest_2", "shots": "shots/hd/world_nest_%d.png", "every": 420, "max": 1}
+]

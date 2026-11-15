@@ -29,7 +29,7 @@ func _ready() -> void:
 	sprite = Sprite2D.new()
 	sprite.centered = false
 	sprite.region_enabled = true
-	sprite.texture = load("res://assets/sprites/pickups.png")
+	sprite.texture = Display.texture("res://assets/sprites/pickups.png")
 	sprite.region_rect = Rect2(int(FRAMES.get(kind, 0)) * 16, 0, 16, 16)
 	sprite.offset = Vector2(-2, -2)
 	add_child(sprite)
