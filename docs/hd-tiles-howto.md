@@ -1,9 +1,11 @@
 # How to redraw a world's tiles at 2x
 
 docs/plan-hd.md, phase H1. The jungle and the shared tiles (ids 0-27, the verbs
-200-215) are native; ruins, heights, deeps and nest still ship their 1x cells
-nearest-upscaled. This is how to switch one of those worlds over, with the
-jungle as the worked example (`tools/art/hd_tiles_jungle.py`).
+200-215) are native, and the ruins (220-231) have a first native pass in
+`hd_tiles_ruins.py` that its agent takes over; heights, deeps and nest still
+ship their 1x cells nearest-upscaled. This is how to switch one of those worlds
+over, with the jungle as the worked example (`tools/art/hd_tiles_jungle.py`) and
+the ruins as a second, shorter one.
 
 ## The shape of it
 

@@ -3123,3 +3123,33 @@ texels per world unit; world units, hitboxes, levels and tapes are unchanged.
 - New: `tests/test_hd_display.gd`, three `t_hd_*` integration tests,
   `tools/seq/hd_*.json`, a `tap` step and world-viewport timing in
   `tools/dev_capture.gd`.
+
+## HD pass, H1 tiles: the tileset native at 2x (branch `hd/tiles`)
+
+docs/plan-hd.md, step 2, for the tileset. `tileset`, `contact_shadow` and
+`tile_anim` are native (`tools/art/hd_native/hdtiles.txt`); ids, atlas layout,
+`variants.json` and `level_legend.json` are unchanged.
+
+- **The machinery at 2x.** `tools/art/hd_tilekit.py` is the autotile pass written
+  in texels: rim bands applied as a relative shift (so a painter's pebbles and
+  joints survive their edge light), ragged on a smooth periodic wave, convex
+  corners rounded, inside-corner occlusion in radial whole steps, the phase C
+  course and the refit rim a world unit deep with a one-texel arris, chips
+  rounded. Inked tiles get the hero's weighted line (a second texel on the
+  shadow side). Contact shadows are sampled per texel, a gradient twice as fine.
+- **Native vs upscaled, per id.** A tile is native when its painter is
+  registered; its variants, all 47 blob cases, accents and decorations are then
+  drawn at 32x32 and gen_art stops if any 2x twin is missing. Every other cell is
+  the 1x painting upscaled, byte-identical to H0 (`tools/hd_tiles_check.py`).
+- **Redrawn:** the whole jungle and every shared tile (ids 0-27: the approved
+  look-sample eleven plus mossy stone, bg rock and dark, grass edges, bridge,
+  hub grass/path/water/tree, lava, tread plate, switch blocks on and off), the
+  movement verbs 200-215, and a first pass of the ruins (220-231). Heights,
+  deeps and nest are still upscaled.
+- **Tile frames.** gen_fx re-times water and lava from the 2x cells: a swell one
+  world unit high in texel steps, a crest with a thickness, star glints, round
+  bubbles.
+- **One per world.** Each world's 2x tiles live in `hd_tiles_<world>.py`; the
+  recipe is `docs/hd-tiles-howto.md`. Review tools: `tools/hd_tiles_sheet.py`
+  (bases, fields, seam numbers), `tools/hd_tiles_contact.py` (before/after game
+  frames), `tools/seq/hd1_jungle.json`, `tools/seq/hd1_ruins.json`.

@@ -250,6 +250,21 @@ def grit(img, rnd, ramp, count, lit, dark, box=None):
         put(img, x + 1, y + 1, ramp, dark)
 
 
+def pit(img, ramp, cx, cy, rx, ry, lvl):
+    """A hollow bored into a face: its upper-left inner wall in shadow, its
+    lower-right inner wall catching the light, a lit lip above-left of it."""
+    for y in range(int(cy - ry - 2), int(cy + ry + 3)):
+        for x in range(int(cx - rx - 2), int(cx + rx + 3)):
+            nx, ny = (x + 0.5 - cx) / rx, (y + 0.5 - cy) / ry
+            d = nx * nx + ny * ny
+            if d <= 1.0:
+                f = nx + ny
+                v = lvl + (1.8 if f > 0.6 else (-0.4 if f < -0.3 else 0.4)) - (1 - d) * 0.6
+                put(img, x, y, ramp, v)
+            elif d <= 1.6 and nx + ny < -0.4:
+                put(img, x, y, ramp, lvl + 3.0)
+
+
 def wave(i, seed, period=N, octaves=((1, 1.0), (2, 0.5), (3, 0.3))):
     """A smooth periodic 1D signal in [-1, 1]: ragged edges that wander rather
     than flicker column by column, and still meet themselves across a tile."""

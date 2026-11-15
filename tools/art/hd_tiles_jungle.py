@@ -35,9 +35,11 @@ def t_dirt_hd(seed):
                 rnd.uniform(3.0, 5.5), rnd.uniform(2.2, 3.8), 2.4, lit=1.0, dark=0.9)
     for _ in range(3):
         root(img, rnd, rnd.randrange(N), rnd.randrange(N), rnd.randrange(7, 13))
-    for _ in range(4):                                   # pebbles, cast shadow
+    # pebbles, cast shadow. H1: three, a step darker than the look sample's
+    # four -- across a whole floor of variants four read as a dotted pattern
+    for _ in range(3):
         blob(img, "stone", rnd.uniform(0, N), rnd.uniform(0, N),
-                rnd.uniform(1.6, 2.8), rnd.uniform(1.3, 2.2), 2.9, shadow=1.3)
+                rnd.uniform(1.6, 2.8), rnd.uniform(1.3, 2.2), 2.5, shadow=1.3)
     for _ in range(9):                                   # grit: a lit grain on its shadow
         x, y = rnd.randrange(N), rnd.randrange(N)
         put(img, x, y, "dirt", 4.6)
@@ -934,7 +936,10 @@ def t_switch_off_hd(ramp, seed, glyph):
     for y in range(5, N - 6):
         for x in range(5, N - 5):
             on, outer, _, _ = _rune(x, y, glyph)
-            if on and ((x + y) // 3) % 2 == 0:
+            # every other segment round the ring, by angle, so each side of
+            # the rune keeps a dash whatever its slope
+            seg = int((math.atan2(y + 0.5 - 15.0, x + 0.5 - 16.0) + math.pi) / (math.pi / 8))
+            if on and seg % 2 == 0:
                 put_c(img, x, y, ramp, 4.0, alpha=170 if outer else 120)
     return img
 

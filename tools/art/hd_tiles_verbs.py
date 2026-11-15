@@ -10,7 +10,7 @@ the crack you can break.
 import math
 import random
 
-from .hd_tilekit import N, blob, get, level_of, new, put, put_c, tile
+from .hd_tilekit import N, blob, get, level_of, new, pit, put, put_c, tile
 from .hd_tiles_jungle import t_dirt_hd, t_stone_hd, t_water_hd
 
 
@@ -71,6 +71,8 @@ def t_draft_hd(seed, dy, strong=False, sideways=0):
                 px, py = x + wob, y + k * (1 if dy > 0 else -1)
             if a > 20:
                 put(img, round(px), round(py), "cloth", lvl, alpha=int(a))
+                fx, fy = (0, 1) if sideways else (1, 0)
+                put(img, round(px) + fx, round(py) + fy, "cloth", lvl - 1, alpha=int(a * 0.6))
     return img
 
 
@@ -78,13 +80,14 @@ def _bold_crack(img, rnd, ramp, x, y, length):
     """A crack that says 'breakable': a dark core that opens to two texels
     in its middle third, a lit lip under it, and a branch."""
     for k in range(length):
-        wide = length // 3 <= k < 2 * length // 3
+        wide = length // 5 <= k < 4 * length // 5
         put(img, x, y, ramp, 0)
+        put(img, x - 1, y, ramp, 1)
         if wide:
             put(img, x + 1, y, ramp, 0)
-        put(img, x, y + 1, ramp, 4)
+        put(img, x, y + 1, ramp, 5)
         if wide:
-            put(img, x + 1, y + 1, ramp, 4)
+            put(img, x + 1, y + 1, ramp, 5)
         if k == length // 2:
             bx, by = x, y
             for j in range(rnd.randrange(3, 7)):
@@ -100,25 +103,10 @@ def t_cracked_hd(seed, base):
     img = t_stone_hd(seed) if base == "stone" else t_dirt_hd(seed)
     rnd = random.Random(seed + 3)
     ramp = "stone" if base == "stone" else "dirt"
-    for _ in range(3):
-        _bold_crack(img, rnd, ramp, rnd.randrange(3, N - 10), rnd.randrange(2, 12),
-                    rnd.randrange(12, 22))
+    for i in range(3):
+        _bold_crack(img, rnd, ramp, rnd.randrange(3, N - 12), 2 + i * 9 + rnd.randrange(4),
+                    rnd.randrange(14, 22))
     return img
-
-
-def pit(img, ramp, cx, cy, rx, ry, lvl):
-    """A hollow bored into a face: its upper-left inner wall in shadow, its
-    lower-right inner wall catching the light, a lit lip above-left of it."""
-    for y in range(int(cy - ry - 2), int(cy + ry + 3)):
-        for x in range(int(cx - rx - 2), int(cx + rx + 3)):
-            nx, ny = (x + 0.5 - cx) / rx, (y + 0.5 - cy) / ry
-            d = nx * nx + ny * ny
-            if d <= 1.0:
-                f = nx + ny
-                v = lvl + (1.8 if f > 0.6 else (-0.4 if f < -0.3 else 0.4)) - (1 - d) * 0.6
-                put(img, x, y, ramp, v)
-            elif d <= 1.6 and nx + ny < -0.4:
-                put(img, x, y, ramp, lvl + 3.0)
 
 
 def t_termite_wall_hd(seed):
@@ -135,15 +123,17 @@ def t_luminous_wall_hd(seed):
     hot core, a halo a step down on each side, and a crystal where two meet."""
     img = t_stone_hd(seed)
     rnd = random.Random(seed + 9)
-    for _ in range(3):
+    for _ in range(4):
         x, y = rnd.uniform(4, N - 4), rnd.uniform(4, N - 4)
         a = rnd.uniform(0, math.pi)
-        for k in range(rnd.randrange(9, 17)):
+        for k in range(rnd.randrange(14, 24)):
             x += math.cos(a)
             y += math.sin(a) * 0.6
             a += rnd.uniform(-0.4, 0.4)
             put(img, round(x), round(y) - 1, "gold", 4)
+            put(img, round(x) + 1, round(y) - 1, "gold", 3)
             put(img, round(x), round(y), "gold", 6)
+            put(img, round(x) + 1, round(y), "gold", 5)
             put(img, round(x), round(y) + 1, "gold", 4)
         put(img, round(x), round(y), "gold", 6)
         put(img, round(x) + 1, round(y), "gold", 5)
@@ -156,12 +146,18 @@ def t_rubble_hd(seed):
     upper left, the ones behind darker than the ones in front, and grit."""
     img = new(0)
     rnd = random.Random(seed)
-    stones = [(rnd.uniform(3, N - 3), rnd.uniform(21, N - 3)) for _ in range(11)]
+    for x in range(1, N - 1):                            # a low mound of grit
+        h = int(round(3 + 2.5 * math.sin(math.pi * x / N) + rnd.uniform(-0.6, 0.6)))
+        for k in range(h):
+            put_c(img, x, N - 1 - k, "dirt", 2.2 + (1.4 if k == h - 1 else 0) - k * 0.1)
+    stones = [((i + 0.5) * N / 9.0 + rnd.uniform(-1.5, 1.5),
+               rnd.uniform(22, N - 4) - 3 * math.sin(math.pi * (i + 0.5) / 9.0))
+              for i in range(9)]
     for x, y in sorted(stones, key=lambda s: s[1]):
-        blob(img, "stone", x, y, rnd.uniform(2.4, 4.0), rnd.uniform(1.8, 2.8),
-             2.4 + (y - 21) * 0.12, wrap=False)
+        blob(img, "stone", x, y, rnd.uniform(2.2, 3.6), rnd.uniform(1.7, 2.6),
+             2.2 + (y - 18) * 0.1, wrap=False)
     for _ in range(10):
-        put_c(img, rnd.randrange(N), rnd.randrange(N - 4, N), "dirt", 3)
+        put_c(img, rnd.randrange(2, N - 2), rnd.randrange(N - 5, N), "dirt", 4)
     return img
 
 
