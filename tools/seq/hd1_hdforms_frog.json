@@ -1,0 +1,12 @@
+[
+  {"_": "HD pass H1 (hdforms): the native 2x frog in a real frame. Pad as in m6b_frog.json. tools/shot.sh --res=2556x1179 --seq=tools/seq/hd1_hdforms_frog.json"},
+  {"scenario": "level:nest_1", "settle": 90},
+  {"teleport": [33, 26], "settle": 30},
+  {"shot": "shots/hd1/hdforms_frog_idle.png"},
+  {"hold": "move_right", "frames": 20},
+  {"release": "move_right"},
+  {"wait": 10},
+  {"press": "jump", "frames": 4},
+  {"wait": 6},
+  {"shot": "shots/hd1/hdforms_frog_hop.png"}
+]

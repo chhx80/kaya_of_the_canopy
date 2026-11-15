@@ -1,0 +1,11 @@
+[
+  {"_": "HD pass H1 (hdforms): the native 2x bird. Pad as in m6b_bird.json."},
+  {"scenario": "level:heights_1", "settle": 90},
+  {"teleport": [9, 26], "settle": 30},
+  {"shot": "shots/hd1/hdforms_bird_perch.png"},
+  {"press": "jump", "frames": 10},
+  {"wait": 6},
+  {"hold": "jump", "frames": 14},
+  {"shot": "shots/hd1/hdforms_bird_glide.png"},
+  {"release": "jump"}
+]

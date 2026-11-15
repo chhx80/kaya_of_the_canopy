@@ -1,0 +1,6 @@
+# hdforms: the three animal forms and her weapon (tools/art/forms40.py, tools/art/hd_weapon.py)
+kaya_frog
+kaya_fish
+kaya_bird
+blade
+projectiles

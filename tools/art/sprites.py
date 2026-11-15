@@ -19,6 +19,7 @@ from PIL import Image
 
 from . import kaya40
 from . import forms40
+from . import hd_weapon
 from .palette import SPRITES, auto_shade, blit, grid, sheet
 
 # ---------------------------------------------------------------- player
@@ -1426,22 +1427,25 @@ def build_sprites():
     # also reused as the turn frame), 3 leap (also reused as the wall-kick
     # flash), 4 reach, 5 cling, 6 apex (mid-air tuck), 7 tongue-blink idle,
     # 8 cling breathe.
-    sheet("kaya_frog", forms40.frog_cells(), forms40.FROG_W, forms40.FROG_H, selout=True)
+    sheet("kaya_frog", forms40.frog_cells_hd(), forms40.FROG_W * forms40.S,
+          forms40.FROG_H * forms40.S, selout=True)
     forms40.write_bounds(os.path.join(SPRITES, "kaya_frog.png"), forms40.FROG_W, forms40.FROG_H)
     # Fish 24x14: 0-3 the swim beat, 4 bite, 5 flop. Drawn facing right, which
     # is the direction `facing == 1` draws.
-    sheet("kaya_fish", forms40.fish_cells(), forms40.FISH_W, forms40.FISH_H, selout=True)
+    sheet("kaya_fish", forms40.fish_cells_hd(), forms40.FISH_W * forms40.S,
+          forms40.FISH_H * forms40.S, selout=True)
     forms40.write_bounds(os.path.join(SPRITES, "kaya_fish.png"), forms40.FISH_W, forms40.FISH_H)
     # Bird 24x16: 0-3 the flap beat, 4 glide, 5 perch, 6 glide ruffle, 7 perch
     # head-tilt, 8-9 the banking turn pair.
-    sheet("kaya_bird", forms40.bird_cells(), forms40.BIRD_W, forms40.BIRD_H, selout=True)
+    sheet("kaya_bird", forms40.bird_cells_hd(), forms40.BIRD_W * forms40.S,
+          forms40.BIRD_H * forms40.S, selout=True)
     forms40.write_bounds(os.path.join(SPRITES, "kaya_bird.png"), forms40.BIRD_W, forms40.BIRD_H)
     # Refit phase 3: the four original enemies are drawn at Kaya's scale by
     # tools/art/enemies40.py (frame orders documented on its *_cells()).
     from . import enemies40
     for name in ("enemy_walker", "enemy_jumper", "enemy_shooter", "enemy_swimmer"):
         enemies40.build_sheet(name)
-    sheet("blade", lit([I_BLADE1, I_BLADE2], BLADE, depth=1), 16, 16)
+    sheet("blade", hd_weapon.blade_cells(), 16 * hd_weapon.S, 16 * hd_weapon.S)
     sheet("pickups", lit([I_GEM], GEM, depth=2)
                      + lit([I_HEART], HEART, depth=2)
                      + lit([recolor(key('y'), 'y'), recolor(key('r'), 'r'),
@@ -1455,8 +1459,7 @@ def build_sprites():
                          PADS, depth=1)
                    + lit([ARCH_LOCKED, ARCH_OPEN, ARCH_CLEARED], ARCH, depth=1),
           16, 16)
-    sheet("projectiles", lit([P_SHOT], P_SHOT_MAP, depth=2)
-                         + lit([P_SPARK], P_SPARK_MAP, depth=2), 8, 8)
+    sheet("projectiles", hd_weapon.projectile_cells(), 8 * hd_weapon.S, 8 * hd_weapon.S)
     print("sprites written")
 
 

@@ -1,0 +1,10 @@
+[
+  {"_": "HD pass H1 (hdforms): the native 2x blade in flight, with its trail."},
+  {"scenario": "level:test_arena", "settle": 60},
+  {"teleport": [3, 10], "settle": 16},
+  {"press": "attack", "frames": 4},
+  {"wait": 8},
+  {"shot": "shots/hd1/hdforms_blade.png"},
+  {"wait": 3},
+  {"shot": "shots/hd1/hdforms_blade_b.png"}
+]
