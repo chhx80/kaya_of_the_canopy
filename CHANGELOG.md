@@ -3280,3 +3280,28 @@ unchanged.
 - **Light pool and vignette**: twice the bands, seams dithered on the texel grid.
 - Readability (`gen_art.py --readability`): every world's worst hole equal to or
   better than before; jungle/frog lost outline 1.2% -> 0.4%, ruins/fish 2.5% -> 0.
+
+## HD pass, H2 camera: the arena floor in view before she lands (branch `hd/arena`)
+
+- **The arena approach** (`src/world/camera_controller.gd`, maths in
+  `camera_math.gd`, tunables and derivation in `data/camera.json`
+  `_arena_approach`). Every boss arena is entered by a drop from above, and the
+  lock engaged as her centre crossed the arena's top, mid-fall, so the 0.6 s
+  pull-back arrived after she had landed. Now a fall with nothing solid between
+  her and the arena, inside a 128-unit band above a live boss's arena, starts
+  the same pan and pull-back early; the hard zone holds her in view and fades
+  out across the band, so at the arena's top edge the approach's view *is* the
+  arena's and the lock takes over without a jump, carrying the pan on rather
+  than restarting it from rest. The pan is capped at 8 a frame.
+- **Framing only.** `Level` still locks, wakes the boss, shuts the arena and
+  releases it exactly where it did; the camera reads the boss's arena, it never
+  writes the lock. Release is unchanged, and a release never re-engages the
+  approach until she has been clear of its band.
+- **Measured** on the proof tapes (`[blind_lead]`): the landing in the arena
+  went from 10 to 23 frames of warning on jungle_5, 10 -> 26 on ruins_5, 9 -> 22
+  on nest_5, 10 -> 19 on deeps_5; none is late any more. Every other landing on
+  every tape is unchanged. Largest view step on the boss levels 8.1-9.2.
+- `tests/integration/tape_replay.gd`: the `[blind_lead]` line also prints the
+  tape's largest view step.
+- Contact sheet: `shots/hd2_arena_ruins5.png` (re-shoot with
+  `tools/seq/hd2_arena_after.json` / `_before.json`).
