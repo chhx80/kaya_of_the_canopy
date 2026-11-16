@@ -4,50 +4,8 @@
   "fg_minus_bg_luma": 28.0,
   "forms": {
    "bird": {
-    "hole_pct": 1.9,
-    "lost_pct": 0.3
-   },
-   "fish": {
-    "hole_pct": 0,
-    "lost_pct": 0.0
-   },
-   "frog": {
-    "hole_pct": 0,
-    "lost_pct": 0.0
-   },
-   "human": {
-    "hole_pct": 1.0,
-    "lost_pct": 0.1
-   }
-  }
- },
- "heights": {
-  "fg_minus_bg_luma": 34.2,
-  "forms": {
-   "bird": {
-    "hole_pct": 1.9,
-    "lost_pct": 0.5
-   },
-   "fish": {
-    "hole_pct": 0,
-    "lost_pct": 0.0
-   },
-   "frog": {
-    "hole_pct": 0,
-    "lost_pct": 0.0
-   },
-   "human": {
-    "hole_pct": 1.9,
-    "lost_pct": 0.5
-   }
-  }
- },
- "jungle": {
-  "fg_minus_bg_luma": 24.8,
-  "forms": {
-   "bird": {
-    "hole_pct": 0,
-    "lost_pct": 0.0
+    "hole_pct": 9.3,
+    "lost_pct": 4.2
    },
    "fish": {
     "hole_pct": 0,
@@ -58,8 +16,50 @@
     "lost_pct": 0.4
    },
    "human": {
+    "hole_pct": 1.9,
+    "lost_pct": 1.9
+   }
+  }
+ },
+ "heights": {
+  "fg_minus_bg_luma": 34.2,
+  "forms": {
+   "bird": {
+    "hole_pct": 9.3,
+    "lost_pct": 2.1
+   },
+   "fish": {
+    "hole_pct": 2.4,
+    "lost_pct": 0.7
+   },
+   "frog": {
+    "hole_pct": 2.7,
+    "lost_pct": 0.4
+   },
+   "human": {
+    "hole_pct": 1.0,
+    "lost_pct": 1.1
+   }
+  }
+ },
+ "jungle": {
+  "fg_minus_bg_luma": 27.0,
+  "forms": {
+   "bird": {
+    "hole_pct": 9.3,
+    "lost_pct": 1.6
+   },
+   "fish": {
+    "hole_pct": 2.4,
+    "lost_pct": 1.0
+   },
+   "frog": {
     "hole_pct": 0,
     "lost_pct": 0.0
+   },
+   "human": {
+    "hole_pct": 1.0,
+    "lost_pct": 0.1
    }
   }
  },
@@ -85,11 +85,11 @@
   }
  },
  "ruins": {
-  "fg_minus_bg_luma": 28.4,
+  "fg_minus_bg_luma": 20.8,
   "forms": {
    "bird": {
     "hole_pct": 1.9,
-    "lost_pct": 1.3
+    "lost_pct": 0.5
    },
    "fish": {
     "hole_pct": 0,
@@ -97,32 +97,32 @@
    },
    "frog": {
     "hole_pct": 2.7,
-    "lost_pct": 2.7
+    "lost_pct": 1.5
    },
    "human": {
-    "hole_pct": 1.9,
-    "lost_pct": 2.1
+    "hole_pct": 1.0,
+    "lost_pct": 0.7
    }
   }
  },
  "sky": {
-  "fg_minus_bg_luma": 41.9,
+  "fg_minus_bg_luma": 39.8,
   "forms": {
    "bird": {
-    "hole_pct": 0,
-    "lost_pct": 0.0
+    "hole_pct": 9.3,
+    "lost_pct": 1.6
    },
    "fish": {
-    "hole_pct": 7.5,
-    "lost_pct": 1.1
+    "hole_pct": 2.4,
+    "lost_pct": 0.7
    },
    "frog": {
-    "hole_pct": 2.7,
-    "lost_pct": 1.2
+    "hole_pct": 5.4,
+    "lost_pct": 1.9
    },
    "human": {
-    "hole_pct": 0,
-    "lost_pct": 0.0
+    "hole_pct": 1.0,
+    "lost_pct": 0.1
    }
   }
  }
