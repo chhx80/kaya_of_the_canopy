@@ -22,11 +22,11 @@
   }
  },
  "heights": {
-  "fg_minus_bg_luma": 34.2,
+  "fg_minus_bg_luma": 41.2,
   "forms": {
    "bird": {
     "hole_pct": 9.3,
-    "lost_pct": 2.1
+    "lost_pct": 2.9
    },
    "fish": {
     "hole_pct": 2.4,
@@ -37,8 +37,8 @@
     "lost_pct": 0.4
    },
    "human": {
-    "hole_pct": 1.0,
-    "lost_pct": 1.1
+    "hole_pct": 1.9,
+    "lost_pct": 1.4
    }
   }
  },
