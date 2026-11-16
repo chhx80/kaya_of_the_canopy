@@ -248,7 +248,118 @@ func test_the_look_blend_is_continuous_through_a_turn() -> void:
 	eq(CameraMath.blend_look(100.0, 90.0, 300.0, 0.0, 30.0, 6.0, 60.0), 100.0, "off is the anchor")
 	eq(CameraMath.look_y(0.0, 9999.0, 1, 30.0, 6.0, 60.0), 90.0, "the lag lead is capped")
 
-# ---------------------------------------------------------------- wake rule
+# ---------------------------------------------------------------- arena approach
+const ARENA := Rect2(400, 240, 400, 240)
+
+func test_the_approach_band_sits_only_above_the_arena() -> void:
+	var z := CameraMath.approach_zone(ARENA, 128.0)
+	ok(z.has_point(Vector2(600, 120)), "128 above the arena's top is in it")
+	ok(not z.has_point(Vector2(600, 100)), "further up is not")
+	ok(not z.has_point(Vector2(380, 300)), "beside the arena is not: a walk in has the floor in view")
+	ok(z.encloses(ARENA), "and the arena itself is")
+
+func test_the_approach_starts_only_on_a_real_fall_into_the_band() -> void:
+	ok(CameraMath.approach_on(false, true, true, true, false, true), "falling into the band")
+	ok(not CameraMath.approach_on(false, true, true, true, false, false),
+		"a hop in a corridor that crosses the band is not a fall")
+	ok(not CameraMath.approach_on(false, true, true, true, true, true), "nor is standing in it")
+	ok(not CameraMath.approach_on(false, true, false, true, false, true), "nor falling beside it")
+	ok(not CameraMath.approach_on(false, false, true, true, false, true),
+		"nor falling back in before she was ever clear of it after a release")
+
+func test_the_approach_holds_through_the_fall_and_lets_go_on_a_landing() -> void:
+	ok(CameraMath.approach_on(true, true, true, true, false, false),
+		"held once started, whatever her speed does")
+	ok(CameraMath.approach_on(true, false, false, true, false, false), "and across the band's rim")
+	ok(not CameraMath.approach_on(true, true, true, true, true, false),
+		"a landing above the arena ends it: she is platforming, not dropping in")
+	ok(not CameraMath.approach_on(true, true, false, false, false, false), "and so does drifting off")
+
+func test_a_release_does_not_re_engage_the_approach() -> void:
+	# unlock() disarms it; only leaving the band (grown by the release margin) re-arms.
+	ok(not CameraMath.approach_armed(false, true), "still near after a release: disarmed")
+	ok(CameraMath.approach_armed(false, false), "clear of it: armed again")
+	ok(CameraMath.approach_armed(true, true), "armed stays armed")
+
+func test_a_drop_counts_only_with_nothing_between_her_and_the_arena() -> void:
+	# 6 x 8 tiles: a ledge three tiles wide on row 3, the arena's top at row 6.
+	var rows: Array = []
+	for y in 8:
+		var r: Array = []
+		for x in 6:
+			r.append(1 if (y == 3 and x < 3) or y == 7 else 0)
+		rows.append(r)
+	var w := TileWorld.from_rows(rows)
+	ok(CameraMath.clear_below(w, 66.0, 78.0, 40.0, 96.0), "over the open shaft: clear")
+	ok(not CameraMath.clear_below(w, 20.0, 32.0, 40.0, 96.0), "over the ledge: it catches her")
+	ok(not CameraMath.clear_below(w, 44.0, 56.0, 40.0, 96.0), "grazing the ledge's edge still does")
+	ok(CameraMath.clear_below(w, 20.0, 32.0, 64.0, 96.0), "already past it: clear")
+
+func test_the_approach_hold_meets_the_arena_view_at_its_top() -> void:
+	var m := Vector2(48, 32)
+	eq(CameraMath.approach_hold(m, 200.0, 128.0), m, "above the band: the whole hard zone")
+	eq(CameraMath.approach_hold(m, 128.0, 128.0), m, "at its top: still whole")
+	eq(CameraMath.approach_hold(m, 64.0, 128.0), m * 0.5, "half way down: half")
+	eq(CameraMath.approach_hold(m, 0.0, 128.0), Vector2.ZERO, "at the arena: none, the lock's own view")
+	eq(CameraMath.approach_hold(m, -5.0, 128.0), Vector2.ZERO, "inside: none")
+	eq(CameraMath.approach_hold(m, 16.0, 0.0), m * 0.5, "a band thinner than the margin fades over the margin")
+	# The goal rides her fall at (1 + margin / band) of her speed.
+	var c := _cam_cfg()
+	var band := float(c["arena_approach_px"])
+	lt(340.0 / 60.0 * (1.0 + float(c["keep_in_y_px"]) / band), 8.0,
+		"so the fastest fall moves the approach's goal under 8 a frame")
+	# With no margin left, keep_in only insists she is in view at all, which the
+	# arena view already does: the approach goal and the lock's goal coincide.
+	var arena_view := Vector2(400, 240)
+	eq(CameraMath.keep_in(arena_view, Vector2(400, 240), Vector2(600, 241),
+		CameraMath.approach_hold(m, -1.0, band)), arena_view, "the hand-over is seamless")
+
+func test_the_steered_ease_matches_the_lerp_on_a_still_target() -> void:
+	var from := Vector2(0, 0)
+	var to := Vector2(90, 120)
+	var p := from
+	var t := 0.0
+	for i in 36:
+		var e0 := CameraMath.ease(t)
+		t = minf(1.0, t + 1.0 / 36.0)
+		p = CameraMath.ease_step(p, to, e0, CameraMath.ease(t), 1e9)
+		near(p.distance_to(from.lerp(to, CameraMath.ease(t))), 0.0, 0.01, "frame %d" % i)
+	eq(p, to, "and arrives with the ease")
+
+func test_the_steered_ease_never_steps_past_its_cap_and_still_arrives() -> void:
+	var p := Vector2.ZERO
+	var to := Vector2(0, 300)
+	var t := 0.0
+	var frames := 0
+	while p.distance_to(to) > 0.01 and frames < 200:
+		var e0 := CameraMath.ease(t)
+		t = minf(1.0, t + 1.0 / 36.0)
+		var q := CameraMath.ease_step(p, to, e0, CameraMath.ease(t), 8.0)
+		ok(q.distance_to(p) <= 8.0 + 0.001, "frame %d steps %.2f" % [frames, q.distance_to(p)])
+		p = q
+		frames += 1
+	lt(float(frames), 200.0, "a capped ease still arrives (in %d frames)" % frames)
+	# A pan pushed off its line (by the hard zone) carries on from where it is.
+	var pushed := CameraMath.ease_step(Vector2(50, 0), Vector2(100, 0), 0.5, 0.6, 1e9)
+	near(pushed.x, 60.0, 0.001, "a fifth of what is left, from where the view is")
+
+func test_the_approach_band_is_deep_enough_for_the_pull_back() -> void:
+	var c := _cam_cfg()
+	var band := float(c["arena_approach_px"])
+	# What a fall covers while the pull-back eases in, from the moment the fall
+	# counts (look_fall_speed) toward the human's max fall: the band must hold
+	# most of it, or the arena view is still arriving as she crosses the top.
+	var f: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/forms/human.json"))
+	var v := float(c["look_fall_speed"])
+	var y := 0.0
+	var t := 0.0
+	while t < float(c["arena_ease_s"]):
+		v = minf(float(f["max_fall"]), v + float(f["gravity"]) / 60.0)
+		y += v / 60.0
+		t += 1.0 / 60.0
+	gt(band, y * 0.5, "the band holds over half the ease's fall (%.0f)" % y)
+	lt(band, 240.0, "and no deeper than an arena cell: an approach, not a second arena")
+
 func test_an_awake_enemy_stays_awake_while_near_the_view() -> void:
 	eq(WakeRule.decide(true, true, true, true), WakeRule.Act.STAY)
 	eq(WakeRule.decide(true, false, true, false), WakeRule.Act.STAY, "its spawn need not be")
@@ -301,7 +412,7 @@ func test_the_camera_tunables_are_sane() -> void:
 			"arena_ease_s", "arena_release_px", "look_y_ahead_px", "look_y_max_lag_px",
 			"look_fall_speed", "look_fall_drop_px", "look_climb_speed", "look_climb_s",
 			"look_climb_decay", "look_y_in_rate", "look_y_out_rate", "look_y_vel_rate",
-			"look_follow_y_rate", "follow_y_max_speed"]:
+			"look_follow_y_rate", "follow_y_max_speed", "arena_approach_px"]:
 		ok(c.has(k), "camera.json names %s" % k)
 	lt(float(c["enemy_sleep_margin_px"]), 160.0 - 16.0,
 		"despawn well inside the replay audit's 'far' (tape_replay.gd FAR_OFF_VIEW_PX)")

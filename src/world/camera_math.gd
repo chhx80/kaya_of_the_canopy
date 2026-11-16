@@ -136,3 +136,68 @@ static func blend_look(anchored: float, c_y: float, vy: float, s: float, ahead: 
 		return anchored
 	var dir := 1 if s > 0.0 else -1
 	return lerpf(anchored, look_y(c_y, vy, dir, ahead, follow_rate, max_lag), absf(s))
+
+## The approach to a boss arena (HD pass): the band `margin` deep above
+## `arena`, as wide as it. Every arena is entered by a drop from above, and
+## the lock only engages as her centre crosses the arena's top, mid-fall, so
+## the pull-back that brings the arena floor into view arrived after she
+## landed. A fall through this band starts the arena framing early. Only above:
+## walking in from the side already has the floor in view.
+static func approach_zone(arena: Rect2, margin: float) -> Rect2:
+	return Rect2(arena.position.x, arena.position.y - margin, arena.size.x, arena.size.y + margin)
+
+## Nothing solid, one-way or water under the span [`x0`, `x1`] from `from_y`
+## down to `to_y` (world units): a body falling there reaches `to_y`.
+static func clear_below(w: TileWorld, x0: float, x1: float, from_y: float, to_y: float) -> bool:
+	var ts := float(TileData4.TILE_SIZE)
+	var c0 := int(floorf(x0 / ts))
+	var c1 := int(floorf((x1 - 0.001) / ts))
+	var r0 := int(floorf(from_y / ts))
+	var r1 := int(floorf((to_y - 0.001) / ts))
+	for r in range(r0, r1 + 1):
+		for c in range(c0, c1 + 1):
+			if w.is_solid(c, r) or w.is_oneway(c, r) or w.is_water(c, r):
+				return false
+	return true
+
+## Whether the camera frames the arena ahead of the lock this tick. It starts
+## on a fall with nothing between her and the arena's top (`falling`, see
+## clear_below()) inside the band while armed, holds while she stays airborne and `near` it (the band grown by the release
+## margin, so its rim does not thrash), and ends the moment she stands on
+## something outside the arena or drifts off. Armed means she has been clear of
+## the band since the camera last let go of the arena, so the release after a
+## fight is exactly what it was. The lock itself takes over from here and is
+## Level's to decide; this never starts or stops the fight.
+static func approach_on(was_on: bool, armed: bool, in_zone: bool, near: bool, standing: bool,
+		falling: bool) -> bool:
+	if standing or not near:
+		return false
+	if was_on:
+		return true
+	return armed and in_zone and falling
+
+## The hard zone's margins for a view framing an arena she is `above` units
+## over (negative once inside): whole at the top of the `band`, shrinking to
+## nothing as she reaches the arena's top, where the arena's own view holds her
+## and the lock takes over without a jump. Faded across the whole band rather
+## than the last margin's worth: the view's goal moves at her speed times
+## (1 + margin / fade distance), and over 32 units that doubled a fall's
+## 5.5 a frame.
+static func approach_hold(margin: Vector2, above: float, band: float) -> Vector2:
+	return margin * clampf(above / maxf(margin.y, band), 0.0, 1.0)
+
+## One tick of an ease that may be steered: move `from` by the share of what
+## is left to `to` that the ease covers between `e0` and `e1` (so a still
+## target is reached exactly when the ease is, as a plain lerp would), capped
+## at `max_step`. Unlike a lerp from a fixed start it never jumps when the
+## view was pushed off the line, or when the target moves under it; capped,
+## it may arrive after the ease ends, and keeps closing at `max_step` until it
+## does.
+static func ease_step(from: Vector2, to: Vector2, e0: float, e1: float, max_step: float) -> Vector2:
+	var k := 1.0 if e0 >= 1.0 else clampf((e1 - e0) / (1.0 - e0), 0.0, 1.0)
+	return from + ((to - from) * k).limit_length(max_step)
+
+## Re-arm the approach once she is clear of its band; disarm it while she is
+## in it and the arena has just let her go.
+static func approach_armed(armed: bool, near: bool) -> bool:
+	return armed or not near
