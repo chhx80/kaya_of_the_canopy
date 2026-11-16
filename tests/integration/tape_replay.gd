@@ -364,9 +364,9 @@ static func _print_leads(r: Dictionary) -> void:
 	var lo := -1
 	for l: int in leads:
 		lo = l if lo < 0 else mini(lo, l)
-	print("[blind_lead] %s landings=%d late=%d min_lead_frames=%d late_frame:lead=%s blind_at_takeoff_frame:lead=%s" % [
+	print("[blind_lead] %s landings=%d late=%d min_lead_frames=%d late_frame:lead=%s blind_at_takeoff_frame:lead=%s max_step=%.1f" % [
 		String(r["level_id"]), leads.size(), int(r["late_landings"]), lo,
-		str(r["late_at"]), str(r["blind_leads"])])
+		str(r["late_at"]), str(r["blind_leads"]), float(r["cam_max_step"])])
 
 func _player() -> Node:
 	var lvl: Node = Game.current_level

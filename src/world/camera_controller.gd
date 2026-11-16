@@ -82,6 +82,8 @@ var _climb_t := 0.0
 var _approach := false
 var _approach_armed := true
 var _approach_arena := Rect2()
+## A lock that took over the approach's pan, until that pan has arrived.
+var _carry := false
 
 func setup(w: TileWorld, t: Node2D, is_topdown: bool = false) -> void:
 	world = w
@@ -122,6 +124,7 @@ func snap_to_target() -> void:
 	_climb_t = 0.0
 	_approach = false
 	_approach_armed = true
+	_carry = false
 	_blend = 1.0
 	_zoom = 1.0 if locked else 0.0
 	_update_size()
@@ -130,12 +133,18 @@ func snap_to_target() -> void:
 
 ## Hold the view inside `r` until unlock(). The pan into it is eased over
 ## `arena_ease_s` rather than snapped: walking into a boss arena should read as
-## the room closing around you, not as a cut.
+## the room closing around you, not as a cut. A lock that arrives while the
+## approach is still panning carries that pan on rather than starting another
+## from rest: the approach's goal meets the arena's at the arena's top edge
+## (_hold_her()), so nothing jumps.
 func lock_to(r: Rect2) -> void:
+	_carry = _approach and _blend < 1.0 and r == _approach_arena
 	locked = true
 	_approach = false
 	arena = r
 	_zoom_to = r.size
+	if _carry:
+		return
 	_blend_from = base_pos
 	var secs := _num("arena_ease_s", 0.6)
 	_blend = 0.0 if secs > 0.0 else 1.0
@@ -144,6 +153,7 @@ func unlock() -> void:
 	if locked:
 		_approach_armed = false
 	locked = false
+	_carry = false
 	_blend = 1.0
 
 ## The bounds the view is heading for: the arena when locked, else the level.
@@ -157,7 +167,7 @@ func level_bounds() -> Rect2:
 
 ## True while the camera is still panning into an arena it has just locked to.
 func is_entering_arena() -> bool:
-	return locked and _blend < 1.0
+	return locked and (_blend < 1.0 or _carry)
 
 ## The only way anything outside this script moves the camera off its view.
 ## Clamped here as well as in Fx so a bad tunable cannot push the view off the
@@ -182,20 +192,33 @@ func _physics_process(delta: float) -> void:
 	_track(delta)
 	_ease_zoom(delta)
 	var goal := _goal()
-	if _blend < 1.0:
+	if (_approach and _blend < 1.0) or _carry:
+		# The approach's pan, and a lock's that carries it on: the ease's share
+		# of what is left, under a speed cap, held to her until she is in.
+		var e0 := CameraMath.ease(_blend)
 		_blend = minf(1.0, _blend + delta / maxf(0.001, _num("arena_ease_s", 0.6)))
-		base_pos = _blend_from.lerp(goal, CameraMath.ease(_blend))
+		base_pos = CameraMath.ease_step(base_pos, goal, e0, CameraMath.ease(_blend),
+			_num("arena_approach_max_speed", 480.0) * delta)
 		if _approach:
 			base_pos = _hold_her(base_pos)
+		if _carry and _blend >= 1.0 and base_pos.distance_to(goal) < 0.01:
+			base_pos = goal
+			_carry = false
+	elif _blend < 1.0:
+		_blend = minf(1.0, _blend + delta / maxf(0.001, _num("arena_ease_s", 0.6)))
+		base_pos = _blend_from.lerp(goal, CameraMath.ease(_blend))
 	else:
 		var kx := CameraMath.approach(_num("follow_x_rate", 10.0), delta)
 		var ky := CameraMath.approach(_follow_y_rate(), delta)
 		base_pos = Vector2(lerpf(base_pos.x, goal.x, kx), CameraMath.limit_step(base_pos.y,
 			lerpf(base_pos.y, goal.y, ky), _num("follow_y_max_speed", 480.0) * delta))
-		var size := _size
-		var m := Vector2(_num("keep_in_x_px", 48.0), _num("keep_in_y_px", 32.0))
-		base_pos = CameraMath.clamp_view(
-			CameraMath.keep_in(base_pos, size, _target_point(), m), bounds(), size)
+		if _approach:
+			base_pos = _hold_her(base_pos)
+		else:
+			var size := _size
+			var m := Vector2(_num("keep_in_x_px", 48.0), _num("keep_in_y_px", 32.0))
+			base_pos = CameraMath.clamp_view(
+				CameraMath.keep_in(base_pos, size, _target_point(), m), bounds(), size)
 	_apply_position()
 
 func _apply_position() -> void:
@@ -253,11 +276,15 @@ func _goal() -> Vector2:
 	return CameraMath.clamp_view(focus - _size * 0.5, bounds(), _size)
 
 ## The hard zone, then the level: what keeps her in the view while it frames
-## an arena she has not reached yet.
+## an arena she has not reached yet. Its margins fade out across the approach
+## band (CameraMath.approach_hold), so at the arena's top edge, where the lock
+## takes over, this is the arena's own view.
 func _hold_her(p: Vector2) -> Vector2:
-	var m := Vector2(_num("keep_in_x_px", 48.0), _num("keep_in_y_px", 32.0))
-	return CameraMath.clamp_view(CameraMath.keep_in(p, _size, _target_point(), m),
-		level_bounds(), _size)
+	var c := _target_point()
+	var m := CameraMath.approach_hold(Vector2(_num("keep_in_x_px", 48.0),
+		_num("keep_in_y_px", 32.0)), _approach_arena.position.y - c.y,
+		_num("arena_approach_px", 0.0))
+	return CameraMath.clamp_view(CameraMath.keep_in(p, _size, c, m), level_bounds(), _size)
 
 ## The live boss's arena, or an empty rect: Level owns the boss and the lock,
 ## the camera only looks at where the fight will be.
@@ -265,8 +292,11 @@ func _arena_ahead() -> Rect2:
 	var lvl := get_parent()
 	if lvl == null:
 		return Rect2()
-	var b := lvl.get("boss") as Enemy
-	if b == null or not is_instance_valid(b) or bool(b.get("defeated")):
+	var v: Variant = lvl.get("boss")
+	if not is_instance_valid(v):
+		return Rect2()
+	var b := v as Enemy
+	if b == null or bool(b.get("defeated")):
 		return Rect2()
 	return b.arena
 
@@ -285,8 +315,11 @@ func _update_approach() -> void:
 	var zone := CameraMath.approach_zone(r, _num("arena_approach_px", 0.0))
 	var near := zone.grow(_num("arena_release_px", 24.0)).has_point(c)
 	_approach_armed = CameraMath.approach_armed(_approach_armed, near)
-	var falling := a.vel.y > _num("look_fall_speed", 120.0) \
-		and c.y - _floor_y > _num("look_fall_drop_px", 52.0)
+	var box := a.aabb()
+	var edge := _num("arena_approach_edge_px", 4.0)
+	var falling := a.vel.y > _num("look_fall_speed", 120.0) and box.end.y < r.position.y \
+		and CameraMath.clear_below(world, box.position.x - edge, box.end.x + edge, box.end.y,
+			r.position.y)
 	var on := CameraMath.approach_on(_approach, _approach_armed, zone.has_point(c), near,
 		a.on_floor or a.submerged() or a.on_ladder(), falling)
 	if on and not _approach:
