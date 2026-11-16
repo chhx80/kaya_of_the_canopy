@@ -136,3 +136,33 @@ static func blend_look(anchored: float, c_y: float, vy: float, s: float, ahead: 
 		return anchored
 	var dir := 1 if s > 0.0 else -1
 	return lerpf(anchored, look_y(c_y, vy, dir, ahead, follow_rate, max_lag), absf(s))
+
+## The approach to a boss arena (HD pass): the band `margin` deep above
+## `arena`, as wide as it. Every arena is entered by a drop from above, and
+## the lock only engages as her centre crosses the arena's top, mid-fall, so
+## the pull-back that brings the arena floor into view arrived after she
+## landed. A fall through this band starts the arena framing early. Only above:
+## walking in from the side already has the floor in view.
+static func approach_zone(arena: Rect2, margin: float) -> Rect2:
+	return Rect2(arena.position.x, arena.position.y - margin, arena.size.x, arena.size.y + margin)
+
+## Whether the camera frames the arena ahead of the lock this tick. It starts
+## on a real fall (look_mode()'s test: `falling`) inside the band while armed,
+## holds while she stays airborne and `near` it (the band grown by the release
+## margin, so its rim does not thrash), and ends the moment she stands on
+## something outside the arena or drifts off. Armed means she has been clear of
+## the band since the camera last let go of the arena, so the release after a
+## fight is exactly what it was. The lock itself takes over from here and is
+## Level's to decide; this never starts or stops the fight.
+static func approach_on(was_on: bool, armed: bool, in_zone: bool, near: bool, standing: bool,
+		falling: bool) -> bool:
+	if standing or not near:
+		return false
+	if was_on:
+		return true
+	return armed and in_zone and falling
+
+## Re-arm the approach once she is clear of its band; disarm it while she is
+## in it and the arena has just let her go.
+static func approach_armed(armed: bool, near: bool) -> bool:
+	return armed or not near

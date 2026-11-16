@@ -248,7 +248,56 @@ func test_the_look_blend_is_continuous_through_a_turn() -> void:
 	eq(CameraMath.blend_look(100.0, 90.0, 300.0, 0.0, 30.0, 6.0, 60.0), 100.0, "off is the anchor")
 	eq(CameraMath.look_y(0.0, 9999.0, 1, 30.0, 6.0, 60.0), 90.0, "the lag lead is capped")
 
-# ---------------------------------------------------------------- wake rule
+# ---------------------------------------------------------------- arena approach
+const ARENA := Rect2(400, 240, 400, 240)
+
+func test_the_approach_band_sits_only_above_the_arena() -> void:
+	var z := CameraMath.approach_zone(ARENA, 128.0)
+	ok(z.has_point(Vector2(600, 120)), "128 above the arena's top is in it")
+	ok(not z.has_point(Vector2(600, 100)), "further up is not")
+	ok(not z.has_point(Vector2(380, 300)), "beside the arena is not: a walk in has the floor in view")
+	ok(z.encloses(ARENA), "and the arena itself is")
+
+func test_the_approach_starts_only_on_a_real_fall_into_the_band() -> void:
+	ok(CameraMath.approach_on(false, true, true, true, false, true), "falling into the band")
+	ok(not CameraMath.approach_on(false, true, true, true, false, false),
+		"a hop in a corridor that crosses the band is not a fall")
+	ok(not CameraMath.approach_on(false, true, true, true, true, true), "nor is standing in it")
+	ok(not CameraMath.approach_on(false, true, false, true, false, true), "nor falling beside it")
+	ok(not CameraMath.approach_on(false, false, true, true, false, true),
+		"nor falling back in before she was ever clear of it after a release")
+
+func test_the_approach_holds_through_the_fall_and_lets_go_on_a_landing() -> void:
+	ok(CameraMath.approach_on(true, true, true, true, false, false),
+		"held once started, whatever her speed does")
+	ok(CameraMath.approach_on(true, false, false, true, false, false), "and across the band's rim")
+	ok(not CameraMath.approach_on(true, true, true, true, true, false),
+		"a landing above the arena ends it: she is platforming, not dropping in")
+	ok(not CameraMath.approach_on(true, true, false, false, false, false), "and so does drifting off")
+
+func test_a_release_does_not_re_engage_the_approach() -> void:
+	# unlock() disarms it; only leaving the band (grown by the release margin) re-arms.
+	ok(not CameraMath.approach_armed(false, true), "still near after a release: disarmed")
+	ok(CameraMath.approach_armed(false, false), "clear of it: armed again")
+	ok(CameraMath.approach_armed(true, true), "armed stays armed")
+
+func test_the_approach_band_is_deep_enough_for_the_pull_back() -> void:
+	var c := _cam_cfg()
+	var band := float(c["arena_approach_px"])
+	# What a fall covers while the pull-back eases in, from the moment the fall
+	# counts (look_fall_speed) toward the human's max fall: the band must hold
+	# most of it, or the arena view is still arriving as she crosses the top.
+	var f: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/forms/human.json"))
+	var v := float(c["look_fall_speed"])
+	var y := 0.0
+	var t := 0.0
+	while t < float(c["arena_ease_s"]):
+		v = minf(float(f["max_fall"]), v + float(f["gravity"]) / 60.0)
+		y += v / 60.0
+		t += 1.0 / 60.0
+	gt(band, y * 0.5, "the band holds over half the ease's fall (%.0f)" % y)
+	lt(band, 240.0, "and no deeper than an arena cell: an approach, not a second arena")
+
 func test_an_awake_enemy_stays_awake_while_near_the_view() -> void:
 	eq(WakeRule.decide(true, true, true, true), WakeRule.Act.STAY)
 	eq(WakeRule.decide(true, false, true, false), WakeRule.Act.STAY, "its spawn need not be")
@@ -301,7 +350,7 @@ func test_the_camera_tunables_are_sane() -> void:
 			"arena_ease_s", "arena_release_px", "look_y_ahead_px", "look_y_max_lag_px",
 			"look_fall_speed", "look_fall_drop_px", "look_climb_speed", "look_climb_s",
 			"look_climb_decay", "look_y_in_rate", "look_y_out_rate", "look_y_vel_rate",
-			"look_follow_y_rate", "follow_y_max_speed"]:
+			"look_follow_y_rate", "follow_y_max_speed", "arena_approach_px"]:
 		ok(c.has(k), "camera.json names %s" % k)
 	lt(float(c["enemy_sleep_margin_px"]), 160.0 - 16.0,
 		"despawn well inside the replay audit's 'far' (tape_replay.gd FAR_OFF_VIEW_PX)")

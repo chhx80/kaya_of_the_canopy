@@ -35,5 +35,7 @@
   "enemy_sleep_margin_px": 96.0,
   "_arena": "Boss arenas: the camera locks when Kaya's centre enters the arena, eases into it over arena_ease_s, and lets go once she is arena_release_px clear of it. The pull-back to the whole arena, and back in after, runs over the same arena_ease_s.",
   "arena_ease_s": 0.6,
-  "arena_release_px": 24.0
+  "arena_release_px": 24.0,
+  "_arena_approach": "DRAFT",
+  "arena_approach_px": 128.0
 }
