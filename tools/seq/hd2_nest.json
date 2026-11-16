@@ -1,0 +1,8 @@
+[
+  {"_": "HD pass wave 2, tiles: the Obsidian Nest tileset native at 2x, in real frames from the proof tapes. tools/shot.sh --res=2556x1179 --seq=tools/seq/hd2_nest.json"},
+  {"tape": "nest_1", "shots": "shots/hd2/nest_1_%d.png", "every": 360, "max": 4},
+  {"tape": "nest_2", "shots": "shots/hd2/nest_2_%d.png", "every": 360, "max": 4},
+  {"tape": "nest_3", "shots": "shots/hd2/nest_3_%d.png", "every": 360, "max": 4},
+  {"tape": "nest_4", "shots": "shots/hd2/nest_4_%d.png", "every": 360, "max": 4},
+  {"tape": "nest_5", "shots": "shots/hd2/nest_5_%d.png", "every": 300, "max": 4}
+]
