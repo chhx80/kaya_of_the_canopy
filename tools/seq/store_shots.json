@@ -2,12 +2,14 @@
   {"touch": true},
   {"scenario": "title", "settle": 40},
   {"shot": "shots/store_01_title.png"},
+  {"wait": 30},
 
   {"scenario": "level:jungle_1", "settle": 150},
   {"hold": "move_right", "frames": 92},
   {"press": "jump", "frames": 14},
-  {"wait": 10},
+  {"wait": 11},
   {"shot": "shots/store_02_platforming.png"},
+  {"wait": 30},
   {"release": "move_right"},
 
   {"scenario": "level:jungle_5", "settle": 150},
@@ -15,6 +17,7 @@
   {"press": "attack", "frames": 4},
   {"wait": 18},
   {"shot": "shots/store_03_boss.png"},
+  {"wait": 30},
 
   {"scenario": "level:jungle_3", "settle": 150},
   {"teleport": [3, 24], "settle": 20},
@@ -25,6 +28,7 @@
   {"release": "move_right"},
   {"wait": 6},
   {"shot": "shots/store_04_fish.png"},
+  {"wait": 30},
 
   {"scenario": "hub", "settle": 30},
   {"hold": "move_right", "frames": 20},
@@ -32,5 +36,6 @@
   {"hold": "move_up", "frames": 26},
   {"release": "move_up"},
   {"wait": 14},
-  {"shot": "shots/store_05_hub.png"}
+  {"shot": "shots/store_05_hub.png"},
+  {"wait": 30}
 ]

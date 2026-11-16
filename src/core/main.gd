@@ -108,6 +108,13 @@ func _maybe_start_dev_harness() -> void:
 func _process(_delta: float) -> void:
 	var cam := world_viewport.get_camera_2d() as CameraController
 	var v := cam.view_size() if cam != null and cam.world != null else Display.view_size()
+	if cam == null:
+		# A scene with no camera (the title, the victory screen) is a whole
+		# Screen.W x Screen.H picture laid out in world units: show all of it,
+		# at the art's density, as a camera's zoom would.
+		v = Display.max_view_size()
+		var k := float(Display.art_scale())
+		world_viewport.canvas_transform = Transform2D(0.0, Vector2(k, k), 0.0, Vector2.ZERO)
 	if v != _view_size:
 		_show_view(v)
 	if not Input.is_action_just_pressed(&"pause"):

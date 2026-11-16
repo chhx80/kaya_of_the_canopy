@@ -46,7 +46,7 @@ def compose(src_path, size):
     between the capture and Apple's exact pixel size is invisible."""
     src = Image.open(src_path).convert("RGBA")
     scale = size[1] / src.height
-    return src.resize(size, Image.NEAREST), scale
+    return src.resize(size, Image.LANCZOS), scale
 
 
 def main():
