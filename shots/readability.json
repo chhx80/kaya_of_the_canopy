@@ -85,7 +85,7 @@
   }
  },
  "ruins": {
-  "fg_minus_bg_luma": 20.8,
+  "fg_minus_bg_luma": 20.2,
   "forms": {
    "bird": {
     "hole_pct": 1.9,
