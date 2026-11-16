@@ -36,6 +36,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from art import backdrops, palette, sprites, tiles     # noqa: E402
 from art import sprites_enemies_v2                     # noqa: E402
 from art import hud_portrait                           # noqa: E402
+from art import hd_title_kaya                          # noqa: E402
 
 ROOT = palette.ROOT
 
@@ -459,6 +460,7 @@ def main():
     backdrops.build_font()
     backdrops.build_logo()
     backdrops.build_title_bg()
+    hd_title_kaya.build()         # HD H3: Kaya on the title screen
     backdrops.build_backdrops()
     hud_portrait.build()          # Kaya Refit phase 3: her bust, from the puppet
     backdrops.build_light_art()

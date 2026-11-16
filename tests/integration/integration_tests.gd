@@ -256,6 +256,8 @@ func run_all() -> void:
 		"t_pause_freezes_the_level_and_resumes_it",
 		"t_a_phone_can_pause_and_leave_a_level_for_its_door_on_the_map",
 		"t_the_map_pause_menu_has_no_level_rows",
+		"t_the_title_keeps_kaya_the_logo_the_menu_and_the_small_print_apart",
+		"t_a_phone_can_tap_a_title_menu_row_where_it_is_drawn",
 		"t_beating_a_boss_unlocks_its_world_achievement_in_game_center",
 		"t_a_boss_beaten_before_achievements_existed_is_put_right_quietly",
 		"t_options_write_straight_through_to_the_save_file",
@@ -1867,6 +1869,77 @@ func t_a_phone_can_pause_and_leave_a_level_for_its_door_on_the_map() -> void:
 		near(hub.player.pos.distance_to(door_pos + Vector2(3, 20)), 0.0, 2.0,
 			"and Kaya stands at that door")
 	touch.force_enable(false)
+
+## HD pass H3: Kaya stands on the title screen. Every piece is laid out in
+## world units by title_screen.gd and drawn from the same rects, so this checks
+## the layout the player sees, with the real build label and the real hint:
+## nothing over her face, nothing over the menu, and the hint and the build
+## line no longer run into each other at the bottom (they did on desktop).
+func t_the_title_keeps_kaya_the_logo_the_menu_and_the_small_print_apart() -> void:
+	_clear_pause()
+	Game.goto_title()
+	await frames(6)
+	var title: Node = Game.main.current_scene()
+	check(title != null and title.has_method("kaya_rect"), "the title screen is up")
+	if title == null or not title.has_method("kaya_rect"):
+		return
+	var screen := Rect2(0, 0, Screen.W, Screen.H)
+	var face: Rect2 = title.kaya_face_rect()
+	var named := {
+		"logo": title.logo_rect(), "subtitle": title.subtitle_rect(),
+		"best": title.best_rect(), "hint": title.hint_rect(), "version": title.version_rect(),
+	}
+	var n: int = title.row_count()
+	for i in n:
+		named["row %d" % i] = title.row_rect(i)
+	check(screen.encloses(title.kaya_rect()), "Kaya is inside the picture")
+	var keys: Array = named.keys()
+	for a: String in keys:
+		var r: Rect2 = named[a]
+		check(screen.encloses(r), "%s is inside the picture: %s" % [a, r])
+		check(not r.intersects(face), "%s stays off her face: %s vs %s" % [a, r, face])
+		for b: String in keys:
+			if a < b:
+				check(not r.intersects(named[b] as Rect2),
+					"%s and %s do not overlap: %s vs %s" % [a, b, r, named[b]])
+	for i in n:
+		check(not (title.row_rect(i) as Rect2).intersects(title.kaya_rect()),
+			"menu row %d is clear of her whole cell" % i)
+	check(String(title.get("_items")[0]) != "", "the menu has rows")
+
+## The title menu used to answer only the touch overlay's A button. A row is
+## now tapped where it is drawn: the tap goes through Main's world display
+## rect to world units and lands on the row the title drew there.
+func t_a_phone_can_tap_a_title_menu_row_where_it_is_drawn() -> void:
+	_clear_pause()
+	var touch: Control = Game.main.touch
+	if touch != null:
+		touch.force_enable(true)
+	Game.goto_title()
+	await frames(6)
+	var title: Node = Game.main.current_scene()
+	check(title != null and title.has_method("row_at"), "the title screen is up")
+	if title == null or not title.has_method("row_at"):
+		return
+	var items: Array = title.get("_items")
+	var row: int = items.find("OPTIONS")
+	check(row >= 0, "the title offers OPTIONS")
+	var r: Rect2 = title.row_rect(row)
+	var world := r.get_center()
+	check_eq(title.row_at(world), row, "the middle of the OPTIONS row as drawn is that row")
+	check_eq(title.row_at(Vector2(40, world.y)), -1, "a point on Kaya is no row")
+	var disp: Rect2 = Game.main.world_display_rect()
+	var view: Vector2 = Game.main.shown_view_size()
+	var at := disp.position + world / view * disp.size
+	near((title.world_point(at) as Vector2).distance_to(world), 0.0, 0.01,
+		"the screen point maps back to the same world point")
+	await tap(at)
+	await frames(8)
+	var now: Node = Game.main.current_scene()
+	check(now != null and now != title and String(now.scene_file_path).ends_with("options_screen.tscn"),
+		"tapping OPTIONS opens the options screen")
+	if touch != null:
+		touch.force_enable(false)
 
 func t_the_map_pause_menu_has_no_level_rows() -> void:
 	await enter_hub()

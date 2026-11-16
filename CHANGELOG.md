@@ -3305,3 +3305,38 @@ unchanged.
   tape's largest view step.
 - Contact sheet: `shots/hd2_arena_ruins5.png` (re-shoot with
   `tools/seq/hd2_arena_after.json` / `_before.json`).
+
+## HD pass H3: Kaya on the title screen (branch `hd/title`)
+- **`tools/art/hd_title_kaya.py`** (new): a full-figure Kaya about 170 world
+  units tall (four times the in-game sprite), drawn natively at 2x into
+  `assets/sprites/title_kaya.png` (four 84x176-unit frames). Built from body
+  parts with designed silhouettes, each lit as a form from its own mask and
+  quantised to whole ramp steps (no dither), composited with contour and
+  occlusion where parts overlap, then inked, hand-AA'd and selout'd like the
+  rest. Same ramps and levels as `kaya40.MAT`, same outfit: woven straw hat with
+  a brown ribbon and bow, long wavy hair in strands with a sheen, a face with
+  lidded eyes (iris, pupil, catch-light), brows, nose, a smile and blush, gold
+  hoops, an ember bead necklace, the green cami crop top with cups and hem,
+  yellow shorts with waistband, loops, button, fly and fringe, a hanging hand
+  and a hand on the hip, leaf ankle wraps and red thong sandals. Idle cycle:
+  rest, breathe in (chest, shoulders and head rise a texel), hair and ribbon
+  drift, blink. Listed in `tools/art/hd_native/hdtitle.txt`.
+- **Title screen** (`src/ui/menus/title_screen.gd`): Kaya stands on the left;
+  the logo, subtitle, menu, BEST, hint and build line share a right-hand column.
+  Every piece's rect is exposed and drawn from the same constants.
+- **The menu is tappable**: a tap or click on a row picks it. The world is a
+  SubViewport drawn as a texture, so a small catcher in Main's UI layer maps the
+  touch through Main's world display rect to world units. The touch hint now
+  reads TAP TO SELECT.
+- **Fixed**: on desktop the build line and the keyboard hint ran into each other
+  at the bottom of the screen; they are now on separate rows.
+- `tools/art/backdrops.py` `build_title_bg`: the low sun moved from (300, 150)
+  to (158, 150), between Kaya and the menu, so the menu is not over it.
+- Tests: `tests/test_title_screen.gd` (sheet size, native not doubled, on the
+  ramps, at least 150 units tall, the blink only touches the face, her pixels
+  clear of the menu); integration: the title layout keeps face, logo, menu and
+  small print apart, and a phone tap on OPTIONS opens the options screen.
+- Shots: `shots/hd3_title_{desktop,phone,tablet}.png`,
+  `shots/hd3_title_before_after.png`, `shots/hd3_title_kaya_frames.png`,
+  `shots/hd3_title_face.png` (re-shoot with `tools/seq/hd3_title_phone.json` /
+  `_tablet.json`).
