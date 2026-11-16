@@ -84,6 +84,8 @@ static func world_image(path: String) -> Image:
 	var img := tex.get_image()
 	if img == null:
 		return null
+	# Headless, get_image() can hand back the cached image; shrink a copy.
+	img = img.duplicate()
 	if img.is_compressed():
 		img.decompress()
 	var k := art_scale()
