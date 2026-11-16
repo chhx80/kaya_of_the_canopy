@@ -68,9 +68,10 @@ def t_ruin_stone_hd(seed, algae=False):
             shift(img, x, y0 + k, -1)
     for course in (0, 1):                                # algae in the shaded foot
         for _ in range(2):
-            cx = rnd.uniform(0, N)
-            ellipse(img, "foliage", cx, course * 16 + 13.5, rnd.uniform(2.5, 4.5), 1.6, 1.4)
-            put(img, cx, course * 16 + 12, "foliage", 2.2)
+            rx = rnd.uniform(2.5, 4.5)                   # kept inside the cell: the
+            cx = rnd.uniform(rx + 1, N - rx - 1)         # variants sit side by side
+            ellipse(img, "foliage", cx, course * 16 + 13.5, rx, 1.6, 1.4, wrap=False)
+            put_c(img, int(cx), course * 16 + 12, "foliage", 2.2)
     crack(img, "stone", rnd.randrange(3, 14), rnd.randrange(4, 10), 10, 2.5, rnd)
     if algae:
         # The ledge-top read. Dark on purpose (foliage 1-3): a bright cap would
@@ -79,7 +80,8 @@ def t_ruin_stone_hd(seed, algae=False):
         s = rnd.randrange(1 << 20)
         depth = []
         for x in range(N):
-            h = 4 + int(round(2 * (wave(x, s) * 0.5 + 0.5))) + (1 if rnd.random() < 0.3 else 0)
+            env = math.sin(math.pi * (x + 0.5) / N)      # every variant meets at 5
+            h = 5 + int(round(env * (1.5 * wave(x, s) + (0.8 if rnd.random() < 0.3 else 0))))
             for y in range(h):
                 put_c(img, x, y, "foliage", 3.4 - y * 0.42)
             put_c(img, x, h, "foliage", 1.0)
@@ -116,37 +118,65 @@ def t_ruin_wall_hd(seed):
         for y in range(y0, y0 + 14):
             put(img, x, y, "stone", 0.4)
             put(img, x + 1, y, "stone", 1.3)
-    for _ in range(2):                                   # a drowned-green bloom, flat
-        cx, cy = rnd.uniform(0, N), rnd.uniform(0, N)
-        ellipse(img, "foliage", cx, cy, rnd.uniform(5, 9), rnd.uniform(3, 5), 1)
-        ellipse(img, "foliage", cx - 1, cy - 1, rnd.uniform(2, 4), rnd.uniform(1.5, 2.5), 2)
+    for _ in range(rnd.choice((1, 2))):                  # a drowned-green bloom, flat,
+        rx, ry = rnd.uniform(6, 9), rnd.uniform(3.2, 4.6)  # inside the cell, its rim
+        cx, cy = rnd.uniform(rx + 1, N - rx - 1), rnd.uniform(ry + 1, N - ry - 1)
+        s = rnd.randrange(1 << 20)                       # lobed rather than oval
+
+        def inside(x, y):
+            a = math.atan2(y + 0.5 - cy, x + 0.5 - cx)
+            lobe = 1 + 0.25 * wave(int((a + math.pi) / (2 * math.pi) * N), s)
+            return ((x + 0.5 - cx) / rx) ** 2 + ((y + 0.5 - cy) / ry) ** 2 <= lobe
+        for y in range(int(cy - ry - 2), int(cy + ry + 3)):
+            for x in range(int(cx - rx - 2), int(cx + rx + 3)):
+                if inside(x, y):                         # lit where it faces the light
+                    put_c(img, x, y, "foliage", 1 if inside(x - 1, y - 1) else 2)
     for _ in range(12):
         put(img, rnd.randrange(N), rnd.randrange(N), "stone", rnd.choice((0, 2)))
     return img
 
 
+#: the silt's laminae: (row, amplitude) -- uneven, so a wall of it does not
+#: rule itself into a grid; every row is a wave on the tile's own period.
+_SILT_BEDS = ((3, 1.4), (12, 2.0), (19, 1.2), (27, 1.8))
+
+
 def t_ruin_silt_hd(seed):
-    """Cold silt: stone-grey mud with the warm earth coming through it, shell
-    grit (each a tiny lit arc), standing water in the hollows, worm casts."""
+    """Cold silt, the mud a flooded room collects, laid down in still water:
+    soft laminae a world unit apart (a dark parting with the next bed's lit
+    top under it), the warm earth showing only as a low lens of mud along a
+    bed, one half-buried stone and a shell or two. Calm on purpose -- it is
+    the fill under every ruins floor, so it is seen in whole walls.
+
+    Its variants sit side by side at random, so nothing may cross the cell
+    edge unless every variant agrees on it: each lamina meets the edge on
+    its own row, and the objects are clipped inside the cell."""
     rnd = random.Random(seed)
-    img = fill(new(255), "stone", 1.9, rnd, grain=0.26)
-    for _ in range(6):                                   # the mud coming through
-        ellipse(img, "dirt", rnd.uniform(0, N), rnd.uniform(0, N), rnd.uniform(3.0, 5.5),
-                rnd.uniform(1.8, 3.2), rnd.choice((1, 2)))
-    for _ in range(3):                                   # water in a hollow, lit far lip
-        cx, cy = rnd.uniform(0, N), rnd.uniform(0, N)
-        rx, ry = rnd.uniform(3.0, 5.0), rnd.uniform(1.4, 2.4)
-        ellipse(img, "water", cx, cy, rx, ry, 2)
+    img = fill(new(255), "stone", 1.9, rnd, grain=0.18, cell=4)
+    for row, amp in _SILT_BEDS:                          # laminae
+        s = rnd.randrange(1 << 20)
+        for x in range(N):
+            env = math.sin(math.pi * (x + 0.5) / N)
+            y = row + int(round(amp * env * (wave(x, s) * 0.6 + 0.6)))
+            put(img, x, y, "stone", 1.2)
+            put(img, x, y + 1, "stone", 2.6 if (x + row) % 9 >= 4 else 2.2)
+    for _ in range(2):                                   # the mud, a lens along a bed
+        row, _ = rnd.choice(_SILT_BEDS)
+        cx = rnd.uniform(9, N - 9)
+        rx = rnd.uniform(3.5, 5.5)
+        ellipse(img, "dirt", cx, (row + 4.5) % N, rx, 1.3, 1, wrap=False)
         for x in range(int(cx - rx * 0.6), int(cx + rx * 0.6)):
-            put(img, x, cy + ry, "stone", 3)
-    for _ in range(7):                                   # shells
-        x, y = rnd.randrange(N), rnd.randrange(N)
-        put(img, x, y, "stone", 4)
-        put(img, x + 1, y - 1, "stone", 5)
-        put(img, x + 2, y, "stone", 3)
-        put(img, x + 1, y + 1, "stone", 1)
-    for _ in range(2):
-        ellipse(img, "foliage", rnd.uniform(0, N), rnd.uniform(0, N), 2.2, 1.4, 1.6)
+            put_c(img, x, (row + 3) % N, "stone", 1.4)   # its shadowed upper lip
+    x, y = rnd.uniform(6, 26), rnd.choice((8, 16, 24))   # a stone half in the mud
+    blob(img, "stone", x, y, 2.6, 1.8, 2.2, lit=1.2, dark=1.0, shadow=0.8, wrap=False)
+    for _ in range(2):                                   # shells: a lit arc, a dark mouth
+        x, y = rnd.randrange(2, N - 5), rnd.choice((6, 9, 15, 23, 30))
+        put_c(img, x, y, "stone", 3)
+        put_c(img, x + 1, y - 1, "stone", 4)
+        put_c(img, x + 2, y - 1, "stone", 4)
+        put_c(img, x + 3, y, "stone", 3)
+        put_c(img, x + 1, y, "stone", 1)
+        put_c(img, x + 2, y, "stone", 1)
     return img
 
 
@@ -210,29 +240,69 @@ def t_ruin_urchin_hd(seed):
     with a ribbed test and one wet highlight."""
     rnd = random.Random(seed)
     img = new(0)
+
+    def row(x, y, ramp, lvl):                            # wraps along the row only,
+        if 0 <= y < N:                                   # so a run of them is one bed
+            put(img, x, y, ramp, lvl)
+
+    # Spines first, the body over their roots. Few and long, fanned evenly
+    # over the upper half: ink_interactive outlines every one of them, so
+    # spines closer than ~20 degrees merge into a dark mat (the first pass's
+    # "busy"). Each is two texels at the root -- a lit upper side, a shaded
+    # lower one -- narrowing to one, with a pale tip.
+    urchins = ((6.0, 21.0, 5.2, 0), (16.5, 22.5, 4.4, 13), (26.5, 20.5, 5.6, -6))
+    for cx, cy, r, turn in urchins:
+        for i, ang in enumerate((228, 250, 270, 290, 312)):
+            a = math.radians(ang + turn + rnd.randrange(-4, 5))
+            ln = r + (5.0 if i in (0, 4) else 8.0) + rnd.uniform(0, 1.2)
+            ux, uy = math.cos(a), math.sin(a)
+            # a tapering wedge, rasterised by distance to its axis: clean
+            # edges instead of a stepped line, lit on its up-left flank
+            lit_side = 1 if (-uy * -0.7 + ux * -0.7) > 0 else -1
+            for y in range(int(cy - ln - 2), int(cy + 3)):
+                for x in range(int(cx - ln - 2), int(cx + ln + 3)):
+                    px, py = x + 0.5 - cx, y + 0.5 - cy
+                    t = px * ux + py * uy
+                    if not r * 0.4 <= t <= ln:
+                        continue
+                    v = -px * uy + py * ux                  # signed distance off the axis
+                    half = 1.5 * (1 - t / ln) + 0.25
+                    if abs(v) > half:
+                        continue
+                    if t > ln - 1.6:
+                        lvl = 5
+                    elif v * lit_side > 0.2:
+                        lvl = 3.8
+                    elif v * lit_side < -0.4:
+                        lvl = 1.6
+                    else:
+                        lvl = 2.8
+                    row(x, y, "metal", lvl)
+    for cx, cy, r, _ in urchins:
+        for y in range(int(cy - r - 1), int(cy + r + 2)):   # the test: a lit dome
+            for x in range(int(cx - r - 1), int(cx + r + 2)):
+                dx, dy = (x + 0.5 - cx) / r, (y + 0.5 - cy) / (r * 0.86)
+                d = dx * dx + dy * dy
+                if d > 1:
+                    continue
+                v = 1.3 + (1 - d) * 1.4 - (dx + dy) * 1.0
+                row(x, y, "purple", v)
+        for j in range(6):                               # one row of tubercles
+            a = math.radians(200 + j * 28)
+            x, y = round(cx + math.cos(a) * r * 0.62), round(cy + math.sin(a) * r * 0.53)
+            row(x, y, "purple", 4.6 if j < 3 else 3.6)
+            row(x + 1, y + 1, "purple", 1.0)
+        row(round(cx - r * 0.45), round(cy - r * 0.5), "water", 6)      # one wet glint
+        row(round(cx - r * 0.45) + 1, round(cy - r * 0.5), "purple", 5)
+    # The silt they are wedged in, a low mound over their feet.
+    s = rnd.randrange(1 << 20)
     for x in range(N):
-        put_c(img, x, 26, "dirt", 2.6 + rnd.uniform(-0.3, 0.3))
-        put_c(img, x, 27, "dirt", 2.0)
-        put_c(img, x, 28, "dirt", 1.4)
-        put_c(img, x, 29, "dirt", 1.0)
-        ink(img, x, 30)
-    for (cx, cy, r) in ((6.0, 20.0, 6.0), (17.0, 22.0, 5.0), (26.5, 19.0, 6.6)):
-        for ang in (200, 222, 245, 270, 295, 318, 340):
-            a = math.radians(ang + rnd.randrange(-7, 8))
-            ln = r + 5 + rnd.uniform(0, 2)
-            k = r * 0.6
-            while k < ln:
-                px, py = cx + math.cos(a) * k, cy + math.sin(a) * k
-                tip = k > ln - 2.5
-                put_c(img, round(px), round(py), "metal", 6 if tip else 3.4)
-                if not tip:
-                    put_c(img, round(px - math.sin(a)), round(py + math.cos(a)), "metal", 1.6)
-                k += 0.7
-        blob(img, "purple", cx, cy, r, r * 0.85, 1.4, lit=1.8, dark=1.0, wrap=False)
-        for a in range(200, 345, 24):                    # the ribbed test
-            put_c(img, round(cx + math.cos(math.radians(a)) * r * 0.55),
-                  round(cy + math.sin(math.radians(a)) * r * 0.5), "purple", 4)
-        put_c(img, round(cx - r * 0.4), round(cy - r * 0.35), "water", 6)
+        top = 25 + int(round(1.2 * wave(x, s)))
+        for y in range(top, 30):
+            lvl = (2.8 if y == top else 2.0 if y == top + 1 else 1.4) + rnd.uniform(-0.25, 0.25)
+            put_c(img, x, y, "dirt", lvl)
+        if rnd.random() < 0.15:
+            put_c(img, x, top, "stone", 4)               # a grain of shell
     return img
 
 
@@ -257,12 +327,31 @@ def t_ruin_grate_hd(seed):
         for j in (0, 11, 22):
             put(img, i, j, "metal", 5)
             put(img, i + 1, j + 1, "metal", 2)
-    for _ in range(6):
-        x, y = rnd.choice((0, 11, 22)) + rnd.randrange(3), rnd.randrange(N)
-        if rnd.random() < 0.5:
-            x, y = y, x
-        put(img, x, y, "ember", 2)
-        put(img, x, y + 1, "ember", 1)
+            put(img, i + 2, j + 2, "metal", 1)
+    # Rust. It starts where water stands, at a crossing, blooms over the
+    # joint, and bleeds down the upright under it; elsewhere the iron is
+    # pitted and a flake has come off showing the raw metal.
+    crossings = [(i, j) for i in (0, 11, 22) for j in (0, 11, 22)]
+    rnd.shuffle(crossings)
+    for i, j in crossings[:4]:
+        for dy in range(-1, 4):
+            for dx in range(-1, 4):
+                if abs(dx - 1) + abs(dy - 1) <= 2 + rnd.randrange(2):
+                    put(img, i + dx, j + dy, "dirt", 3.4 if dx + dy < 2 else 2.4)
+        put(img, i, j, "dirt", 4.6)
+        put(img, i + 1, j, "ember", 3)                  # raw rust, a fleck
+        run = rnd.randrange(5, 10)                       # the bleed down the upright
+        for k in range(run):
+            for dx, lvl in ((0, 3.4), (1, 2.6), (2, 1.4)):
+                if dx == 0 or k < run - 2:
+                    put(img, i + dx, j + 3 + k, "dirt", lvl - 0.15 * k)
+        put(img, i + 1, j + 3 + run, "dirt", 1.4)        # a drip at its foot
+    for _ in range(5):                                   # pitting on the bars
+        b = rnd.choice((0, 11, 22))
+        t = rnd.randrange(N)
+        x, y = (b + rnd.randrange(2), t) if rnd.random() < 0.5 else (t, b + rnd.randrange(2))
+        put(img, x, y, "metal", 1)
+        put(img, x + 1, y + 1, "metal", 4)
     return img
 
 
@@ -314,24 +403,63 @@ def t_ruin_cracked_hd(seed):
     under it dropped, corners knocked off, and splinter cracks."""
     rnd = random.Random(seed)
     img = t_ruin_stone_hd(seed + 700)
-    for x in range(N):
-        put(img, x, 15, "stone", 0.6)
-        put(img, x, 16, "stone", 4.2)
-    yy = 5
-    for x in range(N):
-        yy = max(3, min(26, yy + rnd.choice((-1, 0, 0, 1, 1, 1))))
-        ink(img, x, yy)
-        ink(img, x, yy + 1)
-        put(img, x, yy + 2, "stone", 4.6)
-        put(img, x, yy - 1, "stone", 1.0)
-    for corner in ((0, 0), (N - 3, 0), (0, N - 3), (N - 3, N - 3)):
-        for dx in range(3):
-            for dy in range(3):
-                if dx + dy < 3 and rnd.random() < 0.8:
-                    put_c(img, corner[0] + dx, corner[1] + dy, "stone", 0.8)
-    for _ in range(3):
-        crack(img, "stone", rnd.randrange(4, 26), rnd.randrange(18, 26), 8, 2.4, rnd,
-              drift=(-1, 0, 1))
+    # Something hit it: a crushed point a little off centre, and the stone
+    # has broken away from it in a star. The main arms are open breaks two
+    # texels wide (an inked gap; the far wall of the gap lit where the light
+    # gets in, i.e. the side facing up-left, the near wall in shadow); the
+    # minor arms are hairlines. Arms stop short of the cell edge so a wall of
+    # breakables still reads block by block along the joints.
+    cx, cy = rnd.uniform(12, 19), rnd.uniform(12, 18)
+    arms = []
+    base = rnd.uniform(0, 360)
+    for k in range(5):
+        ang = math.radians(base + k * 72 + rnd.uniform(-14, 14))
+        arms.append((ang, k < 3))
+    for ang, major in arms:
+        x, y = cx, cy
+        ln = rnd.uniform(11, 16) if major else rnd.uniform(6, 9)
+        a = ang
+        pts = []
+        for _ in range(int(ln * 2)):
+            x += math.cos(a) * 0.5
+            y += math.sin(a) * 0.5
+            a += rnd.uniform(-0.18, 0.18)
+            if not (2 <= x < N - 2 and 2 <= y < N - 2):
+                break
+            pts.append((int(round(x)), int(round(y))))
+        for i, (px, py) in enumerate(pts):
+            wide = major and i < len(pts) * 0.7
+            for ox, oy in (((0, 0), (1, 0), (0, 1)) if wide else ((0, 0),)):
+                ink(img, px + ox, py + oy)
+            if wide:                                     # lit far wall, dark near wall
+                put_c(img, px + 2, py + 1, "stone", 4.6)
+                put_c(img, px + 1, py + 2, "stone", 4.2)
+                put_c(img, px - 1, py - 1, "stone", 1)
+            else:
+                put_c(img, px + 1, py + 1, "stone", 4)
+        if major and pts:                                # a hairline splits off it
+            mx, my = pts[len(pts) // 2]
+            b = ang + rnd.choice((-1, 1)) * rnd.uniform(0.6, 0.9)
+            for j in range(rnd.randrange(4, 8)):
+                hx, hy = int(round(mx + math.cos(b) * j)), int(round(my + math.sin(b) * j))
+                if 2 <= hx < N - 2 and 2 <= hy < N - 2:
+                    ink(img, hx, hy)
+                    put_c(img, hx + 1, hy + 1, "stone", 3.8)
+    # The crushed point: a pit with spalled flakes round it.
+    pit(img, "stone", cx, cy, 2.6, 2.2, 1)
+    for _ in range(4):
+        a = rnd.uniform(0, 2 * math.pi)
+        fx, fy = cx + math.cos(a) * 4.2, cy + math.sin(a) * 3.6
+        put_c(img, round(fx), round(fy), "stone", 4.4)
+        put_c(img, round(fx) + 1, round(fy) + 1, "stone", 1)
+    # Two corners knocked off: the chip in shadow, a lit broken edge.
+    for corner in rnd.sample(((0, 0), (1, 0), (0, 1), (1, 1)), 2):
+        sz = rnd.randrange(3, 6)
+        for d in range(sz):
+            for e in range(sz - d):
+                x = d if corner[0] == 0 else N - 1 - d
+                y = e if corner[1] == 0 else N - 1 - e
+                put_c(img, x, y, "stone", 0.4 if d + e < sz - 1 else 4.4)
     return img
 
 
