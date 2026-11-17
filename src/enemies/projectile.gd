@@ -28,7 +28,7 @@ func _ready() -> void:
 	sprite = Sprite2D.new()
 	sprite.centered = true
 	sprite.region_enabled = true
-	sprite.texture = load("res://assets/sprites/projectiles.png")
+	sprite.texture = Display.texture("res://assets/sprites/projectiles.png")
 	sprite.region_rect = Rect2(int(cfg.get("frame", 0)) * 8, 0, 8, 8)
 	add_child(sprite)
 	position = (pos + SIZE * 0.5).round()

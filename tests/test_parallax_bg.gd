@@ -138,7 +138,7 @@ func test_every_strip_has_the_size_data_asks_for() -> void:
 			var path := "res://assets/sprites/bg_%s_%s.png" % [w, plane]
 			if plane == "fg" and not ResourceLoader.exists(path):
 				continue          # fg is optional per world
-			var tex: Texture2D = load(path)
+			var tex: Texture2D = Display.texture(path)
 			ok(tex != null, "%s exists" % path)
 			if tex == null:
 				continue

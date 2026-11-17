@@ -85,7 +85,7 @@ var _dissolve: Dictionary = {}
 func setup(w: TileWorld, which: String) -> void:
 	world = w
 	layer = which
-	atlas = load("res://assets/tiles/tileset.png")
+	atlas = Display.texture("res://assets/tiles/tileset.png")
 	var resolved := TileVariants.for_world(w)
 	_cells = resolved.bg if which == "bg" else resolved.fg
 	_setup_shadows()
@@ -103,7 +103,7 @@ func _setup_shadows() -> void:
 	var v := TileVariants.shared()
 	if v.shadow_texture == "" or not ResourceLoader.exists(v.shadow_texture):
 		return
-	_shadow_tex = load(v.shadow_texture)
+	_shadow_tex = Display.texture(v.shadow_texture)
 	for bit: int in [TileVariants.SHADE_N, TileVariants.SHADE_W, TileVariants.SHADE_NW,
 			TileVariants.SHADE_S, TileVariants.SHADE_E]:
 		var cell := int(v.shadow_cells.get(String(TileVariants.SHADE_NAMES[bit]), -1))
@@ -117,7 +117,7 @@ func _setup_anim() -> void:
 	if anim == null or not anim.has_any():
 		return
 	if anim.atlas_path != "" and ResourceLoader.exists(anim.atlas_path):
-		fx_atlas = load(anim.atlas_path)
+		fx_atlas = Display.texture(anim.atlas_path)
 	else:
 		push_warning("TileRenderer: no fx atlas at '%s'; tiles keep their still art"
 			% anim.atlas_path)

@@ -59,7 +59,7 @@ func refresh_settings() -> void:
 func _layout() -> void:
 	var vp := get_viewport()
 	var ui := Screen.ui_size(vp)
-	var world := Screen.world_rect_in_ui(vp)
+	var world := Screen.ui_frame(vp)
 	var side := world.position.x                      # left/right margin width
 	var vert := world.position.y                      # top/bottom margin height
 	var r := BTN_R * ui_scale

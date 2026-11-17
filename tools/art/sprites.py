@@ -19,6 +19,8 @@ from PIL import Image
 
 from . import kaya40
 from . import forms40
+from . import hd_weapon
+from . import hd_back
 from .palette import SPRITES, auto_shade, blit, grid, sheet
 
 # ---------------------------------------------------------------- player
@@ -1057,176 +1059,8 @@ I_BLADE2 = [
     "................",
     "................",
 ]
-I_GEM = [
-    "................",
-    "................",
-    "................",
-    ".....cccc.......",
-    "....cwwwcc......",
-    "...cwwccwcc.....",
-    "..cwccccccbc....",
-    "..ccccccccbc....",
-    "...bccccccb.....",
-    "....bccccb......",
-    ".....bccb.......",
-    "......bb........",
-    "................",
-    "................",
-    "................",
-    "................",
-]
-I_HEART = [
-    "................",
-    "................",
-    "................",
-    "..rrr...rrr.....",
-    ".rwwwr.rrrrr....",
-    "rwwrrrrrrrrrr...",
-    "rwrrrrrrrrrrr...",
-    "rrrrrrrrrrrrr...",
-    ".rrrrrrrrrrr....",
-    "..rrrrrrrrr.....",
-    "...rrrrrrr......",
-    "....rrrrr.......",
-    ".....rrr........",
-    "......r.........",
-    "................",
-    "................",
-]
-def key(col):
-    return [
-        "................",
-        "................",
-        "................",
-        "....kkkk........",
-        "...k%%%%k.......",
-        "..k%%kk%%k......",
-        "..k%%kk%%k......",
-        "...k%%%%k.......",
-        "....k%%k........",
-        "....k%%k........",
-        "....k%%kkk......",
-        "....k%%%%k......",
-        "....k%%kkk......",
-        "....k%%%k.......",
-        "....kkkk........",
-        "................",
-    ]
-def recolor(rows, ch):
-    return [r.replace('%', ch) for r in rows]
-
-I_DOOR_CLOSED = [
-    "kkkkkkkkkkkkkkkk",
-    "kmMMMMMMMMMMMMmk",
-    "kMmmmmmmmmmmmmMk",
-    "kMmMMMMMMMMMMmMk",
-    "kMmMmmmmmmmmMmMk",
-    "kMmMmMMMMMMmMmMk",
-    "kMmMmMmmmmMmMmMk",
-    "kMmMmMmyymMmMmMk",
-    "kMmMmMmyymMmMmMk",
-    "kMmMmMmmmmMmMmMk",
-    "kMmMmMMMMMMmMmMk",
-    "kMmMmmmmmmmmMmMk",
-    "kMmMMMMMMMMMMmMk",
-    "kMmmmmmmmmmmmmMk",
-    "kmMMMMMMMMMMMMmk",
-    "kkkkkkkkkkkkkkkk",
-]
-I_DOOR_OPEN = [
-    "kkkkkkkkkkkkkkkk",
-    "kmMMMMMMMMMMMMmk",
-    "kMmkkkkkkkkkkmMk",
-    "kMmkddddddddkmMk",
-    "kMmkddddddddkmMk",
-    "kMmkddddddddkmMk",
-    "kMmkddddddddkmMk",
-    "kMmkddddddddkmMk",
-    "kMmkddddddddkmMk",
-    "kMmkddddddddkmMk",
-    "kMmkddddddddkmMk",
-    "kMmkddddddddkmMk",
-    "kMmkddddddddkmMk",
-    "kMmkddddddddkmMk",
-    "kmMMMMMMMMMMMMmk",
-    "kkkkkkkkkkkkkkkk",
-]
-I_EXIT = [   # totem gateway
-    "....yyyyyyyy....",
-    "...yooooooooy...",
-    "..yoolllllooy...",
-    "..yolGGGGGloy...",
-    ".yolGGccGGGloy..",
-    ".yolGcwwcGGloy..",
-    ".yolGcwwcGGloy..",
-    ".yolGGccGGGloy..",
-    ".yolGGGGGGGloy..",
-    ".yolGGGGGGGloy..",
-    ".yolGGGGGGGloy..",
-    "..yolGGGGGloy...",
-    "..yoolllllooy...",
-    "...yooooooooy...",
-    "....yyyyyyyy....",
-    "................",
-]
-def pad(c1, c2):
-    return [
-        "................",
-        "................",
-        "................",
-        "................",
-        "................",
-        "................",
-        "................",
-        "................",
-        "..kkkkkkkkkkkk..",
-        ".k@@@@@@@@@@@@k.",
-        "k@@%%@@@@%%@@@@k",
-        "k@%%%%@@%%%%@@@k",
-        "k@@%%@@@@%%@@@@k",
-        "k@@@@@@@@@@@@@@k",
-        "kkkkkkkkkkkkkkkk",
-        "................",
-    ]
-def recolor2(rows, a, b):
-    return [r.replace('@', a).replace('%', b) for r in rows]
-
-I_SWITCH_OFF = [
-    "................",
-    "................",
-    "................",
-    "................",
-    "................",
-    "......kk........",
-    "....kkAAkk......",
-    "...kAAAAAAk.....",
-    "...kAaaaaAk.....",
-    "..kAAAAAAAAk....",
-    "..kaaaaaaaak....",
-    "..kAAAAAAAAk....",
-    "..kkkkkkkkkk....",
-    "................",
-    "................",
-    "................",
-]
-I_SWITCH_ON = [
-    "................",
-    "................",
-    "................",
-    "................",
-    "................",
-    "................",
-    "................",
-    "................",
-    "...kAAAAAAk.....",
-    "...kyyyyyyk.....",
-    "..kAAAAAAAAk....",
-    "..kyyyyyyyyk....",
-    "..kAAAAAAAAk....",
-    "..kkkkkkkkkk....",
-    "................",
-    "................",
-]
+# Pickups (gem, heart, keys) and props (doors, exit, switch, pads, hub arches)
+# are drawn natively at 2x in tools/art/hd_back.py (docs/plan-hd.md).
 P_SHOT = [
     "........",
     "..pppp..",
@@ -1246,61 +1080,6 @@ P_SPARK = [
     "..ywwy..",
     "...yy...",
     "........",
-]
-
-ARCH_LOCKED = [
-    "..AAAAAAAAAAAA..",
-    ".AaaaaaaaaaaaaA.",
-    "AaaAAAAAAAAAaaA.",
-    "AaAkkkkkkkkkkAaA",
-    "AaAkddddddddkAaA",
-    "AaAkdMMMMMMdkAaA",
-    "AaAkdMmmmmMdkAaA",
-    "AaAkdMmyymMdkAaA",
-    "AaAkdMmyymMdkAaA",
-    "AaAkdMmmmmMdkAaA",
-    "AaAkdMMMMMMdkAaA",
-    "AaAkddddddddkAaA",
-    "AaAkkkkkkkkkkAaA",
-    "AaaaaaaaaaaaaaaA",
-    "AAAAAAAAAAAAAAAA",
-    "kkkkkkkkkkkkkkkk",
-]
-ARCH_OPEN = [
-    "..AAAAAAAAAAAA..",
-    ".AaaaaaaaaaaaaA.",
-    "AaaAAAAAAAAAaaA.",
-    "AaAkkkkkkkkkkAaA",
-    "AaAkddddddddkAaA",
-    "AaAkdnnnnnndkAaA",
-    "AaAkdnmmmmndkAaA",
-    "AaAkdnmyyMndkAaA",
-    "AaAkdnmyyMndkAaA",
-    "AaAkdnmMMmndkAaA",
-    "AaAkdnnnnnndkAaA",
-    "AaAkddddddddkAaA",
-    "AaAkkkkkkkkkkAaA",
-    "AaaaaaaaaaaaaaaA",
-    "AAAAAAAAAAAAAAAA",
-    "kkkkkkkkkkkkkkkk",
-]
-ARCH_CLEARED = [
-    "..AAAAAAAAAAAA..",
-    ".AaaaaaaaaaaaaA.",
-    "AaaAAAAAAAAAaaA.",
-    "AaAkkkkkkkkkkAaA",
-    "AaAkddddddddkAaA",
-    "AaAkdGGGGGGdkAaA",
-    "AaAkdGllllGdkAaA",
-    "AaAkdGlwwlGdkAaA",
-    "AaAkdGlwwlGdkAaA",
-    "AaAkdGllllGdkAaA",
-    "AaAkdGGGGGGdkAaA",
-    "AaAkddddddddkAaA",
-    "AaAkkkkkkkkkkAaA",
-    "AaaaaaaaaaaaaaaA",
-    "AAAAAAAAAAAAAAAA",
-    "kkkkkkkkkkkkkkkk",
 ]
 
 
@@ -1382,20 +1161,6 @@ OBSIDIAN = {'g': ("purple", 0.0), 'G': ("purple", 2.0), 'h': ("water", 4.0),
             'r': ("ember", 3.0), 'R': ("ember", 5.0)}
 
 BLADE = {'A': ("metal", 1.8), 'w': ("metal", 5.8)}
-GEM = {'c': ("water", 5.2), 'b': ("water", 3.4), 'w': ("metal", 6.0)}
-HEART = {'r': ("ember", 2.8), 'w': ("metal", 6.0)}
-KEYS = {'y': ("gold", 4.6), 'r': ("ember", 3.6), 'c': ("water", 5.0)}
-# Architecture: flat faces with a rim light, so depth=1 when these are used.
-DOOR = {'m': ("wood", 1.8), 'M': ("wood", 3.8), 'y': ("gold", 4.6),
-        'd': ("water", 0.4)}
-TOTEM = {'y': ("gold", 4.8), 'o': ("gold", 3.0), 'l': ("grass", 4.2),
-         'G': ("grass", 2.4), 'c': ("water", 5.0), 'w': ("metal", 6.0)}
-SWITCH = {'A': ("metal", 4.4), 'a': ("metal", 2.2), 'y': ("gold", 5.0)}
-PADS = {'G': ("grass", 2.4), 'l': ("grass", 4.2), 'b': ("water", 3.4),
-        'c': ("water", 5.4), 'A': ("metal", 3.6), 'w': ("metal", 6.0)}
-ARCH = dict(DOOR)
-ARCH.update({'A': ("metal", 4.4), 'a': ("metal", 2.6), 'n': ("water", 2.4),
-             'G': ("grass", 2.6), 'l': ("grass", 4.2), 'w': ("metal", 6.0)})
 
 P_SHOT_MAP = {'p': ("purple", 3.0), 'w': ("metal", 6.0)}
 P_SPARK_MAP = {'y': ("gold", 4.4), 'w': ("metal", 6.0)}
@@ -1413,49 +1178,44 @@ def build_sprites():
     # 20-21 turn (plant, half-turn), 22 skid, 23-24 push, 25-26 throw, 27
     # catch, 28-30 idle fidget, 31-38 the idle dance, 39 stoop, 40-45 stoop
     # walk, 46-49 swim.
-    sheet("kaya_human", kaya40.cells(), kaya40.W, kaya40.H, selout=True)
-    kaya40.write_bounds(os.path.join(SPRITES, "kaya_human.png"))
+    sheet("kaya_human", kaya40.sheet_cells(), kaya40.HW, kaya40.HH, selout=True)  # native 2x
+    kaya40.write_bounds_hd(os.path.join(SPRITES, "kaya_human.png"))
     # The overworld is top-down at the old 16 px scale, where the 40 px Kaya
     # would stand taller than the huts. It draws the NEW Kaya from the same
     # puppet poses, scaled before inking (tools/art/kaya40.py hub_cells):
     # 24x28, 0 idle, 1 breath, 2-9 run, read by src/hub/hub_player.gd.
-    sheet("kaya_hub", kaya40.hub_cells(), kaya40.HUB_W, kaya40.HUB_H, selout=True)
+    sheet("kaya_hub", kaya40.hub_sheet_cells(), kaya40.HUB_W * kaya40.HD_SCALE,
+          kaya40.HUB_H * kaya40.HD_SCALE, selout=True)                         # native 2x
     # The animal forms are the 40 px-era puppets in tools/art/forms40.py, frame
     # order unchanged. Frog 24x16: 0 idle, 1 breath, 2 crouch (anticipation;
     # also reused as the turn frame), 3 leap (also reused as the wall-kick
     # flash), 4 reach, 5 cling, 6 apex (mid-air tuck), 7 tongue-blink idle,
     # 8 cling breathe.
-    sheet("kaya_frog", forms40.frog_cells(), forms40.FROG_W, forms40.FROG_H, selout=True)
+    sheet("kaya_frog", forms40.frog_cells_hd(), forms40.FROG_W * forms40.S,
+          forms40.FROG_H * forms40.S, selout=True)
     forms40.write_bounds(os.path.join(SPRITES, "kaya_frog.png"), forms40.FROG_W, forms40.FROG_H)
     # Fish 24x14: 0-3 the swim beat, 4 bite, 5 flop. Drawn facing right, which
     # is the direction `facing == 1` draws.
-    sheet("kaya_fish", forms40.fish_cells(), forms40.FISH_W, forms40.FISH_H, selout=True)
+    sheet("kaya_fish", forms40.fish_cells_hd(), forms40.FISH_W * forms40.S,
+          forms40.FISH_H * forms40.S, selout=True)
     forms40.write_bounds(os.path.join(SPRITES, "kaya_fish.png"), forms40.FISH_W, forms40.FISH_H)
     # Bird 24x16: 0-3 the flap beat, 4 glide, 5 perch, 6 glide ruffle, 7 perch
     # head-tilt, 8-9 the banking turn pair.
-    sheet("kaya_bird", forms40.bird_cells(), forms40.BIRD_W, forms40.BIRD_H, selout=True)
+    sheet("kaya_bird", forms40.bird_cells_hd(), forms40.BIRD_W * forms40.S,
+          forms40.BIRD_H * forms40.S, selout=True)
     forms40.write_bounds(os.path.join(SPRITES, "kaya_bird.png"), forms40.BIRD_W, forms40.BIRD_H)
     # Refit phase 3: the four original enemies are drawn at Kaya's scale by
     # tools/art/enemies40.py (frame orders documented on its *_cells()).
-    from . import enemies40
+    # HD pass H1: native at 2x via tools/art/hd_enemies.py.
+    from . import hd_enemies
     for name in ("enemy_walker", "enemy_jumper", "enemy_shooter", "enemy_swimmer"):
-        enemies40.build_sheet(name)
-    sheet("blade", lit([I_BLADE1, I_BLADE2], BLADE, depth=1), 16, 16)
-    sheet("pickups", lit([I_GEM], GEM, depth=2)
-                     + lit([I_HEART], HEART, depth=2)
-                     + lit([recolor(key('y'), 'y'), recolor(key('r'), 'r'),
-                            recolor(key('c'), 'c')], KEYS, depth=2), 16, 16)
-    sheet("props", lit([I_DOOR_CLOSED, I_DOOR_OPEN], DOOR, depth=1)
-                   + lit([I_EXIT], TOTEM, depth=2)
-                   + lit([I_SWITCH_OFF, I_SWITCH_ON], SWITCH, depth=1)
-                   + lit([recolor2(pad(0, 0), 'G', 'l'),      # frog pad
-                          recolor2(pad(0, 0), 'b', 'c'),      # fish pad
-                          recolor2(pad(0, 0), 'A', 'w')],     # bird pad
-                         PADS, depth=1)
-                   + lit([ARCH_LOCKED, ARCH_OPEN, ARCH_CLEARED], ARCH, depth=1),
-          16, 16)
-    sheet("projectiles", lit([P_SHOT], P_SHOT_MAP, depth=2)
-                         + lit([P_SPARK], P_SPARK_MAP, depth=2), 8, 8)
+        hd_enemies.build_sheet(name)
+    sheet("blade", hd_weapon.blade_cells(), 16 * hd_weapon.S, 16 * hd_weapon.S)
+    # docs/plan-hd.md: natively at 2x, 32x32 texels a 16-unit cell, in the
+    # frame orders src/ui/hud.gd and src/world/triggers/*.gd read.
+    sheet("pickups", hd_back.pickup_cells(), hd_back.T, hd_back.T)
+    sheet("props", hd_back.prop_cells(), hd_back.T, hd_back.T)
+    sheet("projectiles", hd_weapon.projectile_cells(), 8 * hd_weapon.S, 8 * hd_weapon.S)
     print("sprites written")
 
 
@@ -1651,8 +1411,9 @@ def build_boss():
 
     cells = [make(ph, pose) for ph in PHASES for pose in POSES]
     # Refit phase 3: the 64 px sheet (tools/art/enemies40.py) replaces this one.
-    from . import enemies40
-    cells = [None] * enemies40.build_sheet("boss_grove")
+    # HD pass H1: drawn natively at ART_SCALE (tools/art/hd_bosses.py).
+    from . import hd_bosses
+    cells = [None] * hd_bosses.build_sheet("boss_grove")
     print("boss_grove.png  %d frames" % len(cells))
 
 
@@ -1878,8 +1639,9 @@ def build_boss_stormcrest():
 
     cells = [make(ph, pose) for ph in PHASES for pose in POSES]
     # Refit phase 3: the 64 px sheet (tools/art/enemies40.py) replaces this one.
-    from . import enemies40
-    cells = [None] * enemies40.build_sheet("boss_stormcrest")
+    # HD pass H1: drawn natively at ART_SCALE (tools/art/hd_bosses.py).
+    from . import hd_bosses
+    cells = [None] * hd_bosses.build_sheet("boss_stormcrest")
     print("boss_stormcrest.png  %d frames" % len(cells))
 
 
@@ -2103,8 +1865,9 @@ def build_boss_tide_maw():
     # puts a checkerboard across half the frame. Whole steps give the four flat
     # tones the rest of the ruins art is drawn in.
     # Refit phase 3: the 64 px sheet (tools/art/enemies40.py) replaces this one.
-    from . import enemies40
-    cells = [None] * enemies40.build_sheet("boss_tide_maw")
+    # HD pass H1: drawn natively at ART_SCALE (tools/art/hd_bosses.py).
+    from . import hd_bosses
+    cells = [None] * hd_bosses.build_sheet("boss_tide_maw")
     print("boss_tide_maw.png  %d frames" % len(cells))
 
 
@@ -2390,8 +2153,9 @@ def build_boss_brood_queen():
     # level is drawn as a dither, which puts a checkerboard across half of a
     # 26 px abdomen.
     # Refit phase 3: the 64 px sheet (tools/art/enemies40.py) replaces this one.
-    from . import enemies40
-    cells = [None] * enemies40.build_sheet("boss_brood_queen")
+    # HD pass H1: drawn natively at ART_SCALE (tools/art/hd_bosses.py).
+    from . import hd_bosses
+    cells = [None] * hd_bosses.build_sheet("boss_brood_queen")
     print("boss_brood_queen.png  %d frames" % len(cells))
 
 
@@ -2695,6 +2459,7 @@ def build_boss_obsidian_heart():
     # fractional ramp level is drawn as a dither, which puts a checkerboard
     # across half of a 40 px stone.
     # Refit phase 3: the 64 px sheet (tools/art/enemies40.py) replaces this one.
-    from . import enemies40
-    cells = [None] * enemies40.build_sheet("boss_obsidian_heart")
+    # HD pass H1: drawn natively at ART_SCALE (tools/art/hd_bosses.py).
+    from . import hd_bosses
+    cells = [None] * hd_bosses.build_sheet("boss_obsidian_heart")
     print("boss_obsidian_heart.png  %d frames" % len(cells))

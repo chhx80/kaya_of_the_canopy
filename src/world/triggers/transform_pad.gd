@@ -23,7 +23,7 @@ func _ready() -> void:
 	sprite = Sprite2D.new()
 	sprite.centered = false
 	sprite.region_enabled = true
-	sprite.texture = load("res://assets/sprites/props.png")
+	sprite.texture = Display.texture("res://assets/sprites/props.png")
 	sprite.region_rect = Rect2(int(FRAMES.get(form_id, 5)) * 16, 0, 16, 16)
 	sprite.offset = Vector2(0, -8)
 	add_child(sprite)

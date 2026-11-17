@@ -1,0 +1,35 @@
+[
+ {
+  "_": "HD pass H1 wave 2, ruins tiles (before): the five ruins levels from their proof tapes at device framing. tools/shot.sh --res=2556x1179 --seq=tools/seq/hd2_ruins_before.json"
+ },
+ {
+  "tape": "ruins_1",
+  "shots": "shots/hd2_ruins/before/ruins_1_%d.png",
+  "every": 300,
+  "max": 3
+ },
+ {
+  "tape": "ruins_2",
+  "shots": "shots/hd2_ruins/before/ruins_2_%d.png",
+  "every": 300,
+  "max": 3
+ },
+ {
+  "tape": "ruins_3",
+  "shots": "shots/hd2_ruins/before/ruins_3_%d.png",
+  "every": 300,
+  "max": 3
+ },
+ {
+  "tape": "ruins_4",
+  "shots": "shots/hd2_ruins/before/ruins_4_%d.png",
+  "every": 300,
+  "max": 3
+ },
+ {
+  "tape": "ruins_5",
+  "shots": "shots/hd2_ruins/before/ruins_5_%d.png",
+  "every": 300,
+  "max": 3
+ }
+]

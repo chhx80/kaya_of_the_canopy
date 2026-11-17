@@ -30,8 +30,8 @@ var _msg_t := 0.0
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	_pickups = load("res://assets/sprites/pickups.png")
-	_portrait = load(PORTRAIT_PATH)
+	_pickups = Display.texture("res://assets/sprites/pickups.png")
+	_portrait = Display.texture(PORTRAIT_PATH)
 	_last_health = Game.health
 	Game.stats_changed.connect(_on_stats_changed)
 
@@ -71,7 +71,7 @@ func _draw() -> void:
 	# The HUD belongs to the game image, not the device: draw it in the world
 	# rect so it looks the same on every aspect ratio. Only the touch controls
 	# move out into the margins.
-	var origin := Screen.world_rect_in_ui(get_viewport()).position
+	var origin := Screen.ui_frame(get_viewport()).position
 	draw_set_transform(origin, 0.0, Vector2.ONE)
 	var W := float(Game.SCREEN_W)
 	# portrait

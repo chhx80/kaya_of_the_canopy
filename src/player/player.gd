@@ -81,7 +81,7 @@ func set_form(new_id: String) -> void:
 	_frame_size = form.frame_size()
 	var wid := form.weapon_id()
 	weapon = WeaponBase.load_weapon(wid) if wid != "" else null
-	sprite.texture = load(form.sprite_path())
+	sprite.texture = Display.texture(form.sprite_path())
 	sprite.region_rect = Rect2(0, 0, _frame_size.x, _frame_size.y)
 	sprite.scale = Vector2.ONE
 	sprite.position = Vector2.ZERO

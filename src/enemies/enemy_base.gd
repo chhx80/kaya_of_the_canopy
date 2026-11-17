@@ -84,7 +84,7 @@ func _ready() -> void:
 	sprite = Sprite2D.new()
 	sprite.centered = false
 	sprite.region_enabled = true
-	sprite.texture = load(String(cfg.get("sprite", "res://assets/sprites/enemy_walker.png")))
+	sprite.texture = Display.texture(String(cfg.get("sprite", "res://assets/sprites/enemy_walker.png")))
 	sprite.region_rect = Rect2(0, 0, _frame_size.x, _frame_size.y)
 	add_child(sprite)
 	spawn_pos = pos

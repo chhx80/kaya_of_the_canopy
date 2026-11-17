@@ -266,6 +266,11 @@ static func allows_stretch(form: FormBase, anim: String, world: TileWorld, pos: 
 ## Per-frame, per-row opaque extents of a sheet, from the `.bounds.json` the art
 ## generator writes beside it (tools/art/kaya40.py write_bounds). Cached; an
 ## empty array when the form has none, which turns the wall nudge off.
+##
+## Always in world units. A sheet drawn natively at the HD density
+## (docs/plan-hd.md, step 2) may measure its own texels and say so with
+## `"scale"`; each world row is then the union of its `scale` texel rows, and
+## columns are divided down, so the wall nudge sees the same units either way.
 static var _bounds_cache: Dictionary = {}
 
 static func bounds(path: String) -> Array:
@@ -278,10 +283,34 @@ static func bounds(path: String) -> Array:
 	if f != null:
 		var parsed: Variant = JSON.parse_string(f.get_as_text())
 		if parsed is Dictionary:
-			out = (parsed as Dictionary).get("rows", [])
+			var d := parsed as Dictionary
+			out = d.get("rows", [])
+			var k := int(d.get("scale", 1))
+			if k > 1:
+				out = bounds_to_world(out, k)
 	_bounds_cache[path] = out
 	return out
 
+
+## Texel-row bounds at `k` texels per unit -> world-unit rows (see bounds()).
+static func bounds_to_world(frames: Array, k: int) -> Array:
+	var out: Array = []
+	for fr: Array in frames:
+		var rows: Array = []
+		for r in range(0, fr.size(), k):
+			var lo := -1
+			var hi := -1
+			for i in range(r, mini(r + k, fr.size())):
+				var e: Array = fr[i]
+				if int(e[0]) < 0:
+					continue
+				var a := floori(float(e[0]) / float(k))
+				var b := floori(float(e[1]) / float(k))
+				lo = a if lo < 0 else mini(lo, a)
+				hi = maxi(hi, b)
+			rows.append([lo, hi])
+		out.append(rows)
+	return out
 
 ## How far the drawn cell overlaps solid tiles beside her, as the shift that
 ## would clear it: positive moves the sprite right (rock on her left), negative

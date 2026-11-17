@@ -39,7 +39,7 @@ func _ready() -> void:
 	sprite = Sprite2D.new()
 	sprite.centered = false
 	sprite.region_enabled = true
-	sprite.texture = load("res://assets/sprites/props.png")
+	sprite.texture = Display.texture("res://assets/sprites/props.png")
 	add_child(sprite)
 	position = pos.round()
 	_refresh()

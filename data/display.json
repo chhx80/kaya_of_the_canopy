@@ -1,0 +1,6 @@
+{
+  "_comment": "HD pass (docs/plan-hd.md). art_scale: texels per world unit. view: world units visible while exploring. Arena cells stay Screen.W x Screen.H.",
+  "art_scale": 2,
+  "view_w": 308,
+  "view_h": 184
+}

@@ -1,0 +1,9 @@
+[
+  {"_": "HD pass H1 (hdforms): the native 2x fish. Pad as in m6b_fish.json."},
+  {"scenario": "level:ruins_1", "settle": 90},
+  {"teleport": [27, 24], "settle": 30},
+  {"hold": "move_right", "frames": 14},
+  {"release": "move_right"},
+  {"wait": 4},
+  {"shot": "shots/hd1/hdforms_fish_swim.png"}
+]

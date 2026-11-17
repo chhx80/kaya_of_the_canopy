@@ -1,0 +1,14 @@
+[
+  {"_": "HD pass (docs/plan-hd.md): the boss arena pull-back. Kaya walks from the explore view into the Grove Warden's arena; the camera eases out until the whole 400x240 cell is in view. Re-run with: tools/shot.sh --res=2556x1179 --seq=tools/seq/hd_boss_pullback.json"},
+  {"scenario": "level:jungle_5", "settle": 150},
+  {"teleport": [22, 23], "settle": 60},
+  {"shot": "shots/hd/boss_0_approach.png"},
+  {"hold": "move_right", "frames": 40},
+  {"shot": "shots/hd/boss_1_locking.png"},
+  {"release": "move_right"},
+  {"teleport": [31, 23], "settle": 120},
+  {"shot": "shots/hd/boss_2_arena.png"},
+  {"press": "attack", "frames": 4},
+  {"wait": 60},
+  {"shot": "shots/hd/boss_3_fight.png"}
+]

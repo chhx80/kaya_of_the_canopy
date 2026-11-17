@@ -1,0 +1,5 @@
+[
+  {"_": "HD pass, the arena approach (data/camera.json _arena_approach). The drops into ruins_5's and jungle_5's boss arenas from their real proof tapes, every 6 sim frames up to touch-down (ruins_5 lands at audit frame 645, jungle_5 at 823). 'after' frames; the before set is the same sequence (hd2_arena_before.json) shot with arena_approach_px set to 0, which never engages the approach (her centre cannot be in a zero band while her feet are above the arena). Re-run: tools/shot.sh --seq=tools/seq/hd2_arena_after.json"},
+  {"tape": "ruins_5", "shots": "shots/hd2_arena/ruins_after_%d.png", "every": 6, "max": 9, "skip": 596},
+  {"tape": "jungle_5", "shots": "shots/hd2_arena/jungle_after_%d.png", "every": 6, "max": 9, "skip": 774}
+]

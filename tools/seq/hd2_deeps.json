@@ -1,0 +1,8 @@
+[
+  {"_": "HD pass wave 2: the Termite Deeps tileset native at 2x, in real frames from the proof tapes. tools/shot.sh --res=2556x1179 --seq=tools/seq/hd2_deeps.json (writes shots/hd2/)"},
+  {"tape": "deeps_1", "shots": "shots/hd2/deeps_1_%d.png", "every": 300, "max": 3},
+  {"tape": "deeps_2", "shots": "shots/hd2/deeps_2_%d.png", "every": 300, "max": 3},
+  {"tape": "deeps_3", "shots": "shots/hd2/deeps_3_%d.png", "every": 300, "max": 3},
+  {"tape": "deeps_4", "shots": "shots/hd2/deeps_4_%d.png", "every": 300, "max": 3},
+  {"tape": "deeps_5", "shots": "shots/hd2/deeps_5_%d.png", "every": 300, "max": 3}
+]

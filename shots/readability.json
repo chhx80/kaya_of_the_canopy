@@ -1,70 +1,70 @@
 {
- "_cutoff": 28.6,
+ "_cutoff": 24.8,
  "deeps": {
-  "fg_minus_bg_luma": 28.5,
+  "fg_minus_bg_luma": 28.7,
   "forms": {
    "bird": {
-    "hole_pct": 0,
-    "lost_pct": 0.0
+    "hole_pct": 9.3,
+    "lost_pct": 5.8
    },
    "fish": {
-    "hole_pct": 20.0,
-    "lost_pct": 20.7
+    "hole_pct": 2.4,
+    "lost_pct": 0.3
    },
    "frog": {
-    "hole_pct": 0,
-    "lost_pct": 0.0
+    "hole_pct": 2.7,
+    "lost_pct": 0.4
    },
    "human": {
-    "hole_pct": 0.9,
-    "lost_pct": 0.8
+    "hole_pct": 1.9,
+    "lost_pct": 1.7
    }
   }
  },
  "heights": {
-  "fg_minus_bg_luma": 35.1,
+  "fg_minus_bg_luma": 41.2,
   "forms": {
    "bird": {
-    "hole_pct": 0,
-    "lost_pct": 0.0
+    "hole_pct": 9.3,
+    "lost_pct": 2.9
    },
    "fish": {
-    "hole_pct": 7.5,
-    "lost_pct": 10.7
+    "hole_pct": 2.4,
+    "lost_pct": 0.7
    },
    "frog": {
-    "hole_pct": 0,
-    "lost_pct": 0.0
+    "hole_pct": 2.7,
+    "lost_pct": 0.4
    },
    "human": {
-    "hole_pct": 0.9,
-    "lost_pct": 0.3
+    "hole_pct": 1.9,
+    "lost_pct": 1.4
    }
   }
  },
  "jungle": {
-  "fg_minus_bg_luma": 23.0,
+  "fg_minus_bg_luma": 27.0,
   "forms": {
    "bird": {
+    "hole_pct": 9.3,
+    "lost_pct": 1.6
+   },
+   "fish": {
+    "hole_pct": 2.4,
+    "lost_pct": 1.0
+   },
+   "frog": {
     "hole_pct": 0,
     "lost_pct": 0.0
    },
-   "fish": {
-    "hole_pct": 2.5,
-    "lost_pct": 0.7
-   },
-   "frog": {
-    "hole_pct": 6.2,
-    "lost_pct": 8.3
-   },
    "human": {
-    "hole_pct": 1.8,
-    "lost_pct": 0.9
+    "hole_pct": 1.0,
+    "lost_pct": 0.1
    }
   }
  },
  "obsidian": {
-  "fg_minus_bg_luma": 20.4,
+  "fg_minus_bg_luma": 25.3,
   "forms": {
    "bird": {
     "hole_pct": 0,
@@ -85,43 +85,43 @@
   }
  },
  "ruins": {
-  "fg_minus_bg_luma": 29.8,
+  "fg_minus_bg_luma": 20.2,
   "forms": {
    "bird": {
-    "hole_pct": 0,
-    "lost_pct": 0.0
+    "hole_pct": 1.9,
+    "lost_pct": 0.5
    },
    "fish": {
     "hole_pct": 0,
     "lost_pct": 0.0
    },
    "frog": {
-    "hole_pct": 8.3,
-    "lost_pct": 6.5
+    "hole_pct": 2.7,
+    "lost_pct": 1.5
    },
    "human": {
-    "hole_pct": 0.9,
-    "lost_pct": 0.9
+    "hole_pct": 1.0,
+    "lost_pct": 0.7
    }
   }
  },
  "sky": {
-  "fg_minus_bg_luma": 42.2,
+  "fg_minus_bg_luma": 39.8,
   "forms": {
    "bird": {
-    "hole_pct": 6.9,
-    "lost_pct": 1.0
+    "hole_pct": 9.3,
+    "lost_pct": 1.6
    },
    "fish": {
-    "hole_pct": 2.5,
+    "hole_pct": 2.4,
     "lost_pct": 0.7
    },
    "frog": {
-    "hole_pct": 10.4,
-    "lost_pct": 7.7
+    "hole_pct": 5.4,
+    "lost_pct": 1.9
    },
    "human": {
-    "hole_pct": 0.9,
+    "hole_pct": 1.0,
     "lost_pct": 0.1
    }
   }

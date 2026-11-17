@@ -2886,8 +2886,113 @@ def _cases_for(spec):
     return cases
 
 
+# ================================================================ HD (2x)
+# docs/plan-hd.md, phase H1. The atlas ships at ART_SCALE texels per world unit
+# (it is in tools/art/hd_native/hdtiles.txt). A gameplay id whose 2x painter is
+# registered in one of the hd_tiles_<world>.py modules is NATIVE: its cell, its
+# variant interiors, every blob case's edges, its accents and its decorations
+# are drawn at 32x32 by tools/art/hd_tilekit.py. Every other cell is the 1x
+# painting above through palette.upscale(), byte for byte what H0 shipped. The
+# atlas layout, every id and assets/tiles/variants.json are the same either way.
+#
+# How to redraw a world: docs/hd-tiles-howto.md.
+from . import hd_tilekit as hd                      # noqa: E402
+from . import hd_tiles_jungle                       # noqa: E402,F401  ids 0-27
+from . import hd_tiles_verbs                        # noqa: E402,F401  ids 200-215
+from . import hd_tiles_ruins                        # noqa: E402,F401  ids 220-231
+from . import hd_tiles_heights                      # noqa: E402,F401  ids 240-251
+from . import hd_tiles_deeps                        # noqa: E402,F401  ids 260-271
+from . import hd_tiles_nest                         # noqa: E402,F401  ids 280-291
+from .palette import upscale                        # noqa: E402
+
+HTS = hd.N
+#: The H0 look sample's slice, read by tools/art/hd_look.py.
+HD_SLICE = hd_tiles_jungle.HD_SLICE
+
+
+def base_hd(tid):
+    """The shipped 2x cell of gameplay id `tid`."""
+    if not hd.is_native(tid):
+        return upscale(TILE_DEFS[tid])
+    img = hd.base(tid)
+    if tid in tiles_p3.INKED:
+        hd.ink_interactive(img)
+    return img
+
+
+def _need(table, key, what, tid):
+    fn = table.get(key)
+    if fn is None:
+        raise SystemExit("tile %d is native at 2x but %s %r has no 2x twin "
+                         "(docs/hd-tiles-howto.md)" % (tid, what, key))
+    return fn
+
+
+def _edges_hd(img, m, spec, rnd):
+    rim = spec["rim"]
+    deco = rim.get("decorate")
+    dress = None if deco is None else _need(hd.DRESSERS, deco.__name__, "dresser",
+                                            spec["id"])
+    hd.paint_edges(img, m, rim, rnd, spec["group"], spec["id"],
+                   tiles_p3.RIM.get(spec["group"]), tiles_p3.CAP_GLINT.get(spec["id"]),
+                   STANDABLE_GROUPS, dress)
+
+
+def _accent_hd(img, spec, k, seed):
+    tid, group = spec["id"], spec["group"]
+    painters = hd.CAP_ACCENTS.get(tid) or hd.ACCENTS.get(group)
+    if not painters:
+        if tiles_p3.CAP_ACCENTS.get(tid) or tiles_p3.ACCENTS.get(group):
+            _need({}, group, "accent set", tid)
+        return
+    painters[k % len(painters)](img, random.Random(seed))
+
+
+#: tid -> its 1x cases, for a tile that is not native yet (its decorations are
+#: painted on these at 1x and then upscaled, exactly as H0 shipped them).
+_CASES_1X = {}
+
+
+def _cases_for_hd(spec):
+    """{canon mask: [2x images]}: `_cases_for` at 2x. Same masks, same counts,
+    same order, same seeds -- so variants.json is identical -- but a native
+    tile's cells are painted at 32x32, edges and all."""
+    tid = spec["id"]
+    if not hd.is_native(tid):
+        _CASES_1X[tid] = _cases_for(spec)
+        return {m: [upscale(i) for i in imgs] for m, imgs in _CASES_1X[tid].items()}
+    assert hd.TILES[tid][1] == spec["seeds"][0], (
+        "tile %d: 2x painter registered with seed %d, its V spec starts at %d"
+        % (tid, hd.TILES[tid][1], spec["seeds"][0]))
+    interiors = [hd.build(tid, s) for s in spec["seeds"]]
+    if tid in tiles_p3.INKED:
+        for img in interiors:
+            hd.ink_interactive(img)
+    cases = {MASK_FULL: interiors}
+    if spec["rim"] is None:
+        return cases
+    for m in BLOB_CASES:
+        if m == MASK_FULL:
+            continue
+        imgs = []
+        for i, interior in enumerate(interiors):
+            img = interior.copy()
+            _edges_hd(img, m, spec, random.Random(spec["seeds"][0] * 131 + m * 17 + i))
+            imgs.append(img)
+        cases[m] = imgs
+    for m, extra in sorted(spec.get("extra", {}).items()):
+        for seed, acc in extra:
+            img = hd.build(tid, seed)
+            if m != MASK_FULL:
+                _edges_hd(img, m, spec, random.Random(seed * 131 + m * 17))
+            if acc is not None:
+                _accent_hd(img, spec, acc, seed + 5)
+            cases[m].append(img)
+    return cases
+
+
 def build_variants():
-    """Render every variant and hand back (extra atlas cells, manifest dict)."""
+    """Render every variant at 2x and hand back (extra atlas cells, manifest)."""
     extra = []
     tiles = {}
 
@@ -2897,8 +3002,8 @@ def build_variants():
 
     for spec in VARIANT_SPECS:
         tid = spec["id"]
-        cases = _cases_for(spec)
-        assert cases[MASK_FULL][0].tobytes() == TILE_DEFS[tid].tobytes(), (
+        cases = _cases_for_hd(spec)
+        assert cases[MASK_FULL][0].tobytes() == base_hd(tid).tobytes(), (
             "tile %d: seeds[0] no longer reproduces the base tile" % tid)
         out_cases = {}
         for m in sorted(cases):
@@ -2909,8 +3014,16 @@ def build_variants():
             out_cases[str(m)] = ids
         decor = []
         for i, (fn, needs) in enumerate(spec["decor"]):
-            src = cases[MASK_FULL][i % len(cases[MASK_FULL])].copy()
-            fn(src, random.Random(spec["seeds"][0] * 977 + i * 37))
+            rnd = random.Random(spec["seeds"][0] * 977 + i * 37)
+            if hd.is_native(tid):
+                src = cases[MASK_FULL][i % len(cases[MASK_FULL])].copy()
+                _need(hd.DECOR, fn.__name__, "decoration", tid)(src, rnd)
+            else:
+                # the 1x interior, decorated at 1x, then upscaled: as H0 shipped
+                lo = _CASES_1X[tid][MASK_FULL]
+                src = lo[i % len(lo)].copy()
+                fn(src, rnd)
+                src = upscale(src)
             decor.append({"index": slot(src), "needs": needs})
         tiles[str(tid)] = {
             "group": spec["group"],
@@ -2943,24 +3056,29 @@ def build_variants():
 
 
 def build_tileset():
+    """The atlas at 2x: 16 columns of HTS-texel cells, ids where they always
+    were. `tile_size` in variants.json stays 16 -- it is in world units."""
     cols = 16
     assert len(TILE_DEFS) <= VARIANT_BASE, "gameplay ids overflow into the variants"
     extra, manifest = build_variants()
     total = VARIANT_BASE + len(extra)
     rows = (total + cols - 1) // cols
-    img = Image.new("RGBA", (cols * TS, rows * TS), (0, 0, 0, 0))
-    for i, t in enumerate(TILE_DEFS):
-        img.alpha_composite(t, ((i % cols) * TS, (i // cols) * TS))
+    img = Image.new("RGBA", (cols * HTS, rows * HTS), (0, 0, 0, 0))
+    for i in range(len(TILE_DEFS)):
+        img.alpha_composite(base_hd(i), ((i % cols) * HTS, (i // cols) * HTS))
     for j, t in enumerate(extra):
         i = VARIANT_BASE + j
-        img.alpha_composite(t, ((i % cols) * TS, (i // cols) * TS))
+        img.alpha_composite(t, ((i % cols) * HTS, (i // cols) * HTS))
     img.save(os.path.join(TILES, "tileset.png"))
-    tiles_p3.contact_shadow_sheet().save(os.path.join(TILES, "contact_shadow.png"))
+    hd.contact_shadow_sheet(tiles_p3.SHADOW_CELLS, tiles_p3.SHADOW_DEPTH,
+                            tiles_p3.SHADOW_CORNER).save(
+        os.path.join(TILES, "contact_shadow.png"))
     path = os.path.join(TILES, "variants.json")
     with open(path, "w") as f:
         json.dump(manifest, f, indent=1, sort_keys=False)
         f.write("\n")
     autotiled = sum(1 for s in VARIANT_SPECS if s["rim"] is not None)
-    print("tileset.png  %d gameplay tiles + %d variants (%d autotiled materials)"
-          % (len(TILE_DEFS), len(extra), autotiled))
+    native = sum(1 for i in range(len(TILE_DEFS)) if hd.is_native(i))
+    print("tileset.png  %d gameplay tiles + %d variants (%d autotiled materials), "
+          "x%d, %d ids native" % (len(TILE_DEFS), len(extra), autotiled, hd.WU, native))
     print("variants.json  %d cases per autotiled material" % len(BLOB_CASES))

@@ -34,7 +34,7 @@ func setup(cfg: Dictionary) -> bool:
 	if path == "" or not ResourceLoader.exists(path):
 		push_warning("ParticleField: no particle atlas at '%s'; particles are off" % path)
 		return false
-	_tex = load(path)
+	_tex = Display.texture(path)
 	if _tex == null:
 		return false
 	_cell = float(cfg.get("cell", 8))

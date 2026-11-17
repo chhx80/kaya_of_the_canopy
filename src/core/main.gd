@@ -7,9 +7,11 @@ extends Node
 ## vocabulary as a particle one-shot's 4 frames, not 4 physics ticks.
 const FADE_SHADER := preload("res://src/core/fade_dissolve.gdshader")
 const FADE_STEPS := 4
+## The HD pass (docs/plan-hd.md): the sharp-bilinear blit of the world.
+const WORLD_SHADER := preload("res://src/core/world_view.gdshader")
 
 @onready var world: Node2D = $WorldFrame/WorldView/WorldViewport/World
-@onready var world_view: SubViewportContainer = $WorldFrame/WorldView
+@onready var world_view: TextureRect = $WorldFrame/WorldView
 @onready var world_viewport: SubViewport = $WorldFrame/WorldView/WorldViewport
 @onready var ui: CanvasLayer = $UI
 @onready var touch_layer: CanvasLayer = $TouchLayer
@@ -17,6 +19,11 @@ const FADE_STEPS := 4
 
 var _current: Node = null
 var touch: Control = null
+## The part of the world's render target being shown, and the world units it
+## covers: the explore view, an arena, or somewhere in the ease between them.
+var _world_region: AtlasTexture = null
+var _world_mat: ShaderMaterial = null
+var _view_size := Vector2.ZERO
 
 func _ready() -> void:
 	# Deliberately NOT PROCESS_MODE_ALWAYS: Main is the parent of the world, so
@@ -29,7 +36,7 @@ func _ready() -> void:
 	fade.material = fade_mat
 	fade.color = Color(0, 0, 0, 0)
 	_set_fade_progress(1.0)   # idle: fully revealed, nothing hidden
-	_layout_world_view()
+	_setup_world_view()
 	get_viewport().size_changed.connect(_layout_world_view)
 	touch = (load("res://src/ui/touch_controls.gd") as GDScript).new()
 	touch.name = "TouchControls"
@@ -37,15 +44,47 @@ func _ready() -> void:
 	_maybe_start_dev_harness()
 	Game.goto_title()
 
-## The world renders at exactly Screen.W x Screen.H into a SubViewport and is
-## centred in whatever the device gives us. Everything the camera and the level
-## code do is therefore unchanged by the device's aspect ratio; only the size of
-## the side margins moves.
+## The world renders into a SubViewport at art_scale texels per world unit,
+## sized once for the largest view the camera ever asks for (a whole boss
+## arena), so pulling back never reallocates it. The camera's zoom is
+## art_scale, always; what changes is how much of the target is shown. That
+## region is drawn as large as the device allows, centred, through the
+## sharp-bilinear filter — no whole-number stepping (Display.world_display_for).
+##
+## The HUD and the touch controls are not in here. They are in the root, in a
+## Screen.W x Screen.H frame at a whole stretch factor, exactly as before, so
+## their size and positions are what they always were.
+func _setup_world_view() -> void:
+	world_viewport.size = Display.render_texels()
+	_world_region = AtlasTexture.new()
+	_world_region.atlas = world_viewport.get_texture()
+	world_view.texture = _world_region
+	world_view.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	_world_mat = ShaderMaterial.new()
+	_world_mat.shader = WORLD_SHADER
+	world_view.material = _world_mat
+	_show_view(Display.view_size())
+
+## World units the display is showing right now: the camera's, while there is
+## one (its view eases out to a boss arena and back), else the explore view.
+func shown_view_size() -> Vector2:
+	return _view_size
+
+func _show_view(v: Vector2) -> void:
+	_view_size = v
+	var t := v * float(Display.art_scale())
+	_world_region.region = Rect2(Vector2.ZERO, t)
+	_world_mat.set_shader_parameter("region", Vector4(0.0, 0.0, t.x, t.y))
+	_layout_world_view()
+
 func _layout_world_view() -> void:
-	var r := Screen.world_rect_in_ui(get_viewport())
+	var r := Display.world_display_for(Screen.ui_size(get_viewport()), _view_size)
 	world_view.position = r.position
 	world_view.size = r.size
-	world_viewport.size = Vector2i(Screen.W, Screen.H)
+
+## Where the world is drawn in the root viewport, in logical pixels.
+func world_display_rect() -> Rect2:
+	return Rect2(world_view.position, world_view.size)
 
 ## The screenshot/integration harness lives in tools/, which release exports
 ## strip. It used to be an autoload, which meant a shipped build died at startup
@@ -67,6 +106,17 @@ func _maybe_start_dev_harness() -> void:
 ## capture harness, on-screen pause button) sets the action state directly and
 ## never produces an InputEvent.
 func _process(_delta: float) -> void:
+	var cam := world_viewport.get_camera_2d() as CameraController
+	var v := cam.view_size() if cam != null and cam.world != null else Display.view_size()
+	if cam == null:
+		# A scene with no camera (the title, the victory screen) is a whole
+		# Screen.W x Screen.H picture laid out in world units: show all of it,
+		# at the art's density, as a camera's zoom would.
+		v = Display.max_view_size()
+		var k := float(Display.art_scale())
+		world_viewport.canvas_transform = Transform2D(0.0, Vector2(k, k), 0.0, Vector2.ZERO)
+	if v != _view_size:
+		_show_view(v)
 	if not Input.is_action_just_pressed(&"pause"):
 		return
 	# Pause only exists inside a level or on the hub.
@@ -120,6 +170,7 @@ func _transition_in(duration: float = 0.22) -> void:
 ## leaked at exit.
 func _exit_tree() -> void:
 	PixelFont.release()
+	Display.release()
 	TileData4.release()
 	TileAnim.release()
 

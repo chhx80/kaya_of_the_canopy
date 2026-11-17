@@ -43,7 +43,7 @@ var _cols := -1
 ## `_vf` is kept for the callers' signature; vertical motion comes from the
 ## strip's height (the slack rule above), not from a factor.
 func setup(tex_path: String, f: float, _vf: float = 0.0) -> void:
-	texture = load(tex_path)
+	texture = Display.texture(tex_path)
 	factor = f
 	_cols = -1
 	set_view(view)

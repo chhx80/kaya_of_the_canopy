@@ -30,8 +30,7 @@ func _portrait_rect() -> Rect2:
 	return Rect2(float(nums[0]), float(nums[1]), size, size)
 
 func _image() -> Image:
-	var tex: Texture2D = load(PORTRAIT)
-	return null if tex == null else tex.get_image()
+	return Display.world_image(PORTRAIT)
 
 func test_the_portrait_is_two_square_frames() -> void:
 	var img := _image()

@@ -34,7 +34,7 @@ func tiles() -> Array[Vector2i]:
 
 func _ready() -> void:
 	add_to_group(&"doors")
-	var tex: Texture2D = load("res://assets/sprites/props.png")
+	var tex: Texture2D = Display.texture("res://assets/sprites/props.png")
 	for i in HEIGHT_TILES:
 		var s := Sprite2D.new()
 		s.centered = false

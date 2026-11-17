@@ -34,14 +34,28 @@ COLOURS = {
 }
 
 
+def _density(rel):
+    """Texels per world unit of a shipped sheet (assets/art_scale.json, written
+    by palette.publish_hd); 1 for a sheet that was never published at 2x."""
+    path = os.path.join(ROOT, "assets", "art_scale.json")
+    if not os.path.exists(path):
+        return 1
+    with open(path) as f:
+        return int(json.load(f).get("sheets", {}).get(rel, {}).get("scale", 1))
+
+
 def _frame(boss):
+    """Frame 0 of a boss, cropped to its drawing, and its texels per world
+    unit. data/enemies/*.json's frame size is in world units; the sheet may
+    be drawn at a higher density (docs/plan-hd.md), so the crop is scaled."""
     meta = json.load(open(os.path.join(ROOT, "data", "enemies", boss + ".json")))
-    sheet = Image.open(os.path.join(ROOT, "assets", "sprites",
-                                    os.path.basename(meta["sprite"]))).convert("RGBA")
-    fw, fh = int(meta["frame_w"]), int(meta["frame_h"])
+    name = os.path.basename(meta["sprite"])
+    sheet = Image.open(os.path.join(ROOT, "assets", "sprites", name)).convert("RGBA")
+    k = _density("sprites/" + name)
+    fw, fh = int(meta["frame_w"]) * k, int(meta["frame_h"]) * k
     cell = sheet.crop((0, 0, fw, fh))
     box = cell.getbbox() or (0, 0, fw, fh)
-    return cell.crop(box)
+    return cell.crop(box), k
 
 
 def medallion(entry):
@@ -70,14 +84,14 @@ def medallion(entry):
     d.ellipse((c - rr, c - rr, c + rr, c + rr), outline=rim, width=26)
     d.ellipse((c - rr + 34, c - rr + 34, c + rr - 34, c + rr - 34), outline=(0x0d, 0x0b, 0x0f), width=6)
     # the boss, pixel-scaled with nearest neighbour so it stays pixel art
-    boss = _frame(BOSS[entry["level"]])
+    boss, k = _frame(BOSS[entry["level"]])
     scale = max(1, int((SIZE * 0.52) / max(boss.width, boss.height)))
     big = boss.resize((boss.width * scale, boss.height * scale), Image.NEAREST)
     shadow = Image.new("RGBA", big.size, (0, 0, 0, 0))
     shadow.paste((0x0d, 0x0b, 0x0f, 150), mask=big.split()[3])
     x = c - big.width // 2
     y = c - big.height // 2 + int(SIZE * 0.02)
-    img.paste(shadow, (x + scale * 2, y + scale * 2), shadow)
+    img.paste(shadow, (x + scale * 2 * k, y + scale * 2 * k), shadow)    # 2 world units
     img.paste(big, (x, y), big)
     return img
 

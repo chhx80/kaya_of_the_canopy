@@ -1,0 +1,8 @@
+[
+  {"_": "HD pass H1 wave 2, tiles: Thermal Heights' native 2x tiles in real frames from the proof tapes, at device framing. tools/shot.sh --res=2556x1179 --seq=tools/seq/hd2_heights.json"},
+  {"tape": "heights_1", "shots": "shots/hd2/heights_1_%d.png", "every": 200, "max": 4},
+  {"tape": "heights_2", "shots": "shots/hd2/heights_2_%d.png", "every": 200, "max": 4},
+  {"tape": "heights_3", "shots": "shots/hd2/heights_3_%d.png", "every": 200, "max": 4},
+  {"tape": "heights_4", "shots": "shots/hd2/heights_4_%d.png", "every": 200, "max": 4},
+  {"tape": "heights_5", "shots": "shots/hd2/heights_5_%d.png", "every": 200, "max": 4}
+]

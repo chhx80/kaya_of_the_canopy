@@ -3088,3 +3088,271 @@ the banner replayed on a second sign-in in the same session.
 Not verifiable on this Mac (iOS 18 SDK; Godot 4.7.2 device builds need 26.1):
 the native link is first proven by Xcode Cloud, and achievements only work once
 they exist in App Store Connect.
+
+## HD pass, H0 engine: the whole game on the 2x pipeline (branch `hd/engine`)
+
+docs/plan-hd.md, step 1. Everything is 30% larger on screen and drawn at two
+texels per world unit; world units, hitboxes, levels and tapes are unchanged.
+
+- **Art pipeline.** Generators still draw at one pixel per world unit;
+  `tools/art/palette.py publish_hd()` is the one writer that brings every PNG a
+  run wrote to `ART_SCALE` (nearest), at the end of `gen_art.py` and
+  `gen_fx.py`, so bounds and variant sidecars are still measured in world units.
+  `HD_NATIVE` (empty) names sheets drawn natively at 2x; `UI_1X` keeps the font,
+  splash and app icon at 1x. `assets/art_scale.json` records every sheet's
+  density. Verified: all 56 shipped sheets are exact nearest-doubles of the
+  committed 1x art.
+- **Rendering.** `src/core/display.gd` reads `data/display.json` once.
+  `Display.texture()` wraps a sheet in an `HdTexture`, a Texture2D that reports
+  world-unit size and multiplies source rects on the way to the server, so
+  every Sprite2D region, offset and draw call in the game is unchanged.
+- **View.** The camera shows 308 x 184 (zoom = art_scale); `Screen.W/H` stay the
+  arena cell, level grid and HUD frame. `data/camera.json` re-derived: lead 24 ->
+  32, keep-in 64x40 -> 48x32, the rest justified as view-independent.
+- **Boss arenas** ease the view out to the whole 400 x 240 cell over
+  `arena_ease_s`, and back in on release.
+- **Presentation.** Stretch mode `canvas_items` (integer, expand): the UI keeps
+  its logical size and positions; the world is a fixed 800x480-texel target,
+  shown as large as the device allows through a sharp-bilinear shader
+  (`src/core/world_view.gdshader`). The hub's readout moved into the root.
+- **Visibility audit.** The tape replay now measures blind landings (the floor
+  she lands on was off screen when she took off): 15 of 198 landings at
+  400x240, 25 of 198 at 308x184. Reported, not tuned away.
+- Fixed a timing race in the integration `tap()` helper (press and release
+  could fall inside one rendered frame, so the pause button never saw it).
+- New: `tests/test_hd_display.gd`, three `t_hd_*` integration tests,
+  `tools/seq/hd_*.json`, a `tap` step and world-viewport timing in
+  `tools/dev_capture.gd`.
+
+## HD pass, H1 camera: a vertical look-ahead (branch `hd/cam`)
+- **Falls.** Once she is falling (faster than 120/s) and more than 52 units
+  below the floor she last stood on, the view leads her down until she rides
+  the upper third of the view (30 units above its centre, with the follow lag
+  cancelled), about 7 tiles visible under her feet instead of ~2. Ordinary
+  jumps, and drops of up to 3 tiles, never trigger it. Eases back on landing.
+- **Climbs.** The same upward once she has been rising for 0.6 s on a leaky
+  clock (vines, a flapping bird, thermals, a frog's wall climb); no jump rises
+  that long. Off while swimming and inside a locked boss arena.
+- While it leads, the vertical follow quickens (6 -> 12/s, blended) and is
+  speed-capped at 480/s; keep-in still overrides the cap, so she is never lost.
+- All tunables in `data/camera.json` (`look_*`, `follow_y_max_speed`) with
+  their derivations; the maths is pure in `CameraMath` (`look_mode`,
+  `climb_time`, `look_y`, `blend_look`, `follow_rate`, `limit_step`), unit-tested
+  in `tests/test_camera.gd`.
+- **Audit.** The blind-landing count (floor off screen at take-off) is
+  unchanged in definition: 25 -> 23 of 198. Because the view now moves during
+  the airtime, `tape_replay.gd` adds a second measure, the LEAD: frames the
+  landing spot was in view before touch-down (`[blind_lead]` in the itest
+  log). Landings whose floor appeared mid-air under 15 frames before
+  touch-down: 13 -> 11; jungle_2's long drop 3 -> 17 frames, nest_2 3 -> 14,
+  ruins_1 4 -> 13. Boss-level drops into a locked arena are unchanged by design.
+- `tools/seq/hd1_cam_{before,after}.json`, `shots/hd1_cam_fall.png`,
+  `shots/hd1_cam_climb.png`.
+## HD pass, H1 tiles: the tileset native at 2x (branch `hd/tiles`)
+
+docs/plan-hd.md, step 2, for the tileset. `tileset`, `contact_shadow` and
+`tile_anim` are native (`tools/art/hd_native/hdtiles.txt`); ids, atlas layout,
+`variants.json` and `level_legend.json` are unchanged.
+
+- **The machinery at 2x.** `tools/art/hd_tilekit.py` is the autotile pass written
+  in texels: rim bands applied as a relative shift (so a painter's pebbles and
+  joints survive their edge light), ragged on a smooth periodic wave, convex
+  corners rounded, inside-corner occlusion in radial whole steps, the phase C
+  course and the refit rim a world unit deep with a one-texel arris, chips
+  rounded. Inked tiles get the hero's weighted line (a second texel on the
+  shadow side). Contact shadows are sampled per texel, a gradient twice as fine.
+- **Native vs upscaled, per id.** A tile is native when its painter is
+  registered; its variants, all 47 blob cases, accents and decorations are then
+  drawn at 32x32 and gen_art stops if any 2x twin is missing. Every other cell is
+  the 1x painting upscaled, byte-identical to H0 (`tools/hd_tiles_check.py`).
+- **Redrawn:** the whole jungle and every shared tile (ids 0-27: the approved
+  look-sample eleven plus mossy stone, bg rock and dark, grass edges, bridge,
+  hub grass/path/water/tree, lava, tread plate, switch blocks on and off), the
+  movement verbs 200-215, and a first pass of the ruins (220-231). Heights,
+  deeps and nest are still upscaled.
+- **Tile frames.** gen_fx re-times water and lava from the 2x cells: a swell one
+  world unit high in texel steps, a crest with a thickness, star glints, round
+  bubbles.
+- **One per world.** Each world's 2x tiles live in `hd_tiles_<world>.py`; the
+  recipe is `docs/hd-tiles-howto.md`. Review tools: `tools/hd_tiles_sheet.py`
+  (bases, fields, seam numbers), `tools/hd_tiles_contact.py` (before/after game
+  frames), `tools/seq/hd1_jungle.json`, `tools/seq/hd1_ruins.json`.
+## HD pass, H1: Kaya drawn natively at 2x (branch `hd/kaya`)
+- **kaya_human**: all 59 frames are drawn by the 2x puppet
+  (`kaya40.sheet_cells()`), not just the 23 approved look-sample frames. The
+  side view (`side_hd`) now also covers climb, hurt, turn, skid, push, throw,
+  fidget, dance, swim and the narrow set. The narrow set gets its own 2x slung
+  hat (`_slung_hat_hd`), and the front and back views get a new `front_hd`
+  with almond eyes, lips, hoops, hair strands, the back ribbon and sandal
+  straps. The pose geometry is the 1x choreography, unchanged. Each frame is
+  clipped to its 1x silhouette in world units, so pose choice, clipgate and
+  the stoop and narrow limits are unchanged.
+- **kaya_hub**: shrunk from the 2x side view to 48x56 texels, keeping her eye,
+  ink, lips and bead, then clipped to the 1x hub silhouette.
+- **hud_portrait**: the bust is drawn by `front_hd`, inside a native
+  48x48 bevelled leaf frame.
+- `kaya_human.bounds.json` is now in texels with `"scale": 2`.
+  `tools/art/hd_native/hdkaya.txt` lists the three sheets as native.
+- `tests/test_kaya_sheet.gd`: the bounds check now measures world-unit coverage
+  on the shipped texels, using the same rule as `KayaPose.bounds_to_world`. It
+  still requires exact agreement.
+- New: `tools/seq/hd1_kaya.json` and `shots/hd1_kaya_*`.
+## HD pass H1 — the seven enemies drawn natively at 2x
+- `tools/art/hd_enemies.py` (new): walker, jumper, shooter, swimmer, charger,
+  dropper and flyer redrawn at two texels per world unit. Same puppets, poses,
+  frame orders and world-unit cells as `enemies40.py`; `HCanvas` rasterises
+  them at `ART_SCALE` and each builder adds detail 1x could not hold (eyes with
+  irises and catch-lights, teeth and fangs, shell punctures, warts, scales,
+  fur strokes, petal and wing veins, jointed and clawed legs). Every tell is
+  kept; the jumper's lid and the boar's brow now also harden on the wind-up.
+- Shaded with `kaya40.shade_hd` (whole ramp steps) plus hand-AA and selout,
+  as in the approved look sample. Listed in `tools/art/hd_native/hdenemies.txt`.
+- Before/after: `shots/hd1_enemies_<name>.png`; in game:
+  `tools/seq/hd1_enemies.json` → `shots/hd1_enemies_game_*.png`.
+## HD pass, H1: the five bosses drawn natively at 2x (branch `hd/bosses`)
+
+docs/plan-hd.md, step 2, for `boss_grove`, `boss_tide_maw`, `boss_stormcrest`,
+`boss_brood_queen` and `boss_obsidian_heart` (listed in
+`tools/art/hd_native/hdbosses.txt`).
+
+- **`tools/art/hd_bosses.py`** (new) redraws all 150 boss frames at 128x128
+  texels. Each boss is its enemies40 puppet, with the same PHASES/POSES dicts
+  and the same world-unit numbers, on an `HDCanvas` that rasterises world
+  coordinates at ART_SCALE. Silhouettes, hitbox fit and every tell are the 1x
+  frames sampled more finely. Frame order, count and the 64x64 world-unit cell
+  in data/enemies/*.json are unchanged.
+- **New detail, in native texels:** the Warden's pitted chitin, growth lines and
+  sheen, ringed horns, pupils, serrated mandibles, jointed spurred legs, veined
+  wings and glowing cracks; the Maw's mottling, pores, photophores, fin, gums,
+  rooted needle teeth, glossy eye and hot lure core; the Stormcrest's scalloped
+  body feathers, split primaries and coverts, crest rachis, brow, eye, cere and
+  nostril, scaled legs and hooked talons; the Queen's striations, spiracles,
+  compound eye, antennae, serrated sickles and jointed legs; the Heart's facet
+  planes, cold edge reflections, glints, forked glowing cracks and ringed core.
+- **Shading** follows the approved look sample: whole ramp steps with no
+  dither, the 1x boss lighting carried to twice the texels (the interior tops
+  out at the same step as at 1x), a two-texel lit and shadowed edge, the
+  weighted outline and hand-AA.
+- `sprites.py` build_boss*() call `hd_bosses.build_sheet()`, one line each.
+- **`tools/art/achievement_art.py`** crops a boss frame by world-unit size times
+  the sheet's density (`assets/art_scale.json`), so a 2x sheet is no longer
+  cropped to its top-left quarter. `export/achievements/*.png` regenerated.
+- Measured: 43-67% of each new sheet's drawn 2x2 blocks are non-uniform (0% on
+  the nearest-doubled sheets they replace). Before/after:
+  `shots/hd1_bosses_*.png`. In-game: `tools/seq/hd1_bosses.json`,
+  `shots/hd1_bosses_game_*.png`.
+## HD pass, H1 "back": backdrops, title, pickups, props, particles at native 2x (branch `hd/back`)
+
+docs/plan-hd.md, step 2, for the backdrop and small-sheet area. 29 sheets are
+drawn natively at two texels per world unit and listed in
+`tools/art/hd_native/hdback.txt`; world sizes, frame orders and footprints are
+unchanged.
+
+- **Parallax, all six worlds** (`tools/art/parallax_worlds.py`, `backdrops.py`).
+  `Plane` keeps world-unit coordinates over a 2x texel buffer and every brush
+  rasterises per texel: leaves with a one-texel midrib, veins and a lit/dark
+  edge; bark in plates between wandering grooves, ringed knots; masonry with
+  pits, cracks, diagonal chips and arch voussoirs with a keystone; cumulus with
+  lobe creases and a silver lip; carved gullies, strata and a ragged snow line;
+  cut facets with a lit arris on the glass spires and flues; mud drips under the
+  termite comb; four-texel lianas with a twist. Composition, seeds and windows
+  are the phase-3 ones.
+- **Dither re-thought for the texel grid.** An 8x8 Bayer whose even/even
+  sublattice is the old 4x4 (so `open_1x` readers see the same phase), squeezed
+  so fills are whole steps with a narrow dithered seam (`SEAM`, thinner still
+  where a sky crosses ramps). Light shafts, mist and glows lift values instead
+  of stippling. Narrow-window planes spend their window with a `gain` clamped to
+  the steps it already touched, so detail lands on a step without widening the
+  plane's luma span.
+- **Title**: dusk sky in clean bands, a sun with a rim and cloud streaks, stars
+  of three magnitudes, canopy bands with leaf tips, a sunlit rim and creases,
+  vines with paired leaves. **Logo**: the stair-stepped diagonals of K, A and
+  Y bridged into continuous strokes, rounded corners, a bevelled face; the
+  splash uses it texel for texel (same 640x384 output).
+- **Pickups and props** (`tools/art/hd_back.py`, replacing the ASCII grids in
+  `sprites.py`): a brilliant-cut gem with a glint, a glossy heart, keys with a
+  bevelled bow, collar and bits; a carved door with mouldings, grain, nails and
+  a boss; the gold exit ring with a leaf band and an orb; a switch with a stud
+  and lit bands; pads with an inlaid leaf, wave or feather; stone hub arches in
+  voussoirs with a locked door and keyhole, an ajar door, or a green seal.
+- **Particles** (`hd_back.particles`, called from `gen_fx.py`): the seven rows
+  redrawn in 16x16 texels with the same PAL and timing.
+- **Light pool and vignette**: twice the bands, seams dithered on the texel grid.
+- Readability (`gen_art.py --readability`): every world's worst hole equal to or
+  better than before; jungle/frog lost outline 1.2% -> 0.4%, ruins/fish 2.5% -> 0.
+
+## HD pass, H2 camera: the arena floor in view before she lands (branch `hd/arena`)
+
+- **The arena approach** (`src/world/camera_controller.gd`, maths in
+  `camera_math.gd`, tunables and derivation in `data/camera.json`
+  `_arena_approach`). Every boss arena is entered by a drop from above, and the
+  lock engaged as her centre crossed the arena's top, mid-fall, so the 0.6 s
+  pull-back arrived after she had landed. Now a fall with nothing solid between
+  her and the arena, inside a 128-unit band above a live boss's arena, starts
+  the same pan and pull-back early; the hard zone holds her in view and fades
+  out across the band, so at the arena's top edge the approach's view *is* the
+  arena's and the lock takes over without a jump, carrying the pan on rather
+  than restarting it from rest. The pan is capped at 8 a frame.
+- **Framing only.** `Level` still locks, wakes the boss, shuts the arena and
+  releases it exactly where it did; the camera reads the boss's arena, it never
+  writes the lock. Release is unchanged, and a release never re-engages the
+  approach until she has been clear of its band.
+- **Measured** on the proof tapes (`[blind_lead]`): the landing in the arena
+  went from 10 to 23 frames of warning on jungle_5, 10 -> 26 on ruins_5, 9 -> 22
+  on nest_5, 10 -> 19 on deeps_5; none is late any more. Every other landing on
+  every tape is unchanged. Largest view step on the boss levels 8.1-9.2.
+- `tests/integration/tape_replay.gd`: the `[blind_lead]` line also prints the
+  tape's largest view step.
+- Contact sheet: `shots/hd2_arena_ruins5.png` (re-shoot with
+  `tools/seq/hd2_arena_after.json` / `_before.json`).
+
+## HD pass H3: Kaya on the title screen (branch `hd/title`)
+- **`tools/art/hd_title_kaya.py`** (new): a full-figure Kaya about 170 world
+  units tall (four times the in-game sprite), drawn natively at 2x into
+  `assets/sprites/title_kaya.png` (four 84x176-unit frames). Built from body
+  parts with designed silhouettes, each lit as a form from its own mask and
+  quantised to whole ramp steps (no dither), composited with contour and
+  occlusion where parts overlap, then inked, hand-AA'd and selout'd like the
+  rest. Same ramps and levels as `kaya40.MAT`, same outfit: woven straw hat with
+  a brown ribbon and bow, long wavy hair in strands with a sheen, a face with
+  lidded eyes (iris, pupil, catch-light), brows, nose, a smile and blush, gold
+  hoops, an ember bead necklace, the green cami crop top with cups and hem,
+  yellow shorts with waistband, loops, button, fly and fringe, a hanging hand
+  and a hand on the hip, leaf ankle wraps and red thong sandals. Idle cycle:
+  rest, breathe in (chest, shoulders and head rise a texel), hair and ribbon
+  drift, blink. Listed in `tools/art/hd_native/hdtitle.txt`.
+- **Title screen** (`src/ui/menus/title_screen.gd`): Kaya stands on the left;
+  the logo, subtitle, menu, BEST, hint and build line share a right-hand column.
+  Every piece's rect is exposed and drawn from the same constants.
+- **The menu is tappable**: a tap or click on a row picks it. The world is a
+  SubViewport drawn as a texture, so a small catcher in Main's UI layer maps the
+  touch through Main's world display rect to world units. The touch hint now
+  reads TAP TO SELECT.
+- **Fixed**: on desktop the build line and the keyboard hint ran into each other
+  at the bottom of the screen; they are now on separate rows.
+- `tools/art/backdrops.py` `build_title_bg`: the low sun moved from (300, 150)
+  to (158, 150), between Kaya and the menu, so the menu is not over it.
+- Tests: `tests/test_title_screen.gd` (sheet size, native not doubled, on the
+  ramps, at least 150 units tall, the blink only touches the face, her pixels
+  clear of the menu); integration: the title layout keeps face, logo, menu and
+  small print apart, and a phone tap on OPTIONS opens the options screen.
+- Shots: `shots/hd3_title_{desktop,phone,tablet}.png`,
+  `shots/hd3_title_before_after.png`, `shots/hd3_title_kaya_frames.png`,
+  `shots/hd3_title_face.png` (re-shoot with `tools/seq/hd3_title_phone.json` /
+  `_tablet.json`).
+
+## HD pass, wave 2 and the title screen
+
+- The Sunken Ruins, Thermal Heights, Termite Deeps and Obsidian Nest tilesets
+  are drawn natively at 32x32 (`tools/art/hd_tiles_<world>.py`); no cell of the
+  atlas is a nearest-doubled 1x cell any more.
+- Scenes with no camera (the title, the victory screen) are shown whole at the
+  art's density; after the engine pass they were drawn at two-thirds size in a
+  corner.
+- The title screen shows Kaya: the owner's own picture, cut from its page and
+  otherwise unchanged, drawn in the root viewport at device resolution rather
+  than in the world's texel grid. The logo and menu moved to a right-hand
+  column; menu rows are tappable. A script-drawn title Kaya was tried first and
+  replaced at the owner's request.
+- The capture harness shows Kaya for a still that lands on a hurt blink, and
+  store screenshots are composed from larger captures.

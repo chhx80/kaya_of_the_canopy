@@ -29,6 +29,9 @@ extends Node
 ##                                        carries a physics tick, so per-frame
 ##                                        physics/process/render cost is honest
 ##   {"lighting": false}                 phase 3 ambience off, for an A/B perf run
+##   {"tap": "pause"}                    a real touch on the overlay's pause
+##                                        button, in window pixels through the
+##                                        root's stretch; logs whether it opened
 ##   {"tape": "jungle_1", "shots": "shots/x_%d.png", "every": 150, "max": 4, "skip": 0}
 ##                                        boot the level and play its real proof
 ##                                        tape (Kaya unhittable, as in the replay
@@ -248,7 +251,47 @@ func _run_step(step: Dictionary) -> bool:
 	if step.has("wait"):
 		_wait = int(step["wait"])
 		return false
+	if step.has("tap"):
+		_tap(String(step["tap"]))
+		return true   # async: down, two frames, up
 	return false
+
+## A real touch at a control the game draws, injected in WINDOW pixels — the
+## coordinates a finger produces — and converted from the control's logical
+## position through the root's own stretch transform. The integration tier taps
+## in logical pixels on a headless 1:1 window, so it cannot see a stretch that
+## puts input somewhere other than the picture; this can, at any --res.
+## `"pause"` taps the touch overlay's pause button and logs whether the menu
+## opened.
+func _tap(what: String) -> void:
+	_busy = true
+	var touch: Control = Game.main.get("touch")
+	touch.call("force_enable", true)
+	await get_tree().process_frame
+	var logical: Vector2 = touch.call("pause_button_centre")
+	var root := get_tree().root
+	var to_window := root.get_final_transform()
+	var at := to_window * logical
+	print("[tap] window_size=%s root.size=%s visible=%s final=%s screen=%s ds_scale=%s" % [
+		str(DisplayServer.window_get_size()), str(root.size), str(root.get_visible_rect()),
+		str(root.get_final_transform()), str(root.get_screen_transform()),
+		str(DisplayServer.screen_get_scale())])
+	for pressed: bool in [true, false]:
+		var ev := InputEventScreenTouch.new()
+		ev.index = 4
+		ev.position = at
+		ev.pressed = pressed
+		Input.parse_input_event(ev)
+		# Rendered frames, not physics ticks: Main polls the pause action in
+		# _process, and at startup physics catches up several ticks a frame.
+		for _i in 3:
+			await get_tree().process_frame
+	var opened: bool = (Game.main.get("ui") as Node).has_node("PauseScreen")
+	print("[tap] %s logical=%s window=%s stretch=%s -> pause menu %s" % [what, str(logical),
+		str(at), str(to_window.get_scale()), "OPENED" if opened else "NOT OPENED"])
+	_busy = false
+	if _step_i >= _steps.size():
+		_finish()
 
 func _as_list(v: Variant) -> Array[String]:
 	var out: Array[String] = []
@@ -294,6 +337,14 @@ func _goto(scenario: String) -> void:
 		push_error("DevCapture: unknown scenario '%s'" % scenario)
 
 func _capture(path: String) -> void:
+	# Hurt, she blinks (player.gd hides the sprite in half of each 0.16 s of
+	# i-frames); a still that lands on the hidden half shows a level with no
+	# hero in it. Show her for the frame that is captured.
+	var lvl: Node = Game.current_level
+	if lvl != null and is_instance_valid(lvl) and lvl.get("player") != null:
+		var sp: Variant = lvl.player.get("sprite")
+		if sp is CanvasItem:
+			(sp as CanvasItem).visible = true
 	await RenderingServer.frame_post_draw
 	await RenderingServer.frame_post_draw
 	var img := get_viewport().get_texture().get_image()
@@ -412,6 +463,13 @@ func _measure(label: String, frames: int, cap: int = 0) -> void:
 	var vp := get_viewport()
 	var rid := vp.get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(rid, true)
+	# The world draws into its own SubViewport, which the root's timings do
+	# not include. Timed separately so a fill-rate change shows up where it is.
+	var wrid := RID()
+	var wvp: Variant = Game.main.get("world_viewport") if Game.main != null else null
+	if wvp is SubViewport:
+		wrid = (wvp as SubViewport).get_viewport_rid()
+		RenderingServer.viewport_set_measure_render_time(wrid, true)
 	var old_vsync := DisplayServer.window_get_vsync_mode()
 	var old_max := Engine.max_fps
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
@@ -424,6 +482,8 @@ func _measure(label: String, frames: int, cap: int = 0) -> void:
 	var calls := 0.0
 	var phys := 0.0
 	var proc := 0.0
+	var wcpu := 0.0
+	var wgpu := 0.0
 	var last := Time.get_ticks_usec()
 	for _i in frames:
 		await RenderingServer.frame_post_draw
@@ -432,6 +492,9 @@ func _measure(label: String, frames: int, cap: int = 0) -> void:
 		last = now
 		cpu += RenderingServer.viewport_get_measured_render_time_cpu(rid)
 		gpu += RenderingServer.viewport_get_measured_render_time_gpu(rid)
+		if wrid.is_valid():
+			wcpu += RenderingServer.viewport_get_measured_render_time_cpu(wrid)
+			wgpu += RenderingServer.viewport_get_measured_render_time_gpu(wrid)
 		calls += Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
 		phys += Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
 		proc += Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
@@ -441,13 +504,15 @@ func _measure(label: String, frames: int, cap: int = 0) -> void:
 	for v in samples:
 		sum += v
 	var vram := Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0
-	print("[perf] %s cap=%d frames=%d frame_ms avg=%.3f p50=%.3f p95=%.3f max=%.3f | render_cpu=%.3f render_gpu=%.3f | physics_ms=%.3f process_ms=%.3f | draw_calls=%.0f vram=%.1fMB" % [
+	print("[perf] %s cap=%d frames=%d frame_ms avg=%.3f p50=%.3f p95=%.3f max=%.3f | render_cpu=%.3f render_gpu=%.3f | world_cpu=%.3f world_gpu=%.3f | physics_ms=%.3f process_ms=%.3f | draw_calls=%.0f vram=%.1fMB" % [
 		label, cap, n, sum / maxf(1.0, float(n)), samples[n / 2], samples[int(n * 0.95)],
-		samples[n - 1], cpu / float(n), gpu / float(n), phys / float(n), proc / float(n),
-		calls / float(n), vram])
+		samples[n - 1], cpu / float(n), gpu / float(n), wcpu / float(n), wgpu / float(n),
+		phys / float(n), proc / float(n), calls / float(n), vram])
 	DisplayServer.window_set_vsync_mode(old_vsync)
 	Engine.max_fps = old_max
 	RenderingServer.viewport_set_measure_render_time(rid, false)
+	if wrid.is_valid():
+		RenderingServer.viewport_set_measure_render_time(wrid, false)
 	_busy = false
 	if _step_i >= _steps.size():
 		_finish()

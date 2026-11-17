@@ -54,8 +54,7 @@ func _ids() -> PackedStringArray:
 func _sheet(c: Dictionary) -> Image:
 	var path := String(c.get("sprite", ""))
 	if not _img_cache.has(path):
-		var tex: Texture2D = load(path)
-		_img_cache[path] = tex.get_image() if tex != null else null
+		_img_cache[path] = Display.world_image(path)
 	return _img_cache[path]
 
 func _frames(c: Dictionary, anim: String) -> Array:

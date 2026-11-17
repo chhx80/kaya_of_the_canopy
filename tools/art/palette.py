@@ -461,3 +461,146 @@ def write_selout_manifest():
     n_yes = sum(1 for v in SELOUT_LOG.values() if v)
     print("selout_manifest.json  %d sheets, %d through selout, %d not"
           % (len(SELOUT_LOG), n_yes, len(SELOUT_LOG) - n_yes))
+
+
+# ------------------------------------------------------------------ HD pass
+# docs/plan-hd.md, step 1. The game draws world-space art at ART_SCALE texels
+# per world unit (data/display.json, read by the engine too). Every generator
+# here still draws at one pixel per world unit and saves as it always has;
+# `publish_hd()` is the ONE place that turns that into what ships. It runs once,
+# at the end of a generator run (tools/gen_art.py, tools/gen_fx.py), so anything
+# a generator reads back mid-run (a bounds sidecar, the icon built from the
+# logo, the tile frames built from the tileset) still sees 1x pixels and still
+# writes world units.
+#
+# Step 2 redraws sheets natively at ART_SCALE, one area at a time. A sheet is
+# switched over by adding its name (the file name without .png) to HD_NATIVE:
+# its generator then saves it already at ART_SCALE and the writer leaves it
+# alone. An atlas that mixes native and upscaled cells (a tileset redrawn one
+# slice at a time) goes in HD_NATIVE as a whole and builds its upscaled cells
+# with `upscale()` itself. Sidecars stay in WORLD units either way: a native
+# sheet's generator divides by ART_SCALE when it measures its own pixels (the
+# engine accepts a bounds file at either density, src/player/kaya_pose.gd).
+import json as _json
+import time as _time
+
+
+def _art_scale():
+    with open(os.path.join(ROOT, "data", "display.json")) as f:
+        return int(_json.load(f).get("art_scale", 2))
+
+
+ART_SCALE = _art_scale()
+
+def _hd_native():
+    """Sheet names from tools/art/hd_native/*.txt, one per line (# comments).
+    One file per area of the art, so areas redrawn in parallel never edit the
+    same line."""
+    names = set()
+    folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hd_native")
+    if os.path.isdir(folder):
+        for fn in sorted(os.listdir(folder)):
+            if fn.endswith(".txt"):
+                with open(os.path.join(folder, fn)) as f:
+                    for line in f:
+                        line = line.split("#")[0].strip()
+                        if line:
+                            names.add(line)
+    return names
+
+
+#: Sheets drawn natively at ART_SCALE (file name without .png).
+HD_NATIVE = _hd_native()
+
+#: Art that is never scaled. The bitmap font: text is drawn by PixelFont in UI
+#: space, and a nearest-doubled glyph is the same glyph. The app icon and the
+#: splash: the OS draws those, at its own sizes, from tools/art/backdrops.py's
+#: own exports. Everything else the game draws, it draws through an HdTexture
+#: (src/core/display.gd) — the world, and the UI art that has detail worth
+#: doubling (title backdrop, logo, HUD portrait, pickups in the HUD).
+UI_1X = {"font8", "splash", "icon"}
+
+MANIFEST = os.path.join(ROOT, "assets", "art_scale.json")
+
+
+def upscale(img, k=None):
+    """Nearest-neighbour by `k` (default ART_SCALE). No new detail: step 1."""
+    k = k or ART_SCALE
+    return img.resize((img.width * k, img.height * k), Image.NEAREST)
+
+
+def _read_manifest():
+    if not os.path.exists(MANIFEST):
+        return {}
+    with open(MANIFEST) as f:
+        return _json.load(f).get("sheets", {})
+
+
+def shipped_scale(path):
+    """Texels per world unit of an asset as published (1 if never published)."""
+    rel = os.path.relpath(path, os.path.join(ROOT, "assets"))
+    return int(_read_manifest().get(rel, {}).get("scale", 1))
+
+
+def open_1x(path):
+    """A published sheet at one pixel per world unit, for the tools that do
+    pixel maths on what another generator shipped (tools/gen_fx.py's tile
+    frames, tools/gen_art.py --readability). Nearest decimation: exact for an
+    upscaled sheet, and a native sheet loses the detail step 2 gave it."""
+    img = Image.open(path).convert("RGBA")
+    k = shipped_scale(path)
+    if k <= 1:
+        return img
+    return img.resize((img.width // k, img.height // k), Image.NEAREST)
+
+
+def run_started():
+    """Call before any generator writes; hand the result to publish_hd()."""
+    return _time.time() - 0.001
+
+
+def publish_hd(since, folders):
+    """Bring every PNG written into `folders` since `since` to ART_SCALE, and
+    record what each one is in assets/art_scale.json.
+
+    Only files written by THIS run are touched, so running it twice, or running
+    one generator without the other, can never double a sheet."""
+    sheets = _read_manifest()
+    root = os.path.join(ROOT, "assets")
+    n_up = n_native = n_ui = 0
+    for folder in folders:
+        for fn in sorted(os.listdir(folder)):
+            if not fn.endswith(".png"):
+                continue
+            path = os.path.join(folder, fn)
+            if os.path.getmtime(path) < since:
+                continue
+            name = fn[:-4]
+            rel = os.path.relpath(path, root)
+            if name in UI_1X:
+                sheets[rel] = {"scale": 1, "native": True}
+                n_ui += 1
+                continue
+            img = Image.open(path)
+            if name in HD_NATIVE:
+                if img.width % ART_SCALE or img.height % ART_SCALE:
+                    raise SystemExit("publish_hd: %s is in HD_NATIVE but %dx%d is not a "
+                                     "multiple of %d" % (rel, img.width, img.height, ART_SCALE))
+                sheets[rel] = {"scale": ART_SCALE, "native": True}
+                n_native += 1
+                continue
+            upscale(img.convert("RGBA")).save(path)
+            sheets[rel] = {"scale": ART_SCALE, "native": False}
+            n_up += 1
+    out = {
+        "_comment": "Generated by tools/art/palette.py publish_hd(). Texels per world "
+                    "unit of every shipped PNG, and whether it was drawn at that density "
+                    "(native) or nearest-upscaled. Do not edit.",
+        "art_scale": ART_SCALE,
+        "sheets": {k: sheets[k] for k in sorted(sheets)},
+    }
+    with open(MANIFEST, "w") as f:
+        _json.dump(out, f, indent=1)
+        f.write("\n")
+    print("publish_hd  x%d: %d upscaled, %d native, %d UI 1x"
+          % (ART_SCALE, n_up, n_native, n_ui))

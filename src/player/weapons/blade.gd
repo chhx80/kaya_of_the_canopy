@@ -47,7 +47,7 @@ func _ready() -> void:
 	sprite = Sprite2D.new()
 	sprite.centered = false
 	sprite.region_enabled = true
-	sprite.texture = load(String(cfg.get("sprite", "res://assets/sprites/blade.png")))
+	sprite.texture = Display.texture(String(cfg.get("sprite", "res://assets/sprites/blade.png")))
 	var hb: Dictionary = cfg.get("hitbox", {})
 	sprite.offset = Vector2(-float(hb.get("ox", 2)), -float(hb.get("oy", 2)))
 	add_child(sprite)
