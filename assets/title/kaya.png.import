@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bq43seuohiwg"
-path="res://.godot/imported/title_kaya.png-daf58b71409129794d0ec05fb0e49a64.ctex"
+uid="uid://b1scsqqt7lr62"
+path="res://.godot/imported/kaya.png-db97ab4e7e5d2237e5227635adadd506.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/title_kaya.png"
-dest_files=["res://.godot/imported/title_kaya.png-daf58b71409129794d0ec05fb0e49a64.ctex"]
+source_file="res://assets/title/kaya.png"
+dest_files=["res://.godot/imported/kaya.png-db97ab4e7e5d2237e5227635adadd506.ctex"]
 
 [params]
 

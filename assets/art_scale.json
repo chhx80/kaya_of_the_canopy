@@ -3,232 +3,228 @@
  "art_scale": 2,
  "sheets": {
   "fonts/font8.png": {
-   "scale": 1,
-   "native": true
+   "native": true,
+   "scale": 1
   },
   "sprites/bg_deeps_far.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_deeps_fg.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_deeps_near.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_deeps_sky.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_heights_far.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_heights_fg.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_heights_near.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_heights_sky.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_jungle_far.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_jungle_fg.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_jungle_near.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_jungle_sky.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_obsidian_far.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_obsidian_fg.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_obsidian_near.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_obsidian_sky.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_ruins_far.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_ruins_fg.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_ruins_near.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_ruins_sky.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_sky_far.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_sky_near.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/bg_sky_sky.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/blade.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/boss_brood_queen.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/boss_grove.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/boss_obsidian_heart.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/boss_stormcrest.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/boss_tide_maw.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/enemy_charger.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/enemy_dropper.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/enemy_flyer.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/enemy_jumper.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/enemy_shooter.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/enemy_swimmer.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/enemy_walker.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/fx/particles.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/fx/tile_anim.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/hud_portrait.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/icon.png": {
-   "scale": 1,
-   "native": true
+   "native": true,
+   "scale": 1
   },
   "sprites/kaya_bird.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/kaya_fish.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/kaya_frog.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/kaya_hub.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/kaya_human.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/light_pool.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/logo.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/pickups.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/projectiles.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/props.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/splash.png": {
-   "scale": 1,
-   "native": true
+   "native": true,
+   "scale": 1
   },
   "sprites/title_bg.png": {
-   "scale": 2,
-   "native": true
-  },
-  "sprites/title_kaya.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "sprites/vignette.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "tiles/contact_shadow.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   },
   "tiles/tileset.png": {
-   "scale": 2,
-   "native": true
+   "native": true,
+   "scale": 2
   }
  }
 }

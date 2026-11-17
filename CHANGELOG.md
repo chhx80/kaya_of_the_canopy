@@ -3340,3 +3340,19 @@ unchanged.
   `shots/hd3_title_before_after.png`, `shots/hd3_title_kaya_frames.png`,
   `shots/hd3_title_face.png` (re-shoot with `tools/seq/hd3_title_phone.json` /
   `_tablet.json`).
+
+## HD pass, wave 2 and the title screen
+
+- The Sunken Ruins, Thermal Heights, Termite Deeps and Obsidian Nest tilesets
+  are drawn natively at 32x32 (`tools/art/hd_tiles_<world>.py`); no cell of the
+  atlas is a nearest-doubled 1x cell any more.
+- Scenes with no camera (the title, the victory screen) are shown whole at the
+  art's density; after the engine pass they were drawn at two-thirds size in a
+  corner.
+- The title screen shows Kaya: the owner's own picture, cut from its page and
+  otherwise unchanged, drawn in the root viewport at device resolution rather
+  than in the world's texel grid. The logo and menu moved to a right-hand
+  column; menu rows are tappable. A script-drawn title Kaya was tried first and
+  replaced at the owner's request.
+- The capture harness shows Kaya for a still that lands on a hurt blink, and
+  store screenshots are composed from larger captures.

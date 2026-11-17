@@ -9,20 +9,22 @@ extends Node2D
 const ITEMS_NEW := ["START GAME", "OPTIONS", "QUIT"]
 const ITEMS_CONTINUE := ["CONTINUE", "NEW GAME", "OPTIONS", "QUIT"]
 
-## Kaya: tools/art/hd_title_kaya.py, frames of KAYA_SIZE world units, drawn
-## with the cell's top-left at KAYA_POS (her soles land just above the bottom
-## edge). KAYA_FACE is her face inside the cell, the one thing nothing else
-## may be drawn over.
-const KAYA_SHEET := "res://assets/sprites/title_kaya.png"
-const KAYA_SIZE := Vector2(84, 176)
-const KAYA_POS := Vector2(40, 62)
-const KAYA_FACE := Rect2(28, 20, 28, 30)
-## The idle cycle: rest, breathe in, rest with the hair and ribbon drifting,
-## breathe in again. Every second cycle she blinks at the end of a rest.
-const IDLE_ORDER := [0, 1, 2, 1]
-const IDLE_STEP := 0.7
-const BLINK_FRAME := 3
-const BLINK_TIME := 0.14
+## Kaya is the owner's own picture of her (docs/reference/kaya_title_original.jpg,
+## cut from its white page by tools/cut_title_kaya.py and otherwise untouched):
+## the one piece of art in the game that no script draws. KAYA_SIZE is her
+## picture in world units, at its own aspect; KAYA_POS its top-left (her soles
+## land just above the bottom edge). KAYA_FACE is her face inside it, the one
+## thing nothing else may be drawn over.
+##
+## She is not drawn into the world's render target, which would shrink her to
+## its texel grid: she is a TextureRect in the root viewport, placed over the
+## world's display rect, so the device shows the picture at its own resolution.
+const KAYA_IMAGE := "res://assets/title/kaya.png"
+const KAYA_SIZE := Vector2(66, 208)
+const KAYA_POS := Vector2(49, 26)
+const KAYA_FACE := Rect2(20, 12, 28, 28)
+## Above the world (layer 0), below the menus, touch overlay and fade.
+const KAYA_LAYER := 1
 
 ## The right-hand column: everything but Kaya is centred on COL_X.
 const COL_X := 258.0
@@ -41,6 +43,8 @@ const VERSION_Y := 220.0
 var _logo: Texture2D = null
 var _bg: Texture2D = null
 var _kaya: Texture2D = null
+var _kaya_layer: CanvasLayer = null
+var _kaya_view: TextureRect = null
 var _items: Array[String] = []
 var _sel := 0
 var _t := 0.0
@@ -74,8 +78,7 @@ class TapCatcher extends Control:
 func _ready() -> void:
 	_bg = Display.texture("res://assets/sprites/title_bg.png")
 	_logo = Display.texture("res://assets/sprites/logo.png")
-	if ResourceLoader.exists(KAYA_SHEET):
-		_kaya = Display.texture(KAYA_SHEET)
+	_setup_kaya()
 	var has_save: bool = SaveManager.completed_count() > 0
 	_items.assign(ITEMS_CONTINUE if has_save else ITEMS_NEW)
 	var rng := RandomNumberGenerator.new()
@@ -115,6 +118,7 @@ func _physics_process(delta: float) -> void:
 	_held_down = _input.down
 	for f: Dictionary in _fireflies:
 		f["x"] = fposmod(f["x"] + f["speed"] * delta, Game.SCREEN_W)
+	_place_kaya()
 	queue_redraw()
 
 var _held_up := false
@@ -170,14 +174,45 @@ func _activate() -> void:
 		"QUIT":
 			get_tree().quit()
 
-## The idle frame at time `t`.
-func kaya_frame(t: float) -> int:
-	var step := int(floor(t / IDLE_STEP))
-	var f: int = IDLE_ORDER[step % IDLE_ORDER.size()]
-	if f == 0 and (step / IDLE_ORDER.size()) % 2 == 1 \
-			and fmod(t, IDLE_STEP) > IDLE_STEP - BLINK_TIME:
-		f = BLINK_FRAME
-	return f
+func _setup_kaya() -> void:
+	if not ResourceLoader.exists(KAYA_IMAGE):
+		return
+	var src: Texture2D = load(KAYA_IMAGE)
+	var img := src.get_image() if src != null else null
+	if img == null:
+		return
+	# Mipmaps, so a small desktop window shrinks her cleanly.
+	img = img.duplicate()
+	if img.is_compressed():
+		img.decompress()
+	img.generate_mipmaps()
+	_kaya = ImageTexture.create_from_image(img)
+	_kaya_view = TextureRect.new()
+	_kaya_view.name = "Kaya"
+	_kaya_view.texture = _kaya
+	_kaya_view.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_kaya_view.stretch_mode = TextureRect.STRETCH_SCALE
+	_kaya_view.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	_kaya_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_kaya_layer = CanvasLayer.new()
+	_kaya_layer.name = "KayaLayer"
+	_kaya_layer.layer = KAYA_LAYER
+	_kaya_layer.custom_viewport = get_tree().root
+	_kaya_layer.add_child(_kaya_view)
+	add_child(_kaya_layer)
+	_place_kaya()
+
+## Her world-unit rect, mapped to where Main shows the world in the root.
+func _place_kaya() -> void:
+	if _kaya_view == null or Game.main == null:
+		return
+	var r: Rect2 = Game.main.world_display_rect()
+	var v: Vector2 = Game.main.shown_view_size()
+	if v.x <= 0.0 or v.y <= 0.0:
+		return
+	var k := r.size / v
+	_kaya_view.position = r.position + KAYA_POS * k
+	_kaya_view.size = KAYA_SIZE * k
 
 # ------------------------------------------------------------ layout, in world units
 ## Where each piece is drawn, so the layout can be checked (tests/integration)
@@ -237,9 +272,6 @@ func _hint() -> String:
 func _draw() -> void:
 	if _bg:
 		draw_texture(_bg, Vector2.ZERO)
-	if _kaya:
-		var src := Rect2(Vector2(KAYA_SIZE.x * float(kaya_frame(_t)), 0.0), KAYA_SIZE)
-		draw_texture_rect_region(_kaya, Rect2(KAYA_POS, KAYA_SIZE), src)
 	# fireflies drift over the canopy, and past her
 	for f: Dictionary in _fireflies:
 		var y: float = f["y"] + sin(_t * 1.7 + f["phase"]) * f["bob"]
