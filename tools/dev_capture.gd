@@ -337,6 +337,14 @@ func _goto(scenario: String) -> void:
 		push_error("DevCapture: unknown scenario '%s'" % scenario)
 
 func _capture(path: String) -> void:
+	# Hurt, she blinks (player.gd hides the sprite in half of each 0.16 s of
+	# i-frames); a still that lands on the hidden half shows a level with no
+	# hero in it. Show her for the frame that is captured.
+	var lvl: Node = Game.current_level
+	if lvl != null and is_instance_valid(lvl) and lvl.get("player") != null:
+		var sp: Variant = lvl.player.get("sprite")
+		if sp is CanvasItem:
+			(sp as CanvasItem).visible = true
 	await RenderingServer.frame_post_draw
 	await RenderingServer.frame_post_draw
 	var img := get_viewport().get_texture().get_image()
