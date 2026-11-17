@@ -1,0 +1,6 @@
+[
+  {"touch": true},
+  {"scenario": "title", "settle": 40},
+  {"shot": "shots/hd3_title_tablet.png"},
+  {"wait": 20}
+]

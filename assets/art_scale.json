@@ -214,6 +214,10 @@
    "scale": 2,
    "native": true
   },
+  "sprites/title_kaya.png": {
+   "scale": 2,
+   "native": true
+  },
   "sprites/vignette.png": {
    "scale": 2,
    "native": true

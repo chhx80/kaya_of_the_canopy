@@ -1,0 +1,3 @@
+# hdtitle: Kaya on the title screen (docs/plan-hd.md, H3).
+# tools/art/hd_title_kaya.py
+title_kaya

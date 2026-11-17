@@ -307,10 +307,12 @@ def canopy_layer(p, base_y, v, seed, amp=14, step_=9, rim=0.0, ramp=None):
 def build_title_bg():
     """Dusk over the canopy, drawn at 2x on a Plane so it shares the backdrops'
     dither. The composition is the old one, element for element: the DUSK sky,
-    the low sun at (300, 150), fifty stars, three canopy bands and sixteen
-    vines. What 2x adds: a sun with a lit rim and two cloud streaks across its
-    foot, stars of three magnitudes with the brightest twinkling, leaf tips and
-    a sunlit rim along each canopy, and vines with paired leaves."""
+    the low sun, fifty stars, three canopy bands and sixteen vines; only the sun
+    has moved, from (300, 150) to (158, 150), to sit between Kaya and the menu
+    (src/ui/menus/title_screen.gd). What 2x adds: a sun with a lit rim and two
+    cloud streaks across its foot, stars of three magnitudes with the brightest
+    twinkling, leaf tips and a sunlit rim along each canopy, and vines with
+    paired leaves."""
     W, H = 400, 240
     full = (0.0, 6.0)               # value v maps straight onto step 6 * v
     p = Plane("water", full, opaque=True, w=W, h=H,
@@ -325,7 +327,7 @@ def build_title_bg():
             r, s = DUSK[min(i, len(DUSK) - 1)]
             p.val[ty][tx] = s / 6.0
             p.mat[ty][tx] = r
-    cx, cy, r = 300, 150, 34                     # low sun
+    cx, cy, r = 158, 150, 34                     # low sun, between Kaya and the menu
     for y in p.span(cy - r, cy + r + 1):
         for x in p.span(cx - r, cx + r + 1):
             d = math.hypot(x + p.c - cx, y + p.c - cy)
