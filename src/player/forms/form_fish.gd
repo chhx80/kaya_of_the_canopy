@@ -29,7 +29,7 @@ func step(p: Actor, input: InputState, delta: float) -> void:
 			# to a mechanic you have not been taught reads as a bug, and it made
 			# a beached fish a dead end. The air meter still creates the
 			# pressure; a transform pad is just the faster way back.
-			if String(cfg.get("out_of_water", "revert")) == "die":
+			if String(cfg.get("out_of_water", "revert")) == "die" and not Game.god_mode():
 				(p as Player).kill()
 			else:
 				sfx("transform")

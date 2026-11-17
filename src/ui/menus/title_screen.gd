@@ -25,6 +25,11 @@ const KAYA_POS := Vector2(49, 26)
 const KAYA_FACE := Rect2(20, 12, 28, 28)
 ## Above the world (layer 0), below the menus, touch overlay and fade.
 const KAYA_LAYER := 1
+## The tester's switch: this many taps on her, each within SECRET_GAP seconds
+## of the last, turns god mode (Game.god_mode) on or off.
+const SECRET_TAPS := 7
+const SECRET_GAP := 1.2
+const SECRET_NOTE_TIME := 2.0
 
 ## The right-hand column: everything but Kaya is centred on COL_X.
 const COL_X := 258.0
@@ -45,6 +50,9 @@ var _bg: Texture2D = null
 var _kaya: Texture2D = null
 var _kaya_layer: CanvasLayer = null
 var _kaya_view: TextureRect = null
+var _secret_n := 0
+var _secret_t := -100.0
+var _note_t := -100.0
 var _items: Array[String] = []
 var _sel := 0
 var _t := 0.0
@@ -147,12 +155,25 @@ func row_at(p: Vector2) -> int:
 func tap(p: Vector2) -> bool:
 	if _busy:
 		return false
+	if kaya_rect().has_point(p):
+		_secret_tap()
+		return true
 	var i := row_at(p)
 	if i < 0:
 		return false
 	_sel = i
 	_activate()
 	return true
+
+func _secret_tap() -> void:
+	_secret_n = _secret_n + 1 if _t - _secret_t <= SECRET_GAP else 1
+	_secret_t = _t
+	if _secret_n < SECRET_TAPS:
+		return
+	_secret_n = 0
+	Game.set_god_mode(not Game.god_mode())
+	_note_t = _t
+	AudioManager.play("select" if Game.god_mode() else "locked")
 
 func _activate() -> void:
 	var item: String = _items[_sel]
@@ -302,3 +323,10 @@ func _draw() -> void:
 	PixelFont.draw_centered(self, COL_X, HINT_Y, _hint(), Color(0.62, 0.68, 0.6), 1, 0)
 	PixelFont.draw_centered(self, COL_X, VERSION_Y, _version_text(),
 		Color(0.5, 0.55, 0.5), 1, 0)
+	# the tester's switch: a note when it changes, a marker while it is on
+	var cx := KAYA_POS.x + KAYA_SIZE.x * 0.5
+	if _t - _note_t < SECRET_NOTE_TIME:
+		PixelFont.draw_centered(self, cx, 12.0,
+			"GOD MODE %s" % ("ON" if Game.god_mode() else "OFF"), Color(1.0, 0.82, 0.3))
+	elif Game.god_mode():
+		PixelFont.draw_centered(self, cx, 12.0, "GOD", Color(1.0, 0.82, 0.3, 0.7))

@@ -3356,3 +3356,13 @@ unchanged.
   replaced at the owner's request.
 - The capture harness shows Kaya for a still that lands on a hurt blink, and
   store screenshots are composed from larger captures.
+
+## A hidden god mode for testing
+
+Seven quick taps (or clicks) on Kaya on the title screen switch it on or off;
+the title shows GOD MODE ON/OFF, then a small GOD above her, and the level HUD
+shows GOD beside LIVES. While on: she takes no damage, running out of air never
+kills her, a fall out of the level respawns her without costing a life, and
+every door on the map is open. It is a save setting (`god_mode`), so it survives
+a relaunch; NEW GAME clears it. Bosses beaten with it on still count, including
+their Game Center achievements.

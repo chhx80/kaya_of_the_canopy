@@ -159,7 +159,7 @@ func _note_motion_events(fall_speed: float) -> void:
 
 # ---------------------------------------------------------------- damage
 func take_damage(amount: int, from_dir: Vector2 = Vector2.ZERO) -> void:
-	if invuln > 0.0 or dead:
+	if invuln > 0.0 or dead or Game.god_mode():
 		return
 	Game.damage(amount)
 	AudioManager.play("hurt")

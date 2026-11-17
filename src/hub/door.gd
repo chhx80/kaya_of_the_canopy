@@ -22,6 +22,8 @@ func setup(p: Vector2, e: Dictionary) -> void:
 	requires_all = bool(e.get("requires_all", false))
 
 func unlocked() -> bool:
+	if Game.god_mode():
+		return true
 	if requires_all:
 		for id in LevelLoader.list_levels():
 			if id == "hub" or id == "test_arena" or id == level_id:

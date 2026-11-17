@@ -258,6 +258,7 @@ func run_all() -> void:
 		"t_the_map_pause_menu_has_no_level_rows",
 		"t_the_title_keeps_kaya_the_logo_the_menu_and_the_small_print_apart",
 		"t_a_phone_can_tap_a_title_menu_row_where_it_is_drawn",
+		"t_seven_taps_on_kaya_switch_god_mode_and_nothing_hurts_her",
 		"t_beating_a_boss_unlocks_its_world_achievement_in_game_center",
 		"t_a_boss_beaten_before_achievements_existed_is_put_right_quietly",
 		"t_options_write_straight_through_to_the_save_file",
@@ -2133,3 +2134,49 @@ func t_light_pools_follow_the_screen_and_only_exist_where_a_level_asked() -> voi
 			check(n <= AmbienceLayer.MAX_POOLS, "pools per screen stay capped")
 			lit += n
 	gt_check(lit, 0, "and they are found on the screens they sit on")
+
+## The tester's hidden switch: seven taps on Kaya on the title screen. Six do
+## nothing; with it on she takes no damage, a fall costs no life and every door
+## on the map is open; seven more taps turn it off again.
+func t_seven_taps_on_kaya_switch_god_mode_and_nothing_hurts_her() -> void:
+	Game.set_god_mode(false)
+	var touch: Control = Game.main.touch
+	if touch != null:
+		touch.force_enable(true)
+	Game.goto_title()
+	await frames(6)
+	var title: Node = Game.main.current_scene()
+	check(title != null and title.has_method("kaya_rect"), "the title screen is up")
+	if title == null or not title.has_method("kaya_rect"):
+		return
+	var disp: Rect2 = Game.main.world_display_rect()
+	var view: Vector2 = Game.main.shown_view_size()
+	var at := disp.position + (title.kaya_rect() as Rect2).get_center() / view * disp.size
+	for _i in 6:
+		await tap(at)
+	check(not Game.god_mode(), "six taps on Kaya change nothing")
+	await tap(at)
+	check(Game.god_mode(), "the seventh turns god mode on")
+	check(Game.main.current_scene() == title, "and a tap on her never leaves the title")
+
+	await enter_arena()
+	var p := player()
+	var health := Game.health
+	p.invuln = 0.0
+	p.take_damage(1)
+	check_eq(Game.health, health, "she takes no damage")
+	check(not p.dead, "and is not dead")
+	var door := HubDoor.new()
+	door.setup(Vector2.ZERO, {"level": "nest_5", "requires": "no_such_level"})
+	check(door.unlocked(), "a door whose requirement is unmet is open")
+	door.free()
+
+	Game.set_god_mode(false)
+	var locked := HubDoor.new()
+	locked.setup(Vector2.ZERO, {"level": "nest_5", "requires": "no_such_level"})
+	check(not locked.unlocked(), "and locked again with god mode off")
+	locked.free()
+	p.invuln = 0.0
+	p.take_damage(1)
+	check_eq(Game.health, health - 1, "and she is hurt again")
+

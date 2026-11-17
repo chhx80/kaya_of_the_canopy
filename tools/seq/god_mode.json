@@ -1,0 +1,11 @@
+[
+  {"touch": true},
+  {"setting": ["god_mode", true]},
+  {"scenario": "title", "settle": 40},
+  {"shot": "shots/god_mode_title.png"},
+  {"wait": 30},
+  {"scenario": "level:jungle_1", "settle": 120},
+  {"shot": "shots/god_mode_level.png"},
+  {"wait": 30},
+  {"setting": ["god_mode", false]}
+]

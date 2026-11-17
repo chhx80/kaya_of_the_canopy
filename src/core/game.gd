@@ -215,8 +215,21 @@ func complete_level(level_id: String) -> void:
 	else:
 		goto_hub(level_id)
 
+## Hidden tester's switch (seven taps on Kaya on the title screen). She takes
+## no damage, never drowns, a fall costs no life, and every door on the map is
+## open. Kept in the save's settings so it survives a relaunch; NEW GAME
+## clears it with the rest.
+func god_mode() -> bool:
+	return bool(SaveManager.setting("god_mode", false))
+
+func set_god_mode(on: bool) -> void:
+	SaveManager.set_setting("god_mode", on)
+	SaveManager.save()
+	stats_changed.emit()
+
 func lose_life() -> void:
-	lives -= 1
+	if not god_mode():
+		lives -= 1
 	stats_changed.emit()
 	if lives <= 0:
 		goto_game_over()

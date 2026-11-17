@@ -106,6 +106,8 @@ func _draw() -> void:
 	# lives
 	PixelFont.draw_shadowed(self, Vector2(4, Game.SCREEN_H - 12),
 		"LIVES %d" % Game.lives, Color(0.8, 0.84, 0.78))
+	if Game.god_mode():
+		PixelFont.draw_shadowed(self, Vector2(64, Game.SCREEN_H - 12), "GOD", Color(1.0, 0.82, 0.3))
 	# form meter: bird stamina or fish air
 	var lvl: Node = Game.current_level
 	var pl: Player = lvl.player if lvl != null and lvl.get("player") != null else null
