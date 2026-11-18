@@ -1955,13 +1955,12 @@ func t_a_phone_can_tap_a_title_menu_row_where_it_is_drawn() -> void:
 	if touch != null:
 		touch.force_enable(false)
 
-## One finger on the glass, in WINDOW pixels: the logical point goes out
-## through the root's own stretch transform, so the event comes back in through
-## Window -> Viewport the way a finger's does on the phone.
+## One finger on the glass, put down or lifted, in window pixels (to_window()).
+## tap() is one finger pressed and released; this holds one down across others.
 func finger(logical: Vector2, index: int, pressed: bool) -> void:
 	var ev := InputEventScreenTouch.new()
 	ev.index = index
-	ev.position = get_tree().root.get_final_transform() * logical
+	ev.position = to_window(logical)
 	ev.pressed = pressed
 	Input.parse_input_event(ev)
 	await frames(2)
@@ -2117,11 +2116,14 @@ func t_the_tide_maws_gate_finishes_ruins_5_with_god_mode_on_or_off() -> void:
 	SaveManager.set_flag("ruins_5", had_flag)
 	Game.set_god_mode(was_god)
 
-## TestFlight, iPhone16_1, god mode on, ruins_4: "Level won't finish". The
-## riser lifts at 62 px/s and a human sinks in water at up to 74, so from stage
-## 2's east bay she drifted down it into stage 1's east bay, behind the one-way
-## flume, with no shore -- and with god mode on the swimmer there could not end
-## it. The pad on the bed turns her into the fish that swims back up.
+## TestFlight, iPhone16_1, god mode on, ruins_4: "Level won't finish". A
+## suspect that turned out innocent, kept as a guard. The riser lifts at 62 px/s
+## and a human sinks in water at up to 74, so from stage 2's east bay she drifts
+## down it into stage 1's east bay, behind the one-way flume, with no shore --
+## and with god mode on nothing there can end it. The way back is the riser
+## itself: each fresh press of jump in water lifts her, and tapping it climbs
+## the column (the prover found it in 87 frames). Holding jump down does not:
+## that is one jump, and she sinks again.
 func t_a_human_who_sinks_down_the_cisterns_riser_can_come_back_up() -> void:
 	var was_god := Game.god_mode()
 	Game.set_god_mode(true)
@@ -2130,22 +2132,22 @@ func t_a_human_who_sinks_down_the_cisterns_riser_can_come_back_up() -> void:
 	p.pos = Vector2(45, 16) * TS + Vector2(8.0 - p.box.x * 0.5, 0.0)
 	p.vel = Vector2.ZERO
 	level().settle_view()
-	check_eq(p.form_id, "human", "she starts a human in stage 2's east bay")
 	var low := 0.0
 	for _i in 60 * 16:
 		await frames(1)
 		low = maxf(low, p.center().y)
-		if p.form_id != "human":
+		if p.on_floor:
 			break
-	gt_check_f(low, 25.0 * TS, "the riser lets her sink into stage 1's east bay")
-	check_eq(p.form_id, "fish", "where the riser lands her she becomes a fish")
-	Input.action_press("move_up")
-	for _i in 60 * 6:
-		await frames(1)
+	gt_check_f(low, 25.0 * TS, "the riser lets a human sink into stage 1's east bay")
+	for _i in 15:
+		Input.action_press("jump")
+		await frames(20)
+		Input.action_release("jump")
+		await frames(4)
 		if p.center().y < 19.0 * TS:
 			break
-	Input.action_release("move_up")
-	gt_check_f(19.0 * TS, p.center().y, "and swims back up the riser into stage 2")
+	gt_check_f(19.0 * TS, p.center().y, "tapping jump climbs her back up the riser into stage 2")
+	check_eq(p.form_id, "human", "as the human she went down as")
 	Game.set_god_mode(was_god)
 
 func t_the_map_pause_menu_has_no_level_rows() -> void:

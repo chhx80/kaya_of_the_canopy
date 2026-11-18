@@ -3384,3 +3384,23 @@ the stretch factor was held to a whole number (4x), and 2556x1179 has room to
 spare. The stretch is now fractional, so the picture fills the screen's height
 (about 23% larger on that phone). The touch controls step inside the device's
 safe area so they do not sit under the notch or the home indicator.
+
+## TestFlight feedback, ruins_4: the pause menu works with a thumb on the stick
+
+On the phone, LEAVE LEVEL (and every other pause-menu row) could not be tapped
+while a finger rested on the stick, which is how a phone is held. Godot hands
+`_input` to the last node in the tree first, so the touch overlay saw each touch
+before the menu and marked it handled; the menu only ever got the mouse click
+Godot emulates from the FIRST finger on the glass. The overlay now leaves alone
+a touch that an open menu claims (`TouchControls.TAP_MENUS`,
+`PauseScreen.claims_tap()`). Measured at the iPhone's window (2556x1179) under
+both the old letterboxed layout and the fill-screen one.
+
+"Level won't finish" in THE CISTERN did not reproduce: its exit finishes the
+level in all 96 arrival states tried (four forms, both switch groups either way,
+god mode on and off, three approaches), the proof tape finishes it with god mode
+on, and World 2's boss gate finishes ruins_5 either way. Off-route probes with
+the prover found a way back from every place checked. New integration tests
+guard all of it, including the human who sinks down the riser and climbs back
+by tapping jump. The capture harness gains `{"tap": "menu:<ROW>"}` and
+`{"thumb": true}`.

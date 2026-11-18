@@ -1,6 +1,6 @@
 [
  {
-  "_": "A, ruins_4: a human in stage 2's east bay drifts down the riser (cur_up -62 px/s against her water_max_fall 74) into stage 1's east bay, behind the one-way flume. Since the fix a fish pad on the bed there turns her into the fish that swims back up. God mode on, the phone's window. tools/shot.sh --res=2556x1179 --seq=tools/seq/tf_ruins4_riser.json"
+  "_": "A, ruins_4 (TestFlight fb_00): a human in stage 2's east bay sinks down the riser (cur_up -62 px/s against her water_max_fall 74) into stage 1's east bay, behind the one-way flume. Not a trap: tapping jump climbs her back up the column. God mode on, the phone's window. tools/shot.sh --res=2556x1179 --seq=tools/seq/tf_ruins4_riser.json"
  },
  {
   "setting": [
@@ -32,31 +32,83 @@
   "log": "after 12 s"
  },
  {
-  "shot": "shots/tf_ruins4_riser_landed.png"
+  "shot": "shots/tf_ruins4_riser_sunk.png"
  },
  {
-  "press": "move_up",
-  "frames": 40
+  "press": "jump",
+  "frames": 20
  },
  {
-  "log": "up: caught on col 44's corner"
+  "wait": 4
  },
  {
-  "press": [
-   "move_up",
-   "move_right"
-  ],
-  "frames": 6
+  "press": "jump",
+  "frames": 20
  },
  {
-  "press": "move_up",
-  "frames": 150
+  "wait": 4
  },
  {
-  "log": "after a nudge right and up again"
+  "press": "jump",
+  "frames": 20
  },
  {
-  "shot": "shots/tf_ruins4_riser_back_up.png"
+  "wait": 4
+ },
+ {
+  "press": "jump",
+  "frames": 20
+ },
+ {
+  "wait": 4
+ },
+ {
+  "press": "jump",
+  "frames": 20
+ },
+ {
+  "wait": 4
+ },
+ {
+  "press": "jump",
+  "frames": 20
+ },
+ {
+  "wait": 4
+ },
+ {
+  "press": "jump",
+  "frames": 20
+ },
+ {
+  "wait": 4
+ },
+ {
+  "press": "jump",
+  "frames": 20
+ },
+ {
+  "wait": 4
+ },
+ {
+  "press": "jump",
+  "frames": 20
+ },
+ {
+  "wait": 4
+ },
+ {
+  "press": "jump",
+  "frames": 20
+ },
+ {
+  "wait": 4
+ },
+ {
+  "log": "after tapping jump ten times"
+ },
+ {
+  "shot": "shots/tf_ruins4_riser_climbed.png"
  },
  {
   "wait": 2
