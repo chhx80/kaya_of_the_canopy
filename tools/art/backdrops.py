@@ -774,22 +774,8 @@ def build_light_art():
 
 
 def build_store_icons():
-    """Store/app icons at every size the export presets ask for, plus a boot
-    splash. All derived from the same 128px roundel so they stay consistent."""
-    src = Image.open(os.path.join(SPRITES, "icon.png")).convert("RGBA")
-    out = os.path.join(ROOT, "export", "icons")
-    os.makedirs(out, exist_ok=True)
-    for size in (1024, 512, 256, 192, 180, 167, 152, 144, 120, 114, 108, 87,
-                 80, 76, 72, 60, 58, 40, 29, 20):
-        # Nearest for exact multiples of 128 keeps the pixels crisp; otherwise
-        # box-filter so small icons do not alias into mush.
-        mode = Image.NEAREST if size % 128 == 0 else Image.LANCZOS
-        img = src.resize((size, size), mode)
-        if size >= 40:
-            flat = Image.new("RGBA", (size, size), step("foliage", 1) + (255,))
-            flat.alpha_composite(img)
-            img = flat
-        img.save(os.path.join(out, "icon_%d.png" % size))
+    """The boot splash. (The icons at every store size are build_icon()'s,
+    tools/art/app_icon.py.)"""
     # Boot splash: the logo centred on the palette background.
     logo = Image.open(os.path.join(SPRITES, "logo.png")).convert("RGBA")
     sp = Image.new("RGBA", (640, 384), INK + (255,))
@@ -803,24 +789,8 @@ def build_store_icons():
 
 
 def build_icon():
-    """128x128 app icon: Kaya's head on a leaf roundel."""
-    S = 128
-    img = Image.new("RGBA", (S, S), (0, 0, 0, 0))
-    for y in range(S):
-        for x in range(S):
-            d = math.hypot(x - S / 2 + 0.5, y - S / 2 + 0.5)
-            if d < 60:
-                img.putpixel((x, y), PAL['g'])
-            if d < 55:
-                img.putpixel((x, y), PAL['G'])
-            if d < 48:
-                img.putpixel((x, y), PAL['d'])
-    head = [r[:16] for r in K_IDLE[0:12]]
-    tmp = Image.new("RGBA", (16, 12), (0, 0, 0, 0))
-    blit(tmp, 0, 0, grid(head))
-    tmp = tmp.resize((16 * 6, 12 * 6), Image.NEAREST)
-    img.alpha_composite(tmp, ((S - tmp.width) // 2, (S - tmp.height) // 2 - 4))
-    img.save(os.path.join(SPRITES, "icon.png"))
-    print("icon.png")
-
-
+    """The app icon, at every size that ships: the owner's picture of Kaya on
+    the title's sunset (tools/art/app_icon.py). Needs title_bg.png, so it runs
+    after build_title_bg()."""
+    from . import app_icon
+    app_icon.write_all()

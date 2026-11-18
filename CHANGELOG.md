@@ -3366,3 +3366,13 @@ kills her, a fall out of the level respawns her without costing a life, and
 every door on the map is open. It is a save setting (`god_mode`), so it survives
 a relaunch; NEW GAME clears it. Bosses beaten with it on still count, including
 their Game Center achievements.
+
+## A new app icon: Kaya herself
+
+The icon is the owner's picture of Kaya from the chest up, in front of the
+title screen's own sunset and moon (`tools/art/app_icon.py`). She is enlarged
+so each pixel of the picture stays a crisp square; every shipped size (the
+export presets' `export/icons/`, the project icon, and the committed Xcode
+icon set) is reduced from one 1024 master in a single step. The cut-out
+(`tools/cut_title_kaya.py`) now also clears the grey slivers of page that were
+caught in her hair; nothing of her is changed.
