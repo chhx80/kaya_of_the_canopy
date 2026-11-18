@@ -3376,3 +3376,11 @@ export presets' `export/icons/`, the project icon, and the committed Xcode
 icon set) is reduced from one 1024 master in a single step. The cut-out
 (`tools/cut_title_kaya.py`) now also clears the grey slivers of page that were
 caught in her hair; nothing of her is changed.
+
+## The game fills the screen
+
+On an iPhone the game sat in a 2080x960 box with a black border all round:
+the stretch factor was held to a whole number (4x), and 2556x1179 has room to
+spare. The stretch is now fractional, so the picture fills the screen's height
+(about 23% larger on that phone). The touch controls step inside the device's
+safe area so they do not sit under the notch or the home indicator.

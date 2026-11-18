@@ -264,6 +264,7 @@ func run_all() -> void:
 		"t_the_title_keeps_kaya_the_logo_the_menu_and_the_small_print_apart",
 		"t_a_phone_can_tap_a_title_menu_row_where_it_is_drawn",
 		"t_seven_taps_on_kaya_switch_god_mode_and_nothing_hurts_her",
+		"t_touch_controls_step_inside_a_notch",
 		"t_beating_a_boss_unlocks_its_world_achievement_in_game_center",
 		"t_a_boss_beaten_before_achievements_existed_is_put_right_quietly",
 		"t_options_write_straight_through_to_the_save_file",
@@ -1815,6 +1816,13 @@ func t_pause_freezes_the_level_and_resumes_it() -> void:
 	await frames(4)
 	check(not get_tree().paused, "closing it resumes the tree")
 
+## A point in the root viewport's UI pixels, as the window pixel a finger
+## would touch. Injected events are window pixels: the engine runs them through
+## the root's stretch transform, exactly as it does a real touch, so a test
+## that injects UI pixels only works while that transform happens to be 1.
+func to_window(ui: Vector2) -> Vector2:
+	return get_tree().root.get_final_transform() * ui
+
 ## A touch on the screen, pressed then released. The overlay and the pause menu
 ## both read InputEventScreenTouch, so this is the phone's path, not a shortcut.
 ## Waits on rendered frames as well as physics ticks. The pause button is
@@ -1825,7 +1833,7 @@ func t_pause_freezes_the_level_and_resumes_it() -> void:
 func tap(at: Vector2) -> void:
 	var down := InputEventScreenTouch.new()
 	down.index = 3
-	down.position = at
+	down.position = to_window(at)
 	down.pressed = true
 	Input.parse_input_event(down)
 	await frames(2)
@@ -1833,7 +1841,7 @@ func tap(at: Vector2) -> void:
 		await get_tree().process_frame
 	var up := InputEventScreenTouch.new()
 	up.index = 3
-	up.position = at
+	up.position = to_window(at)
 	up.pressed = false
 	Input.parse_input_event(up)
 	await frames(3)
@@ -2244,19 +2252,19 @@ func t_touch_stick_drives_the_same_actions_as_a_keyboard() -> void:
 	# Thumb down on the left half, then dragged right.
 	var down := InputEventScreenTouch.new()
 	down.index = 0
-	down.position = Vector2(70, 190)
+	down.position = to_window(Vector2(70, 190))
 	down.pressed = true
 	Input.parse_input_event(down)
 	var drag := InputEventScreenDrag.new()
 	drag.index = 0
-	drag.position = Vector2(110, 190)
+	drag.position = to_window(Vector2(110, 190))
 	Input.parse_input_event(drag)
 	await frames(24)
 	check(Input.is_action_pressed(&"move_right"), "the stick presses move_right")
 	check(p.pos.x > x0 + 8.0, "and the player actually runs")
 	var up := InputEventScreenTouch.new()
 	up.index = 0
-	up.position = Vector2(110, 190)
+	up.position = to_window(Vector2(110, 190))
 	up.pressed = false
 	Input.parse_input_event(up)
 	await frames(4)
@@ -2378,3 +2386,31 @@ func t_seven_taps_on_kaya_switch_god_mode_and_nothing_hurts_her() -> void:
 	p.take_damage(1)
 	check_eq(Game.health, health - 1, "and she is hurt again")
 
+
+
+## The game fills the whole screen, so on a phone the stick and the buttons
+## would sit under the notch or Dynamic Island. They step inside the device's
+## safe area: most of each control is clear of it.
+func t_touch_controls_step_inside_a_notch() -> void:
+	var touch: Control = Game.main.touch
+	check(touch != null, "the touch overlay exists")
+	if touch == null:
+		return
+	var ui := Screen.ui_size(get_viewport())
+	var r: float = 21.0 * float(touch.get("ui_scale"))
+	touch.set("safe_override", Vector4(48, 0, 48, 0))
+	touch.call("_layout")
+	var stick: Vector2 = touch.get("_stick_home")
+	var jump: Vector2 = touch.get("_jump_centre")
+	var pause: Vector2 = touch.pause_button_centre()
+	var side := Screen.ui_frame(get_viewport()).position.x
+	if side >= r * 2.0 + 2.0:
+		check(stick.x >= 48.0 + r * 0.8 - 0.01, "the stick is clear of a left notch: x %.1f" % stick.x)
+		check(jump.x <= ui.x - 48.0 - r * 0.8 + 0.01, "A is clear of a right notch: x %.1f" % jump.x)
+		check(pause.x <= ui.x - 48.0 - r * 0.8 + 0.01, "and so is the pause button")
+	touch.set("safe_override", Vector4.ZERO)
+	touch.call("_layout")
+	var plain: Vector2 = touch.get("_stick_home")
+	check(plain.x <= stick.x + 0.01, "with no notch the stick sits centred in its margin")
+	touch.set("safe_override", null)
+	touch.call("_layout")
