@@ -2366,6 +2366,18 @@ func t_seven_taps_on_kaya_switch_god_mode_and_nothing_hurts_her() -> void:
 	await tap(at)
 	check(Game.god_mode(), "the seventh turns god mode on")
 	check(Game.main.current_scene() == title, "and a tap on her never leaves the title")
+	# The same with a thumb already resting on the glass: Godot makes up a
+	# mouse click for the first finger only, and the title used to live on it.
+	if touch != null:
+		await finger(touch.get("_stick_home"), 0, true)
+		for _i in 7:
+			await finger(at, 1, true)
+			await finger(at, 1, false)
+		await finger(touch.get("_stick_home"), 0, false)
+		check(not Game.god_mode(), "seven taps by a second finger turn it off again")
+		for _i in 7:
+			await tap(at)
+		check(Game.god_mode(), "and seven more turn it back on")
 
 	await enter_arena()
 	var p := player()

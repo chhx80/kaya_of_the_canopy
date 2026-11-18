@@ -63,11 +63,21 @@ var _tap: Control = null
 
 ## Main's world is a SubViewport drawn as a texture, so nothing inside it ever
 ## sees an InputEvent. This sits in Main's UI layer instead and hands the title
-## each tap or click in world units. It is added after the touch overlay, so it
-## sees a touch first, and it only claims touches that land on a menu row.
+## each tap or click in world units. The touch overlay sees a touch BEFORE this
+## node does (Godot calls `_input` on the last node in the tree first), so it
+## asks claims_tap() and lets a touch on a row or on Kaya through.
 class TapCatcher extends Control:
 	## Takes a root-viewport point; true if it was a menu row.
 	var on_tap: Callable
+	## Takes a root-viewport point; true if a tap there would do something.
+	var wants: Callable
+
+	func _ready() -> void:
+		add_to_group(&"tap_menus")
+
+	## For the touch overlay (TouchControls.TAP_MENUS).
+	func claims_tap(p: Vector2) -> bool:
+		return wants.is_valid() and bool(wants.call(p))
 
 	func _input(event: InputEvent) -> void:
 		var p := Vector2.INF
@@ -75,7 +85,10 @@ class TapCatcher extends Control:
 			p = (event as InputEventScreenTouch).position
 		elif event is InputEventMouseButton:
 			var mb := event as InputEventMouseButton
-			if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+			# Not the click Godot makes up from a touch: the touch itself
+			# arrives here too, and seven taps on Kaya must count as seven.
+			if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT \
+					and mb.device != InputEvent.DEVICE_ID_EMULATION:
 				p = mb.position
 		if p == Vector2.INF or not on_tap.is_valid():
 			return
@@ -103,6 +116,7 @@ func _ready() -> void:
 		_tap = TapCatcher.new()
 		_tap.name = "TitleTap"
 		_tap.on_tap = func(p: Vector2) -> bool: return tap(world_point(p))
+		_tap.wants = func(p: Vector2) -> bool: return wants_tap(world_point(p))
 		_tap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		Game.main.ui.add_child(_tap)
 	AudioManager.music("title")
@@ -150,6 +164,10 @@ func row_at(p: Vector2) -> int:
 		return -1
 	var i := int(floor((p.y - ROW0_Y) / ROW_H))
 	return i if i >= 0 and i < _items.size() else -1
+
+## Would a tap at a world point do anything? Asked before the tap is taken.
+func wants_tap(p: Vector2) -> bool:
+	return not _busy and (kaya_rect().has_point(p) or row_at(p) >= 0)
 
 ## Picks and activates the row under a world point. True if there was one.
 func tap(p: Vector2) -> bool:

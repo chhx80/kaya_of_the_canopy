@@ -3404,3 +3404,8 @@ the prover found a way back from every place checked. New integration tests
 guard all of it, including the human who sinks down the riser and climbs back
 by tapping jump. The capture harness gains `{"tap": "menu:<ROW>"}` and
 `{"thumb": true}`.
+
+The title screen had the same flaw (its rows, and the seven secret taps on
+Kaya, worked only as the first finger on the glass) and gets the same fix. It
+no longer listens to the click Godot makes up from a touch, so one tap is one
+tap.
