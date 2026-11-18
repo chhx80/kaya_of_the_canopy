@@ -2,6 +2,7 @@ extends SceneTree
 ## Headless test runner:  tools/test.sh
 ## Discovers tests/test_*.gd, runs every `test_*` method, prints a summary and
 ## exits non-zero on failure so CI can gate on it.
+##   tools/test.sh -- pickupgate     only the files whose name contains that
 
 const DIR := "res://tests"
 
@@ -75,9 +76,19 @@ func _discover() -> PackedStringArray:
 	d.list_dir_begin()
 	var f := d.get_next()
 	while f != "":
-		if f.begins_with("test_") and f.ends_with(".gd"):
+		if f.begins_with("test_") and f.ends_with(".gd") and _wanted(f):
 			out.append("%s/%s" % [DIR, f])
 		f = d.get_next()
 	d.list_dir_end()
 	out.sort()
 	return out
+
+
+func _wanted(file: String) -> bool:
+	var only := OS.get_cmdline_user_args()
+	if only.is_empty():
+		return true
+	for o: String in only:
+		if o in file:
+			return true
+	return false

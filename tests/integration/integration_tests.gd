@@ -233,6 +233,7 @@ func run_all() -> void:
 		"t_bird_flapping_spends_stamina_and_perching_refills_it",
 		"t_bird_cannot_climb_forever",
 		"t_the_exit_puts_kaya_back_in_her_own_shape",
+		"t_deeps_4_the_vault_ledge_survives_a_blade_through_the_lantern_block",
 		"t_shooter_only_fires_when_you_are_in_its_line",
 		"t_an_enemy_shot_hurts_the_player_and_dies_on_a_wall",
 		"t_swimmer_stays_in_its_water_and_chases",
@@ -1350,6 +1351,49 @@ func t_bird_cannot_climb_forever() -> void:
 		if p.on_floor:
 			break
 	Input.action_release("jump")
+
+## TestFlight fb_01, "out of reach". In deeps_4 the lantern block was the only
+## step up to the vault ledge, and the blade shatters a breakable on contact: one
+## throw, and the vault heart sat 64 px over the floor against a 44.5 px jump for
+## the rest of the level. Played here with the real blade and real buttons -- the
+## presses are the ones PickupReach found from this spot -- the one-way shelf at
+## (17,7) still takes her up.
+func t_deeps_4_the_vault_ledge_survives_a_blade_through_the_lantern_block() -> void:
+	await enter("deeps_4")
+	# Nothing here is about enemies: the vault dropper over (17,5) would land on
+	# her and a knockback is a different test.
+	for e: Node in enemies():
+		e.queue_free()
+	await place(17.2, 6.6, 30)
+	var p := player()
+	var w: TileWorld = level().world
+	check(w.is_solid(15, 8) and w.is_solid(16, 7), "the lantern block starts whole")
+	check(w.is_oneway(17, 7), "with the one-way shelf beside it")
+	# A throw takes the column it strikes; the second is thrown from inside the
+	# gap the first one made. Both columns gone is the worst case.
+	for tx: float in [17.2, 16.2]:
+		await place(tx, 6.6, 30)
+		p = player()
+		p.facing = -1
+		p.weapon.try_attack(p)
+		for i in 200:
+			await get_tree().physics_frame
+			if blades().is_empty():
+				break
+	for t: Vector2i in [Vector2i(15, 7), Vector2i(16, 7), Vector2i(15, 8), Vector2i(16, 8)]:
+		check(not w.is_solid(t.x, t.y), "the blade broke the block at %v" % t)
+	await place(17.2, 6.6, 30)
+	p = player()
+	for step: Array in [[["jump"], 4], [["jump", "move_right"], 8], [["jump"], 4], [[], 12],
+			[["jump"], 16], [[], 4], [["move_right"], 4], [[], 20]]:
+		for act: String in step[0]:
+			Input.action_press(act)
+		await frames(int(step[1]))
+		for act: String in ["jump", "move_right"]:
+			Input.action_release(act)
+	check(p.on_floor, "she has landed")
+	near(p.pos.y + p.box.y, 80.0, 0.5, "on the vault ledge's floor (row 5)")
+	check(p.pos.x + p.box.x > 288.0, "east of the shelf, over the ledge")
 
 func t_the_exit_puts_kaya_back_in_her_own_shape() -> void:
 	await enter(ARENA)

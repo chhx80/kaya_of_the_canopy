@@ -3409,3 +3409,31 @@ The title screen had the same flaw (its rows, and the seven secret taps on
 Kaya, worked only as the first finger on the glass) and gets the same fix. It
 no longer listens to the click Godot makes up from a touch, so one tap is one
 tap.
+
+## TestFlight fixes in World 4, and a gate for pickups
+
+Three reports from the device, each a heart or the way on in plain view and out
+of reach, each measured in the running game before anything changed:
+
+- **deeps_2, "the heart is not reachable".** The reward shelf's heart is in view
+  from the low line, 48 px up against Kaya's 44.5 px jump, and the high line was
+  reached only from above, so anyone who dropped (the pit, the rubble chute, the
+  shelf's own fall-off) had lost it for good. A ladder now stands in the pit
+  (col 15) back up to the high line, east of the cracked wall: the heart still
+  costs breaking it.
+- **deeps_2, "stuck".** As the frog at the top of the stair, the only way on was
+  two blind jumps up a one-tile shaft beside a ladder the frog cannot climb, and
+  there was no way back to Kaya below. The human pad moved from (40,6) to the top
+  tread (41,18), so the ladder is climbed as a ladder.
+- **deeps_4, "out of reach".** The lantern block was the only step to the vault
+  ledge, and the blade breaks it on contact; with both of its columns gone the
+  vault heart was 64 px over the floor for the rest of the level. A one-way
+  shelf at (17,7) is a second step. Breaking the lamp still costs its light.
+
+`tools/pickupgate.sh` asks what the Route Prover does not: for every heart, key
+and transform pad, can the real body touch it from a state the proof tape
+passes through? It is the prover's physics with touch as the goal, plus
+shouldering through breakable walls and a model of the blade's throw.
+REACHED is a replayed proof; NOT FOUND is a lead to check in the game.
+`--probe` runs one search from a tile, for "can she get from here to there".
+`tools/test.sh -- <name>` runs only the test files whose names contain `<name>`.
