@@ -26,10 +26,10 @@
   "#ddddddddddddddd.ddddd|dddddddddddddddddddd|ddddd#",
   "#ddddddddddddddd.ddddd|dddddddddddddddddddd|ddddd#",
   "#ddd.......j..........|.ddddddddddddddddddd|ddddd#",
-  "#ddd.......j..........|.dddddddd...........|...dd#",
-  "#ddd..#########..#######dddddddd...........|...dd#",
-  "#dd.....................dddddddd.......====....dd#",
-  "#dd|....................dddddddd...............dd#",
+  "#ddd.......j...|......|.dddddddd...........|...dd#",
+  "#ddd..#########|.#######dddddddd...........|...dd#",
+  "#dd............|........dddddddd.......====....dd#",
+  "#dd|...........|........dddddddd...............dd#",
   "#dd|####################dddddddd...............dd#",
   "#dd|dddddddddddddddddddddddddddd....====.......dd#",
   "#dd|dddddddddddddddddddddddd....O..............dd#",
@@ -85,8 +85,8 @@
   },
   {
    "type": "pad_human",
-   "x": 40,
-   "y": 6
+   "x": 41,
+   "y": 18
   },
   {
    "type": "exit",
@@ -276,12 +276,12 @@
    "x": 37,
    "y": 21
   },
-  "step_3": {
-   "x": 42,
-   "y": 18
+  "ladder_mid": {
+   "x": 45,
+   "y": 12
   },
   "upper_e": {
-   "x": 45,
+   "x": 41,
    "y": 6
   },
   "upper_w": {
@@ -342,21 +342,21 @@
   },
   {
    "from": "step_2",
-   "to": "step_3",
-   "form": "frog"
-  },
-  {
-   "from": "step_3",
-   "to": "upper_e",
-   "form": "frog"
-  },
-  {
-   "from": "upper_e",
    "to": "pad_human",
    "form": "frog"
   },
   {
    "from": "pad_human",
+   "to": "ladder_mid",
+   "form": "human"
+  },
+  {
+   "from": "ladder_mid",
+   "to": "upper_e",
+   "form": "human"
+  },
+  {
+   "from": "upper_e",
    "to": "upper_w",
    "form": "human"
   },

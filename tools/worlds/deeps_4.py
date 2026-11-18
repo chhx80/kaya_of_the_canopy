@@ -118,14 +118,17 @@ breaking it is a choice, not a freebie"):
   THE LANTERN BLOCK (cols 15-16, rows 7-8).  Two tiles of `luminous_wall` on
         the gallery floor, the only light for eight tiles either side, and the
         route goes OVER it: a two-tile step, which is the human's measured
-        rise, and the prover climbs it.  Standing on its top is also the only
-        way up to the vault ledge.  You may instead shoulder through it --
-        break_hold 0.4, 25 ticks a tile -- and what that buys you is a flat
-        walk, and what it costs is the lamp: cols 13-18 go dark, the take-off
-        for the last vent goes dark with them, and the vault becomes
-        unreachable because the step you would have climbed is gone.  The blade
-        shatters a BREAKABLE on contact, so it is also possible to put out the
-        light by accident.
+        rise, and the prover climbs it.  Standing on its top is one
+        way up to the vault ledge -- the other is the one-way shelf beside it at
+        (17,7).  You may instead shoulder through it -- break_hold 0.4, 25
+        ticks a tile -- and what that buys you is a flat walk, and what it
+        costs is the lamp: cols 13-18 go dark, and the take-off for the last
+        vent goes dark with them.  The blade shatters a BREAKABLE on contact,
+        so it is also possible to put out the light by accident.  It used to
+        cost the vault as well, because the block was the only step up to it;
+        TestFlight fb_01 was a player looking at that heart from the floor
+        after one throw, so the shelf at (17,7) is there to make the price the
+        light and nothing else.
 
   THE SPORE VAULT is the other half of the same sentence, from the other side:
         its mat glows *through* the glowwall that seals it (light is not
@@ -357,6 +360,19 @@ def deeps_4():
     # THE LANTERN BLOCK. Drawn last of the gallery's solids so that the claims
     # it releases are the ones the corridor filed.
     k.glow_wall(15, 8, 2, thickness=2)
+
+    # THE VAULT'S OWN STEP (TestFlight fb_01, "out of reach").  The block was the
+    # only way onto the vault ledge, and the blade shatters a BREAKABLE on
+    # contact -- one throw from (18,8), at the dropper or at nothing, takes both
+    # tiles.  After that the heart sat in plain view on a ledge 64 px over the
+    # floor against the human's 44.5 px apex, measured in the real game, and no
+    # frog can get back up to this gallery: a visible heart nobody could have.
+    # This one-way shelf, flush with the block's top at col 17, keeps the vault
+    # in reach either way: floor -> shelf is 32 px, shelf -> ledge is 32 px with
+    # row 2 for a ceiling.  It is one-way so it is not a lid: the route still
+    # stands under it at block_e and still climbs the block.  Breaking the lamp
+    # still costs the light -- it no longer costs the vault.
+    k.put(17, 7, "oneway")
 
     # THE ROOT. Drawn after the gallery, which would otherwise carve its top two
     # tiles away, and after the chimney, whose air it hangs in.

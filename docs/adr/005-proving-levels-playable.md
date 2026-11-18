@@ -157,3 +157,34 @@ What stands instead:
   budget rerun that one hop with terrain weighting. Then the slow, less reliable
   guide is paid for only where the fast one has already demonstrably failed,
   which is the one arrangement none of the four attempts tried.
+
+## Addendum — what the proof does not cover: pickups (`tools/pickupgate.sh`)
+
+A PROVED level is one whose EXIT the tape reaches. Three TestFlight reports in
+one build (deeps_2 twice, deeps_4) were about everything else: a heart in plain
+view that a player had already lost the means to reach, and a way on that only
+the search had found. None of them could fail this gate, because none of them
+was on the route.
+
+`tools/pickupgate.sh` asks the other question with the same physics. For each
+heart, key and transform pad it replays the level's tape, takes a seed at every
+hop start and every 20 frames along it, and searches from the nearest seeds
+(`PickupReach`, tools/pickupgate/reach.gd) until the body TOUCHES the trigger
+box, which is what `Pickup` and `TransformPad` check. It also does the two
+things this ADR's prover will not: it presses attack, carrying broken tiles and
+`break_progress` in the state (so a shoulder-break is real and is undone by
+restore), and it models the blade's out-leg with the blade's own numbers on a
+real Actor.
+
+How far to trust it, measured:
+- **REACHED** is a replayed tape from a route state. Same limits as the prover:
+  no enemies, hazards avoided unless `--allow-hazard`.
+- **NOT FOUND** is a lead, not a verdict. The frontier is greedy manhattan, and
+  it inherits the weakness the addendum above describes: from a hop start one
+  tile left of the ruins_3 kelp vine it spent 8,000 expansions without the
+  heart two tiles off that vine, and found it in 8 from a state on the vine.
+  Seeding along the whole tape fixed that case; it does not fix the class.
+  `--probe` searches tile to tile, which is how every NOT FOUND in the first
+  audit was settled, leg by leg, before anything was changed.
+- Exhausting even a 5x2 room costs 8,000-14,000 expansions (75-170 s), so no
+  NOT FOUND in a real level is ever an exhausted frontier.

@@ -75,7 +75,7 @@ Given that, the two ways in read differently in play and the level uses both:
     the level where a thrown blade is the obvious thing to try.
   * THE SHOULDER is a hold, and it is the only option when you are the frog.
     The vault at beat 3 is met as the frog, by construction: the route turns
-    her at (30,27) and there is no `pad_human` until screen B.
+    her at (30,27) and there is no `pad_human` until the top of the stair.
 
 THE PROVER CANNOT BREAK A TILE.  MEASURED.
 ------------------------------------------
@@ -170,15 +170,19 @@ bottom-right, and up the east wall into the top-right, where the exit is.
           LIMITS["frog"]["rise"] is 3 and the human's is 2.
 
   BEAT 4  THE PACKED WALL (screen B: cols 27-47, rows 5-13).  A wall under
-          pressure.  The ladder out of screen D runs col 43 from row 18 to row
+          pressure.  `pad_human` stands on the stair's top tread (41,18), so
+          Kaya is a woman again at the foot of the ladder -- the frog cannot
+          climb, and until TestFlight fb_02 this paragraph described a climb
+          the route was making as a frog, in two blind jumps up the shaft.
+          The ladder out of screen D runs col 43 from row 18 to row
           6 and pierces BOTH of screen B's corridors, so at the halfway point
           you can step off west into the lower corridor -- stand 12, cols
           33-47, with a `termite_wall` at col 32 and a BARK BEETLE patrolling
           in front of it.  Twenty-seven uninterrupted frames with a 32 px/s
           patrol closing (54 px/s once you are inside `chase_range` 96) and the
           exit five tiles beyond the wall.  Let go once and the clock restarts.
-          The arc is to stay on the ladder to the top, take the `pad_human` at
-          (40,6) and walk the upper corridor west to col 31, where the floor
+          The arc is to stay on the ladder to the top and walk the upper
+          corridor west to col 31, where the floor
           stops and a six-tile fall lands in the exit alcove.  The route takes
           the arc, so the tape never enters the beetle's corridor: the ladder
           tile at (43,13) is a hole in the lower corridor's floor, which pens
@@ -437,6 +441,18 @@ def deeps_2():
     k.climb(22, 12, 17, landing="left")         # beat 1 -> beat 2, across the seam
     k.climb(3, 20, 27, landing="right")         # beat 2 -> the cellar
     k.climb(43, 6, 18, landing="left")          # beat 3 -> beat 4, across the seam
+    # THE WAY BACK UP TO THE SHELF (TestFlight fb_03, "the heart is not
+    # reachable").  The low line is a ceilinged corridor under the reward shelf,
+    # so the heart is in plain view from it -- and the shelf is 48 px over the
+    # low line's floor against the human's 44.5 px apex.  Measured in the real
+    # game: from the shelf's west lip she peaks 3 px under its top and falls back.
+    # Before this ladder the high line was reached only from ABOVE (beat 1's
+    # ladder, or the rubble chute, which lands in this very pit), so anyone who
+    # dropped -- the pit, the chute, the shelf's own fall-off -- had lost the
+    # heart for good while still looking at it.  The ladder stands in the pit,
+    # east of the plug, so it buys back the CHOICE and not the treasure: the
+    # cracked_dirt wall still stands between it and the heart.
+    k.climb(15, 17, 20, landing="left")
     # That last one pierces BOTH of screen B's corridors on the way past, and
     # both of those holes are load-bearing: (43,11-12) is the step-off into the
     # beetle's pen, and (43,13) is the missing floor tile that pens the beetle
@@ -474,7 +490,16 @@ def deeps_2():
     # -------------------------------------------------------------- entities
     g.ent("player_spawn", 3, 12)
     g.ent("pad_frog", 30, 27)
-    g.ent("pad_human", 40, 6)
+    # THE HUMAN PAD IS AT THE TOP OF THE FROG STAIR, not upstairs (TestFlight
+    # fb_02, "Stuck").  It used to be at (40,6), so the frog arrived on tread 3
+    # beside a ladder it cannot climb (`can_climb: false`), and the only way on
+    # was two blind jumps up a one-tile shaft whose ledges are off-screen -- the
+    # camera stays in screen D.  The prover found them; a player on a phone did
+    # not, and with no human pad below there was no way back either: the cellar
+    # ladder is a ladder too.  Here, the ladder is what it looks like.  The frog
+    # gets you up the treads, the woman gets you up the ladder, and the frog pad
+    # in the cellar is a way back to the vault.
+    g.ent("pad_human", 41, 18)
     g.ent("exit", 28, 12)
 
     # Three beetles, and every one of them is behind or in front of a wall.
@@ -517,8 +542,12 @@ def deeps_2():
     k.mark("cellar_m", 20, 27)
     k.mark("step_1", 34, 24, form="frog")
     k.mark("step_2", 37, 21, form="frog")
-    k.mark("step_3", 42, 18, form="frog")
-    k.mark("upper_e", 45, 6, form="frog")
+    # Halfway up the ladder, east of the hole that pens the beetle: the climb
+    # from the stair top to the upper corridor as one hop cost 33,033
+    # expansions.  upper_e is WEST of the ladder, on its landing side; east of
+    # it, where the frog used to come out, the half-climb cost 31,175.
+    k.mark("ladder_mid", 45, 12)
+    k.mark("upper_e", 41, 6)
     k.mark("upper_w", 33, 6)
 
     g.route("spawn", "shelf_w", form="human")
@@ -531,10 +560,10 @@ def deeps_2():
     g.route("cellar_m", "pad_frog", form="human")
     g.route("pad_frog", "step_1", form="frog")
     g.route("step_1", "step_2", form="frog")
-    g.route("step_2", "step_3", form="frog")
-    g.route("step_3", "upper_e", form="frog")
-    g.route("upper_e", "pad_human", form="frog")
-    g.route("pad_human", "upper_w", form="human")
+    g.route("step_2", "pad_human", form="frog")
+    g.route("pad_human", "ladder_mid", form="human")
+    g.route("ladder_mid", "upper_e", form="human")
+    g.route("upper_e", "upper_w", form="human")
     g.route("upper_w", "exit", form="human")
 
     return g, k
@@ -542,6 +571,7 @@ def deeps_2():
 
 SPAWN_TILE = (3, 12)
 PAD_FROG_TILE = (30, 27)
+PAD_HUMAN_TILE = (41, 18)
 EXIT_TILE = (28, 12)
 
 
@@ -615,8 +645,8 @@ def check(k, verbose=True):
 
     # 2. No plug is a lock.  With every one of them SOLID -- which is how the
     #    Route Prover and tools/reachability.py both see them -- a human flood
-    #    fill from the spawn still reaches the frog pad, and a frog flood fill
-    #    from the pad still reaches the exit.
+    #    fill from the spawn still reaches the frog pad, a frog flood fill from
+    #    it reaches the human pad, and a human one from there reaches the exit.
     human_shut = k.reachable_set(SPAWN_TILE, form="human")
     if PAD_FROG_TILE not in human_shut:
         raise AssertionError(
@@ -626,10 +656,14 @@ def check(k, verbose=True):
             "a corridor costs the prover 8000 expansions and 166 px."
             % (PAD_FROG_TILE, len(human_shut)))
     frog_shut = k.reachable_set(PAD_FROG_TILE, form="frog")
-    if EXIT_TILE not in frog_shut:
+    if PAD_HUMAN_TILE not in frog_shut:
         raise AssertionError(
-            "with every wall shut, the frog cannot reach the exit at %s from "
-            "pad_frog (%d standable tiles reached)" % (EXIT_TILE, len(frog_shut)))
+            "with every wall shut, the frog cannot reach pad_human at %s from "
+            "pad_frog (%d standable tiles reached)" % (PAD_HUMAN_TILE, len(frog_shut)))
+    if EXIT_TILE not in k.reachable_set(PAD_HUMAN_TILE, form="human"):
+        raise AssertionError(
+            "with every wall shut, the human cannot reach the exit at %s from "
+            "pad_human at %s" % (EXIT_TILE, PAD_HUMAN_TILE))
 
     # 3. And each wall is still worth breaking.  Opened, the same two floods
     #    grow -- by a shortcut's worth for beats 1, 2 and 4, and by a whole
