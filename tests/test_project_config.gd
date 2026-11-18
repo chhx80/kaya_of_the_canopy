@@ -14,15 +14,16 @@ func test_logical_resolution_is_the_one_everything_is_drawn_for() -> void:
 func test_rendering_stays_pixel_perfect() -> void:
 	# "canvas_items", not "viewport" (docs/plan-hd.md): the root is drawn at
 	# the device's own resolution, so the world's 2x texels survive to the
-	# screen instead of being squeezed through a 400x240 root first. The UI is
-	# still laid out in logical pixels at a whole stretch factor ("integer"),
-	# so the HUD, the menus and the bitmap font keep the size they had.
+	# screen instead of being squeezed through a 400x240 root first.
 	eq(String(ProjectSettings.get_setting("display/window/stretch/mode", "")), "canvas_items")
 	# "expand", not "keep": the root viewport grows to the device aspect so the
 	# screen is filled; the world is drawn as large as fits, centred, and the
 	# leftover margin is where the touch controls live.
 	eq(String(ProjectSettings.get_setting("display/window/stretch/aspect", "")), "expand")
-	eq(String(ProjectSettings.get_setting("display/window/stretch/scale_mode", "")), "integer")
+	# "fractional", not "integer": a whole stretch factor left a black border
+	# all round on a phone (2556x1179 holds 4x of 240 with 219 px to spare: the
+	# game sat in a 2080x960 box). The picture now fills the screen's height.
+	eq(String(ProjectSettings.get_setting("display/window/stretch/scale_mode", "")), "fractional")
 	eq(int(ProjectSettings.get_setting("rendering/textures/canvas_textures/default_texture_filter", -1)),
 		0, "textures must be nearest-neighbour")
 

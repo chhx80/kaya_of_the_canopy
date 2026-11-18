@@ -14,6 +14,8 @@ const BTN_R := 21.0
 ## The pause button is smaller than A and B: it is pressed rarely and on
 ## purpose, so it should not compete with them for the thumb.
 const PAUSE_R := 11.0
+## Share of a button radius kept clear of a notch or home indicator.
+const SAFE_CLEAR := 0.8
 const DIR_ACTIONS := [&"move_right", &"move_down", &"move_left", &"move_up"]
 
 var enabled := true
@@ -56,9 +58,30 @@ func refresh_settings() -> void:
 	_layout()
 	queue_redraw()
 
+## Left, top, right, bottom: how far the device's own furniture (a notch or
+## Dynamic Island, the home indicator) reaches in from each edge, in UI
+## pixels. The game fills the whole screen, so the controls have to step
+## inside these themselves. Zero off a phone or tablet: a desktop's "safe
+## area" is its whole monitor, not the window. Tests set `safe_override`.
+var safe_override: Variant = null
+
+func safe_insets(ui: Vector2) -> Vector4:
+	if safe_override != null:
+		return safe_override as Vector4
+	if not OS.has_feature("mobile"):
+		return Vector4.ZERO
+	var win := Vector2(DisplayServer.window_get_size())
+	var safe := Rect2(DisplayServer.get_display_safe_area())
+	if win.x <= 0.0 or win.y <= 0.0 or safe.size.x <= 0.0 or safe.size.y <= 0.0:
+		return Vector4.ZERO
+	var k := ui / win
+	return Vector4(maxf(0.0, safe.position.x) * k.x, maxf(0.0, safe.position.y) * k.y,
+		maxf(0.0, win.x - safe.end.x) * k.x, maxf(0.0, win.y - safe.end.y) * k.y)
+
 func _layout() -> void:
 	var vp := get_viewport()
 	var ui := Screen.ui_size(vp)
+	var inset := safe_insets(ui)
 	var world := Screen.ui_frame(vp)
 	var side := world.position.x                      # left/right margin width
 	var vert := world.position.y                      # top/bottom margin height
@@ -66,16 +89,18 @@ func _layout() -> void:
 	if side >= r * 2.0 + 2.0:
 		# Widescreen: stack the buttons in the right margin, stick in the left.
 		_in_margin = true
-		var cx := ui.x - side * 0.5
+		# Centred in the margin, but never under the notch: at least most of
+		# a button clear of it, even if that leans a little over the world.
+		var cx := minf(ui.x - side * 0.5, ui.x - inset.z - r * SAFE_CLEAR)
 		_jump_centre = Vector2(cx, ui.y * 0.5 + r + 4.0)
 		_attack_centre = Vector2(cx, ui.y * 0.5 - r - 4.0)
-		_stick_home = Vector2(side * 0.5, ui.y * 0.5)
+		_stick_home = Vector2(maxf(side * 0.5, inset.x + r * SAFE_CLEAR), ui.y * 0.5)
 		# Top of the right margin, well clear of B below it.
 		_pause_centre = Vector2(cx, PAUSE_R * ui_scale + 10.0)
 	elif vert >= r + 2.0:
 		# Tall-ish display (iPad): use the bottom margin.
 		_in_margin = true
-		var cy := ui.y - vert * 0.5
+		var cy := minf(ui.y - vert * 0.5, ui.y - inset.w - r * SAFE_CLEAR)
 		_jump_centre = Vector2(ui.x - r - 6.0, cy)
 		_attack_centre = Vector2(ui.x - r * 3.0 - 12.0, cy)
 		_stick_home = Vector2(r + 6.0, cy)
