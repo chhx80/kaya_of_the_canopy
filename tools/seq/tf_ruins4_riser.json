@@ -1,0 +1,70 @@
+[
+ {
+  "_": "A, ruins_4: a human in stage 2's east bay drifts down the riser (cur_up -62 px/s against her water_max_fall 74) into stage 1's east bay, behind the one-way flume. Since the fix a fish pad on the bed there turns her into the fish that swims back up. God mode on, the phone's window. tools/shot.sh --res=2556x1179 --seq=tools/seq/tf_ruins4_riser.json"
+ },
+ {
+  "setting": [
+   "god_mode",
+   true
+  ]
+ },
+ {
+  "scenario": "level:ruins_4",
+  "settle": 30
+ },
+ {
+  "touch": true
+ },
+ {
+  "teleport": [
+   45,
+   16
+  ],
+  "settle": 4
+ },
+ {
+  "log": "human in stage 2's east bay"
+ },
+ {
+  "wait": 720
+ },
+ {
+  "log": "after 12 s"
+ },
+ {
+  "shot": "shots/tf_ruins4_riser_landed.png"
+ },
+ {
+  "press": "move_up",
+  "frames": 40
+ },
+ {
+  "log": "up: caught on col 44's corner"
+ },
+ {
+  "press": [
+   "move_up",
+   "move_right"
+  ],
+  "frames": 6
+ },
+ {
+  "press": "move_up",
+  "frames": 150
+ },
+ {
+  "log": "after a nudge right and up again"
+ },
+ {
+  "shot": "shots/tf_ruins4_riser_back_up.png"
+ },
+ {
+  "wait": 2
+ },
+ {
+  "setting": [
+   "god_mode",
+   false
+  ]
+ }
+]

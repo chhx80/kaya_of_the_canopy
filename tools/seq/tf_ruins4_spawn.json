@@ -1,0 +1,9 @@
+[
+  {"_": "A, the TestFlight screenshot fb_00 (iPhone16_1): ruins_4 THE CISTERN at its spawn, god mode on, at the phone's window. tools/shot.sh --res=2556x1179 --seq=tools/seq/tf_ruins4_spawn.json"},
+  {"setting": ["god_mode", true]},
+  {"scenario": "level:ruins_4", "settle": 90},
+  {"touch": true},
+  {"log": "spawn"},
+  {"shot": "shots/tf_ruins4_spawn.png"},
+  {"setting": ["god_mode", false]}
+]

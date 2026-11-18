@@ -27,6 +27,7 @@ func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ITEMS = ITEMS_LEVEL if Game.state == Game.State.LEVEL else ITEMS_HUB
+	add_to_group(&"tap_menus")
 	get_tree().paused = true
 
 func _exit_tree() -> void:
@@ -53,9 +54,9 @@ func _process(delta: float) -> void:
 
 ## A tap (or a click) on a row picks and activates it. The touch overlay keeps
 ## working while paused, so the stick and A also drive the menu, but on a phone
-## tapping the line you want is what a player tries first. This node is added
-## after the overlay, so it sees a touch before the overlay does, and it only
-## claims touches that land on a row.
+## tapping the line you want is what a player tries first. The overlay sees a
+## touch BEFORE this node does (Godot calls `_input` on the last node in the
+## tree first), so it asks claims_tap() and lets a touch on a row through.
 func _input(event: InputEvent) -> void:
 	if _busy or not visible:
 		return
@@ -74,6 +75,11 @@ func _input(event: InputEvent) -> void:
 	_sel = i
 	get_viewport().set_input_as_handled()
 	_activate()
+
+## For the touch overlay (TouchControls.TAP_MENUS): is a root-viewport point on
+## a row?
+func claims_tap(p: Vector2) -> bool:
+	return not _busy and row_at(get_global_transform_with_canvas().affine_inverse() * p) >= 0
 
 ## The row under a point in this control's coordinates, or -1.
 func row_at(local: Vector2) -> int:

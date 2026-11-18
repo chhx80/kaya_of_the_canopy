@@ -15,6 +15,15 @@ const BTN_R := 21.0
 ## purpose, so it should not compete with them for the thumb.
 const PAUSE_R := 11.0
 const DIR_ACTIONS := [&"move_right", &"move_down", &"move_left", &"move_up"]
+## Menus that are tapped where they are drawn join this group and answer
+## `claims_tap(p: Vector2) -> bool` for a root-viewport point. The overlay
+## leaves such a touch alone. It has to ask: Godot hands `_input` to the LAST
+## node in the tree first, TouchLayer comes after UI, so the overlay always sees
+## a touch before the pause menu does -- and it used to mark every touch handled.
+## The menu then only ever worked through the mouse Godot emulates from a touch,
+## which it does for the first finger on the glass alone: with a thumb resting
+## on the stick, LEAVE LEVEL could not be tapped (TestFlight, iPhone16_1).
+const TAP_MENUS := &"tap_menus"
 
 var enabled := true
 var opacity := 0.5
@@ -120,6 +129,8 @@ func _input(event: InputEvent) -> void:
 		return
 	if event is InputEventScreenTouch:
 		var t := event as InputEventScreenTouch
+		if t.pressed and _menu_claims(t.position):
+			return
 		if t.pressed:
 			_begin(t.index, t.position)
 		else:
@@ -131,6 +142,14 @@ func _input(event: InputEvent) -> void:
 			_stick_pos = d.position
 			_apply_stick()
 			queue_redraw()
+
+## True when a visible menu wants a touch at `p` for itself.
+func _menu_claims(p: Vector2) -> bool:
+	for n in get_tree().get_nodes_in_group(TAP_MENUS):
+		var c := n as CanvasItem
+		if c != null and c.is_visible_in_tree() and bool(c.call("claims_tap", p)):
+			return true
+	return false
 
 func _begin(index: int, p: Vector2) -> void:
 	var hit := _button_at(p)

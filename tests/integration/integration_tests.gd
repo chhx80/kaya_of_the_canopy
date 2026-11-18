@@ -255,6 +255,11 @@ func run_all() -> void:
 		"t_animated_tiles_repaint_without_changing_the_level",
 		"t_pause_freezes_the_level_and_resumes_it",
 		"t_a_phone_can_pause_and_leave_a_level_for_its_door_on_the_map",
+		"t_a_phone_held_in_both_hands_can_still_leave_a_level",
+		"t_the_cistern_finishes_with_god_mode_on",
+		"t_the_cisterns_exit_finishes_it_in_every_state_she_can_arrive_in",
+		"t_the_tide_maws_gate_finishes_ruins_5_with_god_mode_on_or_off",
+		"t_a_human_who_sinks_down_the_cisterns_riser_can_come_back_up",
 		"t_the_map_pause_menu_has_no_level_rows",
 		"t_the_title_keeps_kaya_the_logo_the_menu_and_the_small_print_apart",
 		"t_a_phone_can_tap_a_title_menu_row_where_it_is_drawn",
@@ -1941,6 +1946,199 @@ func t_a_phone_can_tap_a_title_menu_row_where_it_is_drawn() -> void:
 		"tapping OPTIONS opens the options screen")
 	if touch != null:
 		touch.force_enable(false)
+
+## One finger on the glass, in WINDOW pixels: the logical point goes out
+## through the root's own stretch transform, so the event comes back in through
+## Window -> Viewport the way a finger's does on the phone.
+func finger(logical: Vector2, index: int, pressed: bool) -> void:
+	var ev := InputEventScreenTouch.new()
+	ev.index = index
+	ev.position = get_tree().root.get_final_transform() * logical
+	ev.pressed = pressed
+	Input.parse_input_event(ev)
+	await frames(2)
+	for _i in 2:
+		await get_tree().process_frame
+
+## TestFlight, iPhone16_1, ruins_4 with god mode on: "can not leave level". The
+## overlay saw every touch first and marked it handled, so the pause menu only
+## ever got the mouse click Godot emulates from a touch -- and Godot emulates it
+## for the FIRST finger down alone. With the left thumb resting on the stick,
+## which is how a phone is held, a tap on LEAVE LEVEL reached nothing. Here the
+## thumb is down for the whole sequence, in every form, god mode on and off.
+func t_a_phone_held_in_both_hands_can_still_leave_a_level() -> void:
+	var touch: Control = Game.main.touch
+	check(touch != null, "the overlay exists")
+	if touch == null:
+		return
+	var was_god := Game.god_mode()
+	for god: bool in [true, false]:
+		Game.set_god_mode(god)
+		for form: String in ["human", "fish", "frog", "bird"]:
+			var what := "%s, god mode %s" % [form, "on" if god else "off"]
+			await enter("ruins_4")
+			touch.force_enable(true)
+			player().set_form(form)
+			await frames(2)
+			await finger(touch.get("_stick_home"), 0, true)
+			await finger(touch.pause_button_centre(), 1, true)
+			await finger(touch.pause_button_centre(), 1, false)
+			var menu: Node = Game.main.ui.get_node_or_null("PauseScreen")
+			check(menu != null, "%s: the pause button opens the menu" % what)
+			if menu == null:
+				await finger(touch.get("_stick_home"), 0, false)
+				continue
+			var row: int = (menu.ITEMS as Array).find("LEAVE LEVEL")
+			var W: float = Screen.ui_size(get_viewport()).x
+			var at := Vector2(W * 0.5, menu.ROW0_Y + menu.ROW_H * (float(row) + 0.5))
+			await finger(at, 1, true)
+			await finger(at, 1, false)
+			await finger(touch.get("_stick_home"), 0, false)
+			await frames(6)
+			check_eq(Game.state, Game.State.HUB, "%s: LEAVE LEVEL returns to the map" % what)
+			check(not get_tree().paused, "%s: and the map is not paused" % what)
+	Game.set_god_mode(was_god)
+	touch.force_enable(false)
+
+## TestFlight, iPhone16_1, god mode on: "Level won't finish" in ruins_4. The
+## proof tape is the authored route; played with god mode on it has to finish
+## the level exactly as it does with it off.
+func t_the_cistern_finishes_with_god_mode_on() -> void:
+	var was_god := Game.god_mode()
+	var had_flag := SaveManager.get_flag("ruins_4")
+	Game.set_god_mode(true)
+	SaveManager.set_flag("ruins_4", false)
+	var tape: RefCounted = TAPE.load_for("ruins_4")
+	check(tape.ok(), "ruins_4 has a current proof tape")
+	if tape.ok():
+		var driver: RefCounted = TAPE_REPLAY.new(get_tree())
+		driver.invulnerable = false      # god mode is what keeps her whole
+		var r: Dictionary = await driver.replay(tape)
+		check(bool(r["completed"]), "the tape finishes ruins_4 with god mode on — %s"
+			% TAPE_REPLAY.describe(r))
+		check_eq(Game.state, Game.State.HUB, "and the game is back on the map")
+		check(SaveManager.get_flag("ruins_4"), "with ruins_4 cleared")
+	SaveManager.set_flag("ruins_4", had_flag)
+	Game.set_god_mode(was_god)
+
+## The same report, the exit itself: touching the totem completes the level in
+## every state a player can arrive in -- each form, god mode either way, either
+## switch group either way, walking in from either side or dropping onto it.
+func t_the_cisterns_exit_finishes_it_in_every_state_she_can_arrive_in() -> void:
+	var was_god := Game.god_mode()
+	var had_flag := SaveManager.get_flag("ruins_4")
+	var ex := Vector2(11, 2) * TS
+	## Where she starts, relative to the exit's tile, and what she holds.
+	var approaches := {
+		"from the west": [Vector2(-2.0, 0.0), "move_right"],
+		"from the east": [Vector2(1.0, 0.0), "move_left"],     # the ledge ends at col 12
+		"from above": [Vector2(0.0, -0.9), ""],
+	}
+	var failed := 0
+	var tried := 0
+	for god: bool in [true, false]:
+		Game.set_god_mode(god)
+		for form: String in ["human", "fish", "frog", "bird"]:
+			for flips: int in 4:
+				for side: String in approaches.keys():
+					var a: Array = approaches[side]
+					SaveManager.set_flag("ruins_4", false)
+					await enter("ruins_4")
+					if flips & 1:
+						level().debug_toggle_switch(1)
+					if flips & 2:
+						level().debug_toggle_switch(2)
+					var p := player()
+					p.set_form(form)
+					p.pos = ex + (a[0] as Vector2) * TS + Vector2(8.0 - p.box.x * 0.5, 16.0 - p.box.y)
+					p.vel = Vector2.ZERO
+					level().settle_view()
+					var act := String(a[1])
+					if act != "":
+						Input.action_press(act)
+					for _i in 90:
+						await frames(1)
+						if Game.state != Game.State.LEVEL:
+							break
+					if act != "":
+						Input.action_release(act)
+					tried += 1
+					if Game.state != Game.State.HUB or not SaveManager.get_flag("ruins_4"):
+						failed += 1
+						check(false, "god %s, %s, switches a=%s b=%s, %s: the exit did not finish the level (state %s)"
+							% [god, form, flips & 1 != 0, flips & 2 != 0, side, Game.State.keys()[Game.state]])
+	print("[exit] ruins_4: %d arrivals tried, %d failed to finish" % [tried, failed])
+	check_eq(failed, 0, "every arrival at ruins_4's exit finishes the level")
+	SaveManager.set_flag("ruins_4", had_flag)
+	Game.set_god_mode(was_god)
+
+## The same report asked whether a boss level's way out leans on anything god
+## mode skips. It does not: the gate is placed by on_boss_defeated() and the
+## totem is the same LevelExit. Measured on World 2's boss, both ways.
+func t_the_tide_maws_gate_finishes_ruins_5_with_god_mode_on_or_off() -> void:
+	var was_god := Game.god_mode()
+	var had_flag := SaveManager.get_flag("ruins_5")
+	for god: bool in [true, false]:
+		Game.set_god_mode(god)
+		SaveManager.set_flag("ruins_5", false)
+		await enter("ruins_5")
+		var b := boss()
+		check(b != null, "god %s: ruins_5 has its boss" % god)
+		if b == null:
+			continue
+		while b.health > 0:
+			b.hurt(1, b.center())
+		await frames(6)
+		var gate: LevelExit = null
+		for n in find_in_group(&"triggers"):
+			if n is LevelExit:
+				gate = n
+		check(gate != null, "god %s: the Tide Maw's death opens the gate" % god)
+		if gate == null:
+			continue
+		var p := player()
+		p.pos = gate.pos + Vector2(8.0 - p.box.x * 0.5, 16.0 - p.box.y)
+		p.vel = Vector2.ZERO
+		level().settle_view()
+		for _i in 30:
+			await frames(1)
+			if Game.state != Game.State.LEVEL:
+				break
+		check_eq(Game.state, Game.State.HUB, "god %s: walking into it finishes ruins_5" % god)
+		check(SaveManager.get_flag("ruins_5"), "god %s: and clears it" % god)
+	SaveManager.set_flag("ruins_5", had_flag)
+	Game.set_god_mode(was_god)
+
+## TestFlight, iPhone16_1, god mode on, ruins_4: "Level won't finish". The
+## riser lifts at 62 px/s and a human sinks in water at up to 74, so from stage
+## 2's east bay she drifted down it into stage 1's east bay, behind the one-way
+## flume, with no shore -- and with god mode on the swimmer there could not end
+## it. The pad on the bed turns her into the fish that swims back up.
+func t_a_human_who_sinks_down_the_cisterns_riser_can_come_back_up() -> void:
+	var was_god := Game.god_mode()
+	Game.set_god_mode(true)
+	await enter("ruins_4")
+	var p := player()
+	p.pos = Vector2(45, 16) * TS + Vector2(8.0 - p.box.x * 0.5, 0.0)
+	p.vel = Vector2.ZERO
+	level().settle_view()
+	check_eq(p.form_id, "human", "she starts a human in stage 2's east bay")
+	var low := 0.0
+	for _i in 60 * 16:
+		await frames(1)
+		low = maxf(low, p.center().y)
+		if p.form_id != "human":
+			break
+	gt_check_f(low, 25.0 * TS, "the riser lets her sink into stage 1's east bay")
+	check_eq(p.form_id, "fish", "where the riser lands her she becomes a fish")
+	Input.action_press("move_up")
+	for _i in 60 * 6:
+		await frames(1)
+		if p.center().y < 19.0 * TS:
+			break
+	Input.action_release("move_up")
+	gt_check_f(19.0 * TS, p.center().y, "and swims back up the riser into stage 2")
+	Game.set_god_mode(was_god)
 
 func t_the_map_pause_menu_has_no_level_rows() -> void:
 	await enter_hub()

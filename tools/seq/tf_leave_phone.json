@@ -1,0 +1,21 @@
+[
+  {"_": "B, 'can not leave level' (TestFlight, iPhone16_1). Run at the phone's window: tools/shot.sh --res=2556x1179 --seq=tools/seq/tf_leave_phone.json. Every [tap] menu:LEAVE LEVEL line must end state=HUB. Case 1 is one finger; case 2 is the way a phone is actually held: the left thumb resting on the stick while the right finger reaches for pause and then for the row."},
+  {"setting": ["god_mode", true]},
+  {"scenario": "level:ruins_4", "settle": 60},
+  {"tap": "pause"},
+  {"wait": 6},
+  {"shot": "shots/tf_leave_menu.png"},
+  {"tap": "menu:LEAVE LEVEL"},
+  {"wait": 20},
+  {"shot": "shots/tf_leave_one_finger.png"},
+  {"scenario": "level:ruins_4", "settle": 60},
+  {"thumb": true},
+  {"wait": 4},
+  {"tap": "pause", "index": 1},
+  {"wait": 6},
+  {"tap": "menu:LEAVE LEVEL", "index": 1},
+  {"wait": 20},
+  {"thumb": false},
+  {"shot": "shots/tf_leave_thumb_on_stick.png"},
+  {"setting": ["god_mode", false]}
+]

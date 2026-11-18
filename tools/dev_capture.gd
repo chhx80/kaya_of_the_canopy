@@ -32,6 +32,11 @@ extends Node
 ##   {"tap": "pause"}                    a real touch on the overlay's pause
 ##                                        button, in window pixels through the
 ##                                        root's stretch; logs whether it opened
+##   {"tap": "menu:LEAVE LEVEL"}         ...or on a row of the open pause menu;
+##                                        logs where the game went
+##   {"tap": "pause", "index": 1}        ...as the second finger on the glass
+##   {"thumb": true}                     rest a finger (index 0) on the stick's
+##                                        home in window pixels; false lifts it
 ##   {"tape": "jungle_1", "shots": "shots/x_%d.png", "every": 150, "max": 4, "skip": 0}
 ##                                        boot the level and play its real proof
 ##                                        tape (Kaya unhittable, as in the replay
@@ -252,8 +257,18 @@ func _run_step(step: Dictionary) -> bool:
 		_wait = int(step["wait"])
 		return false
 	if step.has("tap"):
-		_tap(String(step["tap"]))
+		_tap(String(step["tap"]), int(step.get("index", 4)))
 		return true   # async: down, two frames, up
+	if step.has("thumb"):
+		var tc: Control = Game.main.get("touch")
+		tc.call("force_enable", true)
+		var ev := InputEventScreenTouch.new()
+		ev.index = 0
+		ev.position = get_tree().root.get_final_transform() * (tc.get("_stick_home") as Vector2)
+		ev.pressed = bool(step["thumb"])
+		Input.parse_input_event(ev)
+		print("[thumb] %s window=%s" % ["down" if ev.pressed else "up", str(ev.position)])
+		return false
 	return false
 
 ## A real touch at a control the game draws, injected in WINDOW pixels — the
@@ -262,13 +277,24 @@ func _run_step(step: Dictionary) -> bool:
 ## in logical pixels on a headless 1:1 window, so it cannot see a stretch that
 ## puts input somewhere other than the picture; this can, at any --res.
 ## `"pause"` taps the touch overlay's pause button and logs whether the menu
-## opened.
-func _tap(what: String) -> void:
+## opened; `"menu:<ROW>"` taps that row of the open pause menu and logs where
+## the game is afterwards.
+func _tap(what: String, index: int) -> void:
 	_busy = true
 	var touch: Control = Game.main.get("touch")
 	touch.call("force_enable", true)
 	await get_tree().process_frame
 	var logical: Vector2 = touch.call("pause_button_centre")
+	var ui_node: Node = Game.main.get("ui") as Node
+	if what.begins_with("menu:"):
+		var menu: Node = ui_node.get_node_or_null("PauseScreen")
+		var row: int = (menu.get("ITEMS") as Array).find(what.substr(5)) if menu != null else -1
+		if row < 0:
+			print("[tap] %s: no pause menu, or no such row" % what)
+			_busy = false
+			return
+		var W := Screen.ui_size(get_viewport()).x
+		logical = Vector2(W * 0.5, float(menu.get("ROW0_Y")) + float(menu.get("ROW_H")) * (float(row) + 0.5))
 	var root := get_tree().root
 	var to_window := root.get_final_transform()
 	var at := to_window * logical
@@ -278,7 +304,7 @@ func _tap(what: String) -> void:
 		str(DisplayServer.screen_get_scale())])
 	for pressed: bool in [true, false]:
 		var ev := InputEventScreenTouch.new()
-		ev.index = 4
+		ev.index = index
 		ev.position = at
 		ev.pressed = pressed
 		Input.parse_input_event(ev)
@@ -286,9 +312,10 @@ func _tap(what: String) -> void:
 		# _process, and at startup physics catches up several ticks a frame.
 		for _i in 3:
 			await get_tree().process_frame
-	var opened: bool = (Game.main.get("ui") as Node).has_node("PauseScreen")
-	print("[tap] %s logical=%s window=%s stretch=%s -> pause menu %s" % [what, str(logical),
-		str(at), str(to_window.get_scale()), "OPENED" if opened else "NOT OPENED"])
+	var opened: bool = ui_node.has_node("PauseScreen")
+	print("[tap] %s logical=%s window=%s stretch=%s -> pause menu %s, state=%s level=\"%s\"" % [
+		what, str(logical), str(at), str(to_window.get_scale()),
+		"OPENED" if opened else "NOT OPENED", Game.State.keys()[Game.state], Game.current_level_id])
 	_busy = false
 	if _step_i >= _steps.size():
 		_finish()
