@@ -49,6 +49,10 @@ extends Node
 ##                                        the camera mid-run on real play. The
 ##                                        tree is paused for each capture, so a
 ##                                        shot never adds frames to the tape
+##   {"tape": "jungle_1", "contacts": true}  ...and print a [contact] line each
+##                                        time an enemy or a hostile shot first
+##                                        overlaps her: where a player who
+##                                        ignores the enemies would be hit
 ##   {"cleared": ["jungle_1", ...]}      stage a save: those flags set, rest wiped
 ##   {"cleared": "all"}                  ...or every gateway on the overworld
 ##
@@ -253,7 +257,8 @@ func _run_step(step: Dictionary) -> bool:
 		return false
 	if step.has("tape"):
 		_play_tape(String(step["tape"]), String(step.get("shots", "")),
-			int(step.get("every", 150)), int(step.get("max", 4)), int(step.get("skip", 0)))
+			int(step.get("every", 150)), int(step.get("max", 4)), int(step.get("skip", 0)),
+			bool(step.get("contacts", false)))
 		return true   # async, like perf
 	if step.has("bench"):
 		_bench(String(step["bench"]), int(step.get("iters", 600)))
@@ -401,7 +406,8 @@ func _capture(path: String) -> void:
 ## Plays a proof tape (tests/integration/replay_tape.gd) through the real input
 ## path and shoots it. Frames are sim frames, exactly as in tape_replay.gd: a
 ## hitstop tick holds the buttons and spends no tape.
-func _play_tape(id: String, pattern: String, every: int, max_shots: int, skip: int) -> void:
+func _play_tape(id: String, pattern: String, every: int, max_shots: int, skip: int,
+		contacts: bool = false) -> void:
 	_busy = true
 	var loader: GDScript = load("res://tests/integration/replay_tape.gd")
 	var tape: RefCounted = loader.call("load_for", id)
@@ -440,11 +446,36 @@ func _play_tape(id: String, pattern: String, every: int, max_shots: int, skip: i
 					continue
 				left -= 1
 				sim += 1
+				var now: Node = Game.current_level
+				if contacts and now != null and is_instance_valid(now):
+					_log_contacts(now.get("player") as Actor, sim, String(hop["to"]))
 				if pattern != "" and taken < max_shots and sim > skip and (sim - skip) % every == 0:
 					_tape_shot = pattern % taken
 					taken += 1
 	print("[tape] %s played %d sim frames, %d shot(s)" % [id, sim, taken])
 	_end_async()
+
+## Contact log for `"contacts": true`: one line per enemy (keyed by its
+## spawn tile) or per volley of shots, re-armed after a second clear of it.
+var _last_contact: Dictionary = {}
+
+func _log_contacts(pl: Actor, sim: int, hop_to: String) -> void:
+	if pl == null or not is_instance_valid(pl):
+		return
+	var box := pl.aabb()
+	var hits: Array[String] = []
+	for n in get_tree().get_nodes_in_group(&"enemies"):
+		var e := n as Enemy
+		if e != null and e.active and e.aabb().intersects(box):
+			hits.append("%s@%s" % [e.enemy_id, str(Vector2i((e.spawn_pos / TileData4.TILE_SIZE).floor()))])
+	for n in get_tree().get_nodes_in_group(&"hostile_shots"):
+		if n.has_method("aabb") and (n.call("aabb") as Rect2).intersects(box):
+			hits.append("shot")
+	for key in hits:
+		if sim - int(_last_contact.get(key, -9999)) > 60:
+			print("[contact] t=%.1fs before %s: %s, Kaya at %s" % [float(sim) / 60.0, hop_to,
+				key, str(Vector2i((pl.center() / TileData4.TILE_SIZE).floor()))])
+		_last_contact[key] = sim
 
 ## The tape's capture point. Requested from inside the physics-frame await,
 ## where pausing would swallow the tick that is about to run; taken here

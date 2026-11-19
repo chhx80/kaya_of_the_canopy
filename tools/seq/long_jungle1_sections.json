@@ -1,0 +1,165 @@
+[
+ {
+  "_": "CANOPY TRAIL, two landmark shots per section, in the running game. Re-run: tools/shot.sh --seq=tools/seq/long_jungle1_sections.json"
+ },
+ {
+  "scenario": "level:jungle_1",
+  "settle": 30
+ },
+ {
+  "teleport": [
+   5,
+   26
+  ],
+  "settle": 40
+ },
+ {
+  "log": "s1a_trailhead"
+ },
+ {
+  "shot": "shots/long_j1/s1a_trailhead.png"
+ },
+ {
+  "teleport": [
+   50,
+   22
+  ],
+  "settle": 40
+ },
+ {
+  "log": "s1b_first_vine"
+ },
+ {
+  "shot": "shots/long_j1/s1b_first_vine.png"
+ },
+ {
+  "teleport": [
+   97,
+   24
+  ],
+  "settle": 40
+ },
+ {
+  "log": "s2a_vine_foot"
+ },
+ {
+  "shot": "shots/long_j1/s2a_vine_foot.png"
+ },
+ {
+  "teleport": [
+   79,
+   14
+  ],
+  "settle": 40
+ },
+ {
+  "log": "s2b_great_trunk"
+ },
+ {
+  "shot": "shots/long_j1/s2b_great_trunk.png"
+ },
+ {
+  "teleport": [
+   110,
+   4
+  ],
+  "settle": 40
+ },
+ {
+  "log": "s3a_long_bridge"
+ },
+ {
+  "shot": "shots/long_j1/s3a_long_bridge.png"
+ },
+ {
+  "teleport": [
+   152,
+   9
+  ],
+  "settle": 40
+ },
+ {
+  "log": "s3b_crown_walk"
+ },
+ {
+  "shot": "shots/long_j1/s3b_crown_walk.png"
+ },
+ {
+  "teleport": [
+   181,
+   8
+  ],
+  "settle": 40
+ },
+ {
+  "log": "s4a_cave_mouth"
+ },
+ {
+  "shot": "shots/long_j1/s4a_cave_mouth.png"
+ },
+ {
+  "teleport": [
+   196,
+   20
+  ],
+  "settle": 40
+ },
+ {
+  "log": "s4b_cave_vine"
+ },
+ {
+  "shot": "shots/long_j1/s4b_cave_vine.png"
+ },
+ {
+  "teleport": [
+   220,
+   24
+  ],
+  "settle": 40
+ },
+ {
+  "log": "s5a_terrace_vault"
+ },
+ {
+  "shot": "shots/long_j1/s5a_terrace_vault.png"
+ },
+ {
+  "teleport": [
+   260,
+   16
+  ],
+  "settle": 40
+ },
+ {
+  "log": "s5b_lintel"
+ },
+ {
+  "shot": "shots/long_j1/s5b_lintel.png"
+ },
+ {
+  "teleport": [
+   290,
+   26
+  ],
+  "settle": 40
+ },
+ {
+  "log": "s6a_posts"
+ },
+ {
+  "shot": "shots/long_j1/s6a_posts.png"
+ },
+ {
+  "teleport": [
+   326,
+   23
+  ],
+  "settle": 40
+ },
+ {
+  "log": "s6b_gallery"
+ },
+ {
+  "shot": "shots/long_j1/s6b_gallery.png"
+ }
+]

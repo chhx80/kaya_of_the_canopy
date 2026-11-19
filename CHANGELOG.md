@@ -3485,3 +3485,38 @@ reference for level authors is docs/long-levels-engine.md.
   the longest stretch between them, enemies and enemies per route-minute,
   hazard tiles near the route, forms, pickups; `--json`, `--strict`. Unit-tested
   (tests/test_levelstats.gd).
+
+## CANOPY TRAIL at five times the length (long/jungle1)
+
+The pilot for docs/plan-longer-levels.md. jungle_1 grew from 50×30 to 350×30
+tiles: six sections, a checkpoint between each pair, and a proof tape of
+88.1 s against 12 s before. Same id, same name, same hub door.
+
+- **Six sections**, each with one idea and one landmark: THE TRAILHEAD (the old
+  opening screen, unchanged, then a second pit and the first vine), THE GREAT
+  TREE (a switchback climb up a trunk four columns wide), THE BRIDGES (rope
+  bridges over the understory, a wasp over each gap, a spitter down the long
+  bridge, a crown walk over thorns), THE HOLLOW (a cave back down: ticks on the
+  ceiling, a vine, a boar on the floor), THE SHRINE (terraces, pits, the altar,
+  a lintel over a thorn bed) and THE LAST RUN (posts over three pits, a
+  four-tile leap under a wasp, a gallery into a spitter's sight, a boar at the
+  gate). 31 enemies, all existing types. Human form throughout.
+- **Five `checkpoint` entities** for long/engine to implement; until it lands the
+  game warns about an unknown entity type and otherwise ignores them. No tool
+  was changed to tolerate them.
+- **Secrets, each with a way back:** a gem bough over the stump, a heart under
+  the long bridge (drop through it, climb a vine to knot 6), and a heart in a
+  vault behind three crates in the shrine. A vine up through the bridge was
+  tried first and removed: leaving its top needed up released on the frame jump
+  was pressed.
+- **No blind landings:** nothing on the route drops more than four rows; the
+  itest's audit counts 0 of 136.
+- Authored in `tools/worlds/jungle_1.py` with a `Section` helper (local
+  coordinates, route marks and enemy counts per section), as a template for the
+  levels that follow. `data/ambience.json` lights each section differently.
+- New tools: `tools/level_metrics.py` (route seconds and enemies per
+  route-minute per section, the longest stretch between checkpoints),
+  `tools/level_map.py` (the whole level as one image), and
+  `{"tape": ..., "contacts": true}` in the capture harness (where an
+  enemy-ignoring run gets hit). Captures in `shots/long_j1/`,
+  `shots/jungle_1_sections.png`, `shots/jungle_1_map.png`.

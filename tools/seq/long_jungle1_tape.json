@@ -1,0 +1,5 @@
+[
+ {"_": "CANOPY TRAIL at full length (long/jungle1). Plays the proof tape through the real game and shoots every 300 sim frames. Re-run with: tools/shot.sh --seq=tools/seq/long_jungle1_tape.json"},
+ {"scenario": "level:jungle_1", "settle": 30},
+ {"tape": "jungle_1", "shots": "shots/long_j1/tape_%02d.png", "every": 300, "max": 20, "skip": 0}
+]

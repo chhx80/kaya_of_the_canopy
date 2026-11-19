@@ -1,0 +1,5 @@
+[
+ {"_": "Where the proof tape, played by someone who ignores every enemy, would be hit. Kaya is unhittable; each [contact] line is a hit she would have taken. Re-run: tools/shot.sh --seq=tools/seq/long_jungle1_contacts.json"},
+ {"scenario": "level:jungle_1", "settle": 30},
+ {"tape": "jungle_1", "contacts": true}
+]
