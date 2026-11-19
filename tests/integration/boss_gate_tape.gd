@@ -136,6 +136,18 @@ static func staleness(tape: Dictionary, level_id: String, boss_id: String) -> St
 ## goes through the real InputMap, so `InputState.poll()` sees it the way it
 ## sees a keyboard.
 static func apply(held: Array) -> void:
+	if hands != null:
+		held = hands.call("filter", held) as Array
+	_press(held)
+
+
+## The sloppy-player measurement (tests/integration/boss_sloppy_hands.gd) goes
+## here, between whatever decided the presses and the presses. Null everywhere
+## but KAYA_BOSSGATE_MODE=sloppy, so a replay is always the tape and nothing else.
+static var hands: RefCounted = null
+
+
+static func _press(held: Array) -> void:
 	for name: String in ACTIONS:
 		var action: StringName = ACTION_MAP[name]
 		if held.has(name):
@@ -146,4 +158,4 @@ static func apply(held: Array) -> void:
 
 
 static func release_all() -> void:
-	apply([])
+	_press([])

@@ -588,6 +588,14 @@ def jungle_5():
                    (7, 6), (2, 4), (26, 9), (35, 7), (36, 7), (44, 5)]:
         g.ent("gem", x, y)
 
+    # The arena door. A death in the fight used to cost the whole level again;
+    # this is where it now sends her back to (docs/plan-longer-levels.md: the
+    # cell she stands in, feet on the ledge below). Col 39 is the west end of
+    # the lip: she lands on it from the branch and steps off it into the drop
+    # at col 38, so it is touched on every way into the arena, and nothing
+    # stands on it -- the ledge's beetle starts at col 41, the heart at col 40.
+    g.ent("checkpoint", 39, 5)
+
     g.ent("boss_grove", 40, 25)
     g.ent("boss_exit", 46, 26)
 

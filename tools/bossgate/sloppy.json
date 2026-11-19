@@ -1,0 +1,30 @@
+{
+  "_doc": "Hands for KAYA_BOSSGATE_MODE=sloppy (tests/integration/boss_sloppy_hands.gd). Frames are 1/60 s. 'clean' is the boss's own pen as written, for comparison. 'phone' is the bar every boss is held to: a first-time player on touch controls, reacting 200-333 ms after the thing happens, missing one attack tap in seven, jumping up to 0.1 s late and losing the floating stick under the thumb about once every two seconds. 'careful' is a player on a keyboard. The pen does not adapt its timing to its hands, which a person would; that makes every number here a harsh one, and the same harshness for all five bosses.",
+  "clean": {
+    "delay_min": 0,
+    "delay_max": 0,
+    "redraw_frames": 30,
+    "attack_miss": 0.0,
+    "jump_late_max": 0,
+    "dropout_per_s": 0.0,
+    "dropout_frames": [0, 0]
+  },
+  "careful": {
+    "delay_min": 8,
+    "delay_max": 12,
+    "redraw_frames": 30,
+    "attack_miss": 0.05,
+    "jump_late_max": 3,
+    "dropout_per_s": 0.2,
+    "dropout_frames": [3, 6]
+  },
+  "phone": {
+    "delay_min": 12,
+    "delay_max": 20,
+    "redraw_frames": 30,
+    "attack_miss": 0.15,
+    "jump_late_max": 6,
+    "dropout_per_s": 0.5,
+    "dropout_frames": [4, 10]
+  }
+}

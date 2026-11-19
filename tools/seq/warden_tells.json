@@ -1,0 +1,82 @@
+[
+ {
+  "_": "long/warden: the Grove Warden's telegraphs, each photographed on its own frame (until_boss), then a phase break. Run the same file on the old Warden for the before set: tools/shot.sh --seq=tools/seq/warden_tells.json. Shots are named warden_<n>_<what>.png."
+ },
+ {
+  "scenario": "level:jungle_5",
+  "settle": 60
+ },
+ {
+  "teleport": [
+   28,
+   24
+  ],
+  "settle": 220
+ },
+ {
+  "shot": "shots/warden_0_arena.png"
+ },
+ {
+  "until_boss": "WINDUP",
+  "max": 900,
+  "after": 6
+ },
+ {
+  "shot": "shots/warden_1_slam_tell_early.png"
+ },
+ {
+  "wait": 18
+ },
+ {
+  "shot": "shots/warden_2_slam_tell_late.png"
+ },
+ {
+  "until_boss": "LAND",
+  "max": 300,
+  "after": 8
+ },
+ {
+  "shot": "shots/warden_3_shockwave.png"
+ },
+ {
+  "teleport": [
+   32,
+   23
+  ],
+  "settle": 30
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 45
+ },
+ {
+  "shot": "shots/warden_4_phase_break_leap.png"
+ },
+ {
+  "call": "debug_advance_boss_phase"
+ },
+ {
+  "wait": 40
+ },
+ {
+  "shot": "shots/warden_5_phase_break_fury.png"
+ },
+ {
+  "until_boss": "SPRAY",
+  "max": 1200,
+  "after": 12
+ },
+ {
+  "shot": "shots/warden_6_spray_tell.png"
+ },
+ {
+  "until_boss": "WALK",
+  "max": 120,
+  "after": 10
+ },
+ {
+  "shot": "shots/warden_7_spray.png"
+ }
+]
