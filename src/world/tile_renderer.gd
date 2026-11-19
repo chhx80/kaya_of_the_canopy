@@ -241,12 +241,31 @@ func _bounds() -> Rect2i:
 	var y1 := mini(world.height - 1, int(ceil((view.position.y + view.size.y) / TS)) + 1)
 	return Rect2i(x0, y0, x1 - x0, y1 - y0)
 
+## The chunks a tile rectangle touches, found by index rather than by walking
+## the whole level: both callers run per frame or per scrolled tile, and a
+## pilot-length level has six times today's chunks (docs/plan-longer-levels.md).
+func _chunks_in(b: Rect2i) -> Array[Chunk]:
+	var out: Array[Chunk] = []
+	if _chunk_cols <= 0 or b.size.x <= 0 or b.size.y <= 0:
+		return out
+	var rows := ceili(float(world.height) / CHUNK)
+	var cx0 := clampi(b.position.x / CHUNK, 0, _chunk_cols - 1)
+	var cy0 := clampi(b.position.y / CHUNK, 0, rows - 1)
+	var cx1 := clampi((b.end.x - 1) / CHUNK, 0, _chunk_cols - 1)
+	var cy1 := clampi((b.end.y - 1) / CHUNK, 0, rows - 1)
+	for cy in range(cy0, cy1 + 1):
+		for cx in range(cx0, cx1 + 1):
+			var i := cy * _chunk_cols + cx
+			if i < _chunks.size():
+				out.append(_chunks[i])
+	return out
+
 func _refresh_live() -> void:
 	_live = PackedInt32Array()
 	if anim == null or not anim.has_any() or world == null:
 		return
 	var b := _bounds().grow_individual(0, 0, 1, 1)
-	for c in _chunks:
+	for c in _chunks_in(b):
 		if c.anim_ids.is_empty() or not c.rect.intersects(b):
 			continue
 		for id in c.anim_ids:
@@ -260,7 +279,7 @@ func _process(_delta: float) -> void:
 	if _live.is_empty():
 		return
 	var b := _bounds().grow_individual(0, 0, 1, 1)
-	for c in _chunks:
+	for c in _chunks_in(b):
 		if c.anim_ids.is_empty() or not c.rect.intersects(b):
 			continue
 		var sig := anim.signature(c.anim_ids)

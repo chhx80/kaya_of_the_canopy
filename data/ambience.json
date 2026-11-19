@@ -438,6 +438,8 @@
       }
     },
 
+    "stress_200x45_deeps": {"_note": "Not a shipped level: the large-level stress fixture in tests/fixtures/ (tools/stress_level.py), given the darkest world's full lighting -- shade, vignette, lantern, an emitter per screen -- so its frame-time run measures the dark worst case. Mirrors deeps_3's look.", "world": "deeps", "air": {"ramp": "water", "step": 1, "alpha": 0.34}, "bg_tint": {"ramp": "water", "step": 3, "mix": 0.8, "scale": 0.52}, "fg_tint": {"ramp": "gold", "step": 5, "mix": 0.2, "scale": 0.92}, "vignette": 0.4, "darkness": 0.88, "emissive": {"214": {"ramp": "gold", "step": 6, "intensity": 0.34, "radius": 30, "lift": 5}}},
+    "stress_50x30_deeps": {"_note": "Its 50x30 twin, the same per-screen content: see stress_200x45_deeps.", "world": "deeps", "air": {"ramp": "water", "step": 1, "alpha": 0.34}, "bg_tint": {"ramp": "water", "step": 3, "mix": 0.8, "scale": 0.52}, "fg_tint": {"ramp": "gold", "step": 5, "mix": 0.2, "scale": 0.92}, "vignette": 0.4, "darkness": 0.88, "emissive": {"214": {"ramp": "gold", "step": 6, "intensity": 0.34, "radius": 30, "lift": 5}}},
     "test_arena": {
       "_note": "Left neutral on purpose. tools/itest.sh plays here, and a test that has to be re-baselined every time someone re-lights a level is a test nobody trusts.",
       "world": "jungle",

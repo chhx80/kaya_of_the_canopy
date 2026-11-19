@@ -250,7 +250,8 @@ def ladder_exits(lv):
 
 MUST_REACH = {"exit", "boss_exit", "key_yellow", "key_red", "key_cyan",
               "pad_frog", "pad_fish", "pad_bird", "pad_human",
-              "switch_a", "switch_b", "door_yellow", "door_red", "door_cyan"}
+              "switch_a", "switch_b", "door_yellow", "door_red", "door_cyan",
+              "checkpoint"}
 
 
 class _Stub:

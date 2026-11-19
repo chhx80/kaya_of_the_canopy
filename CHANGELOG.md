@@ -3437,3 +3437,51 @@ shouldering through breakable walls and a model of the blade's throw.
 REACHED is a replayed proof; NOT FOUND is a lead to check in the game.
 `--probe` runs one search from a tile, for "can she get from here to there".
 `tools/test.sh -- <name>` runs only the test files whose names contain `<name>`.
+
+## Longer levels, engine side: checkpoints, big levels, level metrics
+
+For the pilot in docs/plan-longer-levels.md (levels five times as long). The
+reference for level authors is docs/long-levels-engine.md.
+
+- **Checkpoints.** A level entity `{"type": "checkpoint", "x", "y"}` (the cell
+  Kaya stands in; `g.checkpoint(x, y)` in the DSL). Touching the post lights it
+  and records the world at that instant; a death with lives left reloads the
+  level and puts that world back: keys in hand, pickups already taken, doors
+  opened, levers and switch groups, broken blocks, a boss already beaten, and
+  Kaya's form and facing. Enemies, hearts (full) and form timers reset. She
+  respawns with 1.5 s of invulnerability. RESTART LEVEL, leaving, the title,
+  game over and a clear forget it; god mode falls return to it for free. The
+  rule restores one real instant as a whole, so it cannot shut a door behind a
+  spent key or hand out a key twice (the argument is in the doc).
+- **Keys are per level.** They used to survive a restart while the key pickups
+  came back (a death could double a key) and to carry into the next level.
+- The post is drawn natively at 2x by `tools/art/checkpoint_art.py` (unlit, and
+  a three-frame lit flame), throws an additive glow so it reads in the deeps,
+  and lighting it plays `checkpoint` (gen_audio.py), bursts the `checkpoint`
+  emitter (data/fx.json) and flashes CHECKPOINT. Tunables: data/checkpoint.json.
+- validate.sh checks every checkpoint can seat Kaya (room, no hazard, a floor no
+  lever can remove, or water/ladder) and now rejects unknown entity types. The
+  prover treats a checkpoint as a waypoint touched under the post's own box;
+  routes may name several as `checkpoint#n` (the DSL and the validity test now
+  accept the prover's `type#n`). reachability.py must reach them.
+- test_arena gains a checkpoint at (6,11) on its route, re-proved. Eight new
+  integration tests: lighting, respawn state, doors/levers/keys from the same
+  instant (jungle_2), RESTART/leave/game over forgetting it, god mode, respawn
+  invulnerability, and the levelstats replay agreeing with the game about the
+  frame the post is lit.
+- **Levels larger than 2x2 screens.** The prover's duplicate-state key packed x
+  into 11 bits, so past column 120 states differing only in x were merged; now
+  13 bits of x and 12 of y. The tile renderer's per-frame animation pass and
+  per-scroll live set walked every chunk of the level; now only those under the
+  view. Pickups far from the view no longer tick (the Level wakes them by
+  8-tile band as the view moves; data/camera.json). `tools/stress_level.py`
+  builds proved stress fixtures at any size (tests/fixtures/stress_*);
+  `{"route_perf": ...}` and `{"bench": ...}` capture steps time a whole route
+  and each level-sized per-frame path (tools/seq/long_perf.json,
+  long_bench.json). `Game.goto_level()` and clipgate take a fixture by path.
+- **tools/levelstats.sh**: per level, from the JSON and its proof tape replayed
+  in the prover's sim: tiles, screens (and screens the route passes), route
+  seconds, hops (and hops in a second form), checkpoints lit by the route and
+  the longest stretch between them, enemies and enemies per route-minute,
+  hazard tiles near the route, forms, pickups; `--json`, `--strict`. Unit-tested
+  (tests/test_levelstats.gd).

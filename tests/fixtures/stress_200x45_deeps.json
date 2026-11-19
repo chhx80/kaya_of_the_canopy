@@ -1,0 +1,589 @@
+{
+ "id": "stress_200x45_deeps",
+ "name": "STRESS 200x45",
+ "music": "",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  8,
+  3
+ ],
+ "fg": [
+  "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+  "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+  "S........OOOO.....................OOOO.....................OOOO.....................OOOO.....................OOOO.....................OOOO.....................OOOO.....................OOOO...........S",
+  "S......................................................................................................................................................................................................S",
+  "S..............######...................######...................######...................######...................######...................######...................######...................######...S",
+  "S..............dddddd...................dddddd...................dddddd...................dddddd...................dddddd...................dddddd...................dddddd...................dddddd...S",
+  "S.................|........................|........................|........................|........................|........................|........................|........................|.....S",
+  "S.................|........................|........................|........................|........................|........................|........................|........................|.....S",
+  "S.................|........................|........................|........................|........................|........................|........................|........................|.....S",
+  "S......................................................................................................................................................................................................S",
+  "S..............######...................######...................######...................######...................######...................######...................######...................######...S",
+  "S..............dddddd...................dddddd...................dddddd...................dddddd...................dddddd...................dddddd...................dddddd...................dddddd...S",
+  "S.................|........................|........................|........................|........................|........................|........................|........................|.....S",
+  "S.................|........................|........................|........................|........................|........................|........................|........................|.....S",
+  "S.................|........................|........................|........................|........................|........................|........................|........................|.....S",
+  "S......................................................................................................................................................................................................S",
+  "S..............######...................######...................######...................######...................######...................######...................######...................######...S",
+  "S..............dddddd...................dddddd...................dddddd...................dddddd...................dddddd...................dddddd...................dddddd...................dddddd...S",
+  "S.................|........................|........................|........................|........................|........................|........................|........................|.....S",
+  "S.................|........................|........................|........................|........................|........................|........................|........................|.....S",
+  "S.................|........................|........................|........................|........................|........................|........................|........................|.....S",
+  "S......................................................................................................................................................................................................S",
+  "S..............######...................######...................######...................######...................######...................######...................######...................######...S",
+  "S..............dddddd...................dddddd...................dddddd...................dddddd...................dddddd...................dddddd...................dddddd...................dddddd...S",
+  "S.................|........................|........................|........................|........................|........................|........................|........................|.....S",
+  "S.................|........................|........................|........................|........................|........................|........................|........................|.....S",
+  "S.................|........................|........................|........................|........................|........................|........................|........................|.....S",
+  "S......................................................................................................................................................................................................S",
+  "S..............######...................######...................######...................######...................######...................######...................######...................######...S",
+  "S..............dddddd...................dddddd...................dddddd...................dddddd...................dddddd...................dddddd...................dddddd...................dddddd...S",
+  "S.................|........................|........................|........................|........................|........................|........................|........................|.....S",
+  "S.................|........................|........................|........................|........................|........................|........................|........................|.....S",
+  "S.................|........................|.............c..........|........................|........................|........................|.............c..........|........................|.....S",
+  "S....................................................=====...............................................................................................=====.........................................S",
+  "S..............######...........c.................................................c................................######...........c.................................................c................S",
+  "S..............dddddd.......=====.............................................=====................................dddddd.......=====.............................................=====................S",
+  "S......c..........|........................................................................................c..........|................................................................................S",
+  "S..=====..........|...............................############..###########............................=====..........|...............................############..###########........................S",
+  "S.................|...............................dddddddddddd..ddddddddddd...........................................|...............................dddddddddddd..ddddddddddd........................S",
+  "S........................############..###########dddddddddddd..ddddddddddd############..###########.........................############..###########dddddddddddd..ddddddddddd############..###########",
+  "S........................dddddddddddd..ddddddddddddddddddddddd..ddddddddddddddddddddddd..ddddddddddd.........................dddddddddddd..ddddddddddddddddddddddd..ddddddddddddddddddddddd..ddddddddddd",
+  "#########################dddddddddddd..ddddddddddddddddddddddd..ddddddddddddddddddddddd..ddddddddddd############..###########dddddddddddd..ddddddddddddddddddddddd..ddddddddddddddddddddddd..ddddddddddd",
+  "ddddddddddddddddddddddddddddddddddddd..ddddddddddddddddddddddd..ddddddddddddddddddddddd..ddddddddddddddddddddddd..ddddddddddddddddddddddd..ddddddddddddddddddddddd..ddddddddddddddddddddddd..ddddddddddd",
+  "ddddddddddddddddddddddddddddddddddddd..ddddddddddddddddddddddd..ddddddddddddddddddddddd..ddddddddddddddddddddddd..ddddddddddddddddddddddd..ddddddddddddddddddddddd..ddddddddddddddddddddddd..ddddddddddd",
+  "ddddddddddddddddddddddddddddddddddddd^^ddddddddddddddddddddddd^^ddddddddddddddddddddddd^^ddddddddddddddddddddddd^^ddddddddddddddddddddddd^^ddddddddddddddddddddddd^^ddddddddddddddddddddddd^^ddddddddddd"
+ ],
+ "bg": [
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
+ ],
+ "entities": [
+  {
+   "type": "gem",
+   "x": 4,
+   "y": 36
+  },
+  {
+   "type": "gem",
+   "x": 6,
+   "y": 36
+  },
+  {
+   "type": "gem",
+   "x": 16,
+   "y": 3
+  },
+  {
+   "type": "gem",
+   "x": 16,
+   "y": 9
+  },
+  {
+   "type": "gem",
+   "x": 16,
+   "y": 15
+  },
+  {
+   "type": "gem",
+   "x": 16,
+   "y": 21
+  },
+  {
+   "type": "gem",
+   "x": 16,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 16,
+   "y": 33
+  },
+  {
+   "type": "gem",
+   "x": 29,
+   "y": 34
+  },
+  {
+   "type": "gem",
+   "x": 31,
+   "y": 34
+  },
+  {
+   "type": "gem",
+   "x": 41,
+   "y": 3
+  },
+  {
+   "type": "gem",
+   "x": 41,
+   "y": 9
+  },
+  {
+   "type": "gem",
+   "x": 41,
+   "y": 15
+  },
+  {
+   "type": "gem",
+   "x": 41,
+   "y": 21
+  },
+  {
+   "type": "gem",
+   "x": 41,
+   "y": 27
+  },
+  {
+   "type": "enemy_walker",
+   "x": 43,
+   "y": 38
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 33,
+   "y": 33
+  },
+  {
+   "type": "checkpoint",
+   "x": 47,
+   "y": 38
+  },
+  {
+   "type": "gem",
+   "x": 54,
+   "y": 32
+  },
+  {
+   "type": "gem",
+   "x": 56,
+   "y": 32
+  },
+  {
+   "type": "gem",
+   "x": 66,
+   "y": 3
+  },
+  {
+   "type": "gem",
+   "x": 66,
+   "y": 9
+  },
+  {
+   "type": "gem",
+   "x": 66,
+   "y": 15
+  },
+  {
+   "type": "gem",
+   "x": 66,
+   "y": 21
+  },
+  {
+   "type": "gem",
+   "x": 66,
+   "y": 27
+  },
+  {
+   "type": "enemy_walker",
+   "x": 68,
+   "y": 36
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 58,
+   "y": 31
+  },
+  {
+   "type": "gem",
+   "x": 79,
+   "y": 34
+  },
+  {
+   "type": "gem",
+   "x": 81,
+   "y": 34
+  },
+  {
+   "type": "gem",
+   "x": 91,
+   "y": 3
+  },
+  {
+   "type": "gem",
+   "x": 91,
+   "y": 9
+  },
+  {
+   "type": "gem",
+   "x": 91,
+   "y": 15
+  },
+  {
+   "type": "gem",
+   "x": 91,
+   "y": 21
+  },
+  {
+   "type": "gem",
+   "x": 91,
+   "y": 27
+  },
+  {
+   "type": "enemy_walker",
+   "x": 93,
+   "y": 38
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 83,
+   "y": 33
+  },
+  {
+   "type": "checkpoint",
+   "x": 97,
+   "y": 38
+  },
+  {
+   "type": "gem",
+   "x": 104,
+   "y": 36
+  },
+  {
+   "type": "gem",
+   "x": 106,
+   "y": 36
+  },
+  {
+   "type": "gem",
+   "x": 116,
+   "y": 3
+  },
+  {
+   "type": "gem",
+   "x": 116,
+   "y": 9
+  },
+  {
+   "type": "gem",
+   "x": 116,
+   "y": 15
+  },
+  {
+   "type": "gem",
+   "x": 116,
+   "y": 21
+  },
+  {
+   "type": "gem",
+   "x": 116,
+   "y": 27
+  },
+  {
+   "type": "gem",
+   "x": 116,
+   "y": 33
+  },
+  {
+   "type": "enemy_walker",
+   "x": 118,
+   "y": 40
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 108,
+   "y": 35
+  },
+  {
+   "type": "gem",
+   "x": 129,
+   "y": 34
+  },
+  {
+   "type": "gem",
+   "x": 131,
+   "y": 34
+  },
+  {
+   "type": "gem",
+   "x": 141,
+   "y": 3
+  },
+  {
+   "type": "gem",
+   "x": 141,
+   "y": 9
+  },
+  {
+   "type": "gem",
+   "x": 141,
+   "y": 15
+  },
+  {
+   "type": "gem",
+   "x": 141,
+   "y": 21
+  },
+  {
+   "type": "gem",
+   "x": 141,
+   "y": 27
+  },
+  {
+   "type": "enemy_walker",
+   "x": 143,
+   "y": 38
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 133,
+   "y": 33
+  },
+  {
+   "type": "checkpoint",
+   "x": 147,
+   "y": 38
+  },
+  {
+   "type": "gem",
+   "x": 154,
+   "y": 32
+  },
+  {
+   "type": "gem",
+   "x": 156,
+   "y": 32
+  },
+  {
+   "type": "gem",
+   "x": 166,
+   "y": 3
+  },
+  {
+   "type": "gem",
+   "x": 166,
+   "y": 9
+  },
+  {
+   "type": "gem",
+   "x": 166,
+   "y": 15
+  },
+  {
+   "type": "gem",
+   "x": 166,
+   "y": 21
+  },
+  {
+   "type": "gem",
+   "x": 166,
+   "y": 27
+  },
+  {
+   "type": "enemy_walker",
+   "x": 168,
+   "y": 36
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 158,
+   "y": 31
+  },
+  {
+   "type": "gem",
+   "x": 179,
+   "y": 34
+  },
+  {
+   "type": "gem",
+   "x": 181,
+   "y": 34
+  },
+  {
+   "type": "gem",
+   "x": 191,
+   "y": 3
+  },
+  {
+   "type": "gem",
+   "x": 191,
+   "y": 9
+  },
+  {
+   "type": "gem",
+   "x": 191,
+   "y": 15
+  },
+  {
+   "type": "gem",
+   "x": 191,
+   "y": 21
+  },
+  {
+   "type": "gem",
+   "x": 191,
+   "y": 27
+  },
+  {
+   "type": "enemy_walker",
+   "x": 193,
+   "y": 38
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 183,
+   "y": 33
+  },
+  {
+   "type": "player_spawn",
+   "x": 2,
+   "y": 40
+  },
+  {
+   "type": "exit",
+   "x": 197,
+   "y": 38
+  }
+ ],
+ "marks": {
+  "sec0": {
+   "x": 20,
+   "y": 40
+  },
+  "sec1": {
+   "x": 45,
+   "y": 38
+  },
+  "sec2": {
+   "x": 70,
+   "y": 36
+  },
+  "sec3": {
+   "x": 95,
+   "y": 38
+  },
+  "sec4": {
+   "x": 120,
+   "y": 40
+  },
+  "sec5": {
+   "x": 145,
+   "y": 38
+  },
+  "sec6": {
+   "x": 170,
+   "y": 36
+  },
+  "sec7": {
+   "x": 195,
+   "y": 38
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "sec0",
+   "form": "human"
+  },
+  {
+   "from": "sec0",
+   "to": "sec1",
+   "form": "human"
+  },
+  {
+   "from": "sec1",
+   "to": "checkpoint#0",
+   "form": "human"
+  },
+  {
+   "from": "checkpoint#0",
+   "to": "sec2",
+   "form": "human"
+  },
+  {
+   "from": "sec2",
+   "to": "sec3",
+   "form": "human"
+  },
+  {
+   "from": "sec3",
+   "to": "checkpoint#1",
+   "form": "human"
+  },
+  {
+   "from": "checkpoint#1",
+   "to": "sec4",
+   "form": "human"
+  },
+  {
+   "from": "sec4",
+   "to": "sec5",
+   "form": "human"
+  },
+  {
+   "from": "sec5",
+   "to": "checkpoint#2",
+   "form": "human"
+  },
+  {
+   "from": "checkpoint#2",
+   "to": "sec6",
+   "form": "human"
+  },
+  {
+   "from": "sec6",
+   "to": "sec7",
+   "form": "human"
+  },
+  {
+   "from": "sec7",
+   "to": "exit",
+   "form": "human"
+  }
+ ],
+ "tileset": "deeps"
+}

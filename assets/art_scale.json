@@ -122,6 +122,10 @@
    "native": true,
    "scale": 2
   },
+  "sprites/checkpoint.png": {
+   "scale": 2,
+   "native": true
+  },
   "sprites/enemy_charger.png": {
    "native": true,
    "scale": 2

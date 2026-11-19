@@ -1,0 +1,7 @@
+[
+  {"_": "docs/plan-longer-levels.md: the per-frame paths that walk something sized by the level, timed in isolation (dev_capture.gd _bench). 50x30 against its 200x45 twin, lit and dark."},
+  {"bench": "res://tests/fixtures/stress_50x30_jungle.json", "iters": 600},
+  {"bench": "res://tests/fixtures/stress_200x45_jungle.json", "iters": 600},
+  {"bench": "res://tests/fixtures/stress_50x30_deeps.json", "iters": 600},
+  {"bench": "res://tests/fixtures/stress_200x45_deeps.json", "iters": 600}
+]

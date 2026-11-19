@@ -24,6 +24,11 @@ extends Node
 ##                                        landing-dip capture without guessing
 ##                                        a frame count from outside)
 ##   {"perf": "label", "frames": 240}    measure frame cost and print it
+##   {"route_perf": "jungle_1"}          play the level's proof tape through real input
+##   {"route_perf": "res://tests/fixtures/x.json"}  ...or a fixture's, by path, and
+##                                       time every frame of it (docs/plan-longer-levels.md)
+##   {"bench": "res://tests/fixtures/x.json", "iters": 600}  time, in isolation, each
+##                                       per-frame path that could grow with level area
 ##   {"perf": "label", "cap": 60}        ...with the frame rate held at 60, the
 ##                                        way a phone runs it: every frame then
 ##                                        carries a physics tick, so per-frame
@@ -250,6 +255,12 @@ func _run_step(step: Dictionary) -> bool:
 		_play_tape(String(step["tape"]), String(step.get("shots", "")),
 			int(step.get("every", 150)), int(step.get("max", 4)), int(step.get("skip", 0)))
 		return true   # async, like perf
+	if step.has("bench"):
+		_bench(String(step["bench"]), int(step.get("iters", 600)))
+		return true   # async
+	if step.has("route_perf"):
+		_route_perf(String(step["route_perf"]))
+		return true   # async
 	if step.has("perf"):
 		_measure(String(step["perf"]), int(step.get("frames", 240)), int(step.get("cap", 0)))
 		return true   # async; _measure clears _busy and the sequencer resumes
@@ -472,6 +483,219 @@ func _end_async() -> void:
 	_busy = false
 	if _step_i >= _steps.size():
 		_finish()
+
+## Frame cost along a whole route: what a level of a given SIZE costs, for the
+## longer-levels pilot (docs/plan-longer-levels.md). Loads the level by id or by
+## res:// path, plays its proof tape through Input exactly as the capture `tape`
+## step does (Kaya held invulnerable, hitstop spends no tape), and samples every
+## physics tick: the engine's own physics and process times, and -- when there
+## is a renderer -- the world viewport's render CPU/GPU time and the draw calls.
+## Uncapped and vsync off, as `perf` runs, so a windowed run also reports the
+## wall time of every rendered frame. Headless (no renderer) the render columns
+## read 0 and the script cost is the whole story.
+const _TAPE_ACTIONS := {1: "move_left", 2: "move_right", 4: "move_up", 8: "move_down",
+	16: "jump", 32: "attack"}
+## Ticks dropped from the front of a route_perf sample: the level's first
+## frames build chunks and upload art, which is load cost, not frame cost.
+const _ROUTE_PERF_WARMUP := 30
+
+## Brackets one tick's script work: a node that runs first (lowest priority)
+## and one that runs last, each stamping the clock. The difference is what every
+## _physics_process (or _process) in the tree cost this tick -- tighter than the
+## engine's monitors, which also count the engine's own stepping.
+class _Stamp extends Node:
+	var start: Array = [0]           ## shared with the pair's other half
+	var samples: Array[float] = []   ## filled by the last-running half, in ms
+	var first := true
+	var physics := true
+	func _ready() -> void:
+		process_mode = Node.PROCESS_MODE_ALWAYS
+	func _physics_process(_d: float) -> void:
+		if physics:
+			_stamp_now()
+	func _process(_d: float) -> void:
+		if not physics:
+			_stamp_now()
+	func _stamp_now() -> void:
+		var now := Time.get_ticks_usec()
+		if first:
+			start[0] = now
+		elif int(start[0]) > 0:
+			samples.append(float(now - int(start[0])) / 1000.0)
+
+func _stamp(physics: bool, first: bool, start: Array, samples: Array[float]) -> _Stamp:
+	var s := _Stamp.new()
+	s.physics = physics
+	s.first = first
+	s.start = start
+	s.samples = samples
+	if physics:
+		s.process_physics_priority = -100000 if first else 100000
+	else:
+		s.process_priority = -100000 if first else 100000
+	get_tree().root.add_child(s)
+	return s
+
+func _route_perf(id: String) -> void:
+	_busy = true
+	var level_path := id if id.begins_with("res://") else LevelLoader.level_path(id)
+	var frames := ProverTape.frames(ProverTape.tape_path_for(level_path), level_path)
+	if frames.is_empty():
+		print("[route_perf] %s: no fresh tape (%s)" % [id,
+			ProverTape.staleness(ProverTape.tape_path_for(level_path), level_path)])
+		_end_async()
+		return
+	Game.reset_run()
+	Game.goto_level(id)
+	for _i in 30:
+		await get_tree().physics_frame
+	var lvl: Node = Game.current_level
+	var w: TileWorld = lvl.get("world") if lvl != null else null
+	var vp := get_viewport()
+	var rid := RID()
+	var wvp: Variant = Game.main.get("world_viewport") if Game.main != null else null
+	if wvp is SubViewport:
+		rid = (wvp as SubViewport).get_viewport_rid()
+		RenderingServer.viewport_set_measure_render_time(rid, true)
+	var old_vsync := DisplayServer.window_get_vsync_mode()
+	var old_max := Engine.max_fps
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	Engine.max_fps = 0
+	var phys: Array[float] = []
+	var proc: Array[float] = []
+	var wcpu := 0.0
+	var wgpu := 0.0
+	var calls := 0.0
+	var frame_ms: Array[float] = []
+	var counter := [0, Time.get_ticks_usec()]
+	var on_draw := func() -> void:
+		var now := Time.get_ticks_usec()
+		frame_ms.append(float(now - int(counter[1])) / 1000.0)
+		counter[1] = now
+	RenderingServer.frame_post_draw.connect(on_draw)
+	var tick_ms: Array[float] = []
+	var idle_ms: Array[float] = []
+	var ps: Array = [0]
+	var qs: Array = [0]
+	var probes: Array[Node] = [_stamp(true, true, ps, tick_ms), _stamp(true, false, ps, tick_ms),
+		_stamp(false, true, qs, idle_ms), _stamp(false, false, qs, idle_ms)]
+	var sim := 0
+	var i := 0
+	var completed := false
+	while i < frames.size():
+		var bits := frames[i]
+		for b: int in _TAPE_ACTIONS.keys():
+			if bits & b:
+				_press(String(_TAPE_ACTIONS[b]))
+			else:
+				_release(String(_TAPE_ACTIONS[b]))
+		lvl = Game.current_level
+		if lvl == null or lvl.get("player") == null or Game.state != Game.State.LEVEL:
+			completed = Game.state == Game.State.HUB
+			break
+		lvl.player.set("invuln", 1.0)
+		await get_tree().physics_frame
+		phys.append(Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0)
+		proc.append(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0)
+		calls += Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
+		if rid.is_valid():
+			wcpu += RenderingServer.viewport_get_measured_render_time_cpu(rid)
+			wgpu += RenderingServer.viewport_get_measured_render_time_gpu(rid)
+		if Game.sim_paused:
+			continue
+		i += 1
+		sim += 1
+	RenderingServer.frame_post_draw.disconnect(on_draw)
+	for pr in probes:
+		pr.queue_free()
+	_release_all()
+	DisplayServer.window_set_vsync_mode(old_vsync)
+	Engine.max_fps = old_max
+	if rid.is_valid():
+		RenderingServer.viewport_set_measure_render_time(rid, false)
+	var n := maxi(1, phys.size())
+	for a: Array[float] in [frame_ms, tick_ms, idle_ms]:
+		if a.size() > _ROUTE_PERF_WARMUP:
+			var rest := a.slice(_ROUTE_PERF_WARMUP)
+			a.clear()
+			a.append_array(rest)
+	print("[route_perf] %s tiles=%s tape_frames=%d sampled=%d completed=%s | script_physics_ms %s | script_process_ms %s | engine physics_ms %s | engine process_ms %s | frame_ms %s (%d drawn) | world_cpu=%.3f world_gpu=%.3f draw_calls=%.0f | nodes=%d" % [
+		id, "%dx%d" % [w.width, w.height] if w != null else "?", frames.size(), phys.size(),
+		str(completed or Game.state == Game.State.HUB), _dist(tick_ms), _dist(idle_ms),
+		_dist(phys.slice(mini(phys.size(), _ROUTE_PERF_WARMUP))),
+		_dist(proc.slice(mini(proc.size(), _ROUTE_PERF_WARMUP))), _dist(frame_ms),
+		frame_ms.size(), wcpu / n, wgpu / n, calls / n,
+		int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT))])
+	_end_async()
+
+## The per-frame paths that walk something sized by the LEVEL rather than by
+## the view, each called `iters` times on a level that has settled with Kaya
+## mid-route, and timed per call in microseconds: every pickup's tick, the wake
+## pass over every enemy, both tile layers' animation pass, a scroll of one
+## tile (the cull change that re-collects live animations and light pools), and
+## the whole tree's canvas items. Compare a 50x30 row with its 200x45 twin.
+func _bench(id: String, iters: int) -> void:
+	_busy = true
+	Game.reset_run()
+	Game.goto_level(id)
+	for _i in 20:
+		await get_tree().physics_frame
+	var lvl: Node = Game.current_level
+	var w: TileWorld = lvl.get("world")
+	var pl: Actor = lvl.get("player")
+	# Mid-level, on the floor: the same relative spot in either size.
+	pl.pos = Vector2(w.pixel_width() * 0.5, pl.pos.y)
+	lvl.call("settle_view")
+	for _i in 20:
+		await get_tree().physics_frame
+	var pickups := get_tree().get_nodes_in_group(&"pickups")
+	var enemies := get_tree().get_nodes_in_group(&"enemies")
+	var tiles_fg: Node = lvl.get("tiles_fg")
+	var tiles_bg: Node = lvl.get("tiles_bg")
+	var lights: Node = lvl.get("lights")
+	var cam: Node = lvl.get("cam")
+	var r: Rect2 = cam.call("view_rect")
+	var out := {}
+	var t := Time.get_ticks_usec()
+	# What the engine would tick: only the pickups the level has left awake.
+	var awake := pickups.filter(func(n: Node) -> bool: return n.is_physics_processing())
+	for _i in iters:
+		for n in awake:
+			n.call("_physics_process", 1.0 / 60.0)
+	out["pickups"] = Time.get_ticks_usec() - t
+	t = Time.get_ticks_usec()
+	for _i in iters:
+		lvl.call("_update_wake")
+	out["wake"] = Time.get_ticks_usec() - t
+	t = Time.get_ticks_usec()
+	for _i in iters:
+		tiles_fg.call("_process", 1.0 / 60.0)
+		tiles_bg.call("_process", 1.0 / 60.0)
+	out["tile_anim"] = Time.get_ticks_usec() - t
+	t = Time.get_ticks_usec()
+	for i in iters:
+		var step := Vector2(float(TileData4.TILE_SIZE) * float(i % 2), 0.0)
+		lvl.call("_on_view_changed", Rect2(r.position + step, r.size))
+	out["scroll_tile"] = Time.get_ticks_usec() - t
+	lvl.call("_on_view_changed", r)
+	print("[bench] %s tiles=%dx%d pickups=%d(%d awake) enemies=%d chunks=%d emissive=%d | us/call: pickups=%.1f wake=%.1f tile_anim=%.1f scroll_one_tile=%.1f" % [
+		id, w.width, w.height, pickups.size(), awake.size(), enemies.size(),
+		tiles_fg.get_child_count() + tiles_bg.get_child_count(),
+		(lights.get("_emissive_all") as Array).size(),
+		float(out["pickups"]) / iters, float(out["wake"]) / iters,
+		float(out["tile_anim"]) / iters, float(out["scroll_tile"]) / iters])
+	_end_async()
+
+static func _dist(a: Array[float]) -> String:
+	if a.is_empty():
+		return "-"
+	var s := a.duplicate()
+	s.sort()
+	var sum := 0.0
+	for v: float in s:
+		sum += v
+	return "avg=%.3f p50=%.3f p95=%.3f max=%.3f" % [sum / s.size(), s[s.size() / 2],
+		s[int(s.size() * 0.95)], s[s.size() - 1]]
 
 ## Frame cost, for the phase 3 lighting decision (docs/art-direction.md).
 ##

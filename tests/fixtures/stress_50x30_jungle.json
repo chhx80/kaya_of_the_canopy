@@ -1,0 +1,174 @@
+{
+ "id": "stress_50x30_jungle",
+ "name": "STRESS 50x30",
+ "music": "",
+ "next_level": "",
+ "topdown": false,
+ "screens": [
+  2,
+  2
+ ],
+ "fg": [
+  "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+  "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",
+  "S................................................S",
+  "S................................................S",
+  "S..............######...................######...S",
+  "S..............dddddd...................dddddd...S",
+  "S.................|........................|.....S",
+  "S.................|........................|.....S",
+  "S.................|........................|.....S",
+  "S................................................S",
+  "S..............######...................######...S",
+  "S..............dddddd...................dddddd...S",
+  "S.................|........................|.....S",
+  "S.................|........................|.....S",
+  "S.................|........................|.....S",
+  "S................................................S",
+  "S..............######...................######...S",
+  "S..............dddddd...................dddddd...S",
+  "S.................|........................|.....S",
+  "S.................|.............c..........|.....S",
+  "S.................|.........=====..........|.....S",
+  "S......c.........................................S",
+  "S..=====.........................................S",
+  "S................................................S",
+  "S........................############..###########",
+  "S........................dddddddddddd..ddddddddddd",
+  "#########################dddddddddddd..ddddddddddd",
+  "ddddddddddddddddddddddddddddddddddddd..ddddddddddd",
+  "ddddddddddddddddddddddddddddddddddddd..ddddddddddd",
+  "ddddddddddddddddddddddddddddddddddddd^^ddddddddddd"
+ ],
+ "bg": [
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLTLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLTLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
+ ],
+ "entities": [
+  {
+   "type": "gem",
+   "x": 4,
+   "y": 21
+  },
+  {
+   "type": "gem",
+   "x": 6,
+   "y": 21
+  },
+  {
+   "type": "gem",
+   "x": 16,
+   "y": 3
+  },
+  {
+   "type": "gem",
+   "x": 16,
+   "y": 9
+  },
+  {
+   "type": "gem",
+   "x": 16,
+   "y": 15
+  },
+  {
+   "type": "gem",
+   "x": 29,
+   "y": 19
+  },
+  {
+   "type": "gem",
+   "x": 31,
+   "y": 19
+  },
+  {
+   "type": "gem",
+   "x": 41,
+   "y": 3
+  },
+  {
+   "type": "gem",
+   "x": 41,
+   "y": 9
+  },
+  {
+   "type": "gem",
+   "x": 41,
+   "y": 15
+  },
+  {
+   "type": "enemy_walker",
+   "x": 43,
+   "y": 23
+  },
+  {
+   "type": "enemy_flyer",
+   "x": 33,
+   "y": 18
+  },
+  {
+   "type": "player_spawn",
+   "x": 2,
+   "y": 25
+  },
+  {
+   "type": "exit",
+   "x": 47,
+   "y": 23
+  }
+ ],
+ "marks": {
+  "sec0": {
+   "x": 20,
+   "y": 25
+  },
+  "sec1": {
+   "x": 45,
+   "y": 23
+  }
+ },
+ "route": [
+  {
+   "from": "spawn",
+   "to": "sec0",
+   "form": "human"
+  },
+  {
+   "from": "sec0",
+   "to": "sec1",
+   "form": "human"
+  },
+  {
+   "from": "sec1",
+   "to": "exit",
+   "form": "human"
+  }
+ ]
+}

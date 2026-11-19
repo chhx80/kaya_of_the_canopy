@@ -119,8 +119,49 @@ static func list_levels() -> PackedStringArray:
 	out.sort()
 	return out
 
+## A level id, or -- for fixtures that are levels but not the game's, like the
+## large-level stress fixture in tests/fixtures/ -- a res:// path to one, so
+## `Game.goto_level("res://tests/fixtures/x.json")` plays it in the real Level.
 static func load_level(id: String) -> LevelDef:
+	if id.begins_with("res://"):
+		return load_path(id)
 	return load_path(level_path(id), id)
+
+## Where a checkpoint may stand, from its entity tile (the cell Kaya stands in):
+## room for her and the two-tile post (neither cell solid, the one above inside
+## the grid; a switch block counts as solid in either state), nothing that hurts
+## in either, and something to be seated on -- a solid floor that no lever can
+## take away, a one-way floor, or water or a ladder in the cell itself.
+## A respawn seats her there with no other check, so a post on spikes or over a
+## drop would be a death loop. Pure; tools/validate.sh and the unit tier run it.
+static func checkpoint_problems(def: LevelDef) -> PackedStringArray:
+	var out := PackedStringArray()
+	if def.world == null:
+		return out
+	var w := def.world
+	var seen := {}
+	for e: Dictionary in def.entities_of("checkpoint"):
+		var tx := int(e.get("x", -1))
+		var ty := int(e.get("y", -1))
+		var at := "level '%s': checkpoint at (%d,%d)" % [def.id, tx, ty]
+		if not w.in_bounds(tx, ty) or ty < 1:
+			out.append("%s is outside the grid or has no row above it for the post" % at)
+			continue
+		if seen.has(Vector2i(tx, ty)):
+			out.append("%s is placed twice" % at)
+		seen[Vector2i(tx, ty)] = true
+		for y in [ty, ty - 1]:
+			if w.flags_at(tx, y) & TileData4.Flag.SOLID:
+				out.append("%s: cell (%d,%d) is solid" % [at, tx, y])
+			if w.is_hazard(tx, y):
+				out.append("%s: cell (%d,%d) is a hazard" % [at, tx, y])
+		var below := w.flags_at(tx, ty + 1)
+		var firm := below & TileData4.Flag.SOLID != 0 and below & TileData4.Flag.SWITCHED == 0
+		var floor_ok := firm or w.is_oneway(tx, ty + 1)
+		if not floor_ok and not w.is_water(tx, ty) and not w.is_ladder(tx, ty):
+			out.append("%s has nothing to stand on: (%d,%d) is neither solid nor one-way, and the cell is not water or a ladder"
+				% [at, tx, ty + 1])
+	return out
 
 
 ## Load a level from an explicit path, rather than by id out of LEVEL_DIR. Used by

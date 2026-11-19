@@ -84,8 +84,14 @@ func _physics_process(delta: float) -> void:
 			level.hud.flash_message("NEED THE %s KEY" % key_color.to_upper())
 
 func _open() -> void:
-	open = true
 	AudioManager.play("door")
+	Game.add_score(50)
+	open_quietly()
+
+## Open with no sound and no score: a checkpoint respawn putting back a door
+## that was already opened before the post was lit.
+func open_quietly() -> void:
+	open = true
 	for s in _sprites:
 		s.region_rect = Rect2(OPEN_FRAME * 16, 0, 16, 16)
 	if world != null:
@@ -93,4 +99,3 @@ func _open() -> void:
 			world.set_fg(t.x, t.y, 0)
 	if level != null:
 		level.on_tile_broken(_tile)
-	Game.add_score(50)

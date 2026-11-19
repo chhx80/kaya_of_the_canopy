@@ -1,0 +1,8 @@
+{
+  "_comment": "tools/levelstats.sh (tools/levelstats/level_stats.gd). How the per-level report counts; docs/plan-longer-levels.md is what it is held against.",
+  "_near_hazard_tiles": "A hazard tile is 'near the route' when it lies within this many tiles of Kaya's body on any frame of the proof tape: close enough that a mistimed jump or a step too far meets it. 2 is a human jump's horizontal overshoot at a run (about 30 px) rounded up to whole tiles.",
+  "near_hazard_tiles": 2,
+  "_targets": "The plan's targets, printed under the table so a reader does not have to remember them: route seconds per level, and screens per level.",
+  "target_route_s": [75, 120],
+  "target_screens": [16, 20]
+}

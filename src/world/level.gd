@@ -53,6 +53,20 @@ var amb: Ambience = null
 var hud: Node = null
 var boss: Enemy = null
 var _restarting := false
+## LevelDef.entities index -> the node spawned for it, for the entities whose
+## state a checkpoint remembers (pickups, doors, levers, the posts themselves),
+## and -> what kind it is. The kind is kept apart because a taken pickup frees
+## itself, and a freed node can no longer say what it was.
+var _entity_nodes: Dictionary = {}
+var _entity_kinds: Dictionary = {}
+## The checkpoint Kaya is respawned at, if any. Lit; the others are not.
+var active_checkpoint: Checkpoint = null
+## The tile band (view + pickup margin, snapped out to pickup_band_tiles) the
+## pickups were last woken for; see _wake_pickups().
+var _pickup_band := Rect2i()
+## The id this level was loaded by: what Game.current_level_id holds. The same
+## as def.id for a level in levels/, a res:// path for a fixture.
+var load_id := ""
 
 func _ready() -> void:
 	bg_sky = ParallaxBg.new()
@@ -102,6 +116,7 @@ func _apply_ambience() -> void:
 		l.setup(l.role, amb, world)
 
 func load_level(id: String) -> void:
+	load_id = id
 	def = LevelLoader.load_level(id)
 	if not def.ok():
 		for e in def.errors:
@@ -116,6 +131,9 @@ func load_level(id: String) -> void:
 	if player == null:
 		push_error("Level: no player spawned")
 		return
+	var cp := Game.checkpoint_for(load_id)
+	if not cp.is_empty():
+		_restore_checkpoint(cp)
 
 	cam.setup(world, player)
 	# Juice is wired up once the camera and the particle layer both exist. If
@@ -146,8 +164,26 @@ func _exit_tree() -> void:
 		hud.queue_free()
 
 func _spawn_entities() -> void:
-	for e: Dictionary in def.entities:
-		spawn_entity(e)
+	_entity_nodes.clear()
+	_entity_kinds.clear()
+	for i in def.entities.size():
+		var n := spawn_entity(def.entities[i])
+		if n == null:
+			continue
+		if n is Checkpoint:
+			(n as Checkpoint).index = i
+		var kind := &""
+		if n is Pickup:
+			kind = &"pickup"
+		elif n is Door:
+			kind = &"door"
+		elif n is SwitchTrigger:
+			kind = &"lever"
+		elif n is Checkpoint:
+			kind = &"checkpoint"
+		if kind != &"":
+			_entity_nodes[i] = n
+			_entity_kinds[i] = kind
 
 ## Central factory. New entity types are registered here and nowhere else.
 func spawn_entity(e: Dictionary) -> Node:
@@ -231,6 +267,12 @@ func _spawn_gameplay_entity(type: String, p: Vector2, e: Dictionary) -> Node:
 			pad.setup(p + Vector2(0, 8), type.substr(4))
 			entities.add_child(pad)
 			return pad
+		"checkpoint":
+			var cp := Checkpoint.new()
+			cp.setup(p, -1)
+			cp.level = self
+			entities.add_child(cp)
+			return cp
 		"exit":
 			var ex := LevelExit.new()
 			ex.setup(p)
@@ -289,6 +331,12 @@ func on_boss_defeated(fallen: Enemy) -> void:
 		# There are two now and there will be five.
 		var who := String(fallen.cfg.get("display_name", "THE BOSS"))
 		hud.flash_message("%s FALLS" % who, 2.4)
+	_open_boss_gate(fallen)
+
+## The way out a beaten boss opens: its authored `boss_exit`, or, with none
+## authored, a gate where it stood. Also run quietly by a checkpoint respawn
+## after the boss has already fallen.
+func _open_boss_gate(fallen: Enemy) -> void:
 	for e: Dictionary in def.entities:
 		if String(e.get("type", "")) == "boss_exit":
 			var open_at := e.duplicate()
@@ -321,6 +369,30 @@ func _on_view_changed(r: Rect2) -> void:
 	air.set_view(r)
 	shade.set_view(r)
 	lights.set_view(r)
+	_wake_pickups(r)
+
+## Pickups near the view tick; the rest are switched off, so their cost does not
+## grow with the level (docs/plan-longer-levels.md). Re-decided only when the
+## view, grown by the margin, crosses into a new band of tiles -- once every
+## `pickup_band_tiles` of scroll, not every frame. The band is the decision's
+## rectangle too, so a pickup inside it stays awake until the next crossing.
+func _wake_pickups(r: Rect2) -> void:
+	var band_t := maxi(1, int(cam.cfg_num("pickup_band_tiles", 8.0)))
+	var g := r.grow(cam.cfg_num("pickup_wake_margin_px", 32.0))
+	var unit := float(band_t * TileData4.TILE_SIZE)
+	var x0 := int(floor(g.position.x / unit))
+	var y0 := int(floor(g.position.y / unit))
+	var band := Rect2i(x0, y0, int(floor(g.end.x / unit)) - x0 + 1,
+		int(floor(g.end.y / unit)) - y0 + 1)
+	if band == _pickup_band:
+		return
+	_pickup_band = band
+	var awake := Rect2(Vector2(band.position) * unit, Vector2(band.size) * unit)
+	for n in get_tree().get_nodes_in_group(&"pickups"):
+		var pu := n as Pickup
+		if pu == null or pu.level != self:
+			continue
+		pu.set_physics_process(pu.tossed or awake.intersects(pu.aabb()))
 
 func _physics_process(_delta: float) -> void:
 	if cam == null or world == null or player == null:
@@ -392,6 +464,12 @@ func debug_make_fish() -> void:
 func debug_give_yellow_key() -> void:
 	Game.add_key("yellow")
 
+## And again: a death on demand, so a capture can show a checkpoint respawn
+## without staging a fall.
+func debug_kill_player() -> void:
+	if player != null:
+		player.kill()
+
 ## Likewise: puts the nearest enemy down on the spot, so a capture can show the
 ## death scatter and the hitstop without first staging a two-throw fight.
 func debug_kill_nearest_enemy() -> void:
@@ -450,9 +528,136 @@ func debug_toggle_switch(group: int = 1) -> void:
 func debug_shake_boss_slam() -> void:
 	Fx.shake("boss_slam")
 
+# ---------------------------------------------------------------- checkpoints
+## Kaya stepped onto a post. It becomes the active checkpoint and the world is
+## remembered as it stands this instant; see checkpoint_snapshot() for what
+## that covers and docs/plan-longer-levels.md for why it cannot soft-lock.
+func on_checkpoint_touched(cp: Checkpoint) -> void:
+	if player == null or player.dead or _restarting:
+		return
+	var first := cp != active_checkpoint
+	Game.set_checkpoint(checkpoint_snapshot(cp))
+	_activate_checkpoint(cp)
+	if not first:
+		return
+	AudioManager.play("checkpoint")
+	Fx.burst("checkpoint", cp.brazier())
+	if hud != null and hud.has_method("flash_message"):
+		hud.flash_message(String(Checkpoint.cfg().get("flash_text", "CHECKPOINT")),
+			Checkpoint.num("flash_s", 1.4))
+
+func _activate_checkpoint(cp: Checkpoint) -> void:
+	if active_checkpoint != null and is_instance_valid(active_checkpoint) and active_checkpoint != cp:
+		active_checkpoint.set_lit(false)
+	active_checkpoint = cp
+	cp.set_lit(true)
+
+## THE CHECKPOINT RULE. What a respawn puts back is the world at the moment the
+## post was touched, minus what is meant to come back:
+##
+##   kept  -- the keys in hand; every pickup already taken (gems, hearts, keys:
+##            they stay gone); every door opened; every lever's position and
+##            both switch groups; every broken block; a boss already beaten
+##            (and the gate it opened); Kaya's form and facing.
+##   reset -- enemies, back on their spawns at full health (the wake rule's
+##            "killed is killed" is per attempt); hearts, refilled to full as a
+##            restart always has; bird stamina and every form timer; enemy
+##            drops not yet picked up; a boss not yet beaten.
+##
+## Why that cannot soft-lock: every kept item is exactly what it was at one
+## instant Kaya actually stood on the post, and it is restored as a whole --
+## keys, doors and pickups from the same frame -- so a respawn can never hold a
+## door shut whose key is gone, or hand out a key twice. The only things that
+## differ from that instant are enemies (which gate nothing), hearts (more, not
+## fewer) and form timers (fresh). So any way on from the post that existed
+## when she stood there exists again. The form matters: pads are one-way, so
+## respawning a frog as a human past the frog pad could strand her; she comes
+## back in the shape she touched it in.
+func checkpoint_snapshot(cp: Checkpoint) -> Dictionary:
+	var taken: Array = []
+	var doors: Array = []
+	var levers: Dictionary = {}
+	for i: int in _entity_nodes.keys():
+		var v: Variant = _entity_nodes[i]
+		var alive := is_instance_valid(v)
+		match _entity_kinds[i]:
+			&"pickup":
+				if not alive or (v as Pickup).is_taken():
+					taken.append(i)
+			&"door":
+				if alive and (v as Door).open:
+					doors.append(i)
+			&"lever":
+				if alive:
+					levers[i] = (v as SwitchTrigger).on
+	taken.sort()
+	doors.sort()
+	return {
+		"level": load_id,
+		"index": cp.index,
+		"form": player.form_id,
+		"facing": player.facing,
+		"keys": Game.keys.duplicate(),
+		"taken": taken,
+		"doors": doors,
+		"levers": levers,
+		"switch_states": world.switch_states.duplicate(),
+		"broken": world.broken_cells(),
+		"boss_defeated": boss != null and (not is_instance_valid(boss) or boss.defeated),
+	}
+
+## Called by load_level() on a respawn, after every entity has spawned and
+## before the camera is set up, so the first frame already frames the post.
+func _restore_checkpoint(snap: Dictionary) -> void:
+	var i := int(snap.get("index", -1))
+	var cp: Checkpoint = _entity_nodes.get(i) as Checkpoint \
+		if _entity_kinds.get(i, &"") == &"checkpoint" else null
+	if cp == null:
+		push_warning("Level: checkpoint %d is not in %s; respawning at the spawn" % [i, def.id])
+		Game.clear_checkpoint()
+		return
+	for k: Variant in snap.get("taken", []):
+		if _entity_kinds.get(int(k), &"") == &"pickup":
+			var pu: Pickup = _entity_nodes[int(k)] as Pickup
+			# Gone for good: marked taken (so a snapshot taken later still
+			# counts it) and freed, without a pickup's sound or score.
+			pu.take_quietly()
+	for k: Variant in snap.get("doors", []):
+		var dr: Door = _entity_nodes.get(int(k)) as Door
+		if dr != null:
+			dr.open_quietly()
+	var levers: Dictionary = snap.get("levers", {})
+	for k: Variant in levers.keys():
+		var sw: SwitchTrigger = _entity_nodes.get(int(k)) as SwitchTrigger
+		if sw != null:
+			sw.set_quietly(bool(levers[k]))
+	var states: Dictionary = snap.get("switch_states", {})
+	for g: Variant in states.keys():
+		world.set_switch(int(g), bool(states[g]))
+	world.restore_broken(snap.get("broken", []))
+	tiles_fg.refresh()
+	if bool(snap.get("boss_defeated", false)) and boss != null:
+		var fallen := boss
+		boss = null
+		_open_boss_gate(fallen)
+		fallen.queue_free()
+	Game.keys = (snap.get("keys", Game.keys) as Dictionary).duplicate()
+	var form := String(snap.get("form", "human"))
+	if form != player.form_id:
+		player.set_form(form)
+	player.facing = int(snap.get("facing", 1))
+	player.pos = Checkpoint.seat(cp.pos, player.box)
+	player.vel = Vector2.ZERO
+	player.invuln = Checkpoint.num("respawn_invuln_s", 1.5)
+	player._sync_render_position()
+	cp.mark_occupied()
+	_activate_checkpoint(cp)
+
 func complete() -> void:
 	if _restarting:
 		return
 	_restarting = true
 	AudioManager.play("level_clear")
-	Game.complete_level(def.id)
+	# load_id, not def.id: the same for every level in levels/, and for a
+	# fixture played by path it is the id Game and the replay know it by.
+	Game.complete_level(load_id)

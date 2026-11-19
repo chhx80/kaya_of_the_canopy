@@ -1,0 +1,8 @@
+[
+  {"_": "docs/plan-longer-levels.md: does a level's per-frame cost grow with its AREA? The same per-screen content at 50x30 and 200x45 (tools/stress_level.py), lit and dark, each played end to end along its proof tape, plus jungle_1 as today's real level. Compare a 50x30 row with its 200x45 twin. Run windowed with tools/shot.sh --seq=tools/seq/long_perf.json and headless with tools/levelperf.sh."},
+  {"route_perf": "jungle_1"},
+  {"route_perf": "res://tests/fixtures/stress_50x30_jungle.json"},
+  {"route_perf": "res://tests/fixtures/stress_200x45_jungle.json"},
+  {"route_perf": "res://tests/fixtures/stress_50x30_deeps.json"},
+  {"route_perf": "res://tests/fixtures/stress_200x45_deeps.json"}
+]

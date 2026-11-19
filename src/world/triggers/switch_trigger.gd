@@ -40,6 +40,13 @@ func aabb() -> Rect2:
 func _refresh() -> void:
 	sprite.region_rect = Rect2((ON_FRAME if on else OFF_FRAME) * 16, 0, 16, 16)
 
+## Set the lever with no sound, spark or dissolve: a checkpoint respawn putting
+## it back where it was. Level writes the switch groups themselves afterwards.
+func set_quietly(state: bool) -> void:
+	on = state
+	if sprite != null:
+		_refresh()
+
 func toggle() -> void:
 	if _cooldown > 0.0:
 		return

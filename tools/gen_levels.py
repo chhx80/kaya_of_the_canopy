@@ -137,6 +137,12 @@ class Grid:
         e.update(props)
         self.entities.append(e)
 
+    def checkpoint(self, x, y):
+        """A checkpoint post (docs/plan-longer-levels.md). (x, y) is the cell
+        Kaya stands in, her feet on the tile below -- player_spawn's rule.
+        Placement is checked when the level is written (_check_checkpoints)."""
+        self.ent("checkpoint", x, y)
+
     # -- the declared route (ADR 005) ---------------------------------------
     def mark(self, name, x, y):
         """Name a tile so route() can point at somewhere that is not an entity.
@@ -180,7 +186,10 @@ class Grid:
                     "mark '%s' collides with an entity type of the same name" % name)
             ids.add(name)
         # An entity type only names a waypoint when there is exactly one of it;
-        # "gem" would otherwise mean sixteen different places.
+        # "gem" would otherwise mean sixteen different places. Several of a type
+        # are named one at a time as "type#n", n counting from 0 in entity
+        # order -- the prover's own spelling (ProverSim.waypoint_indices), and
+        # how a route runs through a level's checkpoints.
         ambiguous = set()
         for t, n in counts.items():
             if t == "player_spawn":
@@ -189,6 +198,8 @@ class Grid:
                 ids.add(t)
             else:
                 ambiguous.add(t)
+                for i in range(n):
+                    ids.add("%s#%d" % (t, i))
         return ids, ambiguous
 
     def _check_route(self, level_id, topdown):
@@ -279,8 +290,39 @@ class Grid:
                 % (level_id, self.tileset, detail,
                    " ".join(sorted(legend))))
 
+    def _check_checkpoints(self, level_id):
+        """Mirror of LevelLoader.checkpoint_problems(): a respawn seats Kaya on
+        the post with no other check, so it must have room, no hazard, and
+        something to stand on. Fails generation, naming the post."""
+        flags = _tile_flags(self.tileset)
+        seen = set()
+        for e in self.entities:
+            if e["type"] != "checkpoint":
+                continue
+            x, y = e["x"], e["y"]
+            at = "%s: checkpoint at (%d,%d)" % (level_id, x, y)
+            if not (0 <= x < self.w and 1 <= y < self.h):
+                raise ValueError("%s is outside the grid or has no row above it" % at)
+            if (x, y) in seen:
+                raise ValueError("%s is placed twice" % at)
+            seen.add((x, y))
+            for yy in (y, y - 1):
+                f = flags.get(self.fg[yy][x], {})
+                if f.get("solid"):
+                    raise ValueError("%s: cell (%d,%d) is solid '%s'" % (at, x, yy, self.fg[yy][x]))
+                if f.get("hazard"):
+                    raise ValueError("%s: cell (%d,%d) is a hazard" % (at, x, yy))
+            here = flags.get(self.fg[y][x], {})
+            below = flags.get(self.fg[y + 1][x], {}) if y + 1 < self.h else {}
+            firm = below.get("solid") and not below.get("switch_group")
+            if not (firm or below.get("oneway") or here.get("water")
+                    or here.get("ladder")):
+                raise ValueError("%s has nothing to stand on: (%d,%d) is '%s'"
+                                 % (at, x, y + 1, self.fg[y + 1][x] if y + 1 < self.h else "off-grid"))
+
     def to_dict(self, level_id, name, music="", next_level="", topdown=False):
         self._check_characters(level_id)
+        self._check_checkpoints(level_id)
         self._check_route(level_id, topdown)
         d = {
             "id": level_id,

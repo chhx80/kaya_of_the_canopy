@@ -36,6 +36,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from art import backdrops, palette, sprites, tiles     # noqa: E402
 from art import sprites_enemies_v2                     # noqa: E402
 from art import hud_portrait                           # noqa: E402
+from art import checkpoint_art                         # noqa: E402
 
 ROOT = palette.ROOT
 
@@ -456,6 +457,7 @@ def main():
     sprites.build_boss_tide_maw()
     sprites.build_boss_brood_queen()
     sprites.build_boss_obsidian_heart()
+    checkpoint_art.build()        # the checkpoint post, docs/plan-longer-levels.md
     backdrops.build_font()
     backdrops.build_logo()
     backdrops.build_title_bg()

@@ -84,14 +84,39 @@ func _check_scenes(root: String) -> void:
 		elif not packed.can_instantiate():
 			problems.append("scene cannot be instantiated: %s" % p)
 
+## Every entity type a level may place. Anything else is a typo the game would
+## spawn as nothing (Level.spawn_entity() only warns), so it is a problem here.
+## `enemy_<id>` is checked against Level.ENEMY_IDS, the registry the spawner
+## itself uses.
+const ENTITY_TYPES: Array[String] = [
+	"player_spawn", "exit", "boss_exit", "checkpoint", "marker",
+	"gem", "heart", "key_yellow", "key_red", "key_cyan",
+	"door_yellow", "door_red", "door_cyan", "switch_a", "switch_b",
+	"pad_frog", "pad_fish", "pad_bird", "pad_human",
+	"boss_grove", "boss_tide_maw", "boss_stormcrest", "boss_brood_queen",
+	"boss_obsidian_heart", "hub_door",
+]
+
 func _check_levels() -> void:
 	var ids := LevelLoader.list_levels()
 	if ids.is_empty():
 		problems.append("no levels found in levels/")
+	var level_script: GDScript = load("res://src/world/level.gd")
+	var enemy_ids: Array = level_script.get_script_constant_map().get("ENEMY_IDS", [])
 	for id in ids:
 		var def := LevelLoader.load_level(id)
 		for e in def.errors:
 			problems.append("level %s: %s" % [id, e])
+		for p in LevelLoader.checkpoint_problems(def):
+			problems.append(p)
+		for e: Dictionary in def.entities:
+			var t := String(e.get("type", ""))
+			if ENTITY_TYPES.has(t):
+				continue
+			if t.begins_with("enemy_") and enemy_ids.has(t.substr(6)):
+				continue
+			problems.append("level %s: unknown entity type '%s' at (%s,%s)"
+				% [id, t, e.get("x", "?"), e.get("y", "?")])
 
 func _check_data() -> void:
 	for dir in ["res://data", "res://data/forms", "res://data/enemies", "res://data/weapons"]:

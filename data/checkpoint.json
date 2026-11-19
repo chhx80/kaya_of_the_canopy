@@ -1,0 +1,23 @@
+{
+  "_comment": "Checkpoints (docs/plan-longer-levels.md; src/world/triggers/checkpoint.gd). A level entity {type: checkpoint, x, y}: the tile is the cell Kaya stands in, her feet on the tile below, exactly like player_spawn. The post is two tiles tall and is drawn standing on that floor.",
+  "_trigger": "Kaya lights it by overlapping the post: the cell and the one above it, grown by touch_grow_px. The prover (tools/solver/sim.gd) and tools/levelstats read the same rectangle through Checkpoint.trigger_rect(), so 'the route passes this checkpoint' means what lights it in play.",
+  "touch_grow_px": 1.0,
+  "_respawn": "After a death with lives left, Kaya comes back on the active checkpoint with full hearts, in the form she touched it in, and invulnerable for respawn_invuln_s: enemies reset to their spawns on a respawn, and one standing on the post must not be able to take a heart before she has seen it. The same blink as a hit (Player.INVULN_TIME is 1.1).",
+  "respawn_invuln_s": 1.5,
+  "_look": "Sheet frames, left to right: unlit, then the lit flame's flicker cycle at flame_fps.",
+  "frame_w": 16,
+  "frame_h": 32,
+  "unlit_frame": 0,
+  "lit_frames": [1, 2, 3],
+  "flame_fps": 8.0,
+  "_glow": "The additive light a lit post throws, drawn under the post with the ambience light-pool texture, so it reads in the dark worlds (deeps' shade is 0.8+): glow_radius_px world units, glow_colour RGBA, breathing by glow_pulse of its alpha at glow_pulse_hz. An unlit post throws a faint one, unlit_glow_alpha of it, so a checkpoint can be found in the dark before it is lit. glow_lift_px raises the pool's centre to the brazier.",
+  "glow_radius_px": 40.0,
+  "glow_colour": [1.0, 0.72, 0.36, 0.55],
+  "glow_pulse": 0.18,
+  "glow_pulse_hz": 1.3,
+  "unlit_glow_alpha": 0.22,
+  "glow_lift_px": 24.0,
+  "_feedback": "On lighting: the checkpoint sound, the checkpoint particle burst (data/fx.json) at the brazier, and a HUD flash for flash_s.",
+  "flash_text": "CHECKPOINT",
+  "flash_s": 1.4
+}

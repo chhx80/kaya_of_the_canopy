@@ -34,10 +34,17 @@ var error := ""                      ## non-empty means: do not replay this
 func ok() -> bool:
 	return error == ""
 
+## `id` is a level id, or -- for a fixture that is a level but not the game's,
+## like the large-level stress fixtures -- the res:// path of its JSON, whose
+## tape sits beside it (ProverTape.tape_path_for).
 static func tape_path(id: String) -> String:
+	if id.begins_with("res://"):
+		return id.get_basename() + ".tape.json"
 	return "res://proofs/%s.tape.json" % id
 
 static func level_path(id: String) -> String:
+	if id.begins_with("res://"):
+		return id
 	return "res://levels/%s.json" % id
 
 static func exists_for(id: String) -> bool:
@@ -83,7 +90,7 @@ func _load(id: String, path: String) -> void:
 	var d: Dictionary = parsed
 
 	var declared := String(d.get("level", ""))
-	if declared != id:
+	if declared != (id.get_file().get_basename() if id.begins_with("res://") else id):
 		_fail("%s claims level '%s' but sits beside '%s'" % [path, declared, id])
 		return
 

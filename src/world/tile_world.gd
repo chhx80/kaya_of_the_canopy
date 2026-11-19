@@ -75,6 +75,22 @@ func break_tile(x: int, y: int) -> bool:
 func reset_broken() -> void:
 	_broken.clear()
 
+## Every broken cell as [x, y] pairs, sorted: a checkpoint's copy of the set.
+func broken_cells() -> Array:
+	var out: Array = []
+	for k: int in _broken.keys():
+		out.append([k % width, k / width])
+	out.sort()
+	return out
+
+## Replace the broken set with `cells` ([x, y] pairs, as broken_cells() gives).
+func restore_broken(cells: Array) -> void:
+	_broken.clear()
+	for c: Variant in cells:
+		var xy: Array = c
+		if in_bounds(int(xy[0]), int(xy[1])):
+			_broken[idx(int(xy[0]), int(xy[1]))] = true
+
 func toggle_switch(group: int) -> void:
 	switch_states[group] = not bool(switch_states.get(group, false))
 

@@ -1,0 +1,84 @@
+[
+ {
+  "_": "docs/long-levels-engine.md: the checkpoint post unlit, being lit (burst + flash), lit, and a respawn on it -- in the darkest world (the 200x45 deeps stress fixture, darkness 0.88) and in the jungle (test_arena)."
+ },
+ {
+  "scenario": "level:res://tests/fixtures/stress_200x45_deeps.json",
+  "settle": 60
+ },
+ {
+  "teleport": [
+   42,
+   37
+  ],
+  "settle": 50
+ },
+ {
+  "shot": "shots/long_cp_deeps_unlit.png"
+ },
+ {
+  "teleport": [
+   47,
+   37
+  ],
+  "settle": 8
+ },
+ {
+  "shot": "shots/long_cp_deeps_lighting.png"
+ },
+ {
+  "wait": 70
+ },
+ {
+  "shot": "shots/long_cp_deeps_lit.png"
+ },
+ {
+  "teleport": [
+   53,
+   37
+  ],
+  "settle": 40
+ },
+ {
+  "shot": "shots/long_cp_deeps_lit_away.png"
+ },
+ {
+  "teleport": [
+   58,
+   38
+  ],
+  "settle": 40
+ },
+ {
+  "call": "debug_kill_player"
+ },
+ {
+  "wait": 100
+ },
+ {
+  "shot": "shots/long_cp_deeps_respawn.png"
+ },
+ {
+  "scenario": "level:test_arena",
+  "settle": 60
+ },
+ {
+  "shot": "shots/long_cp_jungle_unlit.png"
+ },
+ {
+  "teleport": [
+   6,
+   10
+  ],
+  "settle": 8
+ },
+ {
+  "shot": "shots/long_cp_jungle_lighting.png"
+ },
+ {
+  "wait": 60
+ },
+ {
+  "shot": "shots/long_cp_jungle_lit.png"
+ }
+]

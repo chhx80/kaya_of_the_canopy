@@ -218,6 +218,17 @@ def build_sfx():
         triangle(b, int(0.44 * SR), midi(60), 0.7, 0.24, short)
     sfx("level_clear", 1.1, _clear)
 
+    # A checkpoint lit (docs/plan-longer-levels.md): the fire catching -- a
+    # breath of noise, then a rising major arpeggio on the triangle with a
+    # square an octave up for sparkle. Warmer and shorter than level_clear, so
+    # it says "safe" without saying "done".
+    def _checkpoint(b):
+        noise(b, 0, 0.12, 0.1, short, step=5)
+        for k, n in enumerate((67, 71, 74, 79)):
+            triangle(b, int((0.04 + k * 0.07) * SR), midi(n), 0.2, 0.26, short)
+        square(b, int(0.25 * SR), midi(91), 0.16, 0.08, 0.25, short)
+    sfx("checkpoint", 0.6, _checkpoint)
+
     def _gameover(b):
         for k, n in enumerate((67, 64, 60, 55)):
             square(b, int(k * 0.22 * SR), midi(n), 0.34, 0.22, 0.25, short)

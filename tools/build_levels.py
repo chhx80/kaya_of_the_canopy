@@ -632,12 +632,17 @@ def test_arena():
     g.ent("gem", 4, 11)
     g.ent("heart", 5, 9)
     g.ent("exit", 22, 11)
+    # The checkpoint the integration tier lights, dies past and respawns on
+    # (docs/plan-longer-levels.md). On the floor west of the blade lane, so the
+    # replay tape walks through it and tools/levelstats has one on the route.
+    g.checkpoint(6, 11)
 
     # The arena is a fixture, but it still has to be finishable or the replay
     # case built on it proves nothing. Run the lane east, past the crate at
     # col 18, then clear the two spike tiles at 20-21 in one jump.
     g.mark("spike_lip", 19, 11)
-    g.route("spawn", "spike_lip", form="human")
+    g.route("spawn", "checkpoint", form="human")
+    g.route("checkpoint", "spike_lip", form="human")
     g.route("spike_lip", "exit", form="human")
     return g
 

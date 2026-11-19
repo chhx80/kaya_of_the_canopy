@@ -10,7 +10,22 @@
     },
     {
      "a": "right",
-     "n": 36
+     "n": 24
+    },
+    {
+     "a": "none",
+     "n": 4
+    }
+   ],
+   "from": "spawn",
+   "to": "checkpoint"
+  },
+  {
+   "form": "human",
+   "frames": [
+    {
+     "a": "right",
+     "n": 20
     },
     {
      "a": "left+down+jump",
@@ -34,7 +49,11 @@
     },
     {
      "a": "right",
-     "n": 28
+     "n": 16
+    },
+    {
+     "a": "none",
+     "n": 4
     },
     {
      "a": "right+up",
@@ -65,7 +84,7 @@
      "n": 1
     }
    ],
-   "from": "spawn",
+   "from": "checkpoint",
    "to": "spike_lip"
   },
   {
@@ -93,5 +112,5 @@
   }
  ],
  "level": "test_arena",
- "source_sha": "18bd2c2b1b72a4c78d02764f75e3b92ff28addee47e5a11d5176cce87e67a176"
+ "source_sha": "ed8f6b59b25ff92001841714eb3bd09253c2ec9d0f3f5822df8694838625d982"
 }

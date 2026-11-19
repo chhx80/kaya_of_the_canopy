@@ -38,6 +38,16 @@ func _ready() -> void:
 func aabb() -> Rect2:
 	return Rect2(pos, SIZE)
 
+## Collected, though perhaps not yet freed: what a checkpoint asks.
+func is_taken() -> bool:
+	return _taken
+
+## Gone with no sound and no reward: a checkpoint respawn removing a pickup that
+## was already collected before the post was lit.
+func take_quietly() -> void:
+	_taken = true
+	queue_free()
+
 func _physics_process(delta: float) -> void:
 	if Game.sim_paused or _taken:
 		return

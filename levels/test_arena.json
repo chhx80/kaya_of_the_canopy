@@ -67,6 +67,11 @@
    "type": "exit",
    "x": 22,
    "y": 11
+  },
+  {
+   "type": "checkpoint",
+   "x": 6,
+   "y": 11
   }
  ],
  "marks": {
@@ -78,6 +83,11 @@
  "route": [
   {
    "from": "spawn",
+   "to": "checkpoint",
+   "form": "human"
+  },
+  {
+   "from": "checkpoint",
    "to": "spike_lip",
    "form": "human"
   },

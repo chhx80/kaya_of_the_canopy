@@ -254,9 +254,21 @@ static func _dist(box: Rect2, goals: Array[Rect2]) -> float:
 ## 8 px/s — coarse enough to collapse the frontier, fine enough that a jump
 ## decided by six pixels is still its own state. Every bucket can only ever
 ## *remove* a state, so the failure direction stays safe.
+##
+## Position gets 13 bits of x and 12 of y (8064 x 3968 px past the 128 offset,
+## i.e. 504 x 248 tiles). It had 11 and 11, which is 1919 px: fine for 50x30,
+## but past column 120 every x clamped to the same bucket, so two states that
+## differed only in where they stood were one state and the second was pruned.
+## Measured on the 200x45 stress fixture (tools/stress_level.py): the old key
+## still proved it, but by a different path, in 921 expansions against 632 --
+## the aliasing was already steering the search, and a hop that needs a state
+## it threw away would fail with a wrong "closest approach". The layout is
+## otherwise unchanged, so every state of a 50x30 level gets a key exactly when
+## it did before and its tape reproduces.
+## 13+12+8+8+2+1+1+1+1+2+7+7 = 63 bits: the whole of a signed int, no more.
 func _key(sim: ProverSim) -> int:
-	var k := clampi(int(floor(sim.actor.pos.x)) + 128, 0, 2047)
-	k = (k << 11) | clampi(int(floor(sim.actor.pos.y)) + 128, 0, 2047)
+	var k := clampi(int(floor(sim.actor.pos.x)) + 128, 0, 8191)
+	k = (k << 12) | clampi(int(floor(sim.actor.pos.y)) + 128, 0, 4095)
 	k = (k << 8) | clampi(int(round(sim.actor.vel.x / 8.0)) + 128, 0, 255)
 	k = (k << 8) | clampi(int(round(sim.actor.vel.y / 8.0)) + 128, 0, 255)
 	k = (k << 2) | ProverSim.FORM_IDS.find(sim.form_id)

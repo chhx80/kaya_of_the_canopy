@@ -211,6 +211,15 @@ func run_all() -> void:
 		"t_offscreen_enemies_are_frozen",
 		"t_falling_out_of_the_world_kills",
 		"t_exit_completes_the_level_and_sets_its_flag",
+		"t_a_checkpoint_is_unlit_until_kaya_touches_it",
+		"t_a_death_respawns_at_the_checkpoint_with_the_world_it_remembers",
+		"t_a_respawn_puts_back_doors_levers_and_keys_from_the_same_instant",
+		"t_restart_level_and_leaving_forget_the_checkpoint",
+		"t_game_over_forgets_the_checkpoint",
+		"t_god_mode_falls_return_to_the_checkpoint_for_free",
+		"t_a_respawn_cannot_be_hit_before_kaya_has_seen_it",
+		"t_levelstats_and_the_game_agree_on_the_checkpoint_frame",
+		"t_a_200x45_level_replays_to_the_end_with_a_clean_camera",
 		"t_locked_door_stays_shut_without_the_key",
 		"t_the_matching_key_opens_the_door_and_is_consumed",
 		"t_switch_blocks_swap_which_half_is_solid",
@@ -886,6 +895,270 @@ func t_exit_completes_the_level_and_sets_its_flag() -> void:
 	await frames(30)
 	check(SaveManager.get_flag(ARENA), "touching the totem completes the level")
 	check_eq(Game.state, Game.State.HUB, "and returns you to the hub")
+
+# ---------------------------------------------------------------- checkpoints
+## levels/test_arena.json's post: the cell Kaya stands in, west of the lane.
+const ARENA_CHECKPOINT := Vector2i(6, 11)
+
+func checkpoints() -> Array:
+	return find_in_group(&"checkpoints").filter(
+		func(n: Node) -> bool: return (n as Checkpoint).level == level())
+
+func arena_checkpoint() -> Checkpoint:
+	var all := checkpoints()
+	return all[0] as Checkpoint if all.size() == 1 else null
+
+## Where a respawn seats her on the arena's post, for her current hitbox.
+func arena_seat() -> Vector2:
+	return Checkpoint.seat(Vector2(ARENA_CHECKPOINT) * TS, player().box)
+
+## Kill her and wait out Level's death delay and the reload. Returns the new level.
+func die_and_wait() -> Node:
+	var before := level()
+	player().kill()
+	for _i in 120:
+		await get_tree().physics_frame
+		if level() != before and level() != null and player() != null:
+			break
+	await frames(4)
+	return level()
+
+func t_a_checkpoint_is_unlit_until_kaya_touches_it() -> void:
+	var cp := arena_checkpoint()
+	check(cp != null, "the arena has exactly one checkpoint")
+	if cp == null:
+		return
+	check(not cp.lit, "it starts unlit")
+	check(Game.checkpoint.is_empty(), "and nothing is remembered yet")
+	var live_before: int = level().particles.live_count()
+	await place(ARENA_CHECKPOINT.x, ARENA_CHECKPOINT.y - 1)
+	check(cp.lit, "touching it lights it")
+	check(level().active_checkpoint == cp, "and makes it the level's active checkpoint")
+	check_eq(String(Game.checkpoint.get("level", "")), ARENA, "the snapshot names this level")
+	check_eq(int(Game.checkpoint.get("index", -1)), cp.index, "and this post")
+	check(cp.index >= 0 and String((level().def.entities[cp.index] as Dictionary)["type"]) == "checkpoint",
+		"the index is the post's own entity")
+	check(level().particles.live_count() > live_before or level().particles.live_count() > 0,
+		"lighting it throws the checkpoint burst")
+
+func t_a_death_respawns_at_the_checkpoint_with_the_world_it_remembers() -> void:
+	var lv := level()
+	var w: TileWorld = lv.world
+	# Before the post: take the gem, break the crate, carry a red key, become a frog.
+	await place(4, 10)
+	check_eq(Game.gems, 1, "gem taken before the checkpoint")
+	check(w.break_tile(18, 11), "crate broken before the checkpoint")
+	lv.on_tile_broken(Vector2i(18, 11))
+	Game.add_key("red")
+	player().set_form("frog")
+	await place(ARENA_CHECKPOINT.x, ARENA_CHECKPOINT.y - 1)
+	check(arena_checkpoint() != null and arena_checkpoint().lit, "post lit as a frog")
+	# After the post: a second red key, the heart, and a dent in her health.
+	Game.add_key("red")
+	player().set_form("human")
+	await place(5, 8)
+	check(find_in_group(&"pickups").filter(func(n: Node) -> bool:
+		return (n as Pickup).kind == "heart" and not (n as Pickup).is_taken()).is_empty(),
+		"heart taken after the checkpoint")
+	Game.health = 2
+	var lives := Game.lives
+	var lv2 := await die_and_wait()
+	check(lv2 != null and lv2 != lv, "a death reloads the level")
+	if lv2 == null or player() == null:
+		return
+	check_eq(Game.lives, lives - 1, "and costs a life")
+	check_eq(player().form_id, "frog", "she comes back in the form she lit it in")
+	check(player().pos.distance_to(arena_seat()) < 2.0,
+		"seated on the post (at %s, want %s)" % [str(player().pos), str(arena_seat())])
+	check_eq(Game.health, Game.max_health, "with full hearts")
+	check_eq(int(Game.keys["red"]), 1, "holding the keys she held when she lit it, not the later one")
+	var kinds := {}
+	for n in find_in_group(&"pickups"):
+		var pu := n as Pickup
+		if pu.level == lv2 and not pu.is_taken():
+			kinds[pu.kind] = int(kinds.get(pu.kind, 0)) + 1
+	check_eq(int(kinds.get("gem", 0)), 0, "the gem taken before it stays taken")
+	check_eq(int(kinds.get("heart", 0)), 1, "the heart taken after it is back")
+	check(not lv2.world.is_breakable(18, 11), "the crate broken before it stays broken")
+	check(arena_checkpoint() != null and arena_checkpoint().lit, "the post is lit again")
+	check_eq(enemies().size(), 1, "the walker is back")
+	check_eq(lv2.cam.view_rect().has_point(player().center()), true, "and the camera opens on her")
+
+## Doors and levers live in jungle_2, so the snapshot is taken there through
+## the real touch path and put back into a freshly loaded copy through the real
+## restore path, with a post registered at a spare index on both sides.
+func t_a_respawn_puts_back_doors_levers_and_keys_from_the_same_instant() -> void:
+	await enter(HOLLOW)
+	for n in enemies():
+		var e := n as Enemy
+		e.contact_damage = 0
+		e.speed = 0.0
+	var lv := level()
+	var w: TileWorld = lv.world
+	Game.add_key("yellow")
+	await place(13, 24, 30)
+	for i in 20:
+		player().vel.x = 200.0
+		await get_tree().physics_frame
+	check(not w.is_solid(YELLOW_DOOR_TILE.x, YELLOW_DOOR_TILE.y), "door opened before the post")
+	var sw: SwitchTrigger = null
+	for n in find_in_group(&"switches"):
+		if (n as SwitchTrigger).group == 1:
+			sw = n
+	if sw == null:
+		check(false, "jungle_2 has a group 1 lever")
+		return
+	sw.toggle()
+	await frames(2)
+	check(not w.is_solid(SWITCH_A_BLOCK.x, SWITCH_A_BLOCK.y), "lever thrown before the post")
+	Game.add_key("cyan")
+	const SPARE := 9999
+	var cp: Checkpoint = lv.spawn_entity({"type": "checkpoint",
+		"px": player().pos.x, "py": player().pos.y})
+	cp.index = SPARE
+	lv._entity_nodes[SPARE] = cp
+	lv._entity_kinds[SPARE] = &"checkpoint"
+	lv.on_checkpoint_touched(cp)
+	var snap: Dictionary = Game.checkpoint.duplicate(true)
+	var post_at := cp.pos
+	check_eq(snap["doors"].size(), 1, "the snapshot holds the open door")
+	check_eq(int((snap["keys"] as Dictionary)["yellow"]), 0, "and the spent key as spent")
+	# A fresh copy of the level: door shut, lever back, no keys.
+	await enter(HOLLOW)
+	var lv2 := level()
+	check(lv2.world.is_solid(YELLOW_DOOR_TILE.x, YELLOW_DOOR_TILE.y), "a fresh load has the door shut")
+	var cp2: Checkpoint = lv2.spawn_entity({"type": "checkpoint",
+		"px": post_at.x, "py": post_at.y})
+	cp2.index = SPARE
+	lv2._entity_nodes[SPARE] = cp2
+	lv2._entity_kinds[SPARE] = &"checkpoint"
+	lv2._restore_checkpoint(snap)
+	check(not lv2.world.is_solid(YELLOW_DOOR_TILE.x, YELLOW_DOOR_TILE.y),
+		"the restore opens the door that was open")
+	var doors := find_in_group(&"doors").filter(func(n: Node) -> bool: return (n as Door).level == lv2)
+	check(doors.size() > 0 and (doors[0] as Door).open, "and the door says so")
+	check(not lv2.world.is_solid(SWITCH_A_BLOCK.x, SWITCH_A_BLOCK.y), "puts the lever's blocks back")
+	check(lv2.world.is_solid(SWITCH_A_GHOST.x, SWITCH_A_GHOST.y), "both halves of the pair")
+	check_eq(int(Game.keys["yellow"]), 0, "no yellow key handed back for a door already opened")
+	check_eq(int(Game.keys["cyan"]), 1, "the key she was holding is held again")
+	check(cp2.lit, "and the post is lit")
+
+func t_restart_level_and_leaving_forget_the_checkpoint() -> void:
+	await place(ARENA_CHECKPOINT.x, ARENA_CHECKPOINT.y - 1)
+	check(not Game.checkpoint.is_empty(), "post lit")
+	# What the pause menu's RESTART LEVEL row calls (pause_screen.gd).
+	Game.goto_level(ARENA)
+	await frames(4)
+	check(Game.checkpoint.is_empty(), "RESTART LEVEL forgets it")
+	check(player().pos.distance_to(Vector2(2 * TS + 3.0, 12 * TS - player().box.y)) < 2.0,
+		"and starts at the spawn")
+	check(not arena_checkpoint().lit, "with the post unlit")
+	await place(ARENA_CHECKPOINT.x, ARENA_CHECKPOINT.y - 1)
+	check(not Game.checkpoint.is_empty(), "post lit again")
+	Game.goto_hub(ARENA)
+	await frames(6)
+	check(Game.checkpoint.is_empty(), "leaving for the map forgets it")
+	await enter_arena()
+
+func t_game_over_forgets_the_checkpoint() -> void:
+	await place(ARENA_CHECKPOINT.x, ARENA_CHECKPOINT.y - 1)
+	check(not Game.checkpoint.is_empty(), "post lit")
+	Game.lives = 1
+	player().kill()
+	for _i in 120:
+		await get_tree().physics_frame
+		if Game.state == Game.State.GAME_OVER:
+			break
+	check_eq(Game.state, Game.State.GAME_OVER, "the last life ends the run")
+	check(Game.checkpoint.is_empty(), "and the checkpoint goes with it")
+	await enter_arena()
+
+func t_god_mode_falls_return_to_the_checkpoint_for_free() -> void:
+	var was := Game.god_mode()
+	Game.set_god_mode(true)
+	await place(ARENA_CHECKPOINT.x, ARENA_CHECKPOINT.y - 1)
+	var lives := Game.lives
+	var lv := level()
+	await place(11, 14)
+	player().pos.y = lv.world.pixel_height() + 64.0
+	for _i in 120:
+		await get_tree().physics_frame
+		if level() != lv and player() != null:
+			break
+	await frames(4)
+	check(level() != lv, "a fall in god mode still restarts")
+	check_eq(Game.lives, lives, "for free")
+	if player() != null:
+		check(player().pos.distance_to(arena_seat()) < 2.0, "at the checkpoint, not the spawn")
+	Game.set_god_mode(was)
+
+func t_a_respawn_cannot_be_hit_before_kaya_has_seen_it() -> void:
+	await place(ARENA_CHECKPOINT.x, ARENA_CHECKPOINT.y - 1)
+	await die_and_wait()
+	if player() == null:
+		check(false, "she respawned")
+		return
+	near(player().invuln, Checkpoint.num("respawn_invuln_s", 1.5), 0.2,
+		"a respawn starts with data/checkpoint.json's invulnerability")
+	var e: Enemy = enemies()[0] as Enemy
+	e.pos = player().pos
+	var hp := Game.health
+	await frames(10)
+	check_eq(Game.health, hp, "a walker on the post cannot take a heart at once")
+
+## tools/levelstats.sh reads checkpoint times off the prover's replay of the
+## tape (LevelTrace); the game lights the post in Checkpoint._physics_process.
+## They must agree, or "longest stretch between checkpoints" measures a level
+## nobody plays.
+func t_levelstats_and_the_game_agree_on_the_checkpoint_frame() -> void:
+	var path := LevelLoader.level_path(ARENA)
+	var def := LevelLoader.load_level(ARENA)
+	var trace := LevelTrace.replay(def, path)
+	check_eq(String(trace["tape"]), "", "the arena's tape is fresh")
+	var stats := LevelStats.compute(def, level_json(ARENA), trace)
+	var cs: Array = stats.get("checkpoint_s", [])
+	check_eq(cs.size(), 1, "levelstats sees the route light the post")
+	if cs.size() != 1:
+		return
+	var want := roundi(float(cs[0]) * 60.0)
+	var lit_at := [-1]
+	var driver: RefCounted = TAPE_REPLAY.new(get_tree())
+	driver.on_sim_frame = func(f: int) -> void:
+		if lit_at[0] < 0 and not Game.checkpoint.is_empty():
+			lit_at[0] = f
+	var r: Dictionary = await driver.replay(TAPE.load_for(ARENA))
+	check(bool(r["completed"]), "the tape still finishes the arena")
+	check(absi(int(lit_at[0]) - want) <= 1,
+		"the game lit it on tape frame %d, levelstats says %d" % [int(lit_at[0]), want])
+	# The game ends the level on the frame the exit fires, which can be a few
+	# tape frames before the tape's own last frame; never after it.
+	check(int(r["sim_frames"]) <= int(trace["pos"].size()),
+		"the game finished within the tape (%d of %d frames)"
+		% [int(r["sim_frames"]), int(trace["pos"].size())])
+	await enter_arena()
+
+## docs/plan-longer-levels.md: the pilot's levels are 16-20 screens. The stress
+## fixtures (tools/stress_level.py) are 200x45 with a proved route through three
+## checkpoints; replaying their tapes in the real Level runs every camera audit
+## the shipped levels get (tape_replay.gd) over a level four times wider and
+## half again as tall, lit and dark.
+const STRESS_LEVELS: Array[String] = [
+	"res://tests/fixtures/stress_200x45_jungle.json",
+	"res://tests/fixtures/stress_200x45_deeps.json",
+]
+
+func t_a_200x45_level_replays_to_the_end_with_a_clean_camera() -> void:
+	for path in STRESS_LEVELS:
+		var tape: RefCounted = TAPE.load_for(path)
+		check(tape.ok(), "%s: the stress tape loads and is fresh — %s" % [path, tape.error])
+		if not tape.ok():
+			continue
+		var driver: RefCounted = TAPE_REPLAY.new(get_tree())
+		var r: Dictionary = await driver.replay(tape)
+		check(bool(r["completed"]), "%s: the real level is finished by its tape — %s"
+			% [path, TAPE_REPLAY.describe(r)])
+		check_camera_audit(path.get_file(), r)
+	await enter_arena()
 
 # ---------------------------------------------------------------- doors & switches
 const HOLLOW := "jungle_2"

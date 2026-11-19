@@ -160,6 +160,11 @@ func _build_entities(def: LevelLoader.LevelDef) -> void:
 			# on — but they are real, placed, named points, which makes them
 			# free anchors for splitting a hop that is too coarse.
 			ents.append(_record(type, Kind.MARKER, Rect2(p + Vector2(2, 2), Pickup.SIZE), 0.0, {}))
+		elif type == "checkpoint":
+			# Not a route effect either -- lighting one changes nothing you can
+			# walk on -- but a real place, and the natural seam between two
+			# sections. Reached under the post's own rule (Checkpoint.trigger_rect).
+			ents.append(_record(type, Kind.MARKER, Checkpoint.trigger_rect(p), 0.0, {}))
 		elif type == "exit" or type == "boss_exit":
 			ents.append(_record(type, Kind.EXIT, Rect2(p, LevelExit.SIZE), 0.0, {}))
 		elif type.begins_with("boss_"):
@@ -501,7 +506,8 @@ func _tile_bits() -> int:
 
 
 ## One tile coordinate in 15 bits, offset so the (-1, -1) "no tile" sentinel
-## packs as zero. Levels are 50x30; the clamp is a guard, not a range.
+## packs as zero. 32767 tiles is far past any level (the pilot's are ~200 wide);
+## the clamp is a guard, not a range.
 static func _tile15(v: int) -> int:
 	return clampi(v + 1, 0, 32767)
 

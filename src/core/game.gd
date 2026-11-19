@@ -33,6 +33,13 @@ var keys := {"yellow": 0, "red": 0, "cyan": 0}
 var current_level_id := ""
 var current_level: Node = null
 
+## The checkpoint Kaya last lit, and the world as it stood at that moment
+## (Level.checkpoint_snapshot()). Empty when there is none. Only a death reads
+## it -- restart_level() -- and everything that leaves the attempt forgets it:
+## RESTART LEVEL, leaving to the hub or the title, game over, a clear. It names
+## its level, so a stale one can never seat Kaya in somebody else's map.
+var checkpoint: Dictionary = {}
+
 ## Frozen simulation: hitstop (Fx) and level transitions. Actors check this
 ## every tick. The camera never sets it — the screen flip that did is gone.
 var sim_paused := false
@@ -60,6 +67,7 @@ func _ready() -> void:
 
 # ---- stats -----------------------------------------------------------------
 func reset_run() -> void:
+	clear_checkpoint()
 	max_health = 5
 	health = max_health
 	lives = 3
@@ -106,12 +114,14 @@ func _set_state(s: State) -> void:
 	state_changed.emit(s)
 
 func goto_title() -> void:
+	clear_checkpoint()
 	current_level_id = ""
 	current_level = null
 	_set_state(State.TITLE)
 	_swap(TITLE_SCENE)
 
 func goto_hub(from_level: String = "") -> void:
+	clear_checkpoint()
 	current_level_id = ""
 	current_level = null
 	_set_state(State.HUB)
@@ -119,9 +129,22 @@ func goto_hub(from_level: String = "") -> void:
 	if hub and from_level != "" and hub.has_method("place_at_door"):
 		hub.place_at_door(from_level)
 
+## A fresh attempt at a level, from its spawn: from the hub, from RESTART LEVEL
+## in the pause menu, from the capture harness. Forgets any checkpoint.
+##
+## Keys are the level's own. They used to survive every restart while the key
+## pickups came back too, so a death could double a key; and they survived
+## leaving a level, so one could carry into the next. A fresh attempt starts
+## with none, and a checkpoint respawn restores exactly the keys held when the
+## checkpoint was lit (Level._restore_checkpoint()).
 func goto_level(level_id: String) -> void:
+	clear_checkpoint()
+	_load_level(level_id)
+
+func _load_level(level_id: String) -> void:
 	current_level_id = level_id
 	health = max_health
+	keys = {"yellow": 0, "red": 0, "cyan": 0}
 	_set_state(State.LEVEL)
 	var lvl := _swap(LEVEL_SCENE)
 	current_level = lvl
@@ -129,9 +152,30 @@ func goto_level(level_id: String) -> void:
 		lvl.load_level(level_id)
 	stats_changed.emit()
 
+## After a death with lives left: back to the last checkpoint lit in this
+## level, or to the spawn if there is none. The level reloads either way --
+## enemies, hearts, everything not in the checkpoint's snapshot -- and Level
+## puts the snapshot back once it has spawned its entities.
 func restart_level() -> void:
-	if current_level_id != "":
+	if current_level_id == "":
+		return
+	if not checkpoint_for(current_level_id).is_empty():
+		_load_level(current_level_id)
+	else:
 		goto_level(current_level_id)
+
+func set_checkpoint(snap: Dictionary) -> void:
+	checkpoint = snap
+
+func clear_checkpoint() -> void:
+	checkpoint = {}
+
+## The live checkpoint for `level_id`, or {} if it belongs to no level or to
+## another one.
+func checkpoint_for(level_id: String) -> Dictionary:
+	if checkpoint.is_empty() or String(checkpoint.get("level", "")) != level_id:
+		return {}
+	return checkpoint
 
 ## THE ENDING.
 ##
@@ -204,6 +248,7 @@ func complete_level(level_id: String) -> void:
 	# level is indistinguishable from finishing it: firing on the state would
 	# send every post-game visit to nest_5 to the victory screen instead of back
 	# to the hub, and take the finished save away from the player.
+	clear_checkpoint()
 	var first_clear := not SaveManager.get_flag(level_id)
 	SaveManager.set_flag(level_id, true)
 	SaveManager.add_score(score)
@@ -237,6 +282,7 @@ func lose_life() -> void:
 		restart_level()
 
 func goto_game_over() -> void:
+	clear_checkpoint()
 	_set_state(State.GAME_OVER)
 	_swap(GAME_OVER_SCENE)
 

@@ -143,7 +143,9 @@ func _tapes() -> Array[String]:
 	var out: Array[String] = []
 	if not _ids.is_empty():
 		for id: String in _ids:
-			out.append("res://proofs/%s.tape.json" % id)
+			# A level id, or a fixture's tape by path (it sits beside its level;
+			# ProverTape.tape_path_for), e.g. the large-level stress fixtures.
+			out.append(id if id.begins_with("res://") else "res://proofs/%s.tape.json" % id)
 		return out
 	var d := DirAccess.open("res://proofs")
 	if d == null:
@@ -160,6 +162,8 @@ func _replay(tape_path: String) -> Dictionary:
 	var id := String(tape.get("level", tape_path.get_file().replace(".tape.json", "")))
 	var res := {"level": id, "verdict": "FAIL", "frames": 0, "anims": {}}
 	var level_path := LevelLoader.level_path(id)
+	if not tape_path.begins_with("res://proofs/"):
+		level_path = tape_path.replace(".tape.json", ".json")
 	var stale := ProverTape.staleness(tape_path, level_path)
 	if stale != "":
 		print("FAIL  %-12s stale tape: %s" % [id, stale])
@@ -436,7 +440,10 @@ func _sweep(tape_path: String) -> Dictionary:
 	var tape := ProverTape.read(tape_path)
 	var id := String(tape.get("level", tape_path.get_file().replace(".tape.json", "")))
 	var res := {"level": id, "verdict": "FAIL", "frames": 0}
-	var def := LevelLoader.load_path(LevelLoader.level_path(id), id)
+	var level_path := LevelLoader.level_path(id)
+	if not tape_path.begins_with("res://proofs/"):
+		level_path = tape_path.replace(".tape.json", ".json")
+	var def := LevelLoader.load_path(level_path, id)
 	if not def.ok():
 		print("FAIL  %-12s level does not load" % id)
 		return res

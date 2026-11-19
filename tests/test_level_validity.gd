@@ -134,7 +134,7 @@ const MUST_REACH := [
 	"exit", "boss_exit",
 	"pad_frog", "pad_fish", "pad_bird", "pad_human",
 	"switch_a", "switch_b",
-	"heart", "gem",
+	"heart", "gem", "checkpoint",
 ]
 
 func _player_tiles_tall() -> int:
@@ -214,6 +214,53 @@ func test_no_standable_pockets_are_too_short_to_stand_in() -> void:
 					"%s: tile (%d,%d) is standable with only %d tile(s) of headroom, "
 					% [id, x, y, _clearance(w, x, y, {})]
 					+ "reachable from beside it — the player cannot fit")
+
+## A respawn seats Kaya on the post with no other check (Level._restore_checkpoint),
+## so a post in rock, on spikes or over a drop is a death loop rather than a
+## typo. Every shipped level, through the rule tools/validate.sh runs.
+func test_every_checkpoint_stands_where_kaya_can_be_seated() -> void:
+	for id in ids:
+		var def := LevelLoader.load_level(id)
+		if not def.ok():
+			continue
+		var bad := LevelLoader.checkpoint_problems(def)
+		ok(bad.is_empty(), ", ".join(bad))
+
+## The rule itself, one way to break it at a time.
+func test_checkpoint_placement_rule_rejects_each_bad_post() -> void:
+	var rows := [
+		"..........",
+		"..........",
+		"..^...#...",
+		"....~.....",
+		"####~##.##",
+		"####~##.##",
+	]
+	var cases := {
+		"fine on a floor": [1, 3, 0],
+		"inside rock": [0, 4, 1],
+		"post into rock above": [6, 3, 1],
+		"spikes in the post's upper cell": [2, 3, 1],
+		"over a drop": [7, 3, 1],
+		"in water, seated by the water": [4, 3, 0],
+		"no row above": [1, 0, 1],
+	}
+	for label: String in cases.keys():
+		var c: Array = cases[label]
+		var def := LevelLoader.from_dict({
+			"id": "synthetic", "fg": rows,
+			"entities": [{"type": "player_spawn", "x": 1, "y": 3},
+				{"type": "checkpoint", "x": c[0], "y": c[1]}],
+		})
+		ok(def.ok(), "%s: %s" % [label, ", ".join(def.errors)])
+		var bad := LevelLoader.checkpoint_problems(def)
+		eq(bad.size(), int(c[2]), "%s: %s" % [label, ", ".join(bad)])
+	var twice := LevelLoader.from_dict({
+		"id": "synthetic", "fg": rows,
+		"entities": [{"type": "player_spawn", "x": 1, "y": 3},
+			{"type": "checkpoint", "x": 1, "y": 3}, {"type": "checkpoint", "x": 1, "y": 3}],
+	})
+	eq(LevelLoader.checkpoint_problems(twice).size(), 1, "the same post twice is one problem")
 
 func test_unknown_legend_characters_are_reported() -> void:
 	var def := LevelLoader.from_dict({
@@ -336,6 +383,14 @@ func test_every_route_waypoint_resolves_to_one_place() -> void:
 			for end in ["from", "to"]:
 				var wp := String(hop.get(end, ""))
 				if wp == "spawn" or marks.has(wp):
+					continue
+				# "type#n": the n-th of several, the prover's own spelling.
+				if "#" in wp:
+					var parts := wp.split("#")
+					var n := int(parts[1])
+					ok(n >= 0 and n < int(counts.get(parts[0], 0)),
+						"%s: route names '%s', but the level has %d '%s'"
+						% [id, wp, int(counts.get(parts[0], 0)), parts[0]])
 					continue
 				eq(int(counts.get(wp, 0)), 1,
 					"%s: route names '%s', which is not 'spawn', not a mark, and is "

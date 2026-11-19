@@ -78,6 +78,12 @@ var _tree: SceneTree = null
 ## prove survival. Making that honest is the point of the flag; hiding it
 ## behind a passing gate is how six broken levels shipped.
 var invulnerable := true
+
+## Called after every simulated (non-hitstop) tape frame with the 1-based count
+## of tape frames played so far. Lets a test watch the real level along a tape
+## -- t_levelstats_and_the_game_agree_on_the_checkpoint_frame records the frame
+## a checkpoint lights -- without a second copy of this replay loop.
+var on_sim_frame := Callable()
 ## A single-frame view move larger than this is a jump, not a scroll. The
 ## fastest thing the camera follows is a falling body (340 px/s, 5.7 px a
 ## frame) and the arena ease peaks at pi/2 x its distance over its duration;
@@ -305,6 +311,8 @@ func replay(tape: RefCounted) -> Dictionary:
 					continue
 				left -= 1
 				sim_frames += 1
+				if on_sim_frame.is_valid():
+					on_sim_frame.call(sim_frames)
 				var p: Node = _player()
 				if p != null:
 					closest = minf(closest, p.center().distance_to(goal))
