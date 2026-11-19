@@ -216,6 +216,8 @@ func run_all() -> void:
 		"t_a_respawn_puts_back_doors_levers_and_keys_from_the_same_instant",
 		"t_restart_level_and_leaving_forget_the_checkpoint",
 		"t_game_over_forgets_the_checkpoint",
+		"t_canopy_trails_checkpoints_are_safe_places_to_come_back_to",
+		"t_a_death_in_the_wardens_arena_returns_to_its_door_and_resets_the_fight",
 		"t_god_mode_falls_return_to_the_checkpoint_for_free",
 		"t_a_respawn_cannot_be_hit_before_kaya_has_seen_it",
 		"t_levelstats_and_the_game_agree_on_the_checkpoint_frame",
@@ -1042,6 +1044,78 @@ func t_a_respawn_puts_back_doors_levers_and_keys_from_the_same_instant() -> void
 	check_eq(int(Game.keys["yellow"]), 0, "no yellow key handed back for a door already opened")
 	check_eq(int(Game.keys["cyan"]), 1, "the key she was holding is held again")
 	check(cp2.lit, "and the post is lit")
+
+## The pilot's long level: each of its posts must be a place she can come back
+## to. Seated on it, not in a wall, and still alive after standing there for
+## four seconds with every enemy awake -- a respawn that is hit again at once
+## is a death the player did nothing to earn.
+func t_canopy_trails_checkpoints_are_safe_places_to_come_back_to() -> void:
+	await enter("jungle_1")
+	var n := checkpoints().size()
+	check(n >= 4, "CANOPY TRAIL has checkpoints between its sections (%d)" % n)
+	for i in n:
+		await enter("jungle_1")
+		var posts := checkpoints()
+		posts.sort_custom(func(x: Checkpoint, y: Checkpoint) -> bool: return x.pos.x < y.pos.x)
+		var cp := posts[i] as Checkpoint
+		var cp_pos := cp.pos
+		var tile := (cp_pos / TS).round()
+		var what := "post %d at %s" % [i, str(tile)]
+		await place(tile.x, tile.y - 1)
+		check(cp.lit, "%s: standing in its cell lights it" % what)
+		Game.lives = 3
+		var lv2 := await die_and_wait()
+		if lv2 == null or player() == null:
+			check(false, "%s: a death reloads the level" % what)
+			continue
+		var seat := Checkpoint.seat(cp_pos, player().box)
+		check(player().pos.distance_to(seat) < 2.0,
+			"%s: she comes back on it (at %s, want %s)" % [what, str(player().pos), str(seat)])
+		check(lv2.cam.view_rect().has_point(player().center()), "%s: the camera opens on her" % what)
+		await frames(240)
+		check(not player().dead and Game.health >= Game.max_health - 1,
+			"%s: four idle seconds cost at most one heart (%d of %d left)"
+			% [what, Game.health, Game.max_health])
+		check(player().pos.distance_to(seat) < 24.0, "%s: and nothing carried her off it" % what)
+
+## The Warden's arena has a post at its door. Dying in the fight must not cost
+## the walk there, and the fight must start over: full health, first phase,
+## resting until she walks in, no beetles left from the last attempt.
+func t_a_death_in_the_wardens_arena_returns_to_its_door_and_resets_the_fight() -> void:
+	await enter("jungle_5")
+	var posts := checkpoints()
+	check_eq(posts.size(), 1, "HEART OF THE GROVE has one checkpoint")
+	if posts.size() != 1:
+		return
+	var cp := posts[0] as Checkpoint
+	var cp_pos := cp.pos
+	var tile := (cp_pos / TS).round()
+	var fresh := enemies().size()
+	await place(tile.x, tile.y - 1)
+	check(cp.lit, "the post at the arena door lights")
+	var boss: Enemy = level().boss
+	check(boss != null, "the Warden is there")
+	if boss == null:
+		return
+	var full := boss.max_health
+	var c := boss.arena.get_center()
+	await place(c.x / TS - 4.0, (boss.pos.y + boss.box.y) / TS - 2.0, 40)
+	check(boss.active, "walking in wakes it")
+	boss.health = maxi(1, full / 3)
+	await frames(180)
+	Game.lives = 3
+	var lv2 := await die_and_wait()
+	if lv2 == null or player() == null:
+		check(false, "a death reloads the level")
+		return
+	var seat := Checkpoint.seat(cp_pos, player().box)
+	check(player().pos.distance_to(seat) < 2.0, "she comes back at the arena door")
+	var b2: Enemy = lv2.boss
+	check(b2 != null and b2.health == full, "the Warden is at full health again")
+	check(b2 != null and not b2.active, "and rests until she walks in")
+	check(b2 != null and int(b2.get("phase")) == 0, "in its first phase")
+	check_eq(enemies().size(), fresh, "with no beetles left over from the last attempt")
+	check(lv2.cam.view_rect().has_point(player().center()), "and the camera is on her, not locked to the arena")
 
 func t_restart_level_and_leaving_forget_the_checkpoint() -> void:
 	await place(ARENA_CHECKPOINT.x, ARENA_CHECKPOINT.y - 1)
