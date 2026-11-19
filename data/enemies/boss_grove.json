@@ -15,7 +15,7 @@
     "ox": 19,
     "oy": 22
   },
-  "health": 18,
+  "health": 14,
   "contact_damage": 1,
   "score": 3000,
   "gravity": 800.0,
@@ -23,36 +23,46 @@
   "boss": true,
   "hitstop": "boss_kill",
   "arena_inset": 96.0,
-  "max_adds": 4,
+  "max_adds": 2,
   "phases": [
     {
       "name": "STOMP",
-      "until_health": 12,
-      "walk_speed": 46.0,
-      "slam_interval": 2.4,
+      "until_health": 10,
+      "walk_speed": 40.0,
+      "slam_interval": 2.6,
       "slam_jump": -250.0,
-      "shockwave_speed": 132.0,
-      "spawn_adds": 0
+      "shockwave_speed": 120.0,
+      "spawn_adds": 0,
+      "windup_time": 0.7,
+      "loom_gap": 24.0,
+      "shockwave_life": 0.9
     },
     {
       "name": "LEAP",
-      "until_health": 6,
-      "walk_speed": 62.0,
-      "slam_interval": 1.7,
+      "until_health": 5,
+      "walk_speed": 50.0,
+      "slam_interval": 2.2,
       "slam_jump": -320.0,
-      "shockwave_speed": 150.0,
-      "spawn_adds": 2
+      "shockwave_speed": 132.0,
+      "spawn_adds": 1,
+      "windup_time": 0.65,
+      "loom_gap": 24.0,
+      "shockwave_life": 1.0
     },
     {
       "name": "FURY",
       "until_health": 0,
-      "walk_speed": 78.0,
-      "slam_interval": 1.2,
+      "walk_speed": 58.0,
+      "slam_interval": 2.0,
       "slam_jump": -300.0,
-      "shockwave_speed": 168.0,
-      "spawn_adds": 1,
-      "spray": 5,
-      "spray_interval": 2.0
+      "shockwave_speed": 136.0,
+      "spawn_adds": 0,
+      "spray": 3,
+      "spray_interval": 2.2,
+      "windup_time": 0.6,
+      "spray_windup": 0.7,
+      "loom_gap": 20.0,
+      "shockwave_life": 1.1
     }
   ],
   "projectile": {
@@ -232,5 +242,39 @@
       ],
       "fps": 1
     }
+  },
+  "tells": {
+    "slam": {
+      "sfx": "boss_windup",
+      "fx": "dust"
+    },
+    "spray": {
+      "sfx": "boss_inhale",
+      "fx": "shimmer",
+      "tint": [
+        0.7,
+        1.9,
+        0.9
+      ],
+      "pulse_hz": 5.0
+    }
+  },
+  "phase_break": {
+    "pause": 1.5,
+    "drop": "heart",
+    "drop_margin": 40.0,
+    "shake": "boss_slam",
+    "clear_adds": true
+  },
+  "contact": {
+    "hurts_in": [
+      "AIR",
+      "LAND"
+    ],
+    "shove": [
+      160.0,
+      -90.0
+    ],
+    "shove_time": 0.15
   }
 }

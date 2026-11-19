@@ -53,6 +53,13 @@ extends Node
 ##                                        time an enemy or a hostile shot first
 ##                                        overlaps her: where a player who
 ##                                        ignores the enemies would be hit
+##   {"until_boss": "SPRAY", "max": 900, "after": 8}
+##                                        hold the sequence until the level's boss
+##                                        ENTERS that state (a name from its own
+##                                        `St` enum), then wait `after` frames —
+##                                        how a telegraph is photographed on its
+##                                        own frame instead of a guessed count.
+##                                        Kaya is unhittable while it waits
 ##   {"cleared": ["jungle_1", ...]}      stage a save: those flags set, rest wiped
 ##   {"cleared": "all"}                  ...or every gateway on the overworld
 ##
@@ -272,6 +279,10 @@ func _run_step(step: Dictionary) -> bool:
 	if step.has("wait"):
 		_wait = int(step["wait"])
 		return false
+	if step.has("until_boss"):
+		_until_boss(String(step["until_boss"]), int(step.get("max", 900)),
+			int(step.get("after", 0)))
+		return true   # async, like perf
 	if step.has("tap"):
 		_tap(String(step["tap"]), int(step.get("index", 4)))
 		return true   # async: down, two frames, up
@@ -798,6 +809,42 @@ func _measure(label: String, frames: int, cap: int = 0) -> void:
 	_busy = false
 	if _step_i >= _steps.size():
 		_finish()
+
+func _until_boss(state: String, cap: int, after: int) -> void:
+	_busy = true
+	var lvl: Node = Game.current_level
+	var boss: Enemy = null
+	if lvl != null:
+		for n in get_tree().get_nodes_in_group(&"bosses"):
+			var b := n as Enemy
+			if b != null and b.level == lvl:
+				boss = b
+	var want := -1
+	if boss != null:
+		var st_enum: Variant = boss.get_script().get_script_constant_map().get("St", {})
+		if typeof(st_enum) == TYPE_DICTIONARY:
+			want = int((st_enum as Dictionary).get(state, -1))
+	var prev := int(boss.get("st")) if boss != null else -1
+	var f := 0
+	while boss != null and want >= 0 and f < cap and is_instance_valid(boss):
+		var pl: Variant = lvl.get("player")
+		if pl != null:
+			(pl as Player).invuln = 999.0
+		await get_tree().physics_frame
+		f += 1
+		var st := int(boss.get("st"))
+		if st == want and prev != want:
+			break
+		prev = st
+	# Visible again for the photograph: i-frames blink her sprite.
+	var pl2: Variant = lvl.get("player") if lvl != null else null
+	if pl2 != null:
+		(pl2 as Player).invuln = 0.0
+	print("[until_boss] %s after %d frame(s)%s" % [state, f,
+		"" if want >= 0 and f < cap else " — NOT reached"])
+	for i in after:
+		await get_tree().physics_frame
+	_busy = false
 
 func _finish() -> void:
 	_active = false

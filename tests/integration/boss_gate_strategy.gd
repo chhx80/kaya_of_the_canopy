@@ -76,6 +76,10 @@ var aim_frames := 3
 ## Inside this many pixels of the Warden's body, with her own body level with it,
 ## distance is the only move there is. See the note in `_decide`.
 var flee_gap := 40.0
+## Go and get a heart lying in the arena when she is down one. The Warden drops
+## one at each phase break (data/enemies/boss_grove.json `phase_break`), at the
+## end of the floor it cannot reach; a player picks it up, so the pen does too.
+var fetch_hearts := true
 
 func configure(d: Dictionary) -> void:
 	for k: String in d.keys():
@@ -324,6 +328,16 @@ func _decide(pl: Player, boss: Enemy) -> Array:
 			# answer left is distance, and she runs 108 to its 46-78.
 			step = away
 
+	var fetching := false
+	if fetch_hearts and _under <= 0 and _vault <= 0 and Game.health < Game.max_health:
+		var h := _heart_dx(pl)
+		# Never through the Warden: a heart on its far side is not on offer.
+		var bdx := boss.center().x - pc.x
+		var blocked: bool = signf(h) == signf(bdx) and absf(bdx) < absf(h)
+		if absf(h) > 2.0 and absf(h) < 1e8 and not blocked:
+			step = 1 if h > 0.0 else -1
+			fetching = true
+
 	if step > 0:
 		held.append("right")
 	elif step < 0:
@@ -338,7 +352,7 @@ func _decide(pl: Player, boss: Enemy) -> Array:
 	# well inside the time bound.
 	var want_throw: bool = (pl.on_floor or throw_airborne) \
 		and absf(dx) > throw_min and absf(dx) <= throw_max
-	if _under <= 0 and _vault <= 0:
+	if _under <= 0 and _vault <= 0 and not fetching:
 		if _aim <= 0 and want_throw and _blade_is_home():
 			_aim = aim_frames
 		if _aim > 0:
@@ -359,6 +373,20 @@ func _blade_is_home() -> bool:
 		if n is Blade and is_instance_valid(n):
 			return false
 	return true
+
+## How far, in x, to the nearest heart lying in the arena; 1e9 if none.
+func _heart_dx(pl: Player) -> float:
+	var best := 1e9
+	for n: Node in gate.entity_children():
+		var pk := n as Pickup
+		if pk == null or not is_instance_valid(pk) or pk.kind != "heart":
+			continue
+		if not gate.arena.has_point(pk.pos):
+			continue
+		var d := pk.pos.x + 8.0 - pl.center().x
+		if absf(d) < absf(best):
+			best = d
+	return best
 
 ## Which way the nearest beetle lies: vault that way.
 func _add_side(pl: Player) -> int:
@@ -440,7 +468,14 @@ func _incoming_shot(pl: Player) -> bool:
 		# Only shots at body height matter; the spray arcs over her head.
 		if s.pos.y + 6.0 < pr.position.y or s.pos.y > pr.position.y + pr.size.y:
 			continue
-		var eta := (absf(gap) - pr.size.x * 0.5) / absf(s.vel.x)
+		# Closing speed, not the shot's speed: running from a shockwave that is
+		# only a little faster than she is gives it a long way to catch her, and
+		# timing the jump on its own speed put her back on the floor in front of
+		# it — the one hit every clean run of the retuned Warden still took.
+		var closing := absf(s.vel.x) - pl.vel.x * signf(s.vel.x)
+		if closing < 1.0:
+			continue
+		var eta := (absf(gap) - pr.size.x * 0.5) / closing
 		if eta > dodge_late and eta < dodge_lead:
 			return true
 	return false

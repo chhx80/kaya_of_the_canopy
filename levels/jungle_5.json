@@ -189,6 +189,11 @@
    "y": 5
   },
   {
+   "type": "checkpoint",
+   "x": 39,
+   "y": 5
+  },
+  {
    "type": "boss_grove",
    "x": 40,
    "y": 25

@@ -14,11 +14,18 @@ extends Node
 ##   KAYA_BOSSGATE_MODE    check | record      (default check)
 ##   KAYA_BOSSGATE_QUICK   1 to thin the sweep (default full)
 ##   KAYA_BOSSGATE_TAPE    tape path           (default res://tools/bossgate/tapes/<boss>.json)
+##
+## KAYA_BOSSGATE_MODE=sloppy is a measurement, not a check (see _sloppy):
+##   KAYA_BOSSGATE_PROFILE  hands profile in tools/bossgate/sloppy.json (default phone)
+##   KAYA_BOSSGATE_SEEDS    fights to run                               (default 20)
+##   KAYA_BOSSGATE_FIGHT_S  give up on a fight after this many seconds  (default 150)
 
 const Checks := preload("res://tests/integration/boss_gate_checks.gd")
 const Strategy := preload("res://tests/integration/boss_gate_strategy.gd")
 const Tape := preload("res://tests/integration/boss_gate_tape.gd")
 const Smoke := preload("res://tests/integration/boss_gate_smoke.gd")
+const Hands := preload("res://tests/integration/boss_sloppy_hands.gd")
+const TellProbe := preload("res://tests/integration/boss_tell_probe.gd")
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -49,6 +56,10 @@ func _run() -> void:
 		code = await _probe(checks)
 	elif mode == "record":
 		code = await _record(checks)
+	elif mode == "sloppy":
+		code = await _sloppy(checks)
+	elif mode == "tells":
+		code = await _tells(checks)
 	else:
 		code = await checks.run_all()
 	print("boss gate: %.1fs wall" % ((Time.get_ticks_msec() - t0) / 1000.0))
@@ -82,6 +93,158 @@ func _probe(checks: Node) -> int:
 		await rec.probe_adds(checks)
 	else:
 		await rec.probe_blade(checks)
+	return 0
+
+## THE SLOPPY PLAYER. The strategy tape proves the fight can be won by a pen
+## with perfect hands; this asks how often it is won by the same plan with a
+## person's. Each boss's own policy fights it `seeds` times through
+## tests/integration/boss_sloppy_hands.gd, and what comes back is the number every
+## boss is held to: how many of those fights were won, and how many hearts the
+## average one cost. Exit 0 whatever the result — it measures, it does not judge.
+const STRATEGIES := {
+	"boss_grove": "res://tests/integration/boss_gate_strategy.gd",
+	"tide_maw": "res://tests/integration/boss_tide_maw_strategy.gd",
+	"stormcrest": "res://tests/integration/boss_stormcrest_strategy.gd",
+	"brood_queen": "res://tests/integration/boss_brood_queen_strategy.gd",
+	"obsidian_heart": "res://tests/integration/boss_obsidian_heart_strategy.gd",
+}
+
+func _sloppy(checks: Node) -> int:
+	var profile_name := _env("KAYA_BOSSGATE_PROFILE", "phone")
+	var profile := Hands.load_profile(profile_name)
+	if profile.is_empty():
+		print("  FAIL  no hands profile '%s' in %s" % [profile_name, Hands.PROFILES])
+		return 1
+	var seeds := int(_env("KAYA_BOSSGATE_SEEDS", "20"))
+	var fight_s := float(_env("KAYA_BOSSGATE_FIGHT_S", "150"))
+	var path: String = STRATEGIES.get(checks.boss_id, "")
+	if path == "":
+		print("  FAIL  no strategy for boss '%s'" % checks.boss_id)
+		return 1
+	var rec: Node = (load(path) as GDScript).new()
+	rec.name = "SloppyStrategy"
+	add_child(rec)
+	# The plan is the one that won: the knobs the recorder wrote into the tape,
+	# unless told otherwise. A tape from before the recorder kept them has none,
+	# and the policy's own defaults are then the plan being measured.
+	var knobs: Dictionary = Tape.load_tape(checks.tape_path).get("knobs", {})
+	var fixed := _env("KAYA_BOSSGATE_KNOBS", "")
+	if fixed != "":
+		var parsed: Variant = JSON.parse_string(fixed)
+		if typeof(parsed) == TYPE_DICTIONARY:
+			knobs = parsed as Dictionary
+	rec.configure(knobs)
+	print("  plan: %s" % JSON.stringify(knobs))
+	print("SLOPPY PLAYER  %s in %s, hands '%s', %d fights of up to %.0f s"
+		% [checks.boss_id, checks.level_id, profile_name, seeds, fight_s])
+	var wins := 0
+	var deaths := 0
+	var timeouts := 0
+	var hits_total := 0
+	var win_secs := 0.0
+	var dealt_total := 0
+	var max_hp := 0
+	var cause_total := {"body": 0, "add": 0, "shot": 0}
+	var phase_total := {}
+	for i in seeds:
+		await checks.frames(75)
+		var booted: bool = await checks.boot()
+		if not booted:
+			print("  FAIL  could not boot %s" % checks.level_id)
+			return 1
+		var hands := Hands.new()
+		hands.setup(profile, 1000 + i)
+		hands.boss = checks.boss
+		hands.player = checks.pl
+		Tape.hands = hands
+		rec.set("max_frames", int(fight_s * 60.0))
+		var t: Dictionary = await rec.record(checks)
+		hands.observe()
+		Tape.hands = null
+		Tape.release_all()
+		var o: Dictionary = t["outcome"]
+		var won: bool = bool(o["boss_defeated"]) and not bool(o["kaya_dead"])
+		var secs := float(int(t["recorded_frames"])) / 60.0
+		var hits := hands.damage_taken
+		max_hp = checks.boss.max_health
+		var dealt := max_hp - maxi(0, int(o["boss_health"]))
+		if won:
+			wins += 1
+			win_secs += secs
+		elif bool(o["kaya_dead"]) or Game.health <= 0:
+			deaths += 1
+		else:
+			timeouts += 1
+		hits_total += hits
+		dealt_total += dealt
+		for k: String in cause_total.keys():
+			cause_total[k] = int(cause_total[k]) + int(hands.causes[k])
+		for ph: int in hands.by_phase.keys():
+			phase_total[ph] = int(phase_total.get(ph, 0)) + int(hands.by_phase[ph])
+		print("    seed %2d  %-7s %5.1f s  boss %2d/%d dealt  hits taken %d (body %d, add %d, shot %d)  hearts left %d"
+			% [i, "WIN" if won else ("dead" if bool(o["kaya_dead"]) else "timeout"),
+				secs, dealt, max_hp, hits, int(hands.causes["body"]), int(hands.causes["add"]),
+				int(hands.causes["shot"]), int(o["hearts_left"])])
+	var n := float(maxi(1, seeds))
+	print("  SLOPPY %s/%s: won %d/%d (%.0f%%), died %d, timed out %d | hits taken %.2f a fight | boss damage dealt %.0f%% | mean win %.1f s"
+		% [checks.boss_id, profile_name, wins, seeds, 100.0 * float(wins) / n, deaths,
+			timeouts, float(hits_total) / n, 100.0 * float(dealt_total) / (n * float(maxi(1, max_hp))),
+			win_secs / float(maxi(1, wins))])
+	print("  hits by cause: body %d, add %d, shot %d"
+		% [int(cause_total["body"]), int(cause_total["add"]), int(cause_total["shot"])])
+	var phs := phase_total.keys()
+	phs.sort()
+	var parts: PackedStringArray = []
+	for ph: int in phs:
+		parts.append("phase %d: %d" % [ph, int(phase_total[ph])])
+	print("  hits by phase: %s" % ", ".join(parts))
+	return 0
+
+## What the fight gives a player to read: every tell, how long it is held, and
+## how long after it the attack reaches her; and how many threats are live at
+## once. Kaya cannot be hurt, so the fight runs through all its phases on the
+## boss's own policy. See tests/integration/boss_tell_probe.gd.
+func _tells(checks: Node) -> int:
+	var path: String = STRATEGIES.get(checks.boss_id, "")
+	if path == "":
+		print("  FAIL  no strategy for boss '%s'" % checks.boss_id)
+		return 1
+	var rec: Node = (load(path) as GDScript).new()
+	add_child(rec)
+	var knobs: Dictionary = Tape.load_tape(checks.tape_path).get("knobs", {})
+	var fights := int(_env("KAYA_BOSSGATE_SEEDS", "5"))
+	var profile := Hands.load_profile(_env("KAYA_BOSSGATE_PROFILE", "clean"))
+	var probe: Node = TellProbe.new()
+	add_child(probe)
+	var secs := 0.0
+	# Several fights, because one clean fight is over before most of its
+	# attacks have been seen twice.
+	for i in fights:
+		await checks.frames(75)
+		var ok: bool = await checks.boot()
+		if not ok:
+			return 1
+		rec.configure(knobs)
+		rec.set("max_frames", int(float(_env("KAYA_BOSSGATE_FIGHT_S", "240")) * 60.0))
+		probe.call("attach", checks.boss, checks.pl, checks.arena)
+		var hands := Hands.new()
+		hands.setup(profile, 1000 + i)
+		hands.player = checks.pl
+		hands.boss = checks.boss
+		hands.unhittable = true
+		Tape.hands = hands
+		var t: Dictionary = await rec.record(checks)
+		Tape.hands = null
+		Tape.release_all()
+		probe.call("detach")
+		secs += float(int(t["recorded_frames"])) / 60.0
+	var names: Array = []
+	for p: Dictionary in checks.boss.cfg.get("phases", []):
+		names.append(String(p.get("name", "")))
+	print("TELLS  %s in %s: %d fight(s), %.1f s of fight, hands '%s'"
+		% [checks.boss_id, checks.level_id, fights, secs,
+			_env("KAYA_BOSSGATE_PROFILE", "clean")])
+	probe.report(names)
 	return 0
 
 ## Authoring the strategy tape is a search, not a hand. The policy in
@@ -118,7 +281,7 @@ const PASSES := 3
 ## something only while she is also fighting.
 func _score(t: Dictionary) -> float:
 	var o: Dictionary = t["outcome"]
-	var dealt := 18 - int(o["boss_health"])
+	var dealt := _max_hp - int(o["boss_health"])
 	var s := float(dealt) * 40.0 + float(int(o["hearts_left"])) * 4.0
 	if bool(o["boss_defeated"]):
 		s += 1000.0
@@ -174,6 +337,8 @@ const SEEDS := [
 ]
 
 var _tries := 0
+## The boss's full health, read at boot: what "damage dealt" is out of.
+var _max_hp := 18
 var _best: Dictionary = {}
 var _best_score := -1e9
 ## The best tape seen so far that the gate would actually accept.
@@ -187,6 +352,7 @@ func _record(checks: Node) -> int:
 	var rec: Node = Strategy.new()
 	rec.name = "BossGateStrategy"
 	add_child(rec)
+	_max_hp = checks.boss.max_health
 
 	# The pen's own defaults, first and on their own. The descent below never
 	# tries them — its first trial is already the first value of its first knob —
@@ -206,6 +372,7 @@ func _record(checks: Node) -> int:
 			return 1
 		rec.configure(parsed as Dictionary)
 		var one: Dictionary = await rec.record(checks)
+		one["knobs"] = parsed
 		_tries = 1
 		_keep(one)
 		var o1: Dictionary = one["outcome"]
@@ -218,6 +385,7 @@ func _record(checks: Node) -> int:
 
 	rec.configure({})
 	var plain: Dictionary = await rec.record(checks)
+	plain["knobs"] = {}
 	_tries += 1
 	_best = plain
 	_best_score = _score(plain)
@@ -268,6 +436,9 @@ func _descend(checks: Node, rec: Node, seed: Dictionary, seed_i: int) -> bool:
 					print("    could not re-boot the arena; stopping the search")
 					return false
 				var t: Dictionary = await rec.record(checks)
+				# The plan travels with its buttons, so the sloppy-player
+				# measurement can fight with the same plan that won.
+				t["knobs"] = trial
 				_tries += 1
 				var held: Dictionary = _best_win
 				_keep(t)

@@ -5,6 +5,11 @@
 #   tools/bossgate.sh --quick         thin the fairness sweep (smoke, not proof)
 #   tools/bossgate.sh --record        re-record the strategy tape, then re-check
 #   tools/bossgate.sh --level=x --boss=y
+#   tools/bossgate.sh --sloppy[=profile]  measure: the boss's own policy through
+#                                     tools/bossgate/sloppy.json's hands, many
+#                                     seeds (KAYA_BOSSGATE_SEEDS). Not a check.
+#   tools/bossgate.sh --tells         measure: every telegraph and its reaction
+#                                     window, threats live at once. Not a check.
 #
 # Exit code is the gate: 0 all checks passed, 1 a check failed.
 #
@@ -21,6 +26,7 @@ export KAYA_BOSSGATE_BOSS="${KAYA_BOSSGATE_BOSS:-boss_grove}"
 export KAYA_BOSSGATE_MODE=check
 export KAYA_BOSSGATE_QUICK="${KAYA_BOSSGATE_QUICK:-}"
 RECORD=0
+SLOPPY=0
 
 for a in "$@"; do
   case "$a" in
@@ -29,6 +35,10 @@ for a in "$@"; do
     --level=*) export KAYA_BOSSGATE_LEVEL="${a#--level=}" ;;
     --boss=*)  export KAYA_BOSSGATE_BOSS="${a#--boss=}" ;;
     --tape=*)  export KAYA_BOSSGATE_TAPE="${a#--tape=}" ;;
+    --sloppy)  SLOPPY=1 ;;
+    --tells)   SLOPPY=tells ;;
+    --tells=*) SLOPPY=tells; export KAYA_BOSSGATE_PROFILE="${a#--tells=}" ;;
+    --sloppy=*) SLOPPY=1; export KAYA_BOSSGATE_PROFILE="${a#--sloppy=}" ;;
     *) echo "bossgate: unknown option '$a'" >&2; exit 2 ;;
   esac
 done
@@ -39,6 +49,14 @@ run() {
   return "${PIPESTATUS[0]}"
 }
 
+if [ "$SLOPPY" = tells ]; then
+  KAYA_BOSSGATE_MODE=tells run
+  exit $?
+fi
+if [ "$SLOPPY" = 1 ]; then
+  KAYA_BOSSGATE_MODE=sloppy run
+  exit $?
+fi
 if [ "$RECORD" = 1 ]; then
   KAYA_BOSSGATE_MODE=record run || exit 1
 fi

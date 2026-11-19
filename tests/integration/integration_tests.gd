@@ -1870,15 +1870,32 @@ func t_boss_changes_phase_as_its_health_falls() -> void:
 		return
 	check_eq(b.phase, 0, "starts in phase 1")
 	check_eq(b.phase_name(), "STOMP", "…named STOMP")
-	while b.health > 12:
+	# The thresholds are the boss's data, not this test's: long/warden retuned
+	# them (18 -> 14 health) and a copy here would only have gone stale.
+	var phases: Array = b.cfg.get("phases", [])
+	var first := int((phases[0] as Dictionary).get("until_health", 0))
+	var second := int((phases[1] as Dictionary).get("until_health", 0))
+	var hearts_before := _hearts_on_floor()
+	while b.health > first:
 		b.hurt(1, b.center())
 	await frames(2)
 	check_eq(b.phase, 1, "drops into phase 2 at the health threshold")
-	while b.health > 6:
+	# The phase break: it staggers and drops a heart (data `phase_break`).
+	check_eq(int(b.get("st")), 0, "…and staggers (IDLE) instead of carrying on")
+	check_eq(_hearts_on_floor(), hearts_before + 1, "…and drops a heart")
+	while b.health > second:
 		b.hurt(1, b.center())
 	await frames(2)
 	check_eq(b.phase, 2, "and phase 3")
 	check_eq(b.phase_name(), "FURY", "…named FURY")
+
+func _hearts_on_floor() -> int:
+	var n := 0
+	for c: Node in level().entities.get_children():
+		var pk := c as Pickup
+		if pk != null and pk.kind == "heart":
+			n += 1
+	return n
 
 func t_boss_death_opens_the_way_out_and_unlocks_the_camera() -> void:
 	await enter(GROVE)

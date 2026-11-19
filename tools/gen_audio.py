@@ -250,6 +250,21 @@ def build_sfx():
         sweep(b, 0, 420, 60, 1.1, 0.3, 0.5, short)
     sfx("boss_die", 1.4, _bossdie)
 
+    # The bosses' tells: a sound for each attack's wind-up, so the ear can tell
+    # which one is coming before the eye does. Both SWELL rather than strike --
+    # they are the run-up, and boss_jump / boss_land / spit are the blow.
+    swell = lambda i, n: (i / n) ** 0.7 * min(1.0, (n - i) / (0.12 * n))
+
+    def _windup(b):                     # the slam: a low growl climbing
+        sweep(b, 0, 70, 150, 0.42, 0.26, 0.5, swell)
+        noise(b, 0, 0.42, 0.12, swell, step=14)
+    sfx("boss_windup", 0.45, _windup)
+
+    def _inhale(b):                     # the spray: a high hiss drawing in
+        noise(b, 0, 0.4, 0.16, swell, step=2)
+        sweep(b, 0, 620, 1240, 0.4, 0.08, 0.125, swell)
+    sfx("boss_inhale", 0.45, _inhale)
+
 
 # ---------------------------------------------------------------- music
 def render_track(bpm, parts, bars_seconds=None):
