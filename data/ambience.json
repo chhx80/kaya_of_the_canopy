@@ -23,7 +23,7 @@
 
   "levels": {
     "jungle_1": {
-      "_note": "CANOPY TRAIL. Daylight. The backdrop does the work; the air is only thick enough to keep the far trees behind the tiles.",
+      "_note": "CANOPY TRAIL, at full length (tools/worlds/jungle_1.py). Daylight; the backdrop does the work and the air is only thick enough to keep the far trees behind the tiles. Air and tint are per level, so each of the six sections gets its look from its tiles and from these pools: sun through the leaves on the trailhead and the great tree, open sky over the bridges, flickering torch pools down the cave, a violet glow on the shrine's altar, and the last light gathering at the gate.",
       "world": "jungle",
       "air": { "ramp": "water", "step": 4, "alpha": 0.10 },
       "bg_tint": { "ramp": "metal", "step": 5, "scale": 0.70 },
@@ -32,8 +32,24 @@
       "lights": [
         { "x": 6, "y": 3, "radius": 76, "ramp": "gold", "step": 5, "intensity": 0.30 },
         { "x": 30, "y": 2, "radius": 84, "ramp": "gold", "step": 5, "intensity": 0.26 },
-        { "x": 21, "y": 16, "radius": 62, "ramp": "gold", "step": 4, "intensity": 0.22 },
-        { "x": 44, "y": 19, "radius": 66, "ramp": "gold", "step": 5, "intensity": 0.24 }
+        { "x": 52, "y": 16, "radius": 62, "ramp": "gold", "step": 4, "intensity": 0.22 },
+        { "x": 83, "y": 9, "radius": 80, "ramp": "gold", "step": 5, "intensity": 0.26 },
+        { "x": 100, "y": 17, "radius": 56, "ramp": "grass", "step": 5, "intensity": 0.20 },
+        { "x": 110, "y": 1, "radius": 104, "ramp": "gold", "step": 6, "intensity": 0.28 },
+        { "x": 136, "y": 3, "radius": 90, "ramp": "gold", "step": 6, "intensity": 0.24 },
+        { "x": 160, "y": 4, "radius": 90, "ramp": "gold", "step": 6, "intensity": 0.24 },
+        { "x": 180, "y": 6, "radius": 54, "ramp": "gold", "step": 4, "intensity": 0.46, "flicker": 0.24 },
+        { "x": 194, "y": 10, "radius": 58, "ramp": "gold", "step": 4, "intensity": 0.42, "flicker": 0.22 },
+        { "x": 201, "y": 18, "radius": 54, "ramp": "grass", "step": 4, "intensity": 0.32, "flicker": 0.28 },
+        { "x": 184, "y": 22, "radius": 54, "ramp": "gold", "step": 4, "intensity": 0.42, "flicker": 0.26 },
+        { "x": 204, "y": 24, "radius": 58, "ramp": "gold", "step": 4, "intensity": 0.40, "flicker": 0.20 },
+        { "x": 225, "y": 22, "radius": 50, "ramp": "gold", "step": 5, "intensity": 0.26 },
+        { "x": 247, "y": 18, "radius": 70, "ramp": "purple", "step": 5, "intensity": 0.32, "flicker": 0.18 },
+        { "x": 263, "y": 13, "radius": 80, "ramp": "gold", "step": 5, "intensity": 0.22 },
+        { "x": 290, "y": 20, "radius": 76, "ramp": "gold", "step": 5, "intensity": 0.22 },
+        { "x": 307, "y": 19, "radius": 70, "ramp": "purple", "step": 5, "intensity": 0.22 },
+        { "x": 328, "y": 21, "radius": 76, "ramp": "gold", "step": 5, "intensity": 0.24 },
+        { "x": 346, "y": 23, "radius": 70, "ramp": "gold", "step": 6, "intensity": 0.34 }
       ]
     },
 
